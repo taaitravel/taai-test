@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plane, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
@@ -45,7 +45,7 @@ const Login = () => {
           </Button>
           
           <div className="flex items-center justify-center space-x-2">
-            <Plane className="h-8 w-8 text-yellow-400" />
+            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-8" />
             <span className="text-2xl font-bold luxury-text-gradient">
               TAAI Travel
             </span>
