@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -70,11 +69,8 @@ const Itinerary = () => {
                 Back to Dashboard
               </Button>
             </div>
-            <div className="flex items-center space-x-2">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-8" />
-              <span className="text-2xl font-bold luxury-text-gradient">
-                TAAI Travel
-              </span>
+            <div className="flex items-center">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-12 w-auto min-w-[100px]" />
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-400/10">

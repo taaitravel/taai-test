@@ -44,11 +44,8 @@ const Login = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           
-          <div className="flex items-center justify-center space-x-2">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-8" />
-            <span className="text-2xl font-bold luxury-text-gradient">
-              TAAI Travel
-            </span>
+          <div className="flex items-center justify-center">
+            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-12 w-auto min-w-[100px]" />
           </div>
           
           <div className="space-y-2">
