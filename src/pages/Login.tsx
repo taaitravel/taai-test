@@ -45,7 +45,7 @@ const Login = () => {
           </Button>
           
           <div className="flex items-center justify-center">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-12 w-auto min-w-[100px]" />
+            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-12 w-auto min-w-[80px]" />
           </div>
           
           <div className="space-y-2">
