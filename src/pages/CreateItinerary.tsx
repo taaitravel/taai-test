@@ -1,20 +1,47 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Plane, Calendar, Users, MapPin, DollarSign, ArrowLeft, ArrowRight } from "lucide-react";
+import { Plane, Send, Bot, User, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface Message {
+  id: string;
+  type: 'bot' | 'user';
+  content: string;
+  timestamp: Date;
+}
+
+interface ItineraryData {
+  name: string;
+  startDate: string;
+  endDate: string;
+  people: number;
+  budget: string;
+  destinations: string;
+  description: string;
+  travelerTypes: string[];
+}
 
 const CreateItinerary = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const [itineraryData, setItineraryData] = useState({
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      type: 'bot',
+      content: "Hello! I'm your AI travel assistant. I'm here to help you create the perfect itinerary. Let's start with the basics - what would you like to name your trip?",
+      timestamp: new Date()
+    }
+  ]);
+  
+  const [currentInput, setCurrentInput] = useState('');
+  const [currentStep, setCurrentStep] = useState(0);
+  const [itineraryData, setItineraryData] = useState<ItineraryData>({
     name: '',
     startDate: '',
     endDate: '',
@@ -22,42 +49,117 @@ const CreateItinerary = () => {
     budget: '',
     destinations: '',
     description: '',
-    travelerTypes: [] as string[]
+    travelerTypes: []
   });
 
-  const travelerTypeOptions = [
-    { id: 'solo', label: 'Solo Traveler', icon: '🧳' },
-    { id: 'couple', label: 'Couple', icon: '💑' },
-    { id: 'family', label: 'Family', icon: '👨‍👩‍👧‍👦' },
-    { id: 'friends', label: 'Friends', icon: '👥' },
-    { id: 'business', label: 'Business', icon: '💼' }
+  const chatFlow = [
+    {
+      field: 'name',
+      question: "What would you like to name your trip?",
+      followUp: "Great choice! When would you like to start your trip? (Please provide a date in YYYY-MM-DD format)"
+    },
+    {
+      field: 'startDate',
+      question: "When would you like to start your trip? (Please provide a date in YYYY-MM-DD format)",
+      followUp: "Perfect! And when would you like to return? (Please provide a date in YYYY-MM-DD format)"
+    },
+    {
+      field: 'endDate',
+      question: "When would you like to return? (Please provide a date in YYYY-MM-DD format)",
+      followUp: "Excellent! How many people will be traveling?"
+    },
+    {
+      field: 'people',
+      question: "How many people will be traveling?",
+      followUp: "Got it! What's your estimated budget for this trip in USD?"
+    },
+    {
+      field: 'budget',
+      question: "What's your estimated budget for this trip in USD?",
+      followUp: "Wonderful! Where would you like to go? (You can list multiple destinations separated by commas)"
+    },
+    {
+      field: 'destinations',
+      question: "Where would you like to go? (You can list multiple destinations separated by commas)",
+      followUp: "Amazing destinations! Finally, could you tell me a bit about what kind of trip you're looking for? (Optional - you can also type 'skip')"
+    },
+    {
+      field: 'description',
+      question: "Could you tell me a bit about what kind of trip you're looking for? (Optional - you can also type 'skip')",
+      followUp: "Perfect! I have all the information I need. Let me create your personalized itinerary!"
+    }
   ];
 
-  const handleInputChange = (field: string, value: string | number | string[]) => {
-    setItineraryData(prev => ({ ...prev, [field]: value }));
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const toggleTravelerType = (type: string) => {
-    setItineraryData(prev => ({
-      ...prev,
-      travelerTypes: prev.travelerTypes.includes(type)
-        ? prev.travelerTypes.filter(t => t !== type)
-        : [...prev.travelerTypes, type]
-    }));
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const addMessage = (type: 'bot' | 'user', content: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type,
+      content,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, newMessage]);
   };
 
-  const handleCreateItinerary = () => {
-    toast({
-      title: "Itinerary Created!",
-      description: "Your travel plan has been created successfully. Let's start adding details.",
-    });
-    navigate('/dashboard');
+  const handleSendMessage = () => {
+    if (!currentInput.trim()) return;
+
+    // Add user message
+    addMessage('user', currentInput);
+
+    // Process the input
+    const currentField = chatFlow[currentStep]?.field;
+    if (currentField) {
+      const updatedData = { ...itineraryData };
+      
+      if (currentField === 'people') {
+        updatedData[currentField] = parseInt(currentInput) || 1;
+      } else if (currentField === 'description' && currentInput.toLowerCase() === 'skip') {
+        updatedData[currentField] = '';
+      } else {
+        updatedData[currentField] = currentInput;
+      }
+      
+      setItineraryData(updatedData);
+    }
+
+    // Add bot response
+    setTimeout(() => {
+      if (currentStep < chatFlow.length - 1) {
+        addMessage('bot', chatFlow[currentStep].followUp);
+        setCurrentStep(currentStep + 1);
+      } else {
+        addMessage('bot', "Perfect! I have all the information I need. Let me create your personalized itinerary!");
+        setTimeout(() => {
+          toast({
+            title: "Itinerary Created!",
+            description: "Your travel plan has been created successfully.",
+          });
+          navigate('/itinerary', { state: { itineraryData } });
+        }, 2000);
+      }
+    }, 1000);
+
+    setCurrentInput('');
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
+    <div className="min-h-screen bg-[#171821] flex flex-col">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-blue-100">
+      <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-yellow-500/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
@@ -65,15 +167,15 @@ const CreateItinerary = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => navigate('/dashboard')}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-yellow-300 hover:text-yellow-200 hover:bg-yellow-400/10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
             </div>
             <div className="flex items-center space-x-2">
-              <Plane className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+              <Plane className="h-8 w-8 text-yellow-400" />
+              <span className="text-2xl font-bold luxury-text-gradient">
                 TAAI Travel
               </span>
             </div>
@@ -81,212 +183,72 @@ const CreateItinerary = () => {
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Create New Itinerary</h1>
-          <p className="text-xl text-gray-600">Let's plan your perfect trip with AI assistance</p>
+      {/* Chat Container */}
+      <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-6">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold luxury-text-gradient mb-2">AI Travel Assistant</h1>
+          <p className="text-yellow-300/70">Let me help you plan your perfect trip</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Main Form */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5 text-blue-600" />
-                  <span>Trip Details</span>
-                </CardTitle>
-                <CardDescription>Basic information about your trip</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Trip Name</Label>
-                  <Input
-                    id="name"
-                    placeholder="e.g., Summer Europe Adventure"
-                    value={itineraryData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date</Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      value={itineraryData.startDate}
-                      onChange={(e) => handleInputChange('startDate', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={itineraryData.endDate}
-                      onChange={(e) => handleInputChange('endDate', e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="people">Number of Travelers</Label>
-                    <Input
-                      id="people"
-                      type="number"
-                      min="1"
-                      value={itineraryData.people}
-                      onChange={(e) => handleInputChange('people', parseInt(e.target.value) || 1)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="budget">Budget (USD)</Label>
-                    <Input
-                      id="budget"
-                      placeholder="5000"
-                      value={itineraryData.budget}
-                      onChange={(e) => handleInputChange('budget', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-emerald-600" />
-                  <span>Destinations</span>
-                </CardTitle>
-                <CardDescription>Where would you like to go?</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="destinations">Destinations</Label>
-                  <Input
-                    id="destinations"
-                    placeholder="e.g., Paris, Rome, Barcelona"
-                    value={itineraryData.destinations}
-                    onChange={(e) => handleInputChange('destinations', e.target.value)}
-                  />
-                  <p className="text-sm text-gray-500">Separate multiple destinations with commas</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Trip Description (Optional)</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Tell us about your ideal trip..."
-                    value={itineraryData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="h-5 w-5 text-purple-600" />
-                  <span>Travel Style</span>
-                </CardTitle>
-                <CardDescription>What type of trip is this?</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-3">
-                  {travelerTypeOptions.map((option) => (
-                    <div
-                      key={option.id}
-                      onClick={() => toggleTravelerType(option.id)}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                        itineraryData.travelerTypes.includes(option.id)
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{option.icon}</span>
-                        <span className="font-medium text-gray-900">{option.label}</span>
-                      </div>
+        {/* Messages */}
+        <Card className="flex-1 mb-4 bg-[#171821]/60 border-yellow-500/30 backdrop-blur-md">
+          <CardContent className="p-4 h-96 overflow-y-auto">
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`flex items-start space-x-2 max-w-xs lg:max-w-md ${
+                    message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
+                  }`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      message.type === 'bot' 
+                        ? 'gold-gradient' 
+                        : 'bg-yellow-400/20 border border-yellow-400/30'
+                    }`}>
+                      {message.type === 'bot' ? (
+                        <Bot className="h-4 w-4 text-[#171821]" />
+                      ) : (
+                        <User className="h-4 w-4 text-yellow-400" />
+                      )}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Recommendations</CardTitle>
-                <CardDescription>Based on your preferences</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm font-medium text-blue-900">🎯 Smart Tip</p>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Based on your profile, we recommend booking flights 6-8 weeks in advance for better deals.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <p className="text-sm font-medium text-emerald-900">💰 Budget Insight</p>
-                    <p className="text-sm text-emerald-700 mt-1">
-                      Similar trips to Europe typically cost $150-250 per day per person including accommodation.
-                    </p>
+                    <div className={`px-4 py-2 rounded-lg ${
+                      message.type === 'bot'
+                        ? 'bg-[#2d2a1f] text-yellow-200 border border-yellow-500/20'
+                        : 'gold-gradient text-[#171821] font-medium'
+                    }`}>
+                      <p className="text-sm">{message.content}</p>
+                      <span className={`text-xs opacity-70 mt-1 block ${
+                        message.type === 'bot' ? 'text-yellow-300/50' : 'text-[#171821]/70'
+                      }`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
+            <div ref={messagesEndRef} />
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Trip Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Duration:</span>
-                    <span className="font-medium">
-                      {itineraryData.startDate && itineraryData.endDate 
-                        ? `${Math.ceil((new Date(itineraryData.endDate).getTime() - new Date(itineraryData.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`
-                        : 'Not set'
-                      }
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Travelers:</span>
-                    <span className="font-medium">{itineraryData.people}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Budget:</span>
-                    <span className="font-medium">
-                      {itineraryData.budget ? `$${Number(itineraryData.budget).toLocaleString()}` : 'Not set'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Per Person:</span>
-                    <span className="font-medium">
-                      {itineraryData.budget ? `$${Math.round(Number(itineraryData.budget) / itineraryData.people).toLocaleString()}` : 'Not set'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button 
-              onClick={handleCreateItinerary}
-              size="lg"
-              className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white"
-            >
-              Create Itinerary
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
+        {/* Input */}
+        <div className="flex space-x-2">
+          <Input
+            placeholder="Type your message..."
+            value={currentInput}
+            onChange={(e) => setCurrentInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="flex-1 bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+          />
+          <Button 
+            onClick={handleSendMessage}
+            disabled={!currentInput.trim()}
+            className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
