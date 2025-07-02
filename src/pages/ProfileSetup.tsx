@@ -143,40 +143,40 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-primary mb-2">Personal Information</h3>
-              <p className="text-muted-foreground">Let's complete your basic profile</p>
+              <h3 className="text-xl font-semibold text-yellow-200 mb-2">Personal Information</h3>
+              <p className="text-yellow-300/70">Let's complete your basic profile</p>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-foreground">Last Name</Label>
+              <Label htmlFor="lastName" className="text-yellow-300">Last Name</Label>
               <Input
                 id="lastName"
                 placeholder="Smith"
                 value={profileData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className="bg-secondary border-primary/30 text-foreground placeholder:text-muted-foreground focus:border-primary"
+                className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="address" className="text-foreground">Address</Label>
+              <Label htmlFor="address" className="text-yellow-300">Address</Label>
               <Input
                 id="address"
                 placeholder="123 Main St, City, State 12345"
                 value={profileData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
-                className="bg-secondary border-primary/30 text-foreground placeholder:text-muted-foreground focus:border-primary"
+                className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="nationality" className="text-foreground">Nationality</Label>
+              <Label htmlFor="nationality" className="text-yellow-300">Nationality</Label>
               <Input
                 id="nationality"
                 placeholder="United States"
                 value={profileData.nationality}
                 onChange={(e) => handleInputChange('nationality', e.target.value)}
-                className="bg-secondary border-primary/30 text-foreground placeholder:text-muted-foreground focus:border-primary"
+                className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
               />
             </div>
           </div>
@@ -186,24 +186,24 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Globe className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-primary mb-2">Countries Visited</h3>
-              <p className="text-muted-foreground">Pop the bubbles to select countries you've visited!</p>
-              <Badge variant="secondary" className="mt-2">
+              <Globe className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-yellow-200 mb-2">Countries Visited</h3>
+              <p className="text-yellow-300/70">Pop the bubbles to select countries you've visited!</p>
+              <Badge variant="secondary" className="mt-2 bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
                 {profileData.countriesVisited.length} countries visited
               </Badge>
             </div>
             
             {!selectedContinent ? (
               <div className="space-y-4">
-                <p className="text-center text-foreground">Select a continent to explore:</p>
+                <p className="text-center text-yellow-200">Select a continent to explore:</p>
                 <div className="grid grid-cols-2 gap-3">
                   {Object.keys(continents).map((continent) => (
                     <Button
                       key={continent}
                       variant="outline"
                       onClick={() => setSelectedContinent(continent)}
-                      className="h-16 text-sm font-medium border-primary/50 hover:bg-primary/10 hover:border-primary animate-pulse"
+                      className="h-16 text-sm font-medium border-yellow-500/50 hover:bg-yellow-500/10 hover:border-yellow-400 animate-pulse text-yellow-200"
                     >
                       {continent}
                     </Button>
@@ -213,12 +213,12 @@ const ProfileSetup = () => {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-foreground">{selectedContinent}</h4>
+                  <h4 className="font-semibold text-yellow-200">{selectedContinent}</h4>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedContinent(null)}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-yellow-300/70 hover:text-yellow-200"
                   >
                     Back to continents
                   </Button>
@@ -232,8 +232,8 @@ const ProfileSetup = () => {
                       onClick={() => handleCountrySelect(country)}
                       className={`text-xs transition-all duration-200 ${
                         profileData.countriesVisited.includes(country)
-                          ? 'bg-primary text-primary-foreground scale-95'
-                          : 'border-primary/50 hover:bg-primary/10 hover:scale-105'
+                          ? 'gold-gradient text-[#171821] scale-95'
+                          : 'border-yellow-500/50 hover:bg-yellow-500/10 hover:scale-105 text-yellow-200'
                       }`}
                     >
                       {country}
@@ -249,10 +249,10 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Calendar className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-primary mb-2">Flight Frequency</h3>
-              <p className="text-muted-foreground">Click months to add flights (max 10 per month)</p>
-              <Badge variant="secondary" className="mt-2">
+              <Calendar className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-yellow-200 mb-2">Flight Frequency</h3>
+              <p className="text-yellow-300/70">Click months to add flights (max 10 per month)</p>
+              <Badge variant="secondary" className="mt-2 bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
                 {Object.values(profileData.monthlyFlights).reduce((sum, flights) => sum + flights, 0)} total flights/year
               </Badge>
             </div>
@@ -262,30 +262,30 @@ const ProfileSetup = () => {
                 const flightCount = profileData.monthlyFlights[index] || 0;
                 return (
                   <div key={month} className="text-center">
-                    <div className="text-xs text-muted-foreground mb-1">{month}</div>
-                    <div className="border border-primary/30 rounded-lg p-3 hover:border-primary/50 transition-colors">
+                    <div className="text-xs text-yellow-300/70 mb-1">{month}</div>
+                    <div className="border border-yellow-500/30 rounded-lg p-3 hover:border-yellow-500/50 transition-colors">
                       <div className="flex items-center justify-between mb-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleMonthDecrease(index)}
                           disabled={flightCount === 0}
-                          className="h-6 w-6 p-0"
+                          className="h-6 w-6 p-0 text-yellow-300 hover:text-yellow-200"
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="font-semibold text-foreground">{flightCount}</span>
+                        <span className="font-semibold text-yellow-200">{flightCount}</span>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleMonthClick(index)}
                           disabled={flightCount >= 10}
-                          className="h-6 w-6 p-0"
+                          className="h-6 w-6 p-0 text-yellow-300 hover:text-yellow-200"
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
-                      <div className="text-xs text-muted-foreground">flights</div>
+                      <div className="text-xs text-yellow-300/70">flights</div>
                     </div>
                   </div>
                 );
@@ -298,9 +298,9 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Plane className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-primary mb-2">Preferred Airlines</h3>
-              <p className="text-muted-foreground">Select your favorite airlines</p>
+              <Plane className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-yellow-200 mb-2">Preferred Airlines</h3>
+              <p className="text-yellow-300/70">Select your favorite airlines</p>
             </div>
             
             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
@@ -312,8 +312,8 @@ const ProfileSetup = () => {
                   onClick={() => handlePreferenceSelect('selectedAirlines', airline)}
                   className={`text-xs transition-all duration-200 ${
                     profileData.selectedAirlines.includes(airline)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border-primary/50 hover:bg-primary/10'
+                      ? 'gold-gradient text-[#171821]'
+                      : 'border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
                   }`}
                 >
                   {airline}
@@ -328,16 +328,16 @@ const ProfileSetup = () => {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <div className="flex justify-center space-x-4 mb-4">
-                <Hotel className="h-8 w-8 text-primary" />
-                <Car className="h-8 w-8 text-primary" />
+                <Hotel className="h-8 w-8 text-yellow-400" />
+                <Car className="h-8 w-8 text-yellow-400" />
               </div>
-              <h3 className="text-xl font-semibold text-primary mb-2">Hotels & Car Rentals</h3>
-              <p className="text-muted-foreground">Complete your preferences</p>
+              <h3 className="text-xl font-semibold text-yellow-200 mb-2">Hotels & Car Rentals</h3>
+              <p className="text-yellow-300/70">Complete your preferences</p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium text-foreground mb-2">Preferred Hotels</h4>
+                <h4 className="font-medium text-yellow-200 mb-2">Preferred Hotels</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                   {hotels.map((hotel) => (
                     <Button
@@ -347,8 +347,8 @@ const ProfileSetup = () => {
                       onClick={() => handlePreferenceSelect('selectedHotels', hotel)}
                       className={`text-xs transition-all duration-200 ${
                         profileData.selectedHotels.includes(hotel)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'border-primary/50 hover:bg-primary/10'
+                          ? 'gold-gradient text-[#171821]'
+                          : 'border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
                       }`}
                     >
                       {hotel}
@@ -358,7 +358,7 @@ const ProfileSetup = () => {
               </div>
               
               <div>
-                <h4 className="font-medium text-foreground mb-2">Preferred Car Rentals</h4>
+                <h4 className="font-medium text-yellow-200 mb-2">Preferred Car Rentals</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                   {carRentals.map((rental) => (
                     <Button
@@ -368,8 +368,8 @@ const ProfileSetup = () => {
                       onClick={() => handlePreferenceSelect('selectedCarRentals', rental)}
                       className={`text-xs transition-all duration-200 ${
                         profileData.selectedCarRentals.includes(rental)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'border-primary/50 hover:bg-primary/10'
+                          ? 'gold-gradient text-[#171821]'
+                          : 'border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
                       }`}
                     >
                       {rental}
@@ -388,38 +388,38 @@ const ProfileSetup = () => {
             {/* Completion Header */}
             <div className="text-center mb-6">
               <div className="text-4xl mb-4">🎉</div>
-              <h3 className="text-xl font-semibold text-primary mb-2">Profile Complete!</h3>
-              <p className="text-muted-foreground">You're all set to start your journey</p>
+              <h3 className="text-xl font-semibold text-yellow-200 mb-2">Profile Complete!</h3>
+              <p className="text-yellow-300/70">You're all set to start your journey</p>
             </div>
 
             {/* Traveler Level Achievement - Main Focus */}
-            <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-6 rounded-lg border border-primary/30 text-center">
+            <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 p-6 rounded-lg border border-yellow-500/30 text-center">
               <div className="text-4xl mb-3">{travelerLevel.icon}</div>
               <h4 className={`text-xl font-bold ${travelerLevel.color} mb-2`}>
                 Welcome, {travelerLevel.level}!
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-yellow-300/70 mb-4">
                 {profileData.countriesVisited.length} countries explored • {Object.values(profileData.monthlyFlights).reduce((sum, flights) => sum + flights, 0)} flights per year
               </p>
               <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="bg-background/50 p-3 rounded-lg">
-                  <div className="font-semibold text-foreground">{profileData.selectedAirlines.length}</div>
-                  <div className="text-muted-foreground">Preferred Airlines</div>
+                <div className="bg-[#171821]/50 p-3 rounded-lg">
+                  <div className="font-semibold text-yellow-200">{profileData.selectedAirlines.length}</div>
+                  <div className="text-yellow-300/70">Preferred Airlines</div>
                 </div>
-                <div className="bg-background/50 p-3 rounded-lg">
-                  <div className="font-semibold text-foreground">{profileData.selectedHotels.length}</div>
-                  <div className="text-muted-foreground">Preferred Hotels</div>
+                <div className="bg-[#171821]/50 p-3 rounded-lg">
+                  <div className="font-semibold text-yellow-200">{profileData.selectedHotels.length}</div>
+                  <div className="text-yellow-300/70">Preferred Hotels</div>
                 </div>
               </div>
             </div>
 
             {/* Call to Action */}
-            <div className="bg-secondary/30 p-4 rounded-lg border border-primary/20 text-center">
-              <h5 className="font-semibold text-foreground mb-2">Ready for Your Next Adventure?</h5>
-              <p className="text-sm text-muted-foreground mb-3">
+            <div className="bg-[#2d2a1f]/30 p-4 rounded-lg border border-yellow-500/20 text-center">
+              <h5 className="font-semibold text-yellow-200 mb-2">Ready for Your Next Adventure?</h5>
+              <p className="text-sm text-yellow-300/70 mb-3">
                 Your personalized travel profile is ready. Let's start planning your next unforgettable trip!
               </p>
-              <div className="flex items-center justify-center space-x-2 text-primary">
+              <div className="flex items-center justify-center space-x-2 text-yellow-400">
                 <MapPin className="h-4 w-4" />
                 <span className="text-sm font-medium">Dashboard → Create Itinerary → Book Trip</span>
               </div>
@@ -427,7 +427,7 @@ const ProfileSetup = () => {
 
             {/* Quick Stats */}
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-yellow-300/70">
                 Based on your profile, we'll recommend personalized destinations, 
                 optimize your loyalty programs, and find the best deals.
               </p>
@@ -441,23 +441,23 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5"></div>
-      <Card className="w-full max-w-lg shadow-2xl shadow-primary/20 border-primary/30 bg-card/95 backdrop-blur-md relative">
+    <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/10 via-transparent to-yellow-800/10"></div>
+      <Card className="w-full max-w-lg shadow-2xl shadow-yellow-500/20 border-yellow-500/30 bg-[#171821]/95 backdrop-blur-md relative">
         <CardHeader className="text-center space-y-4">
           <div className="flex items-center justify-center space-x-2">
-            <Plane className="h-8 w-8 text-primary" />
+            <Plane className="h-8 w-8 text-yellow-400" />
             <span className="text-2xl font-bold luxury-text-gradient">
               TAAI Travel
             </span>
           </div>
           
           <div className="space-y-2">
-            <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+            <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
               Step {currentStep} of {totalSteps}
             </Badge>
-            <CardTitle className="text-2xl text-card-foreground">Profile Setup</CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardTitle className="text-2xl text-yellow-200">Profile Setup</CardTitle>
+            <CardDescription className="text-yellow-300/70">
               Help us personalize your travel experience
             </CardDescription>
           </div>
@@ -472,7 +472,7 @@ const ProfileSetup = () => {
             <Button 
               variant="outline" 
               onClick={handleBack}
-              className="flex items-center space-x-2 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
+              className="flex items-center space-x-2 border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/10 hover:border-yellow-400"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back</span>
@@ -480,7 +480,7 @@ const ProfileSetup = () => {
             
             <Button 
               onClick={handleNext}
-              className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold flex items-center space-x-2"
+              className="gold-gradient hover:opacity-90 text-[#171821] font-semibold flex items-center space-x-2"
             >
               <span>{currentStep === totalSteps ? 'Complete Setup' : 'Next'}</span>
               <ArrowRight className="h-4 w-4" />
