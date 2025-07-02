@@ -154,7 +154,7 @@ const ProfileSetup = () => {
                 placeholder="Smith"
                 value={profileData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
               />
             </div>
             
@@ -165,7 +165,7 @@ const ProfileSetup = () => {
                 placeholder="123 Main St, City, State 12345"
                 value={profileData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
-                className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
               />
             </div>
             
@@ -176,7 +176,7 @@ const ProfileSetup = () => {
                 placeholder="United States"
                 value={profileData.nationality}
                 onChange={(e) => handleInputChange('nationality', e.target.value)}
-                className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
               />
             </div>
           </div>

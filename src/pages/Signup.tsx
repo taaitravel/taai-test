@@ -112,7 +112,7 @@ const Signup = () => {
                     placeholder="John"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                    className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
                   />
                 </div>
                 <div className="space-y-2">
@@ -122,7 +122,7 @@ const Signup = () => {
                     placeholder="johndoe"
                     value={formData.userName}
                     onChange={(e) => handleInputChange('userName', e.target.value)}
-                    className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                    className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
                   />
                 </div>
               </div>
@@ -134,7 +134,7 @@ const Signup = () => {
                   placeholder="+1 (555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                  className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
                 />
               </div>
             </>
@@ -147,7 +147,7 @@ const Signup = () => {
                   placeholder="Acme Corporation"
                   value={formData.companyName}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                  className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
                 />
               </div>
               
@@ -158,7 +158,7 @@ const Signup = () => {
                   placeholder="Jane Smith"
                   value={formData.adminName}
                   onChange={(e) => handleInputChange('adminName', e.target.value)}
-                  className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                  className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
                 />
               </div>
               
@@ -169,7 +169,7 @@ const Signup = () => {
                   placeholder="123 Business Ave, City, State 12345"
                   value={formData.registeredAddress}
                   onChange={(e) => handleInputChange('registeredAddress', e.target.value)}
-                  className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                  className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
                 />
               </div>
               
@@ -180,7 +180,7 @@ const Signup = () => {
                   placeholder="+1 (555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+                  className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
                 />
               </div>
             </>
@@ -194,7 +194,7 @@ const Signup = () => {
               placeholder="you@example.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+              className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
             />
           </div>
 
@@ -206,7 +206,7 @@ const Signup = () => {
               placeholder="Create a strong password"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
-              className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+              className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
             />
           </div>
 
@@ -218,7 +218,7 @@ const Signup = () => {
               placeholder="Confirm your password"
               value={formData.confirmPassword}
               onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-              className="bg-[#2d2a1f] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
+              className="bg-[#1f1f27] border-yellow-500/30 text-yellow-200 placeholder:text-yellow-300/50 focus:border-yellow-400"
             />
           </div>
 
