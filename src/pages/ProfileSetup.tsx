@@ -203,7 +203,7 @@ const ProfileSetup = () => {
                       key={continent}
                       variant="outline"
                       onClick={() => setSelectedContinent(continent)}
-                      className="h-16 text-sm font-medium border-yellow-500/50 hover:bg-yellow-500/10 hover:border-yellow-400 animate-pulse text-yellow-200"
+                      className="h-16 text-sm font-medium bg-[#1f1f27] border-yellow-500/50 hover:bg-yellow-500/10 hover:border-yellow-400 animate-pulse text-yellow-200"
                     >
                       {continent}
                     </Button>
@@ -233,7 +233,7 @@ const ProfileSetup = () => {
                       className={`text-xs transition-all duration-200 ${
                         profileData.countriesVisited.includes(country)
                           ? 'gold-gradient text-[#171821] scale-95'
-                          : 'border-yellow-500/50 hover:bg-yellow-500/10 hover:scale-105 text-yellow-200'
+                          : 'bg-[#1f1f27] border-yellow-500/50 hover:bg-yellow-500/10 hover:scale-105 text-yellow-200'
                       }`}
                     >
                       {country}
@@ -313,7 +313,7 @@ const ProfileSetup = () => {
                   className={`text-xs transition-all duration-200 ${
                     profileData.selectedAirlines.includes(airline)
                       ? 'gold-gradient text-[#171821]'
-                      : 'border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
+                      : 'bg-[#1f1f27] border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
                   }`}
                 >
                   {airline}
@@ -348,7 +348,7 @@ const ProfileSetup = () => {
                       className={`text-xs transition-all duration-200 ${
                         profileData.selectedHotels.includes(hotel)
                           ? 'gold-gradient text-[#171821]'
-                          : 'border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
+                          : 'bg-[#1f1f27] border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
                       }`}
                     >
                       {hotel}
@@ -369,7 +369,7 @@ const ProfileSetup = () => {
                       className={`text-xs transition-all duration-200 ${
                         profileData.selectedCarRentals.includes(rental)
                           ? 'gold-gradient text-[#171821]'
-                          : 'border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
+                          : 'bg-[#1f1f27] border-yellow-500/50 hover:bg-yellow-500/10 text-yellow-200'
                       }`}
                     >
                       {rental}
