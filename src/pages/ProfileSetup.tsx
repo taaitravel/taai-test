@@ -29,7 +29,7 @@ const ProfileSetup = () => {
 
   const [selectedContinent, setSelectedContinent] = useState<string | null>(null);
 
-  const totalSteps = 5;
+  const totalSteps = 6;
   const progress = (currentStep / totalSteps) * 100;
 
   // Data for gamified experience
@@ -120,9 +120,10 @@ const ProfileSetup = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
+      const travelerLevel = getTravelerLevel();
       toast({
-        title: "Profile Setup Complete!",
-        description: `Welcome ${getTravelerLevel().level}! Let's start planning your adventures.`,
+        title: `Welcome aboard, ${travelerLevel.level}!`,
+        description: "Your adventure begins now. Let's plan your next trip!",
       });
       navigate('/dashboard');
     }
@@ -323,7 +324,6 @@ const ProfileSetup = () => {
         );
       
       case 5:
-        const travelerLevel = getTravelerLevel();
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -378,15 +378,58 @@ const ProfileSetup = () => {
                 </div>
               </div>
             </div>
-            
-            {/* Traveler Level Achievement */}
-            <div className="bg-secondary/60 p-4 rounded-lg border border-primary/20 text-center">
-              <div className="text-2xl mb-2">{travelerLevel.icon}</div>
-              <h4 className={`font-semibold ${travelerLevel.color} mb-1`}>
-                Congratulations! You're a {travelerLevel.level}
+          </div>
+        );
+
+      case 6:
+        const travelerLevel = getTravelerLevel();
+        return (
+          <div className="space-y-6">
+            {/* Completion Header */}
+            <div className="text-center mb-6">
+              <div className="text-4xl mb-4">🎉</div>
+              <h3 className="text-xl font-semibold text-primary mb-2">Profile Complete!</h3>
+              <p className="text-muted-foreground">You're all set to start your journey</p>
+            </div>
+
+            {/* Traveler Level Achievement - Main Focus */}
+            <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-6 rounded-lg border border-primary/30 text-center">
+              <div className="text-4xl mb-3">{travelerLevel.icon}</div>
+              <h4 className={`text-xl font-bold ${travelerLevel.color} mb-2`}>
+                Welcome, {travelerLevel.level}!
               </h4>
-              <p className="text-sm text-muted-foreground">
-                {profileData.countriesVisited.length} countries • {Object.values(profileData.monthlyFlights).reduce((sum, flights) => sum + flights, 0)} flights/year
+              <p className="text-sm text-muted-foreground mb-4">
+                {profileData.countriesVisited.length} countries explored • {Object.values(profileData.monthlyFlights).reduce((sum, flights) => sum + flights, 0)} flights per year
+              </p>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="bg-background/50 p-3 rounded-lg">
+                  <div className="font-semibold text-foreground">{profileData.selectedAirlines.length}</div>
+                  <div className="text-muted-foreground">Preferred Airlines</div>
+                </div>
+                <div className="bg-background/50 p-3 rounded-lg">
+                  <div className="font-semibold text-foreground">{profileData.selectedHotels.length}</div>
+                  <div className="text-muted-foreground">Preferred Hotels</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Call to Action */}
+            <div className="bg-secondary/30 p-4 rounded-lg border border-primary/20 text-center">
+              <h5 className="font-semibold text-foreground mb-2">Ready for Your Next Adventure?</h5>
+              <p className="text-sm text-muted-foreground mb-3">
+                Your personalized travel profile is ready. Let's start planning your next unforgettable trip!
+              </p>
+              <div className="flex items-center justify-center space-x-2 text-primary">
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm font-medium">Dashboard → Create Itinerary → Book Trip</span>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">
+                Based on your profile, we'll recommend personalized destinations, 
+                optimize your loyalty programs, and find the best deals.
               </p>
             </div>
           </div>
