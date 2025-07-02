@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Plane, MapPin, Calendar, Users, DollarSign, ArrowLeft, Edit, Share2, Download } from "lucide-react";
 import Map from "@/components/Map";
+import AIReservationChat from "@/components/AIReservationChat";
 
 interface ItineraryData {
   name: string;
@@ -278,6 +279,9 @@ const Itinerary = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* AI Reservation Chat */}
+            <AIReservationChat />
           </div>
         </div>
       </div>
