@@ -392,14 +392,50 @@ const AIReservationChat = () => {
   };
 
   return (
-    <Card className="luxury-gradient border-primary/30 backdrop-blur-md min-h-[500px] flex flex-col shadow-2xl">
+    <Card className="bg-[#171821]/95 backdrop-blur-md border-white/30 min-h-[500px] flex flex-col shadow-2xl shadow-white/20">
       <CardHeader className="pb-4">
-        <CardTitle className="text-primary flex items-center space-x-2">
-          <Bot className="h-5 w-5 text-primary" />
-          <span className="luxury-text-gradient font-bold">AI Reservation Assistant</span>
-          <Badge className="ml-auto gold-gradient text-background border-0 shadow-lg">
-            Online
-          </Badge>
+        <CardTitle className="text-white flex items-center justify-between">
+          <span className="luxury-text-gradient font-bold">Plan Your Perfect Trip</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="bg-[#1f1f27] border-white/30 text-white hover:bg-white/10"
+              >
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                {selectedDateRange.from && selectedDateRange.to
+                  ? `${format(selectedDateRange.from, "MMM dd")} - ${format(selectedDateRange.to, "MMM dd")}`
+                  : "Select travel dates"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-[#171821] border-white/30" align="start">
+              <div className="p-3">
+                <div className="text-sm font-medium mb-2 text-white">Select travel dates:</div>
+                <Calendar
+                  mode="range"
+                  selected={selectedDateRange}
+                  onSelect={setSelectedDateRange}
+                  numberOfMonths={2}
+                  className={cn("pointer-events-auto")}
+                />
+                <div className="flex justify-between mt-3">
+                  <div className="text-xs text-white/70">
+                    {selectedDateRange.from && selectedDateRange.to
+                      ? `${format(selectedDateRange.from, "MMM dd")} - ${format(selectedDateRange.to, "MMM dd")}`
+                      : "Select date range"}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleDateRangeSubmit}
+                    disabled={!selectedDateRange.from || !selectedDateRange.to}
+                    className="ml-2 gold-gradient text-background"
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </CardTitle>
       </CardHeader>
 
@@ -416,7 +452,7 @@ const AIReservationChat = () => {
                   className={cn(
                     "rounded-lg px-3 py-2 text-sm",
                     message.isBot
-                      ? "bg-secondary text-foreground"
+                      ? "bg-[#1f1f27] text-white border border-white/20"
                       : "bg-primary text-primary-foreground"
                   )}
                 >
@@ -425,7 +461,7 @@ const AIReservationChat = () => {
                 
                 {message.actions && renderActionButtons(message.actions)}
                 
-                <div className="text-xs text-muted-foreground mt-1 px-1">
+                <div className="text-xs text-white/50 mt-1 px-1">
                   {format(message.timestamp, "HH:mm")}
                 </div>
               </div>
@@ -445,10 +481,10 @@ const AIReservationChat = () => {
             </div>
           ))}
           
-          {isTyping && (
+              {isTyping && (
             <div className="flex justify-start">
               <div className="order-2 max-w-[80%]">
-                <div className="bg-secondary text-foreground rounded-lg px-3 py-2 text-sm">
+                <div className="bg-[#1f1f27] text-white border border-white/20 rounded-lg px-3 py-2 text-sm">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -468,20 +504,20 @@ const AIReservationChat = () => {
         </div>
 
         {/* Input */}
-        <div className="border-t border-border p-4">
+        <div className="border-t border-white/30 p-4">
           <div className="flex space-x-2">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask me about flights, hotels, or activities..."
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              className="flex-1 bg-secondary border-primary/30 text-foreground placeholder:text-muted-foreground focus:border-primary"
+              className="flex-1 bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
             />
             <Button
               onClick={handleSend}
               size="sm"
               disabled={!inputValue.trim()}
-              className="px-3"
+              className="px-3 gold-gradient text-background"
             >
               <Send className="h-4 w-4" />
             </Button>
