@@ -29,7 +29,7 @@ const ProfileSetup = () => {
 
   const [selectedContinent, setSelectedContinent] = useState<string | null>(null);
 
-  const totalSteps = 6;
+  const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
 
   // Data for gamified experience
@@ -298,44 +298,37 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Plane className="h-12 w-12 text-white mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Preferred Airlines</h3>
-              <p className="text-white/70">Select your favorite airlines</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-              {airlines.map((airline) => (
-                <Button
-                  key={airline}
-                  variant={profileData.selectedAirlines.includes(airline) ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handlePreferenceSelect('selectedAirlines', airline)}
-                  className={`text-xs transition-all duration-200 ${
-                    profileData.selectedAirlines.includes(airline)
-                      ? 'gold-gradient text-[#171821]'
-                      : 'bg-[#1f1f27] border-white/50 hover:bg-white/10 text-white'
-                  }`}
-                >
-                  {airline}
-                </Button>
-              ))}
-            </div>
-          </div>
-        );
-      
-      case 5:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
               <div className="flex justify-center space-x-4 mb-4">
+                <Plane className="h-8 w-8 text-white" />
                 <Hotel className="h-8 w-8 text-white" />
                 <Car className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Hotels & Car Rentals</h3>
-              <p className="text-white/70">Complete your preferences</p>
+              <h3 className="text-xl font-semibold text-white mb-2">Travel Preferences</h3>
+              <p className="text-white/70">Select your preferred airlines, hotels, and car rentals</p>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-medium text-white mb-2">Preferred Airlines</h4>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                  {airlines.map((airline) => (
+                    <Button
+                      key={airline}
+                      variant={profileData.selectedAirlines.includes(airline) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePreferenceSelect('selectedAirlines', airline)}
+                      className={`text-xs transition-all duration-200 ${
+                        profileData.selectedAirlines.includes(airline)
+                          ? 'gold-gradient text-[#171821]'
+                          : 'bg-[#1f1f27] border-white/50 hover:bg-white/10 text-white'
+                      }`}
+                    >
+                      {airline}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
               <div>
                 <h4 className="font-medium text-white mb-2">Preferred Hotels</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
@@ -381,7 +374,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 6:
+      case 5:
         const travelerLevel = getTravelerLevel();
         return (
           <div className="space-y-6">
@@ -445,11 +438,17 @@ const ProfileSetup = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
       <Card className="w-full max-w-lg shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
         <CardHeader className="text-center space-y-4">
-          <div className="flex items-center justify-center space-x-2">
-            <Plane className="h-8 w-8 text-white" />
-            <span className="text-2xl font-bold luxury-text-gradient">
-              TAAI Travel
-            </span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleBack}
+            className="absolute top-4 left-4 text-white bg-black/30 hover:text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          
+          <div className="flex items-center justify-center">
+            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px] w-auto" />
           </div>
           
           <div className="space-y-2">

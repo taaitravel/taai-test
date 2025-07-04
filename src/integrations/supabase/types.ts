@@ -23,14 +23,14 @@ export type Database = {
           hotel_b: number | null
           hotel_s: number | null
           id: number
-          itin_id: string | null
+          itin_id: string
           s_day: number | null
           s_pp: number | null
           s_pp_day: number | null
           s_rate: number | null
           total_b: number | null
           total_s: number | null
-          userid: string | null
+          userid: string
         }
         Insert: {
           activities_b?: number | null
@@ -45,14 +45,14 @@ export type Database = {
           hotel_b?: number | null
           hotel_s?: number | null
           id?: number
-          itin_id?: string | null
+          itin_id: string
           s_day?: number | null
           s_pp?: number | null
           s_pp_day?: number | null
           s_rate?: number | null
           total_b?: number | null
           total_s?: number | null
-          userid?: string | null
+          userid?: string
         }
         Update: {
           activities_b?: number | null
@@ -67,14 +67,14 @@ export type Database = {
           hotel_b?: number | null
           hotel_s?: number | null
           id?: number
-          itin_id?: string | null
+          itin_id?: string
           s_day?: number | null
           s_pp?: number | null
           s_pp_day?: number | null
           s_rate?: number | null
           total_b?: number | null
           total_s?: number | null
-          userid?: string | null
+          userid?: string
         }
         Relationships: []
       }
@@ -92,13 +92,13 @@ export type Database = {
           itin_date_end: string | null
           itin_date_start: string | null
           itin_desc: string | null
-          itin_id: string | null
+          itin_id: string
           itin_locations: Json | null
           itin_map_locations: Json | null
           itin_name: string | null
           reservations: Json | null
           spending: number | null
-          this_user: string | null
+          userid: string | null
         }
         Insert: {
           activities?: Json | null
@@ -113,13 +113,13 @@ export type Database = {
           itin_date_end?: string | null
           itin_date_start?: string | null
           itin_desc?: string | null
-          itin_id?: string | null
+          itin_id?: string
           itin_locations?: Json | null
           itin_map_locations?: Json | null
           itin_name?: string | null
           reservations?: Json | null
           spending?: number | null
-          this_user?: string | null
+          userid?: string | null
         }
         Update: {
           activities?: Json | null
@@ -134,13 +134,13 @@ export type Database = {
           itin_date_end?: string | null
           itin_date_start?: string | null
           itin_desc?: string | null
-          itin_id?: string | null
+          itin_id?: string
           itin_locations?: Json | null
           itin_map_locations?: Json | null
           itin_name?: string | null
           reservations?: Json | null
           spending?: number | null
-          this_user?: string | null
+          userid?: string | null
         }
         Relationships: []
       }
@@ -155,7 +155,7 @@ export type Database = {
           country: string | null
           created_at: string
           email: string | null
-          first_name: string | null
+          first_name: string
           flight_freq: Json | null
           id: number
           itineraries: Json | null
@@ -166,7 +166,7 @@ export type Database = {
           state: string | null
           taai_rating: number | null
           taai_rating_text: string | null
-          user_type: string | null
+          user_type: string
           userid: string | null
           username: string | null
           zip: string | null
@@ -181,7 +181,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string | null
-          first_name?: string | null
+          first_name: string
           flight_freq?: Json | null
           id?: number
           itineraries?: Json | null
@@ -192,7 +192,7 @@ export type Database = {
           state?: string | null
           taai_rating?: number | null
           taai_rating_text?: string | null
-          user_type?: string | null
+          user_type: string
           userid?: string | null
           username?: string | null
           zip?: string | null
@@ -207,7 +207,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string | null
-          first_name?: string | null
+          first_name?: string
           flight_freq?: Json | null
           id?: number
           itineraries?: Json | null
@@ -218,7 +218,7 @@ export type Database = {
           state?: string | null
           taai_rating?: number | null
           taai_rating_text?: string | null
-          user_type?: string | null
+          user_type?: string
           userid?: string | null
           username?: string | null
           zip?: string | null
