@@ -50,7 +50,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-12 w-auto min-w-[80px]" />
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="max-h-12" />
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">
@@ -191,7 +191,7 @@ const Index = () => {
       <footer className="bg-[#171821] text-white py-12 px-4 border-t border-white/20">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center mb-4">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-auto min-w-[80px]" />
+            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="max-h-8" />
           </div>
           <p className="text-white/70 mb-4">
             Revolutionizing travel planning with artificial intelligence
