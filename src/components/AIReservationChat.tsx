@@ -154,6 +154,7 @@ const AIReservationChat = () => {
         [
           { type: 'quick-action', label: '✈️ Flight Search', data: { action: 'flights' } },
           { type: 'quick-action', label: '🏨 Hotel Booking', data: { action: 'hotels' } },
+          { type: 'quick-action', label: '📦 Package (Flight + Hotel)', data: { action: 'package' } },
           { type: 'quick-action', label: '🚗 Car Rental', data: { action: 'car' } },
           { type: 'quick-action', label: '🎯 Activity Planning', data: { action: 'activities' } }
         ]
