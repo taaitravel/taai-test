@@ -101,10 +101,10 @@ const Dashboard = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section - Side by Side with Reduced Width */}
-        <div className="flex justify-center gap-8 mb-8">
+        {/* Hero Section - Side by Side with Expanded Width */}
+        <div className="grid grid-cols-2 gap-8 mb-8">
           {/* Dynamic Welcome Bubble */}
-          <div className="w-[25%]">
+          <div className="relative">
             <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 rounded-3xl border border-white/30 h-64 flex flex-col justify-center backdrop-blur-md">
               <div className="absolute top-4 right-4">
                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center animate-bounce">
@@ -126,7 +126,7 @@ const Dashboard = () => {
           </div>
 
           {/* Upcoming Travel */}
-          <div className="w-[25%]">
+          <div className="relative">
             <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 rounded-3xl border border-white/30 h-64 flex flex-col justify-center backdrop-blur-md">
               <p className="text-lg text-white/70 mb-4">Upcoming Travel</p>
               <div className="text-6xl font-bold text-white mb-2">
