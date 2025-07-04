@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,11 +9,13 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Plane, Users, Building2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp, user } = useAuth();
   const userType = location.state?.userType || 'individual';
   
   const [formData, setFormData] = useState({
@@ -29,12 +31,19 @@ const Signup = () => {
     adminName: '',
     registeredAddress: ''
   });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Password Mismatch",
@@ -44,13 +53,53 @@ const Signup = () => {
       return;
     }
 
-    toast({
-      title: "Account Created Successfully!",
-      description: "Welcome to TAAI Travel. Let's continue setting up your profile.",
-    });
+    if (!formData.email || !formData.password) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    // Navigate to profile setup
-    navigate('/profile-setup', { state: { userType, formData } });
+    setLoading(true);
+
+    try {
+      const metadata = {
+        user_type: userType,
+        first_name: formData.firstName,
+        last_name: '', // Could add last name field if needed
+        username: formData.userName,
+        company_name: formData.companyName,
+        admin_name: formData.adminName,
+        registered_address: formData.registeredAddress,
+        phone: formData.phone
+      };
+
+      const { error } = await signUp(formData.email, formData.password, metadata);
+
+      if (error) {
+        toast({
+          title: "Signup Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Account Created Successfully!",
+          description: "Please check your email to verify your account.",
+        });
+        navigate('/login');
+      }
+    } catch (error) {
+      toast({
+        title: "Signup Failed",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -224,8 +273,9 @@ const Signup = () => {
           <Button 
             className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
             onClick={handleSignup}
+            disabled={loading}
           >
-            Create Account
+            {loading ? "Creating Account..." : "Create Account"}
           </Button>
 
           <div className="text-center text-sm text-white/70">

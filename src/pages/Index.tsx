@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Map, Calendar, Users, BarChart3, MessageCircle } from "lucide-react";
+import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, signOut, profile } = useAuth();
   const [userType, setUserType] = useState<'individual' | 'company' | null>(null);
 
   const features = [
@@ -59,13 +61,32 @@ const Index = () => {
               <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">
                 About
               </Button>
-              <Button 
-                onClick={() => navigate('/login')}
-                variant="outline" 
-                className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
-              >
-                Sign In
-              </Button>
+              {user ? (
+                <>
+                  <Button 
+                    onClick={() => navigate('/dashboard')}
+                    className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                  >
+                    Dashboard
+                  </Button>
+                  <Button 
+                    onClick={signOut}
+                    variant="outline" 
+                    className="border-white text-white hover:bg-white hover:text-[#171821]"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  onClick={() => navigate('/login')}
+                  variant="outline" 
+                  className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
+                >
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         </div>
