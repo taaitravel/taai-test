@@ -4,9 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, MapPin, Calendar, Users, DollarSign, ArrowLeft, Edit, Share2, Download } from "lucide-react";
+import { Plane, MapPin, Calendar, Users, DollarSign, ArrowLeft, Edit, Share2, Download, User, Plus, UserPlus } from "lucide-react";
 import Map from "@/components/Map";
-import AIReservationChat from "@/components/AIReservationChat";
 
 interface ItineraryData {
   name: string;
@@ -22,6 +21,12 @@ const Itinerary = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
+
+  // Mock attendees data
+  const [attendees] = useState([
+    { id: 1, name: "John Smith", email: "john@example.com", avatar: "👨‍💼", status: "confirmed" },
+    { id: 2, name: "Sarah Johnson", email: "sarah@example.com", avatar: "👩‍💼", status: "confirmed" },
+  ]);
 
   useEffect(() => {
     if (location.state?.itineraryData) {
@@ -44,8 +49,8 @@ const Itinerary = () => {
     return (
       <div className="min-h-screen bg-[#171821] flex items-center justify-center">
         <div className="text-center">
-          <Plane className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-          <p className="text-yellow-200">Loading your itinerary...</p>
+          <Plane className="h-12 w-12 text-white mx-auto mb-4" />
+          <p className="text-white/70">Loading your itinerary...</p>
         </div>
       </div>
     );
@@ -56,8 +61,8 @@ const Itinerary = () => {
 
   return (
     <div className="min-h-screen bg-[#171821]">
-      {/* Navigation */}
-      <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-yellow-500/20">
+      {/* Navigation - Dashboard Header Style */}
+      <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
@@ -65,21 +70,21 @@ const Itinerary = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => navigate('/dashboard')}
-                className="text-yellow-300 hover:text-yellow-200 hover:bg-yellow-400/10"
+                className="text-white hover:bg-white/10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
             </div>
             <div className="flex items-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-12 w-auto min-w-[80px]" />
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-[35.2px]" />
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-400/10">
+              <Button variant="outline" size="sm" className="border-white/50 text-white hover:bg-white/10">
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button variant="outline" size="sm" className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-400/10">
+              <Button variant="outline" size="sm" className="border-white/50 text-white hover:bg-white/10">
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
@@ -95,8 +100,8 @@ const Itinerary = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold luxury-text-gradient mb-2">{itineraryData.name}</h1>
-          <div className="flex justify-center items-center space-x-6 text-yellow-300/70">
+          <h1 className="text-4xl font-bold text-white mb-2">{itineraryData.name}</h1>
+          <div className="flex justify-center items-center space-x-6 text-white/70">
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4" />
               <span>{new Date(itineraryData.startDate).toLocaleDateString()} - {new Date(itineraryData.endDate).toLocaleDateString()}</span>
@@ -116,30 +121,30 @@ const Itinerary = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Trip Overview */}
-            <Card className="bg-[#171821]/60 border-yellow-500/30 backdrop-blur-md">
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
-                <CardTitle className="text-yellow-200 flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-yellow-400" />
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <MapPin className="h-5 w-5 text-white" />
                   <span>Trip Overview</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-yellow-300/70">Duration:</span>
-                    <p className="text-yellow-200 font-medium">{duration} days</p>
+                    <span className="text-white/70">Duration:</span>
+                    <p className="text-white font-medium">{duration} days</p>
                   </div>
                   <div>
-                    <span className="text-yellow-300/70">Budget per person:</span>
-                    <p className="text-yellow-200 font-medium">${Math.round(Number(itineraryData.budget) / itineraryData.people).toLocaleString()}</p>
+                    <span className="text-white/70">Budget per person:</span>
+                    <p className="text-white font-medium">${Math.round(Number(itineraryData.budget) / itineraryData.people).toLocaleString()}</p>
                   </div>
                 </div>
                 
                 <div>
-                  <span className="text-yellow-300/70 text-sm">Destinations:</span>
+                  <span className="text-white/70 text-sm">Destinations:</span>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {destinations.map((destination, index) => (
-                      <Badge key={index} className="bg-yellow-400/20 text-yellow-300 border-yellow-500/30">
+                      <Badge key={index} className="bg-white/20 text-white border-white/30">
                         {destination}
                       </Badge>
                     ))}
@@ -148,18 +153,18 @@ const Itinerary = () => {
 
                 {itineraryData.description && (
                   <div>
-                    <span className="text-yellow-300/70 text-sm">Description:</span>
-                    <p className="text-yellow-200 mt-1">{itineraryData.description}</p>
+                    <span className="text-white/70 text-sm">Description:</span>
+                    <p className="text-white mt-1">{itineraryData.description}</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
             {/* Map */}
-            <Card className="bg-[#171821]/60 border-yellow-500/30 backdrop-blur-md">
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
-                <CardTitle className="text-yellow-200">Trip Map</CardTitle>
-                <CardDescription className="text-yellow-300/70">
+                <CardTitle className="text-white">Trip Map</CardTitle>
+                <CardDescription className="text-white/70">
                   Explore your destinations and discover nearby attractions
                 </CardDescription>
               </CardHeader>
@@ -171,10 +176,10 @@ const Itinerary = () => {
             </Card>
 
             {/* Daily Itinerary */}
-            <Card className="bg-[#171821]/60 border-yellow-500/30 backdrop-blur-md">
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
-                <CardTitle className="text-yellow-200">Daily Schedule</CardTitle>
-                <CardDescription className="text-yellow-300/70">
+                <CardTitle className="text-white">Daily Schedule</CardTitle>
+                <CardDescription className="text-white/70">
                   Your day-by-day travel plan
                 </CardDescription>
               </CardHeader>
@@ -186,16 +191,16 @@ const Itinerary = () => {
                     const destination = destinations[index % destinations.length];
                     
                     return (
-                      <div key={index} className="border-l-2 border-yellow-500/30 pl-4 pb-4">
+                      <div key={index} className="border-l-2 border-white/30 pl-4 pb-4">
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-yellow-200">
+                          <h4 className="font-semibold text-white">
                             Day {index + 1} - {currentDate.toLocaleDateString()}
                           </h4>
-                          <Badge className="bg-yellow-400/20 text-yellow-300 border-yellow-500/30">
+                          <Badge className="bg-white/20 text-white border-white/30">
                             {destination}
                           </Badge>
                         </div>
-                        <div className="text-sm text-yellow-300/70 space-y-1">
+                        <div className="text-sm text-white/70 space-y-1">
                           <p>🏨 Check accommodation availability</p>
                           <p>✈️ Review flight details</p>
                           <p>🍽️ Explore local dining options</p>
@@ -211,77 +216,110 @@ const Itinerary = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Budget Breakdown */}
-            <Card className="bg-[#171821]/60 border-yellow-500/30 backdrop-blur-md">
+            {/* Trip Attendees */}
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
-                <CardTitle className="text-yellow-200 flex items-center space-x-2">
-                  <DollarSign className="h-5 w-5 text-yellow-400" />
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white flex items-center space-x-2">
+                    <Users className="h-5 w-5 text-white" />
+                    <span>Trip Attendees</span>
+                  </CardTitle>
+                  <Button 
+                    size="sm" 
+                    className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                    onClick={() => console.log('Invite more people')}
+                  >
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Invite
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {attendees.map((attendee) => (
+                  <div key={attendee.id} className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg border border-white/20">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">
+                      {attendee.avatar}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-white">{attendee.name}</p>
+                      <p className="text-xs text-white/60">{attendee.email}</p>
+                    </div>
+                    <Badge className={`text-xs ${attendee.status === 'confirmed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-white/20 text-white border-white/30'}`}>
+                      {attendee.status}
+                    </Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Budget Breakdown */}
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <DollarSign className="h-5 w-5 text-white" />
                   <span>Budget Breakdown</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-yellow-300/70">Flights</span>
-                    <span className="text-yellow-200 font-medium">$1,200</span>
+                    <span className="text-white/70">Flights</span>
+                    <span className="text-white font-medium">$1,200</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-yellow-300/70">Accommodation</span>
-                    <span className="text-yellow-200 font-medium">$1,800</span>
+                    <span className="text-white/70">Accommodation</span>
+                    <span className="text-white font-medium">$1,800</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-yellow-300/70">Activities</span>
-                    <span className="text-yellow-200 font-medium">$800</span>
+                    <span className="text-white/70">Activities</span>
+                    <span className="text-white font-medium">$800</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-yellow-300/70">Food & Dining</span>
-                    <span className="text-yellow-200 font-medium">$1,000</span>
+                    <span className="text-white/70">Food & Dining</span>
+                    <span className="text-white font-medium">$1,000</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-yellow-300/70">Miscellaneous</span>
-                    <span className="text-yellow-200 font-medium">$200</span>
+                    <span className="text-white/70">Miscellaneous</span>
+                    <span className="text-white font-medium">$200</span>
                   </div>
-                  <hr className="border-yellow-500/20" />
+                  <hr className="border-white/20" />
                   <div className="flex justify-between font-semibold">
-                    <span className="text-yellow-200">Total</span>
-                    <span className="text-yellow-200">${Number(itineraryData.budget).toLocaleString()}</span>
+                    <span className="text-white">Total</span>
+                    <span className="text-white">${Number(itineraryData.budget).toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* AI Recommendations */}
-            <Card className="bg-[#171821]/60 border-yellow-500/30 backdrop-blur-md">
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
-                <CardTitle className="text-yellow-200">AI Recommendations</CardTitle>
-                <CardDescription className="text-yellow-300/70">
+                <CardTitle className="text-white">AI Recommendations</CardTitle>
+                <CardDescription className="text-white/70">
                   Personalized suggestions for your trip
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="p-3 bg-yellow-400/10 rounded-lg border border-yellow-500/20">
-                  <p className="text-sm font-medium text-yellow-200">🏨 Best Time to Book</p>
-                  <p className="text-sm text-yellow-300/70 mt-1">
+                <div className="p-3 bg-white/10 rounded-lg border border-white/20">
+                  <p className="text-sm font-medium text-white">🏨 Best Time to Book</p>
+                  <p className="text-sm text-white/70 mt-1">
                     Book your hotels 2-3 weeks before travel for optimal rates in Europe.
                   </p>
                 </div>
-                <div className="p-3 bg-yellow-400/10 rounded-lg border border-yellow-500/20">
-                  <p className="text-sm font-medium text-yellow-200">🍽️ Local Cuisine</p>
-                  <p className="text-sm text-yellow-300/70 mt-1">
+                <div className="p-3 bg-white/10 rounded-lg border border-white/20">
+                  <p className="text-sm font-medium text-white">🍽️ Local Cuisine</p>
+                  <p className="text-sm text-white/70 mt-1">
                     Try paella in Barcelona, pasta in Rome, and croissants in Paris.
                   </p>
                 </div>
-                <div className="p-3 bg-yellow-400/10 rounded-lg border border-yellow-500/20">
-                  <p className="text-sm font-medium text-yellow-200">🚇 Transportation</p>
-                  <p className="text-sm text-yellow-300/70 mt-1">
+                <div className="p-3 bg-white/10 rounded-lg border border-white/20">
+                  <p className="text-sm font-medium text-white">🚇 Transportation</p>
+                  <p className="text-sm text-white/70 mt-1">
                     Consider getting a Eurail pass for convenient travel between cities.
                   </p>
                 </div>
               </CardContent>
             </Card>
-
-            {/* AI Reservation Chat */}
-            <AIReservationChat />
           </div>
         </div>
       </div>
