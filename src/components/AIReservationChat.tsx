@@ -230,7 +230,7 @@ const AIReservationChat = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                  className="gold-gradient text-background hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                  className="gold-gradient text-white hover:opacity-80 border-0 shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -248,7 +248,7 @@ const AIReservationChat = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                  className="gold-gradient text-background hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                  className="gold-gradient text-white hover:opacity-80 border-0 shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -266,7 +266,7 @@ const AIReservationChat = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                  className="gold-gradient text-background hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                  className="gold-gradient text-white hover:opacity-80 border-0 shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -288,7 +288,7 @@ const AIReservationChat = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gold-gradient text-background hover:opacity-80 border-0"
+                    className="gold-gradient text-white hover:opacity-80 border-0"
                   >
                     <CalendarIcon className="h-3 w-3 mr-2" />
                     {action.label}
@@ -332,7 +332,7 @@ const AIReservationChat = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gold-gradient text-background hover:opacity-80 border-0"
+                    className="gold-gradient text-white hover:opacity-80 border-0"
                   >
                     <Users className="h-3 w-3 mr-2" />
                     {action.label}
@@ -381,7 +381,7 @@ const AIReservationChat = () => {
               variant="outline"
               size="sm"
               onClick={() => handleActionClick(action)}
-              className="gold-gradient text-background hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+              className="gold-gradient text-white hover:opacity-80 border-0 shadow-lg transition-all duration-300"
             >
               {action.label}
             </Button>

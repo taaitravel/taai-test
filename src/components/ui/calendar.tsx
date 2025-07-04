@@ -34,7 +34,7 @@ function Calendar({
         head_cell:
           "text-white/70 rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-gradient-to-r [&:has([aria-selected].day-outside)]:from-white/20 [&:has([aria-selected].day-outside)]:to-white/10 [&:has([aria-selected])]:bg-gradient-to-r [&:has([aria-selected])]:from-white/20 [&:has([aria-selected])]:to-white/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-gradient-to-r [&:has([aria-selected].day-outside)]:from-[hsl(351,85%,75%)] [&:has([aria-selected].day-outside)]:via-[hsl(15,80%,70%)] [&:has([aria-selected].day-outside)]:to-[hsl(25,75%,65%)] [&:has([aria-selected])]:bg-gradient-to-r [&:has([aria-selected])]:from-[hsl(351,85%,75%)] [&:has([aria-selected])]:via-[hsl(15,80%,70%)] [&:has([aria-selected])]:to-[hsl(25,75%,65%)] first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-white/60 hover:bg-white/10 hover:text-white"
@@ -44,10 +44,10 @@ function Calendar({
           "bg-white text-black hover:bg-white hover:text-black focus:bg-white focus:text-black font-semibold",
         day_today: "bg-white/20 text-white font-medium",
         day_outside:
-          "day-outside text-white/30 opacity-50 aria-selected:bg-gradient-to-r aria-selected:from-white/20 aria-selected:to-white/10 aria-selected:text-white/70 aria-selected:opacity-100",
+          "day-outside text-white/30 opacity-50 aria-selected:bg-gradient-to-r aria-selected:from-[hsl(351,85%,75%)] aria-selected:via-[hsl(15,80%,70%)] aria-selected:to-[hsl(25,75%,65%)] aria-selected:text-white aria-selected:opacity-100",
         day_disabled: "text-white/20 opacity-30",
         day_range_middle:
-          "aria-selected:bg-gradient-to-r aria-selected:from-white/20 aria-selected:to-white/10 aria-selected:text-white",
+          "aria-selected:bg-gradient-to-r aria-selected:from-[hsl(351,85%,75%)] aria-selected:via-[hsl(15,80%,70%)] aria-selected:to-[hsl(25,75%,65%)] aria-selected:text-white",
         day_hidden: "invisible",
         ...classNames,
       }}
