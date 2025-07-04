@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Plane, Plus, Calendar, Map, BarChart3, MessageCircle, Users, Clock } from "lucide-react";
+import { Plane, Plus, Calendar, Map, BarChart3, MessageCircle, Users, Clock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import WorldMap from "@/components/WorldMap";
 
@@ -82,12 +82,20 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8" />
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-[35.2px]" />
             </div>
             <div className="flex items-center space-x-4">
               <Badge className="bg-white/20 text-white border-white/30">
                 {userStats.travelerLevel}
               </Badge>
+              <Button 
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/10 p-2 rounded-full"
+                onClick={() => navigate('/profile-setup')}
+              >
+                <User className="h-5 w-5" />
+              </Button>
               <Button 
                 onClick={() => navigate('/create-itinerary')}
                 className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
