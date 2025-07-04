@@ -205,7 +205,7 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <ChartContainer config={chartConfig} className="h-20 w-full">
+              <ChartContainer config={chartConfig} className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
