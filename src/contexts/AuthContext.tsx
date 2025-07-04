@@ -70,22 +70,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+    // TODO: Uncomment when database migration is applied
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('profiles')
+    //     .select('*')
+    //     .eq('user_id', userId)
+    //     .single();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
+    //   if (error) {
+    //     console.error('Error fetching profile:', error);
+    //     return;
+    //   }
 
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
+    //   setProfile(data);
+    // } catch (error) {
+    //   console.error('Error fetching profile:', error);
+    // }
   };
 
   const signUp = async (email: string, password: string, metadata: any) => {

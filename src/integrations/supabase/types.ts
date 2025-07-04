@@ -9,54 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          access_level: Database["public"]["Enums"]["access_level"]
-          admin_name: string | null
-          company_name: string | null
-          created_at: string
-          first_name: string | null
-          id: string
-          last_name: string | null
-          phone: string | null
-          registered_address: string | null
-          updated_at: string
-          user_id: string
-          user_type: Database["public"]["Enums"]["user_type"]
-          username: string | null
-        }
-        Insert: {
-          access_level?: Database["public"]["Enums"]["access_level"]
-          admin_name?: string | null
-          company_name?: string | null
-          created_at?: string
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          phone?: string | null
-          registered_address?: string | null
-          updated_at?: string
-          user_id: string
-          user_type?: Database["public"]["Enums"]["user_type"]
-          username?: string | null
-        }
-        Update: {
-          access_level?: Database["public"]["Enums"]["access_level"]
-          admin_name?: string | null
-          company_name?: string | null
-          created_at?: string
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          phone?: string | null
-          registered_address?: string | null
-          updated_at?: string
-          user_id?: string
-          user_type?: Database["public"]["Enums"]["user_type"]
-          username?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
