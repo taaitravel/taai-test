@@ -86,7 +86,7 @@ const Index = () => {
               )}
             </div>
             <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px] w-[220px]" />
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px]" />
             </div>
             <div className="flex items-center space-x-4">
             </div>
