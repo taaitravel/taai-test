@@ -44,14 +44,29 @@ const AIReservationChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I'm your AI travel assistant. I can help you with flight bookings, hotel reservations, and activity planning. What would you like to book today?",
+      text: "Hello! I'm your AI travel assistant. I can help you plan the perfect trip. Choose from our travel services, seasonal options, or explore different terrains and destinations.",
       isBot: true,
       timestamp: new Date(),
       actions: [
+        // Travel Services
         { type: 'quick-action', label: '✈️ Book Flights', data: { action: 'flights' } },
         { type: 'quick-action', label: '🏨 Reserve Hotels', data: { action: 'hotels' } },
         { type: 'quick-action', label: '🚗 Rent a Car', data: { action: 'car' } },
-        { type: 'quick-action', label: '🎯 Plan Activities', data: { action: 'activities' } }
+        { type: 'quick-action', label: '🎯 Plan Activities', data: { action: 'activities' } },
+        // Seasons & Deals
+        { type: 'quick-action', label: '🌸 Spring Getaway', data: { action: 'spring' } },
+        { type: 'quick-action', label: '☀️ Summer Vacation', data: { action: 'summer' } },
+        { type: 'quick-action', label: '🍂 Fall Adventure', data: { action: 'fall' } },
+        { type: 'quick-action', label: '❄️ Winter Escape', data: { action: 'winter' } },
+        { type: 'quick-action', label: '💰 Best Deals', data: { action: 'deals' } },
+        { type: 'quick-action', label: '📅 Flexible Dates', data: { action: 'flexible' } },
+        // Terrains & Destinations
+        { type: 'quick-action', label: '🏝️ Tropical Paradise', data: { action: 'tropical' } },
+        { type: 'quick-action', label: '🏜️ Desert Adventure', data: { action: 'desert' } },
+        { type: 'quick-action', label: '🏔️ Mountain Retreat', data: { action: 'mountain' } },
+        { type: 'quick-action', label: '🏖️ Beach Vacation', data: { action: 'beach' } },
+        { type: 'quick-action', label: '🌲 Forest Escape', data: { action: 'forest' } },
+        { type: 'quick-action', label: '🏙️ City Break', data: { action: 'city' } }
       ]
     }
   ]);
@@ -197,6 +212,72 @@ const AIReservationChat = () => {
   };
 
   const renderActionButtons = (actions: ChatAction[]) => {
+    // Check if this is the initial message with organized categories
+    if (actions.length > 10) {
+      const travelServices = actions.slice(0, 4);
+      const seasonsDeals = actions.slice(4, 10);
+      const terrains = actions.slice(10);
+
+      return (
+        <div className="mt-4 space-y-4">
+          {/* Travel Services */}
+          <div className="space-y-2">
+            <div className="text-xs font-semibold luxury-text-gradient uppercase tracking-wider">Travel Services</div>
+            <div className="flex flex-wrap gap-2">
+              {travelServices.map((action, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleActionClick(action)}
+                  className="gold-gradient text-background hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Seasons & Deals */}
+          <div className="space-y-2">
+            <div className="text-xs font-semibold luxury-text-gradient uppercase tracking-wider">Seasons & Deals</div>
+            <div className="flex flex-wrap gap-2">
+              {seasonsDeals.map((action, index) => (
+                <Button
+                  key={index + 4}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleActionClick(action)}
+                  className="gold-gradient text-background hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Terrains & Destinations */}
+          <div className="space-y-2">
+            <div className="text-xs font-semibold luxury-text-gradient uppercase tracking-wider">Terrains & Destinations</div>
+            <div className="flex flex-wrap gap-2">
+              {terrains.map((action, index) => (
+                <Button
+                  key={index + 10}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleActionClick(action)}
+                  className="gold-gradient text-background hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default rendering for other messages
     return (
       <div className="flex flex-wrap gap-2 mt-3">
         {actions.map((action, index) => {
@@ -207,13 +288,13 @@ const AIReservationChat = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
+                    className="gold-gradient text-background hover:opacity-80 border-0"
                   >
                     <CalendarIcon className="h-3 w-3 mr-2" />
                     {action.label}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 bg-background border-primary/30" align="start">
                   <div className="p-3">
                     <div className="text-sm font-medium mb-2">Select travel dates:</div>
                     <Calendar
@@ -233,7 +314,7 @@ const AIReservationChat = () => {
                         size="sm"
                         onClick={handleDateRangeSubmit}
                         disabled={!selectedDateRange.from || !selectedDateRange.to}
-                        className="ml-2"
+                        className="ml-2 gold-gradient text-background"
                       >
                         Confirm
                       </Button>
@@ -251,13 +332,13 @@ const AIReservationChat = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
+                    className="gold-gradient text-background hover:opacity-80 border-0"
                   >
                     <Users className="h-3 w-3 mr-2" />
                     {action.label}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-48" align="start">
+                <PopoverContent className="w-48 bg-background border-primary/30" align="start">
                   <div className="p-3">
                     <div className="text-sm font-medium mb-2">Number of guests:</div>
                     <div className="flex items-center space-x-2">
@@ -265,6 +346,7 @@ const AIReservationChat = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedGuests(Math.max(1, selectedGuests - 1))}
+                        className="border-primary/30"
                       >
                         -
                       </Button>
@@ -273,13 +355,14 @@ const AIReservationChat = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedGuests(selectedGuests + 1)}
+                        className="border-primary/30"
                       >
                         +
                       </Button>
                     </div>
                     <Button
                       size="sm"
-                      className="w-full mt-3"
+                      className="w-full mt-3 gold-gradient text-background"
                       onClick={() => {
                         addMessage(`${selectedGuests} ${selectedGuests === 1 ? 'guest' : 'guests'}`);
                       }}
@@ -298,7 +381,7 @@ const AIReservationChat = () => {
               variant="outline"
               size="sm"
               onClick={() => handleActionClick(action)}
-              className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
+              className="gold-gradient text-background hover:opacity-80 border-0 shadow-lg transition-all duration-300"
             >
               {action.label}
             </Button>
@@ -309,12 +392,12 @@ const AIReservationChat = () => {
   };
 
   return (
-    <Card className="bg-card/95 border-primary/30 backdrop-blur-md h-96 flex flex-col">
+    <Card className="luxury-gradient border-primary/30 backdrop-blur-md min-h-[500px] flex flex-col shadow-2xl">
       <CardHeader className="pb-4">
-        <CardTitle className="text-card-foreground flex items-center space-x-2">
+        <CardTitle className="text-primary flex items-center space-x-2">
           <Bot className="h-5 w-5 text-primary" />
-          <span>AI Reservation Assistant</span>
-          <Badge variant="secondary" className="ml-auto bg-primary/20 text-primary border-primary/30">
+          <span className="luxury-text-gradient font-bold">AI Reservation Assistant</span>
+          <Badge className="ml-auto gold-gradient text-background border-0 shadow-lg">
             Online
           </Badge>
         </CardTitle>
