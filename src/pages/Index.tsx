@@ -50,7 +50,8 @@ const Index = () => {
       {/* Navigation */}
       <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-16 relative">
+            {/* Left side - Navigation links */}
             <div className="flex items-center space-x-4">
               <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">
                 Features
@@ -58,7 +59,25 @@ const Index = () => {
               <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">
                 About
               </Button>
-              {user ? (
+              {!user && (
+                <Button 
+                  onClick={() => navigate('/login')}
+                  variant="outline" 
+                  className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
+                >
+                  Sign In
+                </Button>
+              )}
+            </div>
+
+            {/* Center - Logo */}
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px]" />
+            </div>
+
+            {/* Right side - Auth buttons when logged in */}
+            <div className="flex items-center space-x-4">
+              {user && (
                 <>
                   <Button 
                     onClick={() => navigate('/dashboard')}
@@ -69,26 +88,13 @@ const Index = () => {
                   <Button 
                     onClick={signOut}
                     variant="outline" 
-                    className="border-white text-white hover:bg-white hover:text-[#171821]"
+                    className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
                   </Button>
                 </>
-              ) : (
-                <Button 
-                  onClick={() => navigate('/login')}
-                  variant="outline" 
-                  className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
-                >
-                  Sign In
-                </Button>
               )}
-            </div>
-            <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px]" />
-            </div>
-            <div className="flex items-center space-x-4">
             </div>
           </div>
         </div>
