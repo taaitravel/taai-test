@@ -57,7 +57,7 @@ const Signup = () => {
     <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
       <Card className="w-full max-w-md shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
-        <CardHeader className="text-center space-y-4">
+        <CardHeader className="text-center space-y-2">
           <Button 
             variant="ghost" 
             size="sm" 
