@@ -68,7 +68,7 @@ const Signup = () => {
           </Button>
           
           <div className="flex items-center justify-center">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="max-h-8" />
+            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" />
           </div>
           
           <div className="space-y-2">
