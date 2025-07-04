@@ -62,7 +62,7 @@ const Index = () => {
               <Button 
                 onClick={() => navigate('/login')}
                 variant="outline" 
-                className="bg-white text-[#171821] border-white hover:bg-white/90 hover:text-[#171821]"
+                className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-[#171821] active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-[#171821] transition-all duration-300"
               >
                 Sign In
               </Button>
