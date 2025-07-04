@@ -9,7 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      users: {
+        Row: {
+          address: string | null
+          avg_spending: number | null
+          cell: number | null
+          city: string | null
+          comp_name: string | null
+          countries_visited: Json | null
+          country: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          flight_freq: Json | null
+          id: number
+          itineraries: Json | null
+          last_name: string | null
+          p_airlines: Json | null
+          p_car_rentals: Json | null
+          p_hotels: Json | null
+          state: string | null
+          taai_rating: number | null
+          taai_rating_text: string | null
+          user_type: string | null
+          userid: string | null
+          username: string | null
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          avg_spending?: number | null
+          cell?: number | null
+          city?: string | null
+          comp_name?: string | null
+          countries_visited?: Json | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          flight_freq?: Json | null
+          id?: number
+          itineraries?: Json | null
+          last_name?: string | null
+          p_airlines?: Json | null
+          p_car_rentals?: Json | null
+          p_hotels?: Json | null
+          state?: string | null
+          taai_rating?: number | null
+          taai_rating_text?: string | null
+          user_type?: string | null
+          userid?: string | null
+          username?: string | null
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          avg_spending?: number | null
+          cell?: number | null
+          city?: string | null
+          comp_name?: string | null
+          countries_visited?: Json | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          flight_freq?: Json | null
+          id?: number
+          itineraries?: Json | null
+          last_name?: string | null
+          p_airlines?: Json | null
+          p_car_rentals?: Json | null
+          p_hotels?: Json | null
+          state?: string | null
+          taai_rating?: number | null
+          taai_rating_text?: string | null
+          user_type?: string | null
+          userid?: string | null
+          username?: string | null
+          zip?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, signOut, profile } = useAuth();
+  const { user, signOut, userProfile } = useAuth();
   const [userType, setUserType] = useState<'individual' | 'company' | null>(null);
 
   const features = [

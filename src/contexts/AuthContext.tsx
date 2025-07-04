@@ -2,36 +2,49 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Profile {
-  id: string;
-  user_id: string;
-  user_type: 'individual' | 'corporate';
-  access_level: 'user' | 'admin';
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  company_name?: string;
-  admin_name?: string;
-  registered_address?: string;
-  phone?: string;
+interface UserProfile {
+  id: number;
+  userid: string;
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  username: string | null;
+  comp_name: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  country: string | null;
+  cell: number | null;
+  user_type: string | null;
+  countries_visited: any | null;
+  flight_freq: any | null;
+  p_airlines: any | null;
+  p_hotels: any | null;
+  p_car_rentals: any | null;
+  avg_spending: number | null;
+  taai_rating: number | null;
+  taai_rating_text: string | null;
+  itineraries: any | null;
+  created_at: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  profile: Profile | null;
+  userProfile: UserProfile | null;
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, metadata: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  isAdmin: boolean;
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,10 +58,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           // Fetch user profile
           setTimeout(async () => {
-            await fetchProfile(session.user.id);
+            await fetchUserProfile(session.user.id);
           }, 0);
         } else {
-          setProfile(null);
+          setUserProfile(null);
         }
         
         setLoading(false);
@@ -61,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchUserProfile(session.user.id);
       }
       setLoading(false);
     });
@@ -69,24 +82,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    // TODO: Uncomment when database migration is applied
-    // try {
-    //   const { data, error } = await supabase
-    //     .from('profiles')
-    //     .select('*')
-    //     .eq('user_id', userId)
-    //     .single();
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('userid', userId)
+        .single();
 
-    //   if (error) {
-    //     console.error('Error fetching profile:', error);
-    //     return;
-    //   }
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
 
-    //   setProfile(data);
-    // } catch (error) {
-    //   console.error('Error fetching profile:', error);
-    // }
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const updateUserProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) {
+      return { error: { message: 'No user logged in' } };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('userid', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        return { error };
+      }
+
+      setUserProfile(data);
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
   };
 
   const signUp = async (email: string, password: string, metadata: any) => {
@@ -115,20 +151,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setProfile(null);
+    setUserProfile(null);
   };
-
-  const isAdmin = profile?.access_level === 'admin';
 
   const value = {
     user,
-    profile,
+    userProfile,
     session,
     loading,
     signUp,
     signIn,
     signOut,
-    isAdmin
+    updateUserProfile
   };
 
   return (

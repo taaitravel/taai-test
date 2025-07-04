@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { user, profile, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
 
   if (loading) {
     return (
@@ -21,7 +21,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/login" replace />;
   }
 
-  if (requireAdmin && profile?.access_level !== 'admin') {
+  if (requireAdmin && userProfile?.user_type !== 'admin') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-foreground">Access denied. Admin privileges required.</div>
