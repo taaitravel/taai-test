@@ -81,8 +81,10 @@ const Dashboard = () => {
       <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-[35.2px]" />
+            <div className="flex items-center space-x-4">
+            </div>
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px] w-[220px]" />
             </div>
             <div className="flex items-center space-x-4">
               <Badge className="bg-white/20 text-white border-white/30">

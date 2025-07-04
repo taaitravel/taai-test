@@ -25,8 +25,10 @@ const CreateItinerary = () => {
                 Back to Dashboard
               </Button>
             </div>
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px] w-[220px]" />
+            </div>
             <div className="flex items-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-[35.2px]" />
             </div>
             <div className="flex items-center space-x-4">
               <Badge className="bg-white/20 text-white border-white/30">

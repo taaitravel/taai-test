@@ -9,6 +9,141 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      budget: {
+        Row: {
+          activities_b: number | null
+          activities_s: number | null
+          car_rental_b: number | null
+          car_rental_s: number | null
+          created_at: string
+          flight_b: number | null
+          flight_s: number | null
+          food_b: number | null
+          food_s: number | null
+          hotel_b: number | null
+          hotel_s: number | null
+          id: number
+          itin_id: string | null
+          s_day: number | null
+          s_pp: number | null
+          s_pp_day: number | null
+          s_rate: number | null
+          total_b: number | null
+          total_s: number | null
+          userid: string | null
+        }
+        Insert: {
+          activities_b?: number | null
+          activities_s?: number | null
+          car_rental_b?: number | null
+          car_rental_s?: number | null
+          created_at?: string
+          flight_b?: number | null
+          flight_s?: number | null
+          food_b?: number | null
+          food_s?: number | null
+          hotel_b?: number | null
+          hotel_s?: number | null
+          id?: number
+          itin_id?: string | null
+          s_day?: number | null
+          s_pp?: number | null
+          s_pp_day?: number | null
+          s_rate?: number | null
+          total_b?: number | null
+          total_s?: number | null
+          userid?: string | null
+        }
+        Update: {
+          activities_b?: number | null
+          activities_s?: number | null
+          car_rental_b?: number | null
+          car_rental_s?: number | null
+          created_at?: string
+          flight_b?: number | null
+          flight_s?: number | null
+          food_b?: number | null
+          food_s?: number | null
+          hotel_b?: number | null
+          hotel_s?: number | null
+          id?: number
+          itin_id?: string | null
+          s_day?: number | null
+          s_pp?: number | null
+          s_pp_day?: number | null
+          s_rate?: number | null
+          total_b?: number | null
+          total_s?: number | null
+          userid?: string | null
+        }
+        Relationships: []
+      }
+      itinerary: {
+        Row: {
+          activities: Json | null
+          attendees: Json | null
+          b_efficiency_rate: number | null
+          budget: number | null
+          budget_rate: number | null
+          created_at: string
+          flights: Json | null
+          hotels: Json | null
+          id: number
+          itin_date_end: string | null
+          itin_date_start: string | null
+          itin_desc: string | null
+          itin_id: string | null
+          itin_locations: Json | null
+          itin_map_locations: Json | null
+          itin_name: string | null
+          reservations: Json | null
+          spending: number | null
+          this_user: string | null
+        }
+        Insert: {
+          activities?: Json | null
+          attendees?: Json | null
+          b_efficiency_rate?: number | null
+          budget?: number | null
+          budget_rate?: number | null
+          created_at?: string
+          flights?: Json | null
+          hotels?: Json | null
+          id?: number
+          itin_date_end?: string | null
+          itin_date_start?: string | null
+          itin_desc?: string | null
+          itin_id?: string | null
+          itin_locations?: Json | null
+          itin_map_locations?: Json | null
+          itin_name?: string | null
+          reservations?: Json | null
+          spending?: number | null
+          this_user?: string | null
+        }
+        Update: {
+          activities?: Json | null
+          attendees?: Json | null
+          b_efficiency_rate?: number | null
+          budget?: number | null
+          budget_rate?: number | null
+          created_at?: string
+          flights?: Json | null
+          hotels?: Json | null
+          id?: number
+          itin_date_end?: string | null
+          itin_date_start?: string | null
+          itin_desc?: string | null
+          itin_id?: string | null
+          itin_locations?: Json | null
+          itin_map_locations?: Json | null
+          itin_name?: string | null
+          reservations?: Json | null
+          spending?: number | null
+          this_user?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           address: string | null
