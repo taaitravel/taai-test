@@ -90,7 +90,7 @@ const Dashboard = () => {
               </Badge>
               <Button 
                 onClick={() => navigate('/create-itinerary')}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 New Trip
@@ -235,13 +235,12 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">Active Trips</h2>
               <Button 
-                variant="outline" 
                 size="sm"
                 onClick={() => navigate('/create-itinerary')}
-                className="border-white/50 text-white hover:bg-white/10"
+                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create New
+                New Trip
               </Button>
             </div>
 
