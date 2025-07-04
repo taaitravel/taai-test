@@ -80,11 +80,11 @@ const Itinerary = () => {
               <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-8 w-[35.2px]" />
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" className="border-white/50 text-white hover:bg-white/10">
+              <Button variant="secondary" size="sm" className="bg-muted text-muted-foreground hover:bg-muted/80">
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button variant="outline" size="sm" className="border-white/50 text-white hover:bg-white/10">
+              <Button variant="secondary" size="sm" className="bg-muted text-muted-foreground hover:bg-muted/80">
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
