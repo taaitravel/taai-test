@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,31 +9,79 @@ import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer }
 import { Plane, Plus, Calendar, Map, BarChart3, MessageCircle, Users, Clock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import WorldMap from "@/components/WorldMap";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [activeItineraries] = useState([
-    {
-      id: 1,
-      name: "Summer Europe Trip",
-      dates: "Jul 15 - Jul 30, 2024",
-      locations: ["Paris", "Rome", "Barcelona"],
-      budget: 5000,
-      spent: 3200,
-      people: 2,
-      status: "active"
-    },
-    {
-      id: 2,
-      name: "Business Trip NYC",
-      dates: "Aug 5 - Aug 8, 2024",
-      locations: ["New York City"],
-      budget: 2000,
-      spent: 1100,
-      people: 1,
-      status: "planning"
+  const { user } = useAuth();
+  const [activeItineraries, setActiveItineraries] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserItineraries();
     }
-  ]);
+  }, [user]);
+
+  const fetchUserItineraries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('itinerary')
+        .select('*')
+        .eq('userid', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform the data to match the expected format
+      const transformedItineraries = data.map(item => ({
+        id: item.id,
+        name: item.itin_name || 'Untitled Trip',
+        dates: formatDateRange(item.itin_date_start, item.itin_date_end),
+        locations: Array.isArray(item.itin_locations) ? item.itin_locations : [],
+        budget: item.budget || 0,
+        spent: item.spending || 0,
+        people: Array.isArray(item.attendees) ? item.attendees.length : 1,
+        status: getItineraryStatus(item.itin_date_start, item.itin_date_end)
+      }));
+
+      setActiveItineraries(transformedItineraries);
+    } catch (error) {
+      console.error('Error fetching itineraries:', error);
+      toast.error('Failed to load your trips');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDateRange = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return 'Dates TBD';
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    const formatOptions: Intl.DateTimeFormatOptions = { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    };
+    
+    return `${start.toLocaleDateString('en-US', formatOptions)} - ${end.toLocaleDateString('en-US', formatOptions)}`;
+  };
+
+  const getItineraryStatus = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return 'planning';
+    
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (today < start) return 'upcoming';
+    if (today >= start && today <= end) return 'active';
+    return 'completed';
+  };
 
   const userStats = {
     totalTrips: 12,
@@ -255,60 +303,98 @@ const Dashboard = () => {
             </div>
 
             <div className="space-y-4">
-              {activeItineraries.map((trip) => (
-                <Card key={trip.id} className="hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 cursor-pointer bg-[#171821]/80 backdrop-blur-md border-white/30 group">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg text-white group-hover:scale-105 transition-transform duration-300">{trip.name}</CardTitle>
-                        <CardDescription className="flex items-center space-x-2 mt-1 text-white/70">
-                          <Calendar className="h-4 w-4" />
-                          <span>{trip.dates}</span>
-                        </CardDescription>
-                      </div>
-                      <Badge 
-                        variant={trip.status === 'active' ? 'default' : 'secondary'}
-                        className={trip.status === 'active' ? 'bg-white/20 text-white border-white/30' : 'bg-white/20 text-white border-white/30'}
-                      >
-                        {trip.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2 text-sm text-white/70">
-                        <Map className="h-4 w-4" />
-                        <span>{trip.locations.join(" → ")}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 text-sm text-white/70">
-                        <Users className="h-4 w-4" />
-                        <span>{trip.people} {trip.people === 1 ? 'person' : 'people'}</span>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-white/70">Budget Progress</span>
-                          <span className="font-medium text-white">
-                            ${trip.spent.toLocaleString()} / ${trip.budget.toLocaleString()}
-                          </span>
-                        </div>
-                        <Progress value={(trip.spent / trip.budget) * 100} className="h-2" />
-                      </div>
-
-                      <div className="flex space-x-2 pt-2">
-                        <Button size="sm" variant="outline" className="flex-1 border-white/50 text-white hover:bg-white/10">
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          Chat
-                        </Button>
-                        <Button size="sm" className="flex-1 bg-white/20 hover:bg-white/30 text-white border-white/30">
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
+              {loading ? (
+                <div className="text-center py-8">
+                  <Plane className="h-12 w-12 text-white mx-auto mb-4 animate-pulse" />
+                  <p className="text-white/70">Loading your trips...</p>
+                </div>
+              ) : activeItineraries.length === 0 ? (
+                <Card className="bg-[#171821]/80 backdrop-blur-md border-white/30">
+                  <CardContent className="p-8 text-center">
+                    <Plane className="h-12 w-12 text-white/50 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-white mb-2">No trips yet</h3>
+                    <p className="text-white/70 mb-4">Start planning your next adventure!</p>
+                    <Button 
+                      onClick={() => navigate('/create-itinerary')}
+                      className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Your First Trip
+                    </Button>
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                activeItineraries.map((trip) => (
+                  <Card key={trip.id} className="hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 cursor-pointer bg-[#171821]/80 backdrop-blur-md border-white/30 group">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg text-white group-hover:scale-105 transition-transform duration-300">{trip.name}</CardTitle>
+                          <CardDescription className="flex items-center space-x-2 mt-1 text-white/70">
+                            <Calendar className="h-4 w-4" />
+                            <span>{trip.dates}</span>
+                          </CardDescription>
+                        </div>
+                        <Badge 
+                          variant="secondary"
+                          className={`${
+                            trip.status === 'active' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                            trip.status === 'upcoming' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                            trip.status === 'planning' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                            'bg-white/20 text-white border-white/30'
+                          }`}
+                        >
+                          {trip.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2 text-sm text-white/70">
+                          <Map className="h-4 w-4" />
+                          <span>{trip.locations.length > 0 ? trip.locations.join(" → ") : "Destinations TBD"}</span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm text-white/70">
+                          <Users className="h-4 w-4" />
+                          <span>{trip.people} {trip.people === 1 ? 'person' : 'people'}</span>
+                        </div>
+
+                        {trip.budget > 0 && (
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-white/70">Budget Progress</span>
+                              <span className="font-medium text-white">
+                                ${trip.spent.toLocaleString()} / ${trip.budget.toLocaleString()}
+                              </span>
+                            </div>
+                            <Progress value={trip.budget > 0 ? (trip.spent / trip.budget) * 100 : 0} className="h-2" />
+                          </div>
+                        )}
+
+                        <div className="flex space-x-2 pt-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1 border-white/50 text-white hover:bg-white/10"
+                            onClick={() => navigate('/create-itinerary')}
+                          >
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1 bg-white/20 hover:bg-white/30 text-white border-white/30"
+                            onClick={() => navigate(`/itinerary?id=${trip.id}`)}
+                          >
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 
