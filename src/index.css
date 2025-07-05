@@ -120,6 +120,46 @@
   }
 }
 
+/* Trip card animations and styles */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+}
+
+.trip-card-upcoming {
+  background: #171821;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.trip-card-upcoming::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 25%, hsl(25, 75%, 65%) 50%, hsl(351, 85%, 75%) 75%, hsl(15, 80%, 70%) 100%);
+  background-size: 300% 300%;
+  border-radius: inherit;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  animation: gradient-flow 6s ease-in-out infinite;
+  z-index: -1;
+}
+
+.trip-card-past {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0f0f0f 100%);
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  opacity: 0.7;
+}
+
 .luxury-text-gradient {
   background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%);
   -webkit-background-clip: text;

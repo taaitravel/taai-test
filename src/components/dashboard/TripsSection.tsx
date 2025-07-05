@@ -31,10 +31,11 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
                 .map((trip, index) => (
                   <Card 
                     key={trip.id}
-                    className="absolute w-full aspect-[3/4] bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-md border border-white/30 cursor-pointer hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 group"
+                    className="absolute w-full aspect-[3/4] trip-card-upcoming backdrop-blur-md cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 group"
                     style={{
                       transform: `translateY(${index * 10}px) translateX(${index * 5}px) rotateZ(${index * 2}deg)`,
-                      zIndex: 10 - index
+                      zIndex: 10 - index,
+                      animationDelay: `${index * 0.5}s`
                     }}
                     onClick={onTripClick}
                   >
@@ -92,7 +93,7 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
               .map((trip, index) => (
                 <Card 
                   key={trip.id}
-                  className="absolute w-full aspect-[3/4] bg-gradient-to-br from-white/5 via-white/2 to-transparent backdrop-blur-md border border-white/20 cursor-pointer hover:shadow-lg hover:shadow-white/10 transition-all duration-300 group opacity-80"
+                  className="absolute w-full aspect-[3/4] trip-card-past backdrop-blur-md cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
                   style={{
                     transform: `translateY(${index * 10}px) translateX(${index * 5}px) rotateZ(${index * 2}deg)`,
                     zIndex: 10 - index
