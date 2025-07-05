@@ -270,7 +270,7 @@ const Dashboard = () => {
         </div>
 
         {/* Enhanced Stats Cards with Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Total Trips with Bar Chart */}
           <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
             <CardHeader className="pb-2">
@@ -311,28 +311,31 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Cities Visited */}
+          {/* Travel Stats Combined */}
           <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-white/70">Cities Visited</p>
-                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{userStats.citiesVisited}</p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-white/70">Cities Visited</p>
+                    <p className="text-xl font-bold text-white">{userStats.citiesVisited}</p>
+                  </div>
+                  <MapPin className="h-6 w-6 text-white" />
                 </div>
-                <MapPin className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Flights This Year */}
-          <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-white/70">Flights This Year</p>
-                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{Number(userStats.flightsThisYear)}</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-white/70">Flights This Year</p>
+                    <p className="text-xl font-bold text-white">{Number(userStats.flightsThisYear)}</p>
+                  </div>
+                  <Plane className="h-6 w-6 text-white" />
                 </div>
-                <Plane className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-white/70">Traveler Level</p>
+                    <p className="text-sm font-semibold text-white">{userStats.travelerLevel}</p>
+                  </div>
+                  <Users className="h-6 w-6 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
