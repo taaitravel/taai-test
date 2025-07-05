@@ -8,11 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Plane, Users, MapPin, Calendar, ArrowRight, ArrowLeft, Globe, Plus, Minus, Car, Hotel, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProfileSetup = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { userType, formData } = location.state || {};
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -116,16 +119,50 @@ const ProfileSetup = () => {
     return { level: 'Wanderer', icon: '🚶', color: 'text-gray-400' };
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      const travelerLevel = getTravelerLevel();
-      toast({
-        title: `Welcome aboard, ${travelerLevel.level}!`,
-        description: "Your adventure begins now. Let's plan your next trip!",
-      });
-      navigate('/dashboard');
+      // Save profile data to Supabase
+      try {
+        const { error } = await supabase
+          .from('users')
+          .update({
+            last_name: profileData.lastName,
+            address: profileData.address,
+            country: profileData.nationality,
+            countries_visited: profileData.countriesVisited,
+            flight_freq: profileData.monthlyFlights,
+            p_airlines: profileData.selectedAirlines,
+            p_hotels: profileData.selectedHotels,
+            p_car_rentals: profileData.selectedCarRentals
+          })
+          .eq('userid', user?.id);
+
+        if (error) {
+          console.error('Error saving profile:', error);
+          toast({
+            title: "Error saving profile",
+            description: "Please try again.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const travelerLevel = getTravelerLevel();
+        toast({
+          title: `Welcome aboard, ${travelerLevel.level}!`,
+          description: "Your adventure begins now. Let's plan your next trip!",
+        });
+        navigate('/dashboard');
+      } catch (error) {
+        console.error('Error saving profile:', error);
+        toast({
+          title: "Error saving profile",
+          description: "Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

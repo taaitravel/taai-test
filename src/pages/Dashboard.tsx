@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import WorldMap from "@/components/WorldMap";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { getTravelerLevel } from "@/lib/travelerLevel";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -19,11 +20,13 @@ const Dashboard = () => {
   const [activeItineraries, setActiveItineraries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [userProfile, setUserProfile] = useState<any>(null);
   const planeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
       fetchUserItineraries();
+      fetchUserProfile();
     }
   }, [user]);
 
@@ -76,6 +79,21 @@ const Dashboard = () => {
     }
   };
 
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('userid', user?.id)
+        .single();
+
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   const formatDateRange = (startDate: string, endDate: string) => {
     if (!startDate || !endDate) return 'Dates TBD';
     
@@ -103,12 +121,22 @@ const Dashboard = () => {
     return 'completed';
   };
 
+  // Get visited countries from user profile
+  const visitedCountries = Array.isArray(userProfile?.countries_visited) 
+    ? userProfile.countries_visited as string[] 
+    : [];
+
+  // Calculate flights this year from user profile
+  const flightsThisYear = userProfile?.flight_freq && typeof userProfile.flight_freq === 'object' 
+    ? Object.values(userProfile.flight_freq).reduce((sum: number, flights: any) => sum + (Number(flights) || 0), 0)
+    : 0;
+
   const userStats = {
-    totalTrips: 12,
-    countriesVisited: 18,
+    totalTrips: activeItineraries.length,
+    countriesVisited: visitedCountries.length,
     totalSpent: 45000,
-    flightsThisYear: 24,
-    travelerLevel: "Master Traveler"
+    flightsThisYear,
+    travelerLevel: getTravelerLevel(visitedCountries.length, Number(flightsThisYear))
   };
 
   // Chart data
@@ -133,8 +161,6 @@ const Dashboard = () => {
     { name: 'Food', value: 7000, color: 'hsl(var(--accent))' },
     { name: 'Activities', value: 5000, color: 'hsl(var(--muted))' }
   ];
-
-  const visitedCountries = ['France', 'Italy', 'Spain', 'United States', 'Japan', 'United Kingdom', 'Germany', 'Australia', 'Brazil', 'Canada', 'Mexico', 'Thailand', 'Greece', 'Turkey', 'Egypt', 'Morocco', 'India', 'China'];
 
   const chartConfig = {
     flights: {
@@ -195,7 +221,7 @@ const Dashboard = () => {
           <div className="relative">
             <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 rounded-3xl border border-white/30 h-64 flex flex-col justify-center backdrop-blur-md">
               <h1 className="text-4xl font-bold text-white mb-4 animate-fade-in">
-                Welcome back, John! ✈️
+                Welcome back, {userProfile?.first_name || 'Traveler'}! ✈️
               </h1>
               <p className="text-xl text-white/70 animate-fade-in">
                 Ready to plan your next adventure?
@@ -266,7 +292,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-white/70">Countries Visited</p>
-                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{userStats.countriesVisited}</p>
+                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{visitedCountries.length}</p>
                 </div>
                 <Map className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
               </div>
@@ -282,7 +308,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-white/70">Flights This Year</p>
-                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{userStats.flightsThisYear}</p>
+                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{Number(userStats.flightsThisYear)}</p>
                 </div>
                 <Plane className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
               </div>
