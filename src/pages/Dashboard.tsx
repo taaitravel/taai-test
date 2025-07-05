@@ -164,11 +164,6 @@ const Dashboard = () => {
           {/* Dynamic Welcome Bubble */}
           <div className="relative">
             <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 rounded-3xl border border-white/30 h-64 flex flex-col justify-center backdrop-blur-md">
-              <div className="absolute top-4 right-4">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center animate-bounce">
-                  <Plane className="h-8 w-8 text-white" />
-                </div>
-              </div>
               <h1 className="text-4xl font-bold text-white mb-4 animate-fade-in">
                 Welcome back, John! ✈️
               </h1>
@@ -187,8 +182,13 @@ const Dashboard = () => {
           <div className="relative">
             <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 rounded-3xl border border-white/30 h-64 flex flex-col justify-center backdrop-blur-md">
               <p className="text-lg text-white/70 mb-4">Upcoming Travel</p>
-              <div className="text-6xl font-bold text-white mb-2">
-                Aug 15
+              <div className="flex items-center justify-between">
+                <div className="text-6xl font-bold text-white mb-2">
+                  Aug 15
+                </div>
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center animate-bounce">
+                  <Plane className="h-8 w-8 text-white" />
+                </div>
               </div>
               <p className="text-lg text-white/70">Business Trip to NYC</p>
               <div className="mt-4">
