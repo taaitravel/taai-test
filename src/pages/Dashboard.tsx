@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Plane, Plus, Calendar, Map, BarChart3, MessageCircle, Users, Clock, User } from "lucide-react";
+import { Plane, Plus, Calendar, Map, BarChart3, MessageCircle, Users, Clock, User, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import WorldMap from "@/components/WorldMap";
 import { supabase } from "@/integrations/supabase/client";
@@ -131,9 +131,18 @@ const Dashboard = () => {
     ? Object.values(userProfile.flight_freq).reduce((sum: number, flights: any) => sum + (Number(flights) || 0), 0)
     : 0;
 
+  // Count unique cities from all itineraries
+  const uniqueCities = new Set();
+  activeItineraries.forEach(itinerary => {
+    if (Array.isArray(itinerary.locations)) {
+      itinerary.locations.forEach((location: string) => uniqueCities.add(location));
+    }
+  });
+
   const userStats = {
     totalTrips: activeItineraries.length,
     countriesVisited: visitedCountries.length,
+    citiesVisited: uniqueCities.size,
     totalSpent: 45000,
     flightsThisYear,
     travelerLevel: getTravelerLevel(visitedCountries.length, Number(flightsThisYear))
@@ -261,7 +270,7 @@ const Dashboard = () => {
         </div>
 
         {/* Enhanced Stats Cards with Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {/* Total Trips with Bar Chart */}
           <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
             <CardHeader className="pb-2">
@@ -299,6 +308,19 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="pt-0">
               <WorldMap visitedCountries={visitedCountries} />
+            </CardContent>
+          </Card>
+
+          {/* Cities Visited */}
+          <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-white/70">Cities Visited</p>
+                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{userStats.citiesVisited}</p>
+                </div>
+                <MapPin className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
+              </div>
             </CardContent>
           </Card>
 
