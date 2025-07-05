@@ -1,63 +1,106 @@
 
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, MapPin, Calendar, Users, DollarSign, ArrowLeft, Edit, Share2, Download, User, Plus, UserPlus } from "lucide-react";
+import { Plane, MapPin, Calendar, Users, DollarSign, ArrowLeft, Edit, Share2, Download, User, Plus, UserPlus, Clock, Star } from "lucide-react";
 import Map from "@/components/Map";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ItineraryData {
-  name: string;
-  startDate: string;
-  endDate: string;
-  people: number;
-  budget: string;
-  destinations: string;
-  description: string;
+  id: number;
+  itin_name: string;
+  itin_desc: string;
+  itin_date_start: string;
+  itin_date_end: string;
+  budget: number;
+  spending: number;
+  budget_rate: number;
+  b_efficiency_rate: number;
+  user_type: string;
+  itin_locations: string[];
+  itin_map_locations: Array<{ city: string; lat: number; lng: number }>;
+  attendees: Array<{ id: number; name: string; email: string; avatar: string; status: string }>;
+  flights: Array<{ airline: string; flight_number: string; departure: string; arrival: string; from: string; to: string; cost: number }>;
+  hotels: Array<{ name: string; city: string; check_in: string; check_out: string; nights: number; cost: number; rating: number }>;
+  activities: Array<{ name: string; city: string; date: string; cost: number; duration: string }>;
+  reservations: Array<{ type: string; name: string; city: string; date: string; time: string; party_size: number }>;
 }
 
 const Itinerary = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { id } = useParams();
+  const { toast } = useToast();
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
-
-  // Mock attendees data
-  const [attendees] = useState([
-    { id: 1, name: "John Smith", email: "john@example.com", avatar: "👨‍💼", status: "confirmed" },
-    { id: 2, name: "Sarah Johnson", email: "sarah@example.com", avatar: "👩‍💼", status: "confirmed" },
-  ]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (location.state?.itineraryData) {
-      setItineraryData(location.state.itineraryData);
-    } else {
-      // Mock data for demonstration
-      setItineraryData({
-        name: "European Adventure",
-        startDate: "2024-07-15",
-        endDate: "2024-07-25",
-        people: 2,
-        budget: "5000",
-        destinations: "Paris, Rome, Barcelona",
-        description: "A romantic getaway through Europe's most beautiful cities"
-      });
-    }
-  }, [location.state]);
+    const fetchItinerary = async () => {
+      try {
+        // Get the first itinerary if no ID provided (for demo)
+        const { data, error } = await supabase
+          .from('itinerary')
+          .select('*')
+          .limit(1)
+          .single();
 
-  if (!itineraryData) {
+        if (error) throw error;
+
+        // Transform the database data to match our interface
+        const transformedData: ItineraryData = {
+          ...data,
+          itin_locations: data.itin_locations as string[],
+          itin_map_locations: data.itin_map_locations as Array<{ city: string; lat: number; lng: number }>,
+          attendees: data.attendees as Array<{ id: number; name: string; email: string; avatar: string; status: string }>,
+          flights: data.flights as Array<{ airline: string; flight_number: string; departure: string; arrival: string; from: string; to: string; cost: number }>,
+          hotels: data.hotels as Array<{ name: string; city: string; check_in: string; check_out: string; nights: number; cost: number; rating: number }>,
+          activities: data.activities as Array<{ name: string; city: string; date: string; cost: number; duration: string }>,
+          reservations: data.reservations as Array<{ type: string; name: string; city: string; date: string; time: string; party_size: number }>,
+        };
+
+        setItineraryData(transformedData);
+      } catch (error) {
+        console.error('Error fetching itinerary:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load itinerary data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItinerary();
+  }, [id, toast]);
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#171821] flex items-center justify-center">
         <div className="text-center">
-          <Plane className="h-12 w-12 text-white mx-auto mb-4" />
+          <Plane className="h-12 w-12 text-white mx-auto mb-4 animate-pulse" />
           <p className="text-white/70">Loading your itinerary...</p>
         </div>
       </div>
     );
   }
 
-  const duration = Math.ceil((new Date(itineraryData.endDate).getTime() - new Date(itineraryData.startDate).getTime()) / (1000 * 60 * 60 * 24));
-  const destinations = itineraryData.destinations.split(',').map(d => d.trim());
+  if (!itineraryData) {
+    return (
+      <div className="min-h-screen bg-[#171821] flex items-center justify-center">
+        <div className="text-center">
+          <Plane className="h-12 w-12 text-white mx-auto mb-4" />
+          <p className="text-white/70">No itinerary found...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const duration = Math.ceil((new Date(itineraryData.itin_date_end).getTime() - new Date(itineraryData.itin_date_start).getTime()) / (1000 * 60 * 60 * 24));
+  const destinations = itineraryData.itin_locations || [];
+  const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
 
   return (
     <div className="min-h-screen bg-[#171821]">
@@ -100,15 +143,15 @@ const Itinerary = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">{itineraryData.name}</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">{itineraryData.itin_name}</h1>
           <div className="flex justify-center items-center space-x-6 text-white/70">
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4" />
-              <span>{new Date(itineraryData.startDate).toLocaleDateString()} - {new Date(itineraryData.endDate).toLocaleDateString()}</span>
+              <span>{new Date(itineraryData.itin_date_start).toLocaleDateString()} - {new Date(itineraryData.itin_date_end).toLocaleDateString()}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
-              <span>{itineraryData.people} {itineraryData.people === 1 ? 'Traveler' : 'Travelers'}</span>
+              <span>{peopleCount} {peopleCount === 1 ? 'Traveler' : 'Travelers'}</span>
             </div>
             <div className="flex items-center space-x-2">
               <DollarSign className="h-4 w-4" />
@@ -136,7 +179,7 @@ const Itinerary = () => {
                   </div>
                   <div>
                     <span className="text-white/70">Budget per person:</span>
-                    <p className="text-white font-medium">${Math.round(Number(itineraryData.budget) / itineraryData.people).toLocaleString()}</p>
+                    <p className="text-white font-medium">${Math.round(Number(itineraryData.budget) / peopleCount).toLocaleString()}</p>
                   </div>
                 </div>
                 
@@ -151,10 +194,10 @@ const Itinerary = () => {
                   </div>
                 </div>
 
-                {itineraryData.description && (
+                {itineraryData.itin_desc && (
                   <div>
                     <span className="text-white/70 text-sm">Description:</span>
-                    <p className="text-white mt-1">{itineraryData.description}</p>
+                    <p className="text-white mt-1">{itineraryData.itin_desc}</p>
                   </div>
                 )}
               </CardContent>
@@ -175,6 +218,158 @@ const Itinerary = () => {
               </CardContent>
             </Card>
 
+            {/* Flights */}
+            {itineraryData.flights && itineraryData.flights.length > 0 && (
+              <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center space-x-2">
+                    <Plane className="h-5 w-5 text-white" />
+                    <span>Flight Information</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {itineraryData.flights.map((flight, index) => (
+                    <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-white">{flight.airline} {flight.flight_number}</h4>
+                        <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                          ${flight.cost}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/70">Departure:</p>
+                          <p className="text-white">{flight.from} - {new Date(flight.departure).toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/70">Arrival:</p>
+                          <p className="text-white">{flight.to} - {new Date(flight.arrival).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Hotels */}
+            {itineraryData.hotels && itineraryData.hotels.length > 0 && (
+              <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center space-x-2">
+                    <MapPin className="h-5 w-5 text-white" />
+                    <span>Accommodations</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {itineraryData.hotels.map((hotel, index) => (
+                    <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-white">{hotel.name}</h4>
+                          <p className="text-white/70 text-sm">{hotel.city}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 mb-1">
+                            ${hotel.cost}
+                          </Badge>
+                          <div className="flex items-center text-yellow-400">
+                            <Star className="h-4 w-4 fill-current" />
+                            <span className="text-sm ml-1">{hotel.rating}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/70">Check-in:</p>
+                          <p className="text-white">{new Date(hotel.check_in).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/70">Check-out:</p>
+                          <p className="text-white">{new Date(hotel.check_out).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <p className="text-white/70 text-sm mt-2">{hotel.nights} nights</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Activities */}
+            {itineraryData.activities && itineraryData.activities.length > 0 && (
+              <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center space-x-2">
+                    <Calendar className="h-5 w-5 text-white" />
+                    <span>Planned Activities</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {itineraryData.activities.map((activity, index) => (
+                    <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-white">{activity.name}</h4>
+                          <p className="text-white/70 text-sm">{activity.city}</p>
+                        </div>
+                        <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                          ${activity.cost}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/70">Date:</p>
+                          <p className="text-white">{new Date(activity.date).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/70">Duration:</p>
+                          <p className="text-white">{activity.duration}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Reservations */}
+            {itineraryData.reservations && itineraryData.reservations.length > 0 && (
+              <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center space-x-2">
+                    <Clock className="h-5 w-5 text-white" />
+                    <span>Reservations</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {itineraryData.reservations.map((reservation, index) => (
+                    <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-white">{reservation.name}</h4>
+                          <p className="text-white/70 text-sm">{reservation.city}</p>
+                        </div>
+                        <Badge className={`text-xs ${reservation.type === 'restaurant' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'}`}>
+                          {reservation.type}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/70">Date & Time:</p>
+                          <p className="text-white">{new Date(reservation.date).toLocaleDateString()} at {reservation.time}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/70">Party Size:</p>
+                          <p className="text-white">{reservation.party_size} {reservation.party_size === 1 ? 'person' : 'people'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Daily Itinerary */}
             <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
@@ -186,7 +381,7 @@ const Itinerary = () => {
               <CardContent>
                 <div className="space-y-4">
                   {Array.from({ length: duration }, (_, index) => {
-                    const currentDate = new Date(itineraryData.startDate);
+                    const currentDate = new Date(itineraryData.itin_date_start);
                     currentDate.setDate(currentDate.getDate() + index);
                     const destination = destinations[index % destinations.length];
                     
@@ -235,7 +430,7 @@ const Itinerary = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {attendees.map((attendee) => (
+                {itineraryData.attendees && itineraryData.attendees.map((attendee) => (
                   <div key={attendee.id} className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg border border-white/20">
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">
                       {attendee.avatar}
@@ -264,27 +459,33 @@ const Itinerary = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-white/70">Flights</span>
-                    <span className="text-white font-medium">$1,200</span>
+                    <span className="text-white font-medium">
+                      ${itineraryData.flights ? itineraryData.flights.reduce((sum, flight) => sum + flight.cost, 0).toLocaleString() : '0'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-white/70">Accommodation</span>
-                    <span className="text-white font-medium">$1,800</span>
+                    <span className="text-white font-medium">
+                      ${itineraryData.hotels ? itineraryData.hotels.reduce((sum, hotel) => sum + hotel.cost, 0).toLocaleString() : '0'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-white/70">Activities</span>
-                    <span className="text-white font-medium">$800</span>
+                    <span className="text-white font-medium">
+                      ${itineraryData.activities ? itineraryData.activities.reduce((sum, activity) => sum + activity.cost, 0).toLocaleString() : '0'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/70">Food & Dining</span>
-                    <span className="text-white font-medium">$1,000</span>
+                    <span className="text-white/70">Budget Efficiency</span>
+                    <span className="text-white font-medium">{Math.round(itineraryData.budget_rate * 100)}%</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/70">Miscellaneous</span>
-                    <span className="text-white font-medium">$200</span>
+                    <span className="text-white/70">Spending vs Budget</span>
+                    <span className="text-white font-medium">${itineraryData.spending ? itineraryData.spending.toLocaleString() : '0'}</span>
                   </div>
                   <hr className="border-white/20" />
                   <div className="flex justify-between font-semibold">
-                    <span className="text-white">Total</span>
+                    <span className="text-white">Total Budget</span>
                     <span className="text-white">${Number(itineraryData.budget).toLocaleString()}</span>
                   </div>
                 </div>
