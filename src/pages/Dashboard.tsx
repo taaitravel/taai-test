@@ -146,13 +146,23 @@ const Dashboard = () => {
               >
                 <User className="h-5 w-5" />
               </Button>
-              <Button 
-                onClick={() => navigate('/create-itinerary')}
-                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                New Trip
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  onClick={() => navigate('/create-itinerary')}
+                  className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  AI Trip
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/create-manual-itinerary')}
+                  className="border-white/50 text-white hover:bg-white/10"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Manual
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -292,14 +302,25 @@ const Dashboard = () => {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">Active Trips</h2>
-              <Button 
-                size="sm"
-                onClick={() => navigate('/create-itinerary')}
-                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                New Trip
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  size="sm"
+                  onClick={() => navigate('/create-itinerary')}
+                  className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  AI Trip
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate('/create-manual-itinerary')}
+                  className="border-white/50 text-white hover:bg-white/10"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Manual
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -314,13 +335,23 @@ const Dashboard = () => {
                     <Plane className="h-12 w-12 text-white/50 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-white mb-2">No trips yet</h3>
                     <p className="text-white/70 mb-4">Start planning your next adventure!</p>
-                    <Button 
-                      onClick={() => navigate('/create-itinerary')}
-                      className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Your First Trip
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        onClick={() => navigate('/create-itinerary')}
+                        className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create with AI
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => navigate('/create-manual-itinerary')}
+                        className="border-white/50 text-white hover:bg-white/10"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Manually
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ) : (

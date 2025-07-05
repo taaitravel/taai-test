@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import ProfileSetup from "./pages/ProfileSetup";
 import Dashboard from "./pages/Dashboard";
 import CreateItinerary from "./pages/CreateItinerary";
+import CreateManualItinerary from "./pages/CreateManualItinerary";
 import Itinerary from "./pages/Itinerary";
 import EditItinerary from "./pages/EditItinerary";
 import NotFound from "./pages/NotFound";
@@ -42,6 +43,11 @@ const App = () => (
             <Route path="/create-itinerary" element={
               <ProtectedRoute>
                 <CreateItinerary />
+              </ProtectedRoute>
+            } />
+            <Route path="/create-manual-itinerary" element={
+              <ProtectedRoute>
+                <CreateManualItinerary />
               </ProtectedRoute>
             } />
             <Route path="/itinerary" element={
