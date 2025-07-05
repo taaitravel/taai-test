@@ -12,9 +12,12 @@ serve(async (req) => {
   }
 
   try {
+    console.log('get-mapbox-token function called');
     const mapboxToken = Deno.env.get('MAPBOX_KEY');
+    console.log('Retrieved token exists:', !!mapboxToken);
     
     if (!mapboxToken) {
+      console.error('MAPBOX_KEY environment variable not found');
       return new Response(
         JSON.stringify({ error: 'Mapbox token not configured' }),
         { 
@@ -24,6 +27,7 @@ serve(async (req) => {
       );
     }
 
+    console.log('Returning token successfully');
     return new Response(
       JSON.stringify({ token: mapboxToken }),
       { 
@@ -31,6 +35,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error('Error in get-mapbox-token function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

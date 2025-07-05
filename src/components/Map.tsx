@@ -23,12 +23,18 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('Map component mounted with locations:', locations);
+    console.log('Location names:', locationNames);
+    
     if (!mapContainer.current) return;
 
     const initializeMap = async () => {
       try {
+        console.log('Attempting to get Mapbox token...');
         // Get Mapbox token from Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        
+        console.log('Token response:', { data, error });
         
         if (error) {
           console.error('Error getting Mapbox token:', error);
@@ -38,12 +44,15 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         }
 
         const mapboxToken = data?.token;
+        console.log('Extracted token:', mapboxToken ? 'Token exists' : 'No token');
         if (!mapboxToken) {
+          console.error('No token in response data');
           setError('Mapbox token not configured.');
           setIsLoading(false);
           return;
         }
 
+        console.log('Setting mapbox access token...');
         // Initialize map
         mapboxgl.accessToken = mapboxToken;
         
