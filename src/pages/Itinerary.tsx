@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,8 @@ interface ItineraryData {
 
 const Itinerary = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const itineraryId = searchParams.get('id');
   const { toast } = useToast();
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,12 +40,17 @@ const Itinerary = () => {
   useEffect(() => {
     const fetchItinerary = async () => {
       try {
-        // Get the first itinerary if no ID provided (for demo)
-        const { data, error } = await supabase
-          .from('itinerary')
-          .select('*')
-          .limit(1)
-          .single();
+        let query = supabase.from('itinerary').select('*');
+        
+        if (itineraryId) {
+          // Load specific itinerary by ID
+          query = query.eq('id', parseInt(itineraryId));
+        } else {
+          // Get the first itinerary if no ID provided (for demo)
+          query = query.limit(1);
+        }
+        
+        const { data, error } = await query.single();
 
         if (error) throw error;
 
@@ -74,7 +80,7 @@ const Itinerary = () => {
     };
 
     fetchItinerary();
-  }, [id, toast]);
+  }, [itineraryId, toast]);
 
   if (loading) {
     return (
@@ -131,7 +137,11 @@ const Itinerary = () => {
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
-              <Button size="sm" className="gold-gradient hover:opacity-90 text-[#171821] font-semibold">
+              <Button 
+                size="sm" 
+                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                onClick={() => navigate(`/edit-itinerary?id=${itineraryData.id}`)}
+              >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
