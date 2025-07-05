@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,12 +18,32 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [activeItineraries, setActiveItineraries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const planeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
       fetchUserItineraries();
     }
   }, [user]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (planeRef.current) {
+        const rect = planeRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const deltaX = (e.clientX - centerX) * 0.1; // Reduced sensitivity
+        const deltaY = (e.clientY - centerY) * 0.1;
+        
+        setMousePosition({ x: deltaX, y: deltaY });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const fetchUserItineraries = async () => {
     try {
@@ -196,7 +216,13 @@ const Dashboard = () => {
                 <div className="text-6xl font-bold text-white mb-2">
                   Aug 15
                 </div>
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center animate-bounce">
+                <div 
+                  ref={planeRef}
+                  className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center transition-transform duration-300 ease-out"
+                  style={{
+                    transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`
+                  }}
+                >
                   <Plane className="h-8 w-8 text-white" />
                 </div>
               </div>
