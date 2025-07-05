@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN');
+    const mapboxToken = Deno.env.get('MAPBOX_KEY');
     
     if (!mapboxToken) {
       return new Response(
