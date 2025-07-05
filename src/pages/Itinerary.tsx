@@ -223,7 +223,10 @@ const Itinerary = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-96 rounded-lg overflow-hidden">
-                  <Map />
+                  <Map 
+                    locations={itineraryData.itin_map_locations || []} 
+                    locationNames={itineraryData.itin_locations || []}
+                  />
                 </div>
               </CardContent>
             </Card>
