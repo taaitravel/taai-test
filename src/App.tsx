@@ -13,6 +13,7 @@ import ProfileSetup from "./pages/ProfileSetup";
 import Dashboard from "./pages/Dashboard";
 import CreateItinerary from "./pages/CreateItinerary";
 import Itinerary from "./pages/Itinerary";
+import EditItinerary from "./pages/EditItinerary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,11 @@ const App = () => (
             <Route path="/itinerary" element={
               <ProtectedRoute>
                 <Itinerary />
+              </ProtectedRoute>
+            } />
+            <Route path="/edit-itinerary" element={
+              <ProtectedRoute>
+                <EditItinerary />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
