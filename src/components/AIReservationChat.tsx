@@ -40,11 +40,34 @@ interface DateRange {
   to?: Date | undefined;
 }
 
-const AIReservationChat = () => {
+interface ItineraryData {
+  name?: string;
+  description?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  locations?: string[];
+  mapLocations?: Array<{city: string, lat: number, lng: number}>;
+  budget?: number;
+  userType?: string;
+  attendees?: Array<{id: number, name: string, email: string}>;
+  flights?: Array<any>;
+  hotels?: Array<any>;
+  activities?: Array<any>;
+  reservations?: Array<any>;
+}
+
+interface AIReservationChatProps {
+  itineraryData?: ItineraryData;
+  onUpdateData?: (updates: Partial<ItineraryData>) => void;
+  onSaveItinerary?: () => Promise<void>;
+  isSaving?: boolean;
+}
+
+const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSaving }: AIReservationChatProps = {}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I'm your AI travel assistant. I can help you plan the perfect trip. Choose from our travel services, seasonal options, or explore different terrains and destinations.",
+      text: "Hello! I'm your AI travel assistant. I can help you plan the perfect trip. Choose from our travel services, seasonal options, explore different terrains, luxury experiences, extreme sports, or find exciting events!",
       isBot: true,
       timestamp: new Date(),
       actions: [
@@ -66,7 +89,28 @@ const AIReservationChat = () => {
         { type: 'quick-action', label: '🏔️ Mountain Retreat', data: { action: 'mountain' } },
         { type: 'quick-action', label: '🏖️ Beach Vacation', data: { action: 'beach' } },
         { type: 'quick-action', label: '🌲 Forest Escape', data: { action: 'forest' } },
-        { type: 'quick-action', label: '🏙️ City Break', data: { action: 'city' } }
+        { type: 'quick-action', label: '🏙️ City Break', data: { action: 'city' } },
+        // Luxury & Premium
+        { type: 'quick-action', label: '💎 Luxury Resort', data: { action: 'luxury' } },
+        { type: 'quick-action', label: '🛥️ Private Yacht', data: { action: 'yacht' } },
+        { type: 'quick-action', label: '✈️ Private Jet', data: { action: 'private-jet' } },
+        { type: 'quick-action', label: '🍾 Wine Tours', data: { action: 'wine' } },
+        { type: 'quick-action', label: '🏌️ Golf Resorts', data: { action: 'golf' } },
+        { type: 'quick-action', label: '💆 Spa Retreat', data: { action: 'spa' } },
+        // Extreme Sports & Adventure
+        { type: 'quick-action', label: '🪂 Skydiving', data: { action: 'skydiving' } },
+        { type: 'quick-action', label: '🏂 Skiing/Snowboarding', data: { action: 'skiing' } },
+        { type: 'quick-action', label: '🤿 Scuba Diving', data: { action: 'diving' } },
+        { type: 'quick-action', label: '🧗 Rock Climbing', data: { action: 'climbing' } },
+        { type: 'quick-action', label: '🏄 Surfing', data: { action: 'surfing' } },
+        { type: 'quick-action', label: '🚁 Helicopter Tours', data: { action: 'helicopter' } },
+        // Events & Entertainment
+        { type: 'quick-action', label: '🏎️ F1 Grand Prix', data: { action: 'f1' } },
+        { type: 'quick-action', label: '🎵 Concerts & Music', data: { action: 'concerts' } },
+        { type: 'quick-action', label: '⚽ Sports Events', data: { action: 'sports' } },
+        { type: 'quick-action', label: '🎭 Theater & Shows', data: { action: 'theater' } },
+        { type: 'quick-action', label: '🎨 Art & Culture', data: { action: 'culture' } },
+        { type: 'quick-action', label: '🍴 Food Festivals', data: { action: 'food' } }
       ]
     }
   ]);
@@ -175,22 +219,120 @@ const AIReservationChat = () => {
         }, 100);
         break;
       case 'location':
-        // This would trigger a location picker in a real implementation
-        addMessage(`Please specify the ${action.label.toLowerCase()}`);
+        // Enhanced location input - in real implementation would use maps/autocomplete
+        const locationInput = prompt(`Enter ${action.label.includes('Departure') ? 'departure city' : action.label.includes('Destination') ? 'destination' : 'location'}:`);
+        if (locationInput && onUpdateData) {
+          if (action.label.includes('Departure')) {
+            addMessage(`Departure: ${locationInput}`);
+          } else if (action.label.includes('Destination')) {
+            const currentLocations = itineraryData?.locations || [];
+            onUpdateData({
+              locations: [...currentLocations, locationInput],
+              mapLocations: [...(itineraryData?.mapLocations || []), { city: locationInput, lat: 0, lng: 0 }]
+            });
+            addMessage(`Destination: ${locationInput}`);
+            
+            // Trigger search for travel options
+            if (itineraryData?.dateStart && itineraryData?.dateEnd) {
+              searchTravelOptions(locationInput);
+            }
+          }
+        }
         break;
       case 'guests':
-        // Guest selector
+        // Guest selector handled in popover
         break;
       case 'budget':
-        // Budget range selector
+        const budgetInput = prompt('Enter your budget in USD:');
+        if (budgetInput && onUpdateData) {
+          const budget = parseFloat(budgetInput);
+          onUpdateData({ budget });
+          addMessage(`Budget set: $${budget.toLocaleString()}`);
+        }
         break;
       default:
         break;
     }
   };
 
+  const searchTravelOptions = async (destination: string) => {
+    if (!itineraryData?.dateStart || !itineraryData?.dateEnd) return;
+    
+    setIsTyping(true);
+    try {
+      // Search for flights first
+      const flightResponse = await fetch('https://dhbvweazpqnviqwgpurv.supabase.co/functions/v1/search-travel-options', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'flights',
+          origin: 'New York', // Default or get from user
+          destination,
+          checkIn: itineraryData.dateStart,
+          checkOut: itineraryData.dateEnd,
+          guests: selectedGuests
+        })
+      });
+      
+      const flightData = await flightResponse.json();
+      
+      // Search for hotels
+      const hotelResponse = await fetch('https://dhbvweazpqnviqwgpurv.supabase.co/functions/v1/search-travel-options', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'hotels',
+          destination,
+          checkIn: itineraryData.dateStart,
+          checkOut: itineraryData.dateEnd,
+          guests: selectedGuests,
+          budget: itineraryData.budget
+        })
+      });
+      
+      const hotelData = await hotelResponse.json();
+      
+      setIsTyping(false);
+      
+      // Update itinerary data with found options
+      if (onUpdateData) {
+        onUpdateData({
+          flights: flightData.flights,
+          hotels: hotelData.hotels
+        });
+      }
+      
+      addMessage(
+        `Great! I found ${flightData.flights?.length || 0} flight options and ${hotelData.hotels?.length || 0} hotel options for ${destination}. Here are the best recommendations:`,
+        true,
+        [
+          { type: 'quick-action', label: `✈️ ${flightData.flights?.[0]?.airline} - $${flightData.flights?.[0]?.price}`, data: { type: 'select-flight', flight: flightData.flights?.[0] } },
+          { type: 'quick-action', label: `🏨 ${hotelData.hotels?.[0]?.name} - $${hotelData.hotels?.[0]?.price_per_night}/night`, data: { type: 'select-hotel', hotel: hotelData.hotels?.[0] } },
+          { type: 'quick-action', label: '💾 Ready to Save Itinerary', data: { type: 'save-ready' } },
+          { type: 'quick-action', label: '🎯 Add More Activities', data: { action: 'activities' } }
+        ]
+      );
+    } catch (error) {
+      setIsTyping(false);
+      console.error('Error searching travel options:', error);
+      addMessage("I encountered an error searching for options. Let me help you manually input your preferences.", true);
+    }
+  };
+
   const handleDateRangeSubmit = () => {
-    if (selectedDateRange.from && selectedDateRange.to) {
+    if (selectedDateRange.from && selectedDateRange.to && onUpdateData) {
+      const dateStart = selectedDateRange.from.toISOString().split('T')[0];
+      const dateEnd = selectedDateRange.to.toISOString().split('T')[0];
+      
+      onUpdateData({
+        dateStart,
+        dateEnd
+      });
+      
       const dateText = `Travel dates: ${format(selectedDateRange.from, "MMM dd")} - ${format(selectedDateRange.to, "MMM dd, yyyy")}`;
       addMessage(dateText);
       
@@ -199,12 +341,12 @@ const AIReservationChat = () => {
         setTimeout(() => {
           setIsTyping(false);
           addMessage(
-            `Great! I found several options for ${dateText}. Let me show you the best deals:`,
+            `Perfect! I've saved your travel dates (${dateText}). Now let me help you find flights and hotels. What's your departure city?`,
             true,
             [
-              { type: 'quick-action', label: '✈️ View Flights ($450)', data: { price: 450 } },
-              { type: 'quick-action', label: '🏨 See Hotels ($120/night)', data: { price: 120 } },
-              { type: 'quick-action', label: '📋 Complete Package ($890)', data: { package: true } }
+              { type: 'location', label: '📍 Add Departure City' },
+              { type: 'location', label: '📍 Add Destination' },
+              { type: 'budget', label: '💰 Set Budget' }
             ]
           );
         }, 1500);
@@ -217,7 +359,10 @@ const AIReservationChat = () => {
     if (actions.length > 10) {
       const travelServices = actions.slice(0, 4);
       const seasonsDeals = actions.slice(4, 10);
-      const terrains = actions.slice(10);
+      const terrains = actions.slice(10, 16);
+      const luxury = actions.slice(16, 22);
+      const extremeSports = actions.slice(22, 28);
+      const events = actions.slice(28);
 
       return (
         <div className="mt-4 space-y-4">
@@ -264,6 +409,60 @@ const AIReservationChat = () => {
               {terrains.map((action, index) => (
                 <Button
                   key={index + 10}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleActionClick(action)}
+                  className="gold-gradient text-white hover:text-gray-300 hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Luxury & Premium */}
+          <div className="space-y-2">
+            <div className="text-xs font-semibold luxury-text-gradient uppercase tracking-wider">Luxury & Premium</div>
+            <div className="flex flex-wrap gap-2">
+              {luxury.map((action, index) => (
+                <Button
+                  key={index + 16}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleActionClick(action)}
+                  className="gold-gradient text-white hover:text-gray-300 hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Extreme Sports & Adventure */}
+          <div className="space-y-2">
+            <div className="text-xs font-semibold luxury-text-gradient uppercase tracking-wider">Extreme Sports & Adventure</div>
+            <div className="flex flex-wrap gap-2">
+              {extremeSports.map((action, index) => (
+                <Button
+                  key={index + 22}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleActionClick(action)}
+                  className="gold-gradient text-white hover:text-gray-300 hover:opacity-80 border-0 shadow-lg transition-all duration-300"
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Events & Entertainment */}
+          <div className="space-y-2">
+            <div className="text-xs font-semibold luxury-text-gradient uppercase tracking-wider">Events & Entertainment</div>
+            <div className="flex flex-wrap gap-2">
+              {events.map((action, index) => (
+                <Button
+                  key={index + 28}
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}

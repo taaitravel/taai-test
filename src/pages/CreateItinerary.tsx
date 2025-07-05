@@ -1,12 +1,85 @@
 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, User } from "lucide-react";
 import AIReservationChat from "@/components/AIReservationChat";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+interface ItineraryData {
+  name?: string;
+  description?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  locations?: string[];
+  mapLocations?: Array<{city: string, lat: number, lng: number}>;
+  budget?: number;
+  userType?: string;
+  attendees?: Array<{id: number, name: string, email: string}>;
+  flights?: Array<any>;
+  hotels?: Array<any>;
+  activities?: Array<any>;
+  reservations?: Array<any>;
+}
 
 const CreateItinerary = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [itineraryData, setItineraryData] = useState<ItineraryData>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  const updateItineraryData = (updates: Partial<ItineraryData>) => {
+    setItineraryData(prev => ({ ...prev, ...updates }));
+  };
+
+  const saveItinerary = async () => {
+    if (!user) {
+      toast.error("Please log in to save your itinerary");
+      return;
+    }
+
+    if (!itineraryData.name || !itineraryData.dateStart || !itineraryData.dateEnd || !itineraryData.locations?.length) {
+      toast.error("Please provide itinerary name, dates, and locations before saving");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from('itinerary')
+        .insert({
+          userid: user.id,
+          itin_name: itineraryData.name,
+          itin_desc: itineraryData.description,
+          itin_date_start: itineraryData.dateStart,
+          itin_date_end: itineraryData.dateEnd,
+          itin_locations: itineraryData.locations,
+          itin_map_locations: itineraryData.mapLocations,
+          budget: itineraryData.budget,
+          user_type: itineraryData.userType || 'individual',
+          attendees: itineraryData.attendees,
+          flights: itineraryData.flights,
+          hotels: itineraryData.hotels,
+          activities: itineraryData.activities,
+          reservations: itineraryData.reservations
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success("Itinerary saved successfully!");
+      navigate(`/itinerary?id=${data.id}`);
+    } catch (error) {
+      console.error('Error saving itinerary:', error);
+      toast.error("Failed to save itinerary. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#171821] flex flex-col">
@@ -56,7 +129,12 @@ const CreateItinerary = () => {
 
         {/* AI Reservation Chat - Full Featured */}
         <div className="flex-1 max-w-4xl mx-auto w-full">
-          <AIReservationChat />
+          <AIReservationChat 
+            itineraryData={itineraryData}
+            onUpdateData={updateItineraryData}
+            onSaveItinerary={saveItinerary}
+            isSaving={isSaving}
+          />
         </div>
       </div>
     </div>
