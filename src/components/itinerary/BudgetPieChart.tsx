@@ -243,22 +243,33 @@ export const BudgetPieChart = ({ itineraryId }: BudgetPieChartProps) => {
 
         {/* Budget Breakdown Table */}
         <div className="space-y-3">
-          <h4 className="text-white font-semibold">Budget Categories</h4>
+          <h4 className="text-white font-semibold">Spending by Category</h4>
+          
+          {/* Column Headers */}
+          <div className="grid grid-cols-4 gap-2 items-center px-2 py-2 text-xs text-white/70 font-medium border-b border-white/20">
+            <div>Category</div>
+            <div className="text-center">Budget</div>
+            <div className="text-center">Spent</div>
+            <div className="text-center">Left</div>
+          </div>
+          
           <div className="space-y-2">
             {(isEditing ? editData : budgetData).map((item, index) => (
-              <div key={item.id} className="grid grid-cols-4 gap-3 items-center p-3 bg-white/10 rounded-lg border border-white/20">
-                <div className="text-sm font-medium text-white">{item.category}</div>
+              <div key={item.id} className="grid grid-cols-4 gap-2 items-center p-2 bg-white/10 rounded-lg border border-white/20">
+                <div className="text-xs font-medium text-white truncate" title={item.category}>
+                  {item.category.length > 8 ? `${item.category.substring(0, 8)}...` : item.category}
+                </div>
                 <div className="text-center">
                   {isEditing ? (
                     <Input
                       type="number"
                       value={item.budgeted_amount}
                       onChange={(e) => updateEditData(index, 'budgeted_amount', e.target.value)}
-                      className="w-full text-sm bg-white/10 border-white/30 text-white"
-                      placeholder="Budget"
+                      className="w-full text-xs bg-white/10 border-white/30 text-white h-6"
+                      placeholder="0"
                     />
                   ) : (
-                    <span className="text-sm text-white">${item.budgeted_amount.toLocaleString()}</span>
+                    <span className="text-xs text-white">${(item.budgeted_amount / 1000).toFixed(0)}k</span>
                   )}
                 </div>
                 <div className="text-center">
@@ -267,28 +278,20 @@ export const BudgetPieChart = ({ itineraryId }: BudgetPieChartProps) => {
                       type="number"
                       value={item.spent_amount}
                       onChange={(e) => updateEditData(index, 'spent_amount', e.target.value)}
-                      className="w-full text-sm bg-white/10 border-white/30 text-white"
-                      placeholder="Spent"
+                      className="w-full text-xs bg-white/10 border-white/30 text-white h-6"
+                      placeholder="0"
                     />
                   ) : (
-                    <span className="text-sm text-green-400">${item.spent_amount.toLocaleString()}</span>
+                    <span className="text-xs text-green-400">${(item.spent_amount / 1000).toFixed(0)}k</span>
                   )}
                 </div>
                 <div className="text-center">
-                  <span className={`text-sm ${(item.budgeted_amount - item.spent_amount) >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
-                    ${(item.budgeted_amount - item.spent_amount).toLocaleString()}
+                  <span className={`text-xs ${(item.budgeted_amount - item.spent_amount) >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                    ${((item.budgeted_amount - item.spent_amount) / 1000).toFixed(0)}k
                   </span>
                 </div>
               </div>
             ))}
-          </div>
-          
-          {/* Column Headers */}
-          <div className="grid grid-cols-4 gap-3 items-center px-3 py-2 text-xs text-white/70 font-medium border-b border-white/20">
-            <div>Category</div>
-            <div className="text-center">Budgeted</div>
-            <div className="text-center">Spent</div>
-            <div className="text-center">Remaining</div>
           </div>
         </div>
       </CardContent>
