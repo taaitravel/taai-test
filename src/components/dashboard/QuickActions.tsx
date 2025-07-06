@@ -38,10 +38,11 @@ export const QuickActions = ({ activeItineraries, onBrowseTrips }: QuickActionsP
 
       {/* Browse All Trips Card */}
       <Card 
-        className="mb-6 bg-gradient-to-r from-white/10 via-white/5 to-transparent backdrop-blur-md border-white/30 cursor-pointer hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 group"
+        className="mb-6 bg-[#171821]/90 backdrop-blur-md border border-primary/30 cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 group relative overflow-hidden"
         onClick={onBrowseTrips}
       >
-        <CardContent className="p-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <CardContent className="p-6 relative z-10">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xl font-bold text-white mb-2 group-hover:scale-105 transition-transform duration-300">
@@ -59,7 +60,7 @@ export const QuickActions = ({ activeItineraries, onBrowseTrips }: QuickActionsP
                 </div>
               </div>
             </div>
-            <div className="text-4xl group-hover:scale-110 transition-transform duration-300">
+            <div className="text-4xl group-hover:scale-110 transition-transform duration-300 opacity-80 group-hover:opacity-100">
               🗂️
             </div>
           </div>
