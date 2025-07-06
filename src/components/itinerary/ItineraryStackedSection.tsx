@@ -29,23 +29,23 @@ export const ItineraryStackedSection = ({
       {items.length > 0 ? (
         <div className="relative h-[300px]">
           {items.slice(0, 3).map((item, index) => (
-            <Card 
-              key={index}
-              className="absolute w-full aspect-[16/20] bg-[#171821]/80 border-white/30 backdrop-blur-md cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 group"
-              style={{
-                transform: `translateY(${index * 10}px) translateX(${index * 5}px)`,
-                zIndex: 10 - index
-              }}
-              onClick={() => onCardClick(index)}
-            >
-              <CardContent className="p-4 h-full flex flex-col justify-between">
-                {renderCard(item, index)}
-              </CardContent>
-            </Card>
+          <Card 
+            key={index}
+            className="absolute w-full aspect-[16/20] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
+            style={{
+              transform: `translateY(${index * 10}px) translateX(${index * 5}px)`,
+              zIndex: 10 - index
+            }}
+            onClick={() => onCardClick(index)}
+          >
+            <CardContent className="p-4 h-full flex flex-col justify-between">
+              {renderCard(item, index)}
+            </CardContent>
+          </Card>
           ))}
           
           {items.length > 3 && (
-            <div className="absolute bottom-0 right-0 bg-white/20 backdrop-blur-md rounded-full px-3 py-1 text-xs text-white border border-white/30">
+            <div className="absolute bottom-0 right-0 bg-white/10 backdrop-blur-md rounded-full px-3 py-1 text-xs text-white/60 border border-white/20">
               +{items.length - 3} more
             </div>
           )}
@@ -64,25 +64,25 @@ export const ItineraryStackedSection = ({
 export const FlightCardRenderer = (flight: any, index: number) => (
   <>
     <div>
-      <div className="text-2xl mb-2">✈️</div>
-      <h4 className="font-bold text-white text-sm mb-1 line-clamp-2">
+      <div className="text-2xl mb-2 opacity-60">✈️</div>
+      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">
         {flight.airline} {flight.flight_number}
       </h4>
-      <p className="text-white/70 text-xs mb-2">
+      <p className="text-white/50 text-xs mb-2">
         {flight.from} → {flight.to}
       </p>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className="text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">
+        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
           ${flight.cost}
         </Badge>
       </div>
     </div>
     <div className="space-y-1">
-      <div className="flex items-center text-xs text-white/70">
+      <div className="flex items-center text-xs text-white/50">
         <Calendar className="h-3 w-3 mr-1" />
         {new Date(flight.departure).toLocaleDateString()}
       </div>
-      <p className="text-white/60 text-xs">
+      <p className="text-white/50 text-xs">
         {new Date(flight.departure).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
       </p>
     </div>
@@ -93,23 +93,23 @@ export const FlightCardRenderer = (flight: any, index: number) => (
 export const HotelCardRenderer = (hotel: any, index: number) => (
   <>
     <div>
-      <div className="text-2xl mb-2">🏨</div>
-      <h4 className="font-bold text-white text-sm mb-1 line-clamp-2">
+      <div className="text-2xl mb-2 opacity-60">🏨</div>
+      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">
         {hotel.name}
       </h4>
-      <p className="text-white/70 text-xs mb-2">{hotel.city}</p>
+      <p className="text-white/50 text-xs mb-2">{hotel.city}</p>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
           ${hotel.cost}
         </Badge>
       </div>
     </div>
     <div className="space-y-1">
-      <div className="flex items-center text-xs text-white/70">
+      <div className="flex items-center text-xs text-white/50">
         <Calendar className="h-3 w-3 mr-1" />
         {hotel.nights} nights
       </div>
-      <div className="flex items-center text-yellow-400">
+      <div className="flex items-center text-white/50">
         <Star className="h-3 w-3 fill-current mr-1" />
         <span className="text-xs">{hotel.rating}</span>
       </div>
@@ -121,23 +121,23 @@ export const HotelCardRenderer = (hotel: any, index: number) => (
 export const ActivityCardRenderer = (activity: any, index: number) => (
   <>
     <div>
-      <div className="text-2xl mb-2">🎯</div>
-      <h4 className="font-bold text-white text-sm mb-1 line-clamp-2">
+      <div className="text-2xl mb-2 opacity-60">🎯</div>
+      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">
         {activity.name}
       </h4>
-      <p className="text-white/70 text-xs mb-2">{activity.city}</p>
+      <p className="text-white/50 text-xs mb-2">{activity.city}</p>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className="text-xs bg-purple-500/20 text-purple-400 border-purple-500/30">
+        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
           ${activity.cost}
         </Badge>
       </div>
     </div>
     <div className="space-y-1">
-      <div className="flex items-center text-xs text-white/70">
+      <div className="flex items-center text-xs text-white/50">
         <Calendar className="h-3 w-3 mr-1" />
         {new Date(activity.date).toLocaleDateString()}
       </div>
-      <p className="text-white/60 text-xs">{activity.duration}</p>
+      <p className="text-white/50 text-xs">{activity.duration}</p>
     </div>
   </>
 );
@@ -146,29 +146,25 @@ export const ActivityCardRenderer = (activity: any, index: number) => (
 export const ReservationCardRenderer = (reservation: any, index: number) => (
   <>
     <div>
-      <div className="text-2xl mb-2">
+      <div className="text-2xl mb-2 opacity-60">
         {reservation.type === 'restaurant' ? '🍽️' : '📅'}
       </div>
-      <h4 className="font-bold text-white text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">
         {reservation.name}
       </h4>
-      <p className="text-white/70 text-xs mb-2">{reservation.city}</p>
+      <p className="text-white/50 text-xs mb-2">{reservation.city}</p>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className={`text-xs ${
-          reservation.type === 'restaurant' 
-            ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' 
-            : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
-        }`}>
+        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
           {reservation.type}
         </Badge>
       </div>
     </div>
     <div className="space-y-1">
-      <div className="flex items-center text-xs text-white/70">
+      <div className="flex items-center text-xs text-white/50">
         <Users className="h-3 w-3 mr-1" />
         {reservation.party_size} people
       </div>
-      <p className="text-white/60 text-xs">
+      <p className="text-white/50 text-xs">
         {new Date(reservation.date).toLocaleDateString()} • {reservation.time}
       </p>
     </div>
