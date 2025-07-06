@@ -184,9 +184,28 @@ const Itinerary = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Column 1: Flights & Hotels */}
-          <div className="space-y-8">
+        {/* Essential Map Section */}
+        <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md mb-8">
+          <CardHeader>
+            <CardTitle className="text-white">Trip Map</CardTitle>
+            <CardDescription className="text-white/70">
+              Explore your destinations and discover nearby attractions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-96 rounded-lg overflow-hidden">
+              <Map 
+                locations={itineraryData.itin_map_locations || []} 
+                locationNames={itineraryData.itin_locations || []}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Stacked Cards Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+          {/* Flights */}
+          <div>
             <ItineraryStackedSection
               title="Flights"
               icon={Plane}
@@ -198,7 +217,10 @@ const Itinerary = () => {
               renderCard={FlightCardRenderer}
               emptyMessage="No flights booked"
             />
-            
+          </div>
+          
+          {/* Hotels */}
+          <div>
             <ItineraryStackedSection
               title="Hotels"
               icon={MapPin}
@@ -212,8 +234,8 @@ const Itinerary = () => {
             />
           </div>
 
-          {/* Column 2: Activities & Reservations */}
-          <div className="space-y-8">
+          {/* Activities */}
+          <div>
             <ItineraryStackedSection
               title="Activities"
               icon={Calendar}
@@ -225,7 +247,10 @@ const Itinerary = () => {
               renderCard={ActivityCardRenderer}
               emptyMessage="No activities planned"
             />
-            
+          </div>
+          
+          {/* Reservations */}
+          <div>
             <ItineraryStackedSection
               title="Reservations"
               icon={Clock}
@@ -238,8 +263,51 @@ const Itinerary = () => {
               emptyMessage="No reservations made"
             />
           </div>
+        </div>
 
-          {/* Column 3: Sidebar */}
+        {/* Essential Metrics & Daily Schedule */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Daily Itinerary */}
+          <div className="lg:col-span-2">
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="text-white">Daily Schedule</CardTitle>
+                <CardDescription className="text-white/70">
+                  Your day-by-day travel plan
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: duration }, (_, index) => {
+                    const currentDate = new Date(itineraryData.itin_date_start);
+                    currentDate.setDate(currentDate.getDate() + index);
+                    const destination = destinations[index % destinations.length];
+                    
+                    return (
+                      <div key={index} className="border-l-2 border-white/30 pl-4 pb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-white">
+                            Day {index + 1} - {currentDate.toLocaleDateString()}
+                          </h4>
+                          <Badge className="bg-white/20 text-white border-white/30">
+                            {destination}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-white/70 space-y-1">
+                          <p>🏨 Check accommodation availability</p>
+                          <p>✈️ Review flight details</p>
+                          <p>🍽️ Explore local dining options</p>
+                          <p>🎯 Discover activities and attractions</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar with Overview & Attendees */}
           <div className="space-y-6">
             {/* Trip Overview */}
             <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
