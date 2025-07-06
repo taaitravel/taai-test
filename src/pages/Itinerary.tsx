@@ -186,9 +186,9 @@ const Itinerary = () => {
 
         {/* Trip Overview & Map Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Trip Overview */}
-          <div>
-            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md h-full">
+          {/* Trip Overview & Attendees */}
+          <div className="space-y-4">
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
                 <CardTitle className="text-white flex items-center space-x-2">
                   <MapPin className="h-5 w-5 text-white" />
@@ -196,7 +196,7 @@ const Itinerary = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 text-sm">
+                <div className="grid grid-cols-1 gap-3 text-sm">
                   <div>
                     <span className="text-white/70">Duration:</span>
                     <p className="text-white font-medium">{duration} days</p>
@@ -211,7 +211,7 @@ const Itinerary = () => {
                   <span className="text-white/70 text-sm">Destinations:</span>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {destinations.map((destination, index) => (
-                      <Badge key={index} className="bg-white/20 text-white border-white/30">
+                      <Badge key={index} className="bg-white/20 text-white border-white/30 text-xs">
                         {destination}
                       </Badge>
                     ))}
@@ -222,6 +222,47 @@ const Itinerary = () => {
                   <div>
                     <span className="text-white/70 text-sm">Description:</span>
                     <p className="text-white mt-1 text-xs">{itineraryData.itin_desc}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Trip Attendees */}
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white flex items-center space-x-2">
+                    <Users className="h-5 w-5 text-white" />
+                    <span>Attendees</span>
+                  </CardTitle>
+                  <Button 
+                    size="sm" 
+                    className="gold-gradient hover:opacity-90 text-[#171821] font-semibold text-xs px-2 py-1 h-7"
+                    onClick={() => console.log('Invite more people')}
+                  >
+                    <UserPlus className="h-3 w-3 mr-1" />
+                    Invite
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {itineraryData.attendees && itineraryData.attendees.slice(0, 2).map((attendee) => (
+                  <div key={attendee.id} className="flex items-center space-x-2 p-2 bg-white/10 rounded-lg border border-white/20">
+                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-sm">
+                      {attendee.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-white truncate">{attendee.name}</p>
+                      <p className="text-xs text-white/60 truncate">{attendee.email}</p>
+                    </div>
+                    <Badge className={`text-xs px-2 py-0.5 ${attendee.status === 'confirmed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-white/20 text-white border-white/30'}`}>
+                      {attendee.status}
+                    </Badge>
+                  </div>
+                ))}
+                {itineraryData.attendees && itineraryData.attendees.length > 2 && (
+                  <div className="text-center pt-1">
+                    <span className="text-xs text-white/60">+{itineraryData.attendees.length - 2} more</span>
                   </div>
                 )}
               </CardContent>
@@ -354,44 +395,8 @@ const Itinerary = () => {
             </Card>
           </div>
 
-          {/* Sidebar with Attendees & Budget */}
+          {/* Sidebar with Budget & AI Recommendations */}
           <div className="space-y-6">
-            {/* Trip Attendees */}
-            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white flex items-center space-x-2">
-                    <Users className="h-5 w-5 text-white" />
-                    <span>Trip Attendees</span>
-                  </CardTitle>
-                  <Button 
-                    size="sm" 
-                    className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-                    onClick={() => console.log('Invite more people')}
-                  >
-                    <UserPlus className="h-4 w-4 mr-1" />
-                    Invite
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {itineraryData.attendees && itineraryData.attendees.map((attendee) => (
-                  <div key={attendee.id} className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg border border-white/20">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">
-                      {attendee.avatar}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-white">{attendee.name}</p>
-                      <p className="text-xs text-white/60">{attendee.email}</p>
-                    </div>
-                    <Badge className={`text-xs ${attendee.status === 'confirmed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-white/20 text-white border-white/30'}`}>
-                      {attendee.status}
-                    </Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
             {/* Budget Breakdown */}
             <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
