@@ -39,6 +39,7 @@ const Itinerary = () => {
   const { toast } = useToast();
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [budgetRefreshTrigger, setBudgetRefreshTrigger] = useState(0);
   
   // Browser states
   const [flightBrowserOpen, setFlightBrowserOpen] = useState(false);
@@ -51,6 +52,11 @@ const Itinerary = () => {
   const [currentHotelIndex, setCurrentHotelIndex] = useState(0);
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
   const [currentReservationIndex, setCurrentReservationIndex] = useState(0);
+
+  // Function to trigger budget refresh when itinerary is updated
+  const refreshBudgetData = () => {
+    setBudgetRefreshTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     const fetchItinerary = async () => {
@@ -82,6 +88,7 @@ const Itinerary = () => {
         };
 
         setItineraryData(transformedData);
+        refreshBudgetData(); // Trigger budget refresh when data is loaded
       } catch (error) {
         console.error('Error fetching itinerary:', error);
         toast({
@@ -192,7 +199,7 @@ const Itinerary = () => {
             duration={duration}
             destinations={destinations}
           />
-          <ItinerarySidebar itineraryData={itineraryData} />
+          <ItinerarySidebar itineraryData={itineraryData} refreshTrigger={budgetRefreshTrigger} />
         </div>
       </div>
 

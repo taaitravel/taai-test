@@ -14,13 +14,14 @@ interface ItineraryData {
 
 interface ItinerarySidebarProps {
   itineraryData: ItineraryData;
+  refreshTrigger?: number;
 }
 
-export const ItinerarySidebar = ({ itineraryData }: ItinerarySidebarProps) => {
+export const ItinerarySidebar = ({ itineraryData, refreshTrigger }: ItinerarySidebarProps) => {
   return (
     <div className="space-y-6">
       {/* Budget Pie Chart */}
-      <BudgetPieChart itineraryId={itineraryData.id} />
+      <BudgetPieChart itineraryId={itineraryData.id} refreshTrigger={refreshTrigger} />
 
       {/* Budget Breakdown */}
       <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">

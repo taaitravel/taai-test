@@ -16,6 +16,7 @@ interface BudgetCategory {
 
 interface BudgetPieChartProps {
   itineraryId: number;
+  refreshTrigger?: number; // Add this to force refresh when itinerary changes
 }
 
 const COLORS = [
@@ -28,7 +29,7 @@ const COLORS = [
   'hsl(45, 80%, 70%)',   // Gold
 ];
 
-export const BudgetPieChart = ({ itineraryId }: BudgetPieChartProps) => {
+export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartProps) => {
   const [budgetData, setBudgetData] = useState<BudgetCategory[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<BudgetCategory[]>([]);
@@ -37,7 +38,7 @@ export const BudgetPieChart = ({ itineraryId }: BudgetPieChartProps) => {
 
   useEffect(() => {
     fetchBudgetData();
-  }, [itineraryId]);
+  }, [itineraryId, refreshTrigger]); // Add refreshTrigger to dependencies
 
   const fetchBudgetData = async () => {
     try {
