@@ -47,7 +47,7 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div className="grid grid-cols-1 gap-6 mb-8">
       {/* Total Trips with Bar Chart */}
       <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
         <CardHeader className="pb-2">
