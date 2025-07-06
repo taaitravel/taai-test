@@ -269,7 +269,9 @@ export const BudgetPieChart = ({ itineraryId }: BudgetPieChartProps) => {
                       placeholder="0"
                     />
                   ) : (
-                    <span className="text-xs text-white">${(item.budgeted_amount / 1000).toFixed(0)}k</span>
+                    <span className="text-xs text-white">
+                      ${item.budgeted_amount >= 1000 ? `${(item.budgeted_amount / 1000).toFixed(1)}k` : item.budgeted_amount}
+                    </span>
                   )}
                 </div>
                 <div className="text-center">
@@ -282,12 +284,16 @@ export const BudgetPieChart = ({ itineraryId }: BudgetPieChartProps) => {
                       placeholder="0"
                     />
                   ) : (
-                    <span className="text-xs text-green-400">${(item.spent_amount / 1000).toFixed(0)}k</span>
+                    <span className="text-xs text-green-400">
+                      ${item.spent_amount >= 1000 ? `${(item.spent_amount / 1000).toFixed(1)}k` : item.spent_amount}
+                    </span>
                   )}
                 </div>
                 <div className="text-center">
                   <span className={`text-xs ${(item.budgeted_amount - item.spent_amount) >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
-                    ${((item.budgeted_amount - item.spent_amount) / 1000).toFixed(0)}k
+                    ${Math.abs(item.budgeted_amount - item.spent_amount) >= 1000 ? 
+                      `${((item.budgeted_amount - item.spent_amount) / 1000).toFixed(1)}k` : 
+                      (item.budgeted_amount - item.spent_amount)}
                   </span>
                 </div>
               </div>
