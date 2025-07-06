@@ -8,6 +8,8 @@ import { Plane, MapPin, Calendar, Users, DollarSign, ArrowLeft, Edit, Share2, Do
 import Map from "@/components/Map";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ItineraryStackedSection, FlightCardRenderer, HotelCardRenderer, ActivityCardRenderer, ReservationCardRenderer } from "@/components/itinerary/ItineraryStackedSection";
+import { ItineraryBrowser } from "@/components/itinerary/ItineraryBrowser";
 
 interface ItineraryData {
   id: number;
@@ -36,6 +38,18 @@ const Itinerary = () => {
   const { toast } = useToast();
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Browser states
+  const [flightBrowserOpen, setFlightBrowserOpen] = useState(false);
+  const [hotelBrowserOpen, setHotelBrowserOpen] = useState(false);
+  const [activityBrowserOpen, setActivityBrowserOpen] = useState(false);
+  const [reservationBrowserOpen, setReservationBrowserOpen] = useState(false);
+  
+  // Current indices for browsers
+  const [currentFlightIndex, setCurrentFlightIndex] = useState(0);
+  const [currentHotelIndex, setCurrentHotelIndex] = useState(0);
+  const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
+  const [currentReservationIndex, setCurrentReservationIndex] = useState(0);
 
   useEffect(() => {
     const fetchItinerary = async () => {
@@ -171,8 +185,62 @@ const Itinerary = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Column 1: Flights & Hotels */}
+          <div className="space-y-8">
+            <ItineraryStackedSection
+              title="Flights"
+              icon={Plane}
+              items={itineraryData.flights || []}
+              onCardClick={(index) => {
+                setCurrentFlightIndex(index);
+                setFlightBrowserOpen(true);
+              }}
+              renderCard={FlightCardRenderer}
+              emptyMessage="No flights booked"
+            />
+            
+            <ItineraryStackedSection
+              title="Hotels"
+              icon={MapPin}
+              items={itineraryData.hotels || []}
+              onCardClick={(index) => {
+                setCurrentHotelIndex(index);
+                setHotelBrowserOpen(true);
+              }}
+              renderCard={HotelCardRenderer}
+              emptyMessage="No hotels booked"
+            />
+          </div>
+
+          {/* Column 2: Activities & Reservations */}
+          <div className="space-y-8">
+            <ItineraryStackedSection
+              title="Activities"
+              icon={Calendar}
+              items={itineraryData.activities || []}
+              onCardClick={(index) => {
+                setCurrentActivityIndex(index);
+                setActivityBrowserOpen(true);
+              }}
+              renderCard={ActivityCardRenderer}
+              emptyMessage="No activities planned"
+            />
+            
+            <ItineraryStackedSection
+              title="Reservations"
+              icon={Clock}
+              items={itineraryData.reservations || []}
+              onCardClick={(index) => {
+                setCurrentReservationIndex(index);
+                setReservationBrowserOpen(true);
+              }}
+              renderCard={ReservationCardRenderer}
+              emptyMessage="No reservations made"
+            />
+          </div>
+
+          {/* Column 3: Sidebar */}
+          <div className="space-y-6">
             {/* Trip Overview */}
             <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
@@ -182,7 +250,7 @@ const Itinerary = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 gap-4 text-sm">
                   <div>
                     <span className="text-white/70">Duration:</span>
                     <p className="text-white font-medium">{duration} days</p>
@@ -207,7 +275,7 @@ const Itinerary = () => {
                 {itineraryData.itin_desc && (
                   <div>
                     <span className="text-white/70 text-sm">Description:</span>
-                    <p className="text-white mt-1">{itineraryData.itin_desc}</p>
+                    <p className="text-white mt-1 text-xs">{itineraryData.itin_desc}</p>
                   </div>
                 )}
               </CardContent>
@@ -218,11 +286,11 @@ const Itinerary = () => {
               <CardHeader>
                 <CardTitle className="text-white">Trip Map</CardTitle>
                 <CardDescription className="text-white/70">
-                  Explore your destinations and discover nearby attractions
+                  Explore your destinations
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-96 rounded-lg overflow-hidden">
+                <div className="h-48 rounded-lg overflow-hidden">
                   <Map 
                     locations={itineraryData.itin_map_locations || []} 
                     locationNames={itineraryData.itin_locations || []}
@@ -231,199 +299,6 @@ const Itinerary = () => {
               </CardContent>
             </Card>
 
-            {/* Flights */}
-            {itineraryData.flights && itineraryData.flights.length > 0 && (
-              <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center space-x-2">
-                    <Plane className="h-5 w-5 text-white" />
-                    <span>Flight Information</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {itineraryData.flights.map((flight, index) => (
-                    <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-white">{flight.airline} {flight.flight_number}</h4>
-                        <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                          ${flight.cost}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-white/70">Departure:</p>
-                          <p className="text-white">{flight.from} - {new Date(flight.departure).toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-white/70">Arrival:</p>
-                          <p className="text-white">{flight.to} - {new Date(flight.arrival).toLocaleString()}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Hotels */}
-            {itineraryData.hotels && itineraryData.hotels.length > 0 && (
-              <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center space-x-2">
-                    <MapPin className="h-5 w-5 text-white" />
-                    <span>Accommodations</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {itineraryData.hotels.map((hotel, index) => (
-                    <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold text-white">{hotel.name}</h4>
-                          <p className="text-white/70 text-sm">{hotel.city}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 mb-1">
-                            ${hotel.cost}
-                          </Badge>
-                          <div className="flex items-center text-yellow-400">
-                            <Star className="h-4 w-4 fill-current" />
-                            <span className="text-sm ml-1">{hotel.rating}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-white/70">Check-in:</p>
-                          <p className="text-white">{new Date(hotel.check_in).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-white/70">Check-out:</p>
-                          <p className="text-white">{new Date(hotel.check_out).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                      <p className="text-white/70 text-sm mt-2">{hotel.nights} nights</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Activities */}
-            {itineraryData.activities && itineraryData.activities.length > 0 && (
-              <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center space-x-2">
-                    <Calendar className="h-5 w-5 text-white" />
-                    <span>Planned Activities</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {itineraryData.activities.map((activity, index) => (
-                    <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold text-white">{activity.name}</h4>
-                          <p className="text-white/70 text-sm">{activity.city}</p>
-                        </div>
-                        <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                          ${activity.cost}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-white/70">Date:</p>
-                          <p className="text-white">{new Date(activity.date).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-white/70">Duration:</p>
-                          <p className="text-white">{activity.duration}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Reservations */}
-            {itineraryData.reservations && itineraryData.reservations.length > 0 && (
-              <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center space-x-2">
-                    <Clock className="h-5 w-5 text-white" />
-                    <span>Reservations</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {itineraryData.reservations.map((reservation, index) => (
-                    <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold text-white">{reservation.name}</h4>
-                          <p className="text-white/70 text-sm">{reservation.city}</p>
-                        </div>
-                        <Badge className={`text-xs ${reservation.type === 'restaurant' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'}`}>
-                          {reservation.type}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-white/70">Date & Time:</p>
-                          <p className="text-white">{new Date(reservation.date).toLocaleDateString()} at {reservation.time}</p>
-                        </div>
-                        <div>
-                          <p className="text-white/70">Party Size:</p>
-                          <p className="text-white">{reservation.party_size} {reservation.party_size === 1 ? 'person' : 'people'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Daily Itinerary */}
-            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white">Daily Schedule</CardTitle>
-                <CardDescription className="text-white/70">
-                  Your day-by-day travel plan
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Array.from({ length: duration }, (_, index) => {
-                    const currentDate = new Date(itineraryData.itin_date_start);
-                    currentDate.setDate(currentDate.getDate() + index);
-                    const destination = destinations[index % destinations.length];
-                    
-                    return (
-                      <div key={index} className="border-l-2 border-white/30 pl-4 pb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-white">
-                            Day {index + 1} - {currentDate.toLocaleDateString()}
-                          </h4>
-                          <Badge className="bg-white/20 text-white border-white/30">
-                            {destination}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-white/70 space-y-1">
-                          <p>🏨 Check accommodation availability</p>
-                          <p>✈️ Review flight details</p>
-                          <p>🍽️ Explore local dining options</p>
-                          <p>🎯 Discover activities and attractions</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
             {/* Trip Attendees */}
             <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
@@ -537,6 +412,47 @@ const Itinerary = () => {
           </div>
         </div>
       </div>
+
+      {/* Browser Components */}
+      <ItineraryBrowser
+        isOpen={flightBrowserOpen}
+        onClose={() => setFlightBrowserOpen(false)}
+        items={itineraryData.flights || []}
+        currentIndex={currentFlightIndex}
+        onIndexChange={setCurrentFlightIndex}
+        title="Flights"
+        type="flights"
+      />
+
+      <ItineraryBrowser
+        isOpen={hotelBrowserOpen}
+        onClose={() => setHotelBrowserOpen(false)}
+        items={itineraryData.hotels || []}
+        currentIndex={currentHotelIndex}
+        onIndexChange={setCurrentHotelIndex}
+        title="Hotels"
+        type="hotels"
+      />
+
+      <ItineraryBrowser
+        isOpen={activityBrowserOpen}
+        onClose={() => setActivityBrowserOpen(false)}
+        items={itineraryData.activities || []}
+        currentIndex={currentActivityIndex}
+        onIndexChange={setCurrentActivityIndex}
+        title="Activities"
+        type="activities"
+      />
+
+      <ItineraryBrowser
+        isOpen={reservationBrowserOpen}
+        onClose={() => setReservationBrowserOpen(false)}
+        items={itineraryData.reservations || []}
+        currentIndex={currentReservationIndex}
+        onIndexChange={setCurrentReservationIndex}
+        title="Reservations"
+        type="reservations"
+      />
     </div>
   );
 };
