@@ -13,11 +13,11 @@ serve(async (req) => {
 
   try {
     console.log('get-mapbox-token function called');
-    const mapboxToken = Deno.env.get('MAPBOX_KEY');
+    const mapboxToken = Deno.env.get('MAPBOX_PK');
     console.log('Retrieved token exists:', !!mapboxToken);
     
     if (!mapboxToken) {
-      console.error('MAPBOX_KEY environment variable not found');
+      console.error('MAPBOX_PK environment variable not found');
       return new Response(
         JSON.stringify({ error: 'Mapbox token not configured' }),
         { 
