@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ItineraryStackedSection, FlightCardRenderer, HotelCardRenderer, ActivityCardRenderer, ReservationCardRenderer } from "@/components/itinerary/ItineraryStackedSection";
 import { ItineraryBrowser } from "@/components/itinerary/ItineraryBrowser";
+import { BudgetPieChart } from "@/components/itinerary/BudgetPieChart";
 
 interface ItineraryData {
   id: number;
@@ -397,6 +398,9 @@ const Itinerary = () => {
 
           {/* Sidebar with Budget & AI Recommendations */}
           <div className="space-y-6">
+            {/* Budget Pie Chart */}
+            <BudgetPieChart itineraryId={itineraryData.id} />
+
             {/* Budget Breakdown */}
             <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>

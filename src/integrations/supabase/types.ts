@@ -78,6 +78,44 @@ export type Database = {
         }
         Relationships: []
       }
+      itinerary_budget_breakdown: {
+        Row: {
+          budgeted_amount: number
+          category: string
+          created_at: string
+          id: string
+          itinerary_id: number
+          spent_amount: number
+          updated_at: string
+        }
+        Insert: {
+          budgeted_amount?: number
+          category: string
+          created_at?: string
+          id?: string
+          itinerary_id: number
+          spent_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          budgeted_amount?: number
+          category?: string
+          created_at?: string
+          id?: string
+          itinerary_id?: number
+          spent_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_budget_breakdown_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           address: string | null
