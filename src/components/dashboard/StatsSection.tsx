@@ -48,105 +48,98 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
 
   return (
     <div className="grid grid-cols-1 gap-6 mb-8">
-      {/* Total Trips with Bar Chart */}
-      <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-white/70">Total Trips YTD</p>
-              <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{userStats.totalTrips}</p>
-            </div>
-            <Calendar className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <ChartContainer config={chartConfig} className="h-20 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyFlights}>
-                <Bar dataKey="flights" fill="white" radius={2} />
-                <XAxis dataKey="month" hide />
-                <YAxis hide />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-
-      {/* Countries Visited with Map */}
-      <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-white/70">Countries Visited</p>
-              <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{visitedCountries.length}</p>
-            </div>
-            <Map className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <WorldMap visitedCountries={visitedCountries} />
-        </CardContent>
-      </Card>
-
-      {/* Travel Stats Combined */}
+      {/* Combined Stats Card with 4 Sections */}
       <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
         <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-white/70">Cities Visited</p>
-                <p className="text-xl font-bold text-white">{userStats.citiesVisited}</p>
+          <div className="space-y-8">
+            {/* Section 1: Total Trips YTD */}
+            <div className="border-b border-white/10 pb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-white/70">Total Trips YTD</p>
+                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{userStats.totalTrips}</p>
+                </div>
+                <Calendar className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
               </div>
-              <MapPin className="h-6 w-6 text-white" />
+              <ChartContainer config={chartConfig} className="h-20 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyFlights}>
+                    <Bar dataKey="flights" fill="white" radius={2} />
+                    <XAxis dataKey="month" hide />
+                    <YAxis hide />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-white/70">Flights This Year</p>
-                <p className="text-xl font-bold text-white">{Number(userStats.flightsThisYear)}</p>
-              </div>
-              <Plane className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-white/70">Traveler Level</p>
-                <p className="text-sm font-semibold text-white">{userStats.travelerLevel}</p>
-              </div>
-              <Users className="h-6 w-6 text-white" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Total Spent with Pie Chart */}
-      <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-white/70">Total Spent</p>
-              <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">${userStats.totalSpent.toLocaleString()}</p>
+            {/* Section 2: Countries Visited */}
+            <div className="border-b border-white/10 pb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-white/70">Countries Visited</p>
+                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">{visitedCountries.length}</p>
+                </div>
+                <Map className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
+              </div>
+              <WorldMap visitedCountries={visitedCountries} />
             </div>
-            <BarChart3 className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
+
+            {/* Section 3: Travel Metrics */}
+            <div className="border-b border-white/10 pb-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-white/70">Cities Visited</p>
+                    <p className="text-xl font-bold text-white">{userStats.citiesVisited}</p>
+                  </div>
+                  <MapPin className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-white/70">Flights This Year</p>
+                    <p className="text-xl font-bold text-white">{Number(userStats.flightsThisYear)}</p>
+                  </div>
+                  <Plane className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-white/70">Traveler Level</p>
+                    <p className="text-sm font-semibold text-white">{userStats.travelerLevel}</p>
+                  </div>
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 4: Total Spent */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-white/70">Total Spent</p>
+                  <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform duration-300">${userStats.totalSpent.toLocaleString()}</p>
+                </div>
+                <BarChart3 className="h-8 w-8 text-white group-hover:scale-105 transition-transform duration-300" />
+              </div>
+              <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={spendingData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={15}
+                      outerRadius={35}
+                      dataKey="value"
+                    >
+                      {spendingData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <ChartContainer config={chartConfig} className="h-[200px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={spendingData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={15}
-                  outerRadius={35}
-                  dataKey="value"
-                >
-                  {spendingData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
         </CardContent>
       </Card>
     </div>
