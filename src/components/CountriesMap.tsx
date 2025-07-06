@@ -19,8 +19,10 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
 
     const initializeMap = async () => {
       try {
+        console.log('CountriesMap: Attempting to get Mapbox token...');
         // Get Mapbox token from Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        console.log('CountriesMap: Token response:', { data, error });
         
         if (error) {
           setError('Unable to load map. Please check configuration.');
