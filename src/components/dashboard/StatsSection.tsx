@@ -48,20 +48,20 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
 
   return (
     <div className="grid grid-cols-1 gap-6 mb-8">
-      {/* Combined Stats Card with 4 Compact Sections */}
+      {/* Combined Stats Card with 4 Ultra-Compact Sections */}
       <Card className="border-white/30 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md group">
-        <CardContent className="p-4">
-          <div className="space-y-4">
+        <CardContent className="p-2">
+          <div className="space-y-2">
             {/* Section 1: Total Trips YTD */}
-            <div className="border-b border-white/10 pb-3">
-              <div className="flex items-center justify-between mb-2">
+            <div className="border-b border-white/10 pb-1">
+              <div className="flex items-center justify-between mb-1">
                 <div>
-                  <p className="text-xs font-medium text-white/70">Total Trips YTD</p>
-                  <p className="text-lg font-bold text-white">{userStats.totalTrips}</p>
+                  <p className="text-[10px] font-medium text-white/70">Total Trips YTD</p>
+                  <p className="text-sm font-bold text-white">{userStats.totalTrips}</p>
                 </div>
-                <Calendar className="h-5 w-5 text-white" />
+                <Calendar className="h-3 w-3 text-white" />
               </div>
-              <ChartContainer config={chartConfig} className="h-12 w-full">
+              <ChartContainer config={chartConfig} className="h-6 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyFlights}>
                     <Bar dataKey="flights" fill="white" radius={1} />
@@ -73,73 +73,43 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
             </div>
 
             {/* Section 2: Countries Visited */}
-            <div className="border-b border-white/10 pb-3">
-              <div className="flex items-center justify-between mb-2">
+            <div className="border-b border-white/10 pb-1">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-white/70">Countries Visited</p>
-                  <p className="text-lg font-bold text-white">{visitedCountries.length}</p>
+                  <p className="text-[10px] font-medium text-white/70">Countries Visited</p>
+                  <p className="text-sm font-bold text-white">{visitedCountries.length}</p>
                 </div>
-                <Map className="h-5 w-5 text-white" />
-              </div>
-              <div className="h-16">
-                <WorldMap visitedCountries={visitedCountries} />
+                <Map className="h-3 w-3 text-white" />
               </div>
             </div>
 
             {/* Section 3: Travel Metrics */}
-            <div className="border-b border-white/10 pb-3">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-white/70">Cities Visited</p>
-                    <p className="text-sm font-bold text-white">{userStats.citiesVisited}</p>
-                  </div>
-                  <MapPin className="h-4 w-4 text-white" />
+            <div className="border-b border-white/10 pb-1">
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <p className="text-[9px] font-medium text-white/70">Cities</p>
+                  <p className="text-xs font-bold text-white">{userStats.citiesVisited}</p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-white/70">Flights This Year</p>
-                    <p className="text-sm font-bold text-white">{Number(userStats.flightsThisYear)}</p>
-                  </div>
-                  <Plane className="h-4 w-4 text-white" />
+                <div>
+                  <p className="text-[9px] font-medium text-white/70">Flights</p>
+                  <p className="text-xs font-bold text-white">{Number(userStats.flightsThisYear)}</p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-white/70">Traveler Level</p>
-                    <p className="text-xs font-semibold text-white">{userStats.travelerLevel}</p>
-                  </div>
-                  <Users className="h-4 w-4 text-white" />
+                <div>
+                  <p className="text-[9px] font-medium text-white/70">Level</p>
+                  <p className="text-[9px] font-semibold text-white">{userStats.travelerLevel}</p>
                 </div>
               </div>
             </div>
 
             {/* Section 4: Total Spent */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-white/70">Total Spent</p>
-                  <p className="text-lg font-bold text-white">${userStats.totalSpent.toLocaleString()}</p>
+                  <p className="text-[10px] font-medium text-white/70">Total Spent</p>
+                  <p className="text-sm font-bold text-white">${userStats.totalSpent.toLocaleString()}</p>
                 </div>
-                <BarChart3 className="h-5 w-5 text-white" />
+                <BarChart3 className="h-3 w-3 text-white" />
               </div>
-              <ChartContainer config={chartConfig} className="h-20 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={spendingData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={8}
-                      outerRadius={20}
-                      dataKey="value"
-                    >
-                      {spendingData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartContainer>
             </div>
           </div>
         </CardContent>
