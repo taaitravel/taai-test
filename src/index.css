@@ -163,9 +163,9 @@
 }
 
 .trip-card-past {
-  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0f0f0f 100%);
+  background: #2a2a2a;
   border: 1px solid rgba(128, 128, 128, 0.3);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .luxury-text-gradient {
