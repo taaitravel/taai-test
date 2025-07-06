@@ -184,23 +184,70 @@ const Itinerary = () => {
           </div>
         </div>
 
-        {/* Essential Map Section */}
-        <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md mb-8">
-          <CardHeader>
-            <CardTitle className="text-white">Trip Map</CardTitle>
-            <CardDescription className="text-white/70">
-              Explore your destinations and discover nearby attractions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-96 rounded-lg overflow-hidden">
-              <Map 
-                locations={itineraryData.itin_map_locations || []} 
-                locationNames={itineraryData.itin_locations || []}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Trip Overview & Map Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Trip Overview */}
+          <div>
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md h-full">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <MapPin className="h-5 w-5 text-white" />
+                  <span>Trip Overview</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 text-sm">
+                  <div>
+                    <span className="text-white/70">Duration:</span>
+                    <p className="text-white font-medium">{duration} days</p>
+                  </div>
+                  <div>
+                    <span className="text-white/70">Budget per person:</span>
+                    <p className="text-white font-medium">${Math.round(Number(itineraryData.budget) / peopleCount).toLocaleString()}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <span className="text-white/70 text-sm">Destinations:</span>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {destinations.map((destination, index) => (
+                      <Badge key={index} className="bg-white/20 text-white border-white/30">
+                        {destination}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {itineraryData.itin_desc && (
+                  <div>
+                    <span className="text-white/70 text-sm">Description:</span>
+                    <p className="text-white mt-1 text-xs">{itineraryData.itin_desc}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Map Section - Takes 2/3 */}
+          <div className="lg:col-span-2">
+            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md h-full">
+              <CardHeader>
+                <CardTitle className="text-white">Trip Map</CardTitle>
+                <CardDescription className="text-white/70">
+                  Explore your destinations and discover nearby attractions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-96 rounded-lg overflow-hidden">
+                  <Map 
+                    locations={itineraryData.itin_map_locations || []} 
+                    locationNames={itineraryData.itin_locations || []}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
         {/* Stacked Cards Section */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
@@ -307,66 +354,8 @@ const Itinerary = () => {
             </Card>
           </div>
 
-          {/* Sidebar with Overview & Attendees */}
+          {/* Sidebar with Attendees & Budget */}
           <div className="space-y-6">
-            {/* Trip Overview */}
-            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-white" />
-                  <span>Trip Overview</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 text-sm">
-                  <div>
-                    <span className="text-white/70">Duration:</span>
-                    <p className="text-white font-medium">{duration} days</p>
-                  </div>
-                  <div>
-                    <span className="text-white/70">Budget per person:</span>
-                    <p className="text-white font-medium">${Math.round(Number(itineraryData.budget) / peopleCount).toLocaleString()}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <span className="text-white/70 text-sm">Destinations:</span>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {destinations.map((destination, index) => (
-                      <Badge key={index} className="bg-white/20 text-white border-white/30">
-                        {destination}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {itineraryData.itin_desc && (
-                  <div>
-                    <span className="text-white/70 text-sm">Description:</span>
-                    <p className="text-white mt-1 text-xs">{itineraryData.itin_desc}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Map */}
-            <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white">Trip Map</CardTitle>
-                <CardDescription className="text-white/70">
-                  Explore your destinations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48 rounded-lg overflow-hidden">
-                  <Map 
-                    locations={itineraryData.itin_map_locations || []} 
-                    locationNames={itineraryData.itin_locations || []}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Trip Attendees */}
             <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
               <CardHeader>
