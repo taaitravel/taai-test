@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { X, ChevronLeft, ChevronRight, Map, Users, MessageCircle } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Map, Users, MessageCircle, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface TripBrowserProps {
@@ -44,7 +44,11 @@ export const TripBrowser = ({
 
         {/* Main Trip Card */}
         {activeItineraries.length > 0 && (
-          <Card className="w-full aspect-[3/4] bg-gradient-to-br from-white/15 via-white/10 to-transparent backdrop-blur-md border border-white/30 animate-scale-in">
+          <Card className={`w-full aspect-[3/4] animate-scale-in ${
+            activeItineraries[currentTripIndex]?.status === 'completed' 
+              ? 'trip-browser-past' 
+              : 'trip-browser-upcoming'
+          }`}>
             <CardContent className="p-6 h-full flex flex-col justify-between">
               <div>
                 <div className="text-6xl mb-4 text-center">
@@ -100,22 +104,30 @@ export const TripBrowser = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex space-x-3">
+              <div className="space-y-3">
                 {activeItineraries[currentTripIndex]?.status !== 'completed' ? (
                   <>
+                    <div className="flex space-x-2">
+                      <Button 
+                        className="flex-1 gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                        onClick={() => navigate('/create-itinerary')}
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Edit Trip
+                      </Button>
+                      <Button 
+                        className="flex-1 gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                        onClick={() => navigate(`/itinerary?id=${activeItineraries[currentTripIndex]?.id}`)}
+                      >
+                        View Details
+                      </Button>
+                    </div>
                     <Button 
-                      variant="outline" 
-                      className="flex-1 border-white/50 text-white hover:bg-white/10"
-                      onClick={() => navigate('/create-itinerary')}
+                      className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                      onClick={() => {/* TODO: Implement invite functionality */}}
                     >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Edit Trip
-                    </Button>
-                    <Button 
-                      className="flex-1 bg-white/20 hover:bg-white/30 text-white border-white/30"
-                      onClick={() => navigate(`/itinerary?id=${activeItineraries[currentTripIndex]?.id}`)}
-                    >
-                      View Details
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Invite
                     </Button>
                   </>
                 ) : (
