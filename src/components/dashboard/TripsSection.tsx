@@ -33,9 +33,8 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
                     key={trip.id}
                     className="absolute w-full aspect-[3/4] trip-card-upcoming backdrop-blur-md cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 group"
                     style={{
-                      transform: `translateY(${index * 10}px) translateX(${index * 5}px) rotateZ(${index * 2}deg)`,
-                      zIndex: 10 - index,
-                      animationDelay: `${index * 0.5}s`
+                      transform: `translateY(${index * 12}px) translateX(${index * 6}px) rotateZ(${index * 3}deg)`,
+                      zIndex: 10 - index
                     }}
                     onClick={onTripClick}
                   >
@@ -95,7 +94,7 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
                   key={trip.id}
                   className="absolute w-full aspect-[3/4] trip-card-past backdrop-blur-md cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
                   style={{
-                    transform: `translateY(${index * 10}px) translateX(${index * 5}px) rotateZ(${index * 2}deg)`,
+                    transform: `translateY(${index * 12}px) translateX(${index * 6}px) rotateZ(${index * 3}deg)`,
                     zIndex: 10 - index
                   }}
                   onClick={onTripClick}
