@@ -50,6 +50,12 @@ export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartPr
 
       if (error) throw error;
 
+      // If no budget data exists, initialize it
+      if (!data || data.length === 0) {
+        await initializeBudgetCategories();
+        return;
+      }
+
       setBudgetData(data || []);
     } catch (error) {
       console.error('Error fetching budget data:', error);
@@ -60,6 +66,63 @@ export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartPr
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const initializeBudgetCategories = async () => {
+    try {
+      // Get the current itinerary data to calculate estimates
+      const { data: itinerary, error: itinError } = await supabase
+        .from('itinerary')
+        .select('*')
+        .eq('id', itineraryId)
+        .single();
+
+      if (itinError) throw itinError;
+
+      // Calculate estimated costs
+      const flightCost = itinerary.flights ? 
+        (itinerary.flights as any[]).reduce((sum: number, flight: any) => sum + (flight.cost || 500), 0) : 0;
+      
+      const hotelCost = itinerary.hotels ? 
+        (itinerary.hotels as any[]).reduce((sum: number, hotel: any) => sum + (hotel.cost || 150 * hotel.nights || 300), 0) : 0;
+      
+      const activityCost = itinerary.activities ? 
+        (itinerary.activities as any[]).reduce((sum: number, activity: any) => sum + (activity.cost || 75), 0) : 0;
+      
+      // Estimate dining costs for reservations
+      const diningCost = itinerary.reservations ? 
+        (itinerary.reservations as any[]).reduce((sum: number, reservation: any) => {
+          if (reservation.type === 'restaurant') {
+            return sum + (reservation.estimated_cost || reservation.party_size * 65 || 130); // $65 per person average
+          }
+          return sum;
+        }, 0) : 0;
+
+      // Create default budget breakdown
+      const categories = [
+        { category: 'Flights', budgeted_amount: Math.max(flightCost, (itinerary.budget || 0) * 0.25), spent_amount: flightCost },
+        { category: 'Accommodation', budgeted_amount: Math.max(hotelCost, (itinerary.budget || 0) * 0.30), spent_amount: hotelCost },
+        { category: 'Activities', budgeted_amount: Math.max(activityCost, (itinerary.budget || 0) * 0.20), spent_amount: activityCost },
+        { category: 'Dining', budgeted_amount: Math.max(diningCost, (itinerary.budget || 0) * 0.15), spent_amount: diningCost },
+        { category: 'Transportation', budgeted_amount: (itinerary.budget || 0) * 0.10, spent_amount: 0 },
+        { category: 'Shopping', budgeted_amount: 0, spent_amount: 0 },
+        { category: 'Miscellaneous', budgeted_amount: 0, spent_amount: 0 }
+      ];
+
+      // Insert categories into database
+      for (const category of categories) {
+        await supabase
+          .from('itinerary_budget_breakdown')
+          .upsert({
+            itinerary_id: itineraryId,
+            ...category
+          });
+      }
+
+      setBudgetData(categories.map((cat, index) => ({ ...cat, id: index.toString() })));
+    } catch (error) {
+      console.error('Error initializing budget categories:', error);
     }
   };
 
@@ -214,9 +277,9 @@ export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartPr
           </div>
         </div>
 
-        {/* Pie Chart */}
+        {/* Budget Overview Chart - Focused on visual representation */}
         {chartData.length > 0 && (
-          <div className="h-64">
+          <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -224,9 +287,10 @@ export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartPr
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={80}
+                  outerRadius={100}
                   fill="#8884d8"
                   dataKey="budgeted"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
                 >
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -234,7 +298,7 @@ export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartPr
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
                 <Legend 
-                  wrapperStyle={{ color: 'white' }}
+                  wrapperStyle={{ color: 'white', fontSize: '12px' }}
                   iconType="circle"
                 />
               </PieChart>
@@ -242,65 +306,31 @@ export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartPr
           </div>
         )}
 
-        {/* Budget Breakdown Table */}
-        <div className="space-y-3">
-          <h4 className="text-white font-semibold">Spending by Category</h4>
-          
-          {/* Column Headers */}
-          <div className="grid grid-cols-4 gap-2 items-center px-2 py-2 text-xs text-white/70 font-medium border-b border-white/20">
-            <div>Category</div>
-            <div className="text-center">Budget</div>
-            <div className="text-center">Spent</div>
-            <div className="text-center">Left</div>
+        {/* Quick Edit Budget Categories */}
+        {isEditing && (
+          <div className="space-y-3">
+            <h4 className="text-white font-semibold text-sm">Quick Budget Adjustments</h4>
+            <div className="grid grid-cols-2 gap-3">
+              {editData.filter(item => item.budgeted_amount > 0).map((item, index) => (
+                <div key={item.id} className="p-3 bg-white/10 rounded-lg border border-white/20">
+                  <label className="text-xs text-white/70 block mb-1">{item.category}</label>
+                  <Input
+                    type="number"
+                    value={item.budgeted_amount}
+                    onChange={(e) => {
+                      const newEditData = [...editData];
+                      const fullIndex = editData.findIndex(cat => cat.id === item.id);
+                      newEditData[fullIndex].budgeted_amount = parseFloat(e.target.value) || 0;
+                      setEditData(newEditData);
+                    }}
+                    className="w-full text-xs bg-white/10 border-white/30 text-white h-8"
+                    placeholder="Budget amount"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-          
-          <div className="space-y-2">
-            {(isEditing ? editData : budgetData).map((item, index) => (
-              <div key={item.id} className="grid grid-cols-4 gap-2 items-center p-2 bg-white/10 rounded-lg border border-white/20">
-                <div className="text-xs font-medium text-white truncate" title={item.category}>
-                  {item.category.length > 8 ? `${item.category.substring(0, 8)}...` : item.category}
-                </div>
-                <div className="text-center">
-                  {isEditing ? (
-                    <Input
-                      type="number"
-                      value={item.budgeted_amount}
-                      onChange={(e) => updateEditData(index, 'budgeted_amount', e.target.value)}
-                      className="w-full text-xs bg-white/10 border-white/30 text-white h-6"
-                      placeholder="0"
-                    />
-                  ) : (
-                    <span className="text-xs text-white">
-                      ${item.budgeted_amount >= 1000 ? `${(item.budgeted_amount / 1000).toFixed(1)}k` : item.budgeted_amount}
-                    </span>
-                  )}
-                </div>
-                <div className="text-center">
-                  {isEditing ? (
-                    <Input
-                      type="number"
-                      value={item.spent_amount}
-                      onChange={(e) => updateEditData(index, 'spent_amount', e.target.value)}
-                      className="w-full text-xs bg-white/10 border-white/30 text-white h-6"
-                      placeholder="0"
-                    />
-                  ) : (
-                    <span className="text-xs text-green-400">
-                      ${item.spent_amount >= 1000 ? `${(item.spent_amount / 1000).toFixed(1)}k` : item.spent_amount}
-                    </span>
-                  )}
-                </div>
-                <div className="text-center">
-                  <span className={`text-xs ${(item.budgeted_amount - item.spent_amount) >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
-                    ${Math.abs(item.budgeted_amount - item.spent_amount) >= 1000 ? 
-                      `${((item.budgeted_amount - item.spent_amount) / 1000).toFixed(1)}k` : 
-                      (item.budgeted_amount - item.spent_amount)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
