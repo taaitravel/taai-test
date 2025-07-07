@@ -46,24 +46,23 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
   return (
     <div className="mb-8">
       {/* Grouped Metrics Container */}
-      <Card className="border-white/30 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md p-6">
+      <Card className="border-white/30 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md p-5">
         {/* Header with View Metrics Button */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-5">
           <h2 className="text-xl font-bold text-white">Travel Metrics</h2>
           <Button 
-            variant="outline" 
             size="sm"
-            className="border-white/50 text-white hover:bg-white/10"
+            className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
           >
             View Metrics
           </Button>
         </div>
 
         {/* First Row: YTD and Countries Visited */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-2 gap-5 mb-5">
           {/* YTD Flights Card */}
           <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-sm font-medium text-white/70 mb-1">Flights (Last 6 Months)</p>
@@ -75,7 +74,7 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyFlights}>
                     <Bar dataKey="flights" fill="hsl(351, 85%, 75%)" radius={2} />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'rgba(255,255,255,0.8)' }} />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'white' }} />
                     <YAxis hide />
                   </BarChart>
                 </ResponsiveContainer>
@@ -85,7 +84,7 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
 
           {/* Countries Visited Card with Map */}
           <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-sm font-medium text-white/70 mb-1">Countries Visited</p>
@@ -101,10 +100,10 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
         </div>
 
         {/* Second Row: Total Spent and Stats Table */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-5">
           {/* Total Spent Card with Pie Chart */}
           <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-sm font-medium text-white/70 mb-1">Total Spent</p>
@@ -149,7 +148,7 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
 
           {/* Vertical Stats Table */}
           <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-white/10">
                   <span className="text-sm text-white/70">Total Trips</span>

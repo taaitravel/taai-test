@@ -49,10 +49,9 @@ export const TripsFilter = ({
             </Button>
           )}
           <Button 
-            variant="outline" 
             size="sm" 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="border-white/30 text-white hover:bg-white/10"
+            className="bg-[#1f1f27] border-white/30 text-white hover:bg-white/10 border"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filter & Sort

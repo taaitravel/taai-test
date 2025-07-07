@@ -94,9 +94,8 @@ const Dashboard = () => {
                   AI Trip
                 </Button>
                 <Button 
-                  variant="outline"
                   onClick={() => navigate('/create-manual-itinerary')}
-                  className="border-white/50 text-white hover:bg-white/10"
+                  className="bg-[#1f1f27] border-white/30 text-white hover:bg-white/10 border"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Manual

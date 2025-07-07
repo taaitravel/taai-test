@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getTravelerLevel } from "@/lib/travelerLevel";
@@ -18,6 +18,7 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
   const [activeItineraries, setActiveItineraries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const lastNotificationTime = useRef<number>(0);
 
   useEffect(() => {
     if (user) {
@@ -124,9 +125,22 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
 
       const allTrips = transformedItineraries.length > 0 ? transformedItineraries : sampleTrips;
       setActiveItineraries(allTrips);
+      
+      // Show notification only if no real trips found and 2 minutes have passed since last notification
+      if (transformedItineraries.length === 0) {
+        const now = Date.now();
+        if (now - lastNotificationTime.current > 120000) { // 2 minutes in milliseconds
+          toast.error('No trips found. Using sample data for demonstration.');
+          lastNotificationTime.current = now;
+        }
+      }
     } catch (error) {
       console.error('Error fetching itineraries:', error);
-      toast.error('Failed to load your trips');
+      const now = Date.now();
+      if (now - lastNotificationTime.current > 120000) {
+        toast.error('Failed to load your trips');
+        lastNotificationTime.current = now;
+      }
     } finally {
       setLoading(false);
     }
