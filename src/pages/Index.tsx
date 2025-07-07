@@ -226,9 +226,21 @@ const Index = () => {
             Revolutionizing travel planning with artificial intelligence
           </p>
           <div className="flex justify-center space-x-6 text-sm text-white/70">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Contact</a>
+            <Button 
+              variant="link" 
+              className="p-0 h-auto font-normal text-white/70 hover:text-white transition-colors"
+              onClick={() => navigate('/terms')}
+            >
+              Privacy Policy
+            </Button>
+            <Button 
+              variant="link" 
+              className="p-0 h-auto font-normal text-white/70 hover:text-white transition-colors"
+              onClick={() => navigate('/terms')}
+            >
+              Terms of Service
+            </Button>
+            <a href="mailto:support@taai.travel" className="hover:text-white transition-colors">Contact</a>
           </div>
         </div>
       </footer>

@@ -135,9 +135,12 @@ export type Database = {
           p_airlines: Json | null
           p_car_rentals: Json | null
           p_hotels: Json | null
+          privacy_accepted_at: string | null
           state: string | null
           taai_rating: number | null
           taai_rating_text: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           user_type: string | null
           userid: string
           username: string | null
@@ -161,9 +164,12 @@ export type Database = {
           p_airlines?: Json | null
           p_car_rentals?: Json | null
           p_hotels?: Json | null
+          privacy_accepted_at?: string | null
           state?: string | null
           taai_rating?: number | null
           taai_rating_text?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           user_type?: string | null
           userid: string
           username?: string | null
@@ -187,9 +193,12 @@ export type Database = {
           p_airlines?: Json | null
           p_car_rentals?: Json | null
           p_hotels?: Json | null
+          privacy_accepted_at?: string | null
           state?: string | null
           taai_rating?: number | null
           taai_rating_text?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           user_type?: string | null
           userid?: string
           username?: string | null

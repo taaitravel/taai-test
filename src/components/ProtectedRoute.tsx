@@ -21,6 +21,11 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/login" replace />;
   }
 
+  // Check if user has accepted terms (skip check for terms page itself)
+  if (userProfile && (!userProfile.terms_accepted_at || !userProfile.privacy_accepted_at)) {
+    return <Navigate to="/terms" state={{ requireAcceptance: true }} replace />;
+  }
+
   if (requireAdmin && userProfile?.user_type !== 'admin') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

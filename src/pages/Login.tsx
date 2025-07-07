@@ -142,6 +142,10 @@ const Login = () => {
             <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/signup')}>
               Sign up here
             </Button>
+            {" | "}
+            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/terms')}>
+              Terms & Privacy
+            </Button>
           </div>
         </CardContent>
       </Card>
