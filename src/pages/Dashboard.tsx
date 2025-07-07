@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { User, Plus } from "lucide-react";
@@ -9,13 +10,24 @@ import { StatsSection } from "@/components/dashboard/StatsSection";
 import { TripsSection } from "@/components/dashboard/TripsSection";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TripBrowser } from "@/components/dashboard/TripBrowser";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { TripsFilter } from "@/components/dashboard/TripsFilter";
+import { useDashboardData, type SortOption } from "@/hooks/useDashboardData";
 import { useTripBrowser } from "@/hooks/useTripBrowser";
 import { calculateUserStats } from "@/lib/dashboardUtils";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { activeItineraries, loading, userProfile } = useDashboardData();
+  
+  // Filter state
+  const [sortBy, setSortBy] = useState<SortOption>('start_date');
+  const [dateFrom, setDateFrom] = useState<Date>();
+  const [dateTo, setDateTo] = useState<Date>();
+  
+  const { activeItineraries, loading, userProfile } = useDashboardData({
+    sortBy,
+    dateFrom: dateFrom?.toISOString().split('T')[0],
+    dateTo: dateTo?.toISOString().split('T')[0]
+  });
   const { 
     showTripBrowser, 
     currentTripIndex, 
@@ -28,6 +40,25 @@ const Dashboard = () => {
   const fullUserStats = {
     ...userStats,
     travelerLevel: getTravelerLevel(visitedCountries.length, userStats.flightsThisYear)
+  };
+
+  // Filter handlers
+  const handleClearFilters = () => {
+    setSortBy('start_date');
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
+  const handleSortChange = (sort: SortOption) => {
+    setSortBy(sort);
+  };
+
+  const handleDateFromChange = (date?: Date) => {
+    setDateFrom(date);
+  };
+
+  const handleDateToChange = (date?: Date) => {
+    setDateTo(date);
   };
 
 
@@ -82,6 +113,17 @@ const Dashboard = () => {
 
         {/* Enhanced Stats Cards with Charts */}
         <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} />
+
+        {/* Trips Filter */}
+        <TripsFilter
+          sortBy={sortBy}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onSortChange={handleSortChange}
+          onDateFromChange={handleDateFromChange}
+          onDateToChange={handleDateToChange}
+          onClearFilters={handleClearFilters}
+        />
 
         {/* Trips Section - 25%, 25%, 50% Layout */}
         <div className="grid grid-cols-4 gap-6">

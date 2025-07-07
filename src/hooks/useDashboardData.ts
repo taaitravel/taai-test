@@ -5,7 +5,15 @@ import { getTravelerLevel } from "@/lib/travelerLevel";
 import { toast } from "sonner";
 import { formatDateRange, getItineraryStatus } from "@/lib/dashboardUtils";
 
-export const useDashboardData = () => {
+export type SortOption = 'start_date' | 'created_at' | 'end_date';
+
+interface FilterOptions {
+  sortBy: SortOption;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export const useDashboardData = (filterOptions?: FilterOptions) => {
   const { user } = useAuth();
   const [activeItineraries, setActiveItineraries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,15 +24,38 @@ export const useDashboardData = () => {
       fetchUserItineraries();
       fetchUserProfile();
     }
-  }, [user]);
+  }, [user, filterOptions]);
 
   const fetchUserItineraries = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('itinerary')
         .select('*')
-        .eq('userid', user?.id)
-        .order('created_at', { ascending: false });
+        .eq('userid', user?.id);
+
+      // Apply date filtering if specified
+      if (filterOptions?.dateFrom) {
+        query = query.gte('itin_date_start', filterOptions.dateFrom);
+      }
+      if (filterOptions?.dateTo) {
+        query = query.lte('itin_date_end', filterOptions.dateTo);
+      }
+
+      // Apply sorting - default to start_date
+      const sortBy = filterOptions?.sortBy || 'start_date';
+      switch (sortBy) {
+        case 'start_date':
+          query = query.order('itin_date_start', { ascending: false, nullsFirst: false });
+          break;
+        case 'end_date':
+          query = query.order('itin_date_end', { ascending: false, nullsFirst: false });
+          break;
+        case 'created_at':
+          query = query.order('created_at', { ascending: false });
+          break;
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -37,7 +68,10 @@ export const useDashboardData = () => {
         budget: item.budget || 0,
         spent: item.spending || 0,
         people: Array.isArray(item.attendees) ? item.attendees.length : 1,
-        status: getItineraryStatus(item.itin_date_start, item.itin_date_end)
+        status: getItineraryStatus(item.itin_date_start, item.itin_date_end),
+        itin_date_start: item.itin_date_start,
+        itin_date_end: item.itin_date_end,
+        created_at: item.created_at
       }));
 
       // Add sample trips if no data exists
