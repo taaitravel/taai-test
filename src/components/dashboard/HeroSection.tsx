@@ -30,44 +30,41 @@ export const HeroSection = ({ userProfile }: HeroSectionProps) => {
 
   return (
     <div className="mb-6">
-      {/* Compact Welcome Section */}
-      <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 rounded-2xl border border-white/30 backdrop-blur-md mb-4">
-        <div className="flex items-center justify-between">
-          <div>
+      {/* Combined Welcome and Upcoming Travel */}
+      <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 rounded-2xl border border-white/30 backdrop-blur-md">
+        <div className="flex items-center">
+          {/* Welcome Section - 66% */}
+          <div className="flex-1 pr-8" style={{ flexBasis: '66%' }}>
             <h1 className="text-2xl font-bold text-white mb-2">
               Welcome back, {userProfile?.first_name || 'Traveler'}!
             </h1>
             <p className="text-white/70">
               Ready to plan your next adventure?
             </p>
-          </div>
-          <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-            <div className="w-2 h-2 bg-white/30 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Upcoming Travel - Compact */}
-      <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-4 rounded-2xl border border-white/30 backdrop-blur-md">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div>
-              <p className="text-sm text-white/70 mb-1">Upcoming Travel</p>
-              <div className="text-3xl font-bold text-white">Aug 15</div>
-              <p className="text-sm text-white/70">Business Trip to NYC</p>
+            <div className="mt-3 flex space-x-1">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+              <div className="w-2 h-2 bg-white/30 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
             </div>
-            <Badge className="bg-white/20 text-white border-white/30 text-xs">3 days away</Badge>
           </div>
-          <div 
-            ref={planeRef}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center transition-transform duration-300 ease-out"
-            style={{
-              transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`
-            }}
-          >
-            <Plane className="h-6 w-6 text-white" />
+
+          {/* Upcoming Travel - 33% */}
+          <div className="flex items-center justify-between" style={{ flexBasis: '33%' }}>
+            <div className="text-center">
+              <p className="text-sm text-white/70 mb-1">Upcoming Travel</p>
+              <div className="text-3xl font-bold text-white mb-1">Aug 15</div>
+              <p className="text-xs text-white/70 mb-2">Business Trip to NYC</p>
+              <Badge className="bg-white/20 text-white border-white/30 text-xs">3 days away</Badge>
+            </div>
+            <div 
+              ref={planeRef}
+              className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center transition-transform duration-300 ease-out ml-4"
+              style={{
+                transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`
+              }}
+            >
+              <Plane className="h-6 w-6 text-white" />
+            </div>
           </div>
         </div>
       </div>
