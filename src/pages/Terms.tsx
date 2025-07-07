@@ -53,6 +53,7 @@ const Terms = () => {
       toast({
         title: "Terms Accepted",
         description: "Thank you for accepting our terms and privacy policy.",
+        variant: "success"
       });
 
       if (isSignupFlow) {

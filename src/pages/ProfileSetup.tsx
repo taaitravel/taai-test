@@ -153,6 +153,7 @@ const ProfileSetup = () => {
         toast({
           title: `Welcome aboard, ${travelerLevel.level}!`,
           description: "Your adventure begins now. Let's plan your next trip!",
+          variant: "success"
         });
         navigate('/dashboard');
       } catch (error) {

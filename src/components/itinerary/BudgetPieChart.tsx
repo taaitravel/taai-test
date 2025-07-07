@@ -158,6 +158,7 @@ export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartPr
       toast({
         title: "Success",
         description: "Budget updated successfully",
+        variant: "success"
       });
     } catch (error) {
       console.error('Error updating budget:', error);

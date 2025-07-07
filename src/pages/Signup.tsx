@@ -88,6 +88,7 @@ const Signup = () => {
         toast({
           title: "Account Created Successfully!",
           description: "Please check your email to verify your account.",
+          variant: "success"
         });
         navigate('/terms', { state: { fromSignup: true } });
       }

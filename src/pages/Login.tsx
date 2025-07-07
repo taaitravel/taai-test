@@ -56,6 +56,7 @@ const Login = () => {
         toast({
           title: "Welcome back!",
           description: "Successfully logged in to TAAI Travel.",
+          variant: "success"
         });
         navigate('/dashboard');
       }

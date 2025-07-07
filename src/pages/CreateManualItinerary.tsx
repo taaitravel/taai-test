@@ -100,6 +100,7 @@ const CreateManualItinerary = () => {
       toast({
         title: "Itinerary Created Successfully!",
         description: "Your manual itinerary has been saved.",
+        variant: "success"
       });
       
       navigate(`/itinerary?id=${data.id}`);
