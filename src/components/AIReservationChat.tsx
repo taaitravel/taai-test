@@ -61,9 +61,10 @@ interface AIReservationChatProps {
   onUpdateData?: (updates: Partial<ItineraryData>) => void;
   onSaveItinerary?: () => Promise<void>;
   isSaving?: boolean;
+  prefilledMessage?: string | null;
 }
 
-const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSaving }: AIReservationChatProps = {}) => {
+const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSaving, prefilledMessage }: AIReservationChatProps = {}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -128,6 +129,30 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle prefilled message on component mount
+  useEffect(() => {
+    if (prefilledMessage) {
+      // Small delay to ensure component is fully rendered
+      setTimeout(() => {
+        setInputValue(prefilledMessage);
+        setTimeout(() => {
+          // Trigger send manually
+          if (prefilledMessage.trim()) {
+            addMessage(prefilledMessage);
+            setInputValue("");
+            
+            // Simulate AI response
+            setIsTyping(true);
+            setTimeout(() => {
+              setIsTyping(false);
+              handleAIResponse(prefilledMessage);
+            }, 1500);
+          }
+        }, 500);
+      }, 1000);
+    }
+  }, [prefilledMessage]);
 
   const addMessage = (text: string, isBot: boolean = false, actions?: ChatAction[]) => {
     const newMessage: Message = {

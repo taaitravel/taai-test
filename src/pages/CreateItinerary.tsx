@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, User } from "lucide-react";
@@ -27,9 +27,13 @@ interface ItineraryData {
 
 const CreateItinerary = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [itineraryData, setItineraryData] = useState<ItineraryData>({});
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Get prefilled message from navigation state
+  const prefilledMessage = location.state?.prefilledMessage || null;
 
   const updateItineraryData = (updates: Partial<ItineraryData>) => {
     setItineraryData(prev => ({ ...prev, ...updates }));
@@ -134,6 +138,7 @@ const CreateItinerary = () => {
             onUpdateData={updateItineraryData}
             onSaveItinerary={saveItinerary}
             isSaving={isSaving}
+            prefilledMessage={prefilledMessage}
           />
         </div>
       </div>

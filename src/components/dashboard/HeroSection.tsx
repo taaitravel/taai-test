@@ -1,14 +1,31 @@
 import { useRef, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Plane } from "lucide-react";
+import { format, differenceInDays, parseISO } from "date-fns";
 
 interface HeroSectionProps {
   userProfile: any;
+  activeItineraries?: any[];
 }
 
-export const HeroSection = ({ userProfile }: HeroSectionProps) => {
+export const HeroSection = ({ userProfile, activeItineraries = [] }: HeroSectionProps) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const navigate = useNavigate();
   const planeRef = useRef<HTMLDivElement>(null);
+
+  // Calculate next upcoming trip
+  const getNextTrip = () => {
+    const today = new Date();
+    const upcomingTrips = activeItineraries
+      .filter(trip => trip.itin_date_start && new Date(trip.itin_date_start) > today)
+      .sort((a, b) => new Date(a.itin_date_start).getTime() - new Date(b.itin_date_start).getTime());
+    
+    return upcomingTrips[0] || null;
+  };
+
+  const nextTrip = getNextTrip();
+  const daysAway = nextTrip ? differenceInDays(new Date(nextTrip.itin_date_start), new Date()) : null;
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -17,8 +34,9 @@ export const HeroSection = ({ userProfile }: HeroSectionProps) => {
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
         
-        const deltaX = (e.clientX - centerX) * 0.1;
-        const deltaY = (e.clientY - centerY) * 0.1;
+        // Much more subtle mouse tracking
+        const deltaX = (e.clientX - centerX) * 0.02;
+        const deltaY = (e.clientY - centerY) * 0.02;
         
         setMousePosition({ x: deltaX, y: deltaY });
       }
@@ -27,6 +45,11 @@ export const HeroSection = ({ userProfile }: HeroSectionProps) => {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
+  const handlePlaneTripClick = () => {
+    // Navigate to create itinerary with pre-filled "surprise me" message
+    navigate('/create-itinerary', { state: { prefilledMessage: 'surprise me' } });
+  };
 
   return (
     <div className="mb-6">
@@ -50,20 +73,35 @@ export const HeroSection = ({ userProfile }: HeroSectionProps) => {
 
           {/* Upcoming Travel - 33% */}
           <div className="flex items-center justify-between" style={{ flexBasis: '33%' }}>
-            <div className="text-center">
-              <p className="text-sm text-white/70 mb-1">Upcoming Travel</p>
-              <div className="text-3xl font-bold text-white mb-1">Aug 15</div>
-              <p className="text-xs text-white/70 mb-2">Business Trip to NYC</p>
-              <Badge className="bg-white/20 text-white border-white/30 text-xs">3 days away</Badge>
-            </div>
+            {nextTrip ? (
+              <div className="text-center">
+                <p className="text-sm text-white/70 mb-1">Upcoming Travel</p>
+                <div className="text-3xl font-bold text-white mb-1">
+                  {format(new Date(nextTrip.itin_date_start), 'MMM d')}
+                </div>
+                <p className="text-xs text-white/70 mb-2">{nextTrip.itin_name || 'Your Trip'}</p>
+                <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                  {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
+                </Badge>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-sm text-white/70 mb-1">No Upcoming Trips</p>
+                <div className="text-lg font-bold text-white mb-1">Plan One!</div>
+                <p className="text-xs text-white/70 mb-2">Create your next adventure</p>
+              </div>
+            )}
             <div 
               ref={planeRef}
-              className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center transition-transform duration-300 ease-out ml-4"
+              onClick={handlePlaneTripClick}
+              className="w-12 h-12 gold-gradient-flowing rounded-full flex items-center justify-center transition-all duration-300 ease-out ml-4 cursor-pointer hover:scale-110 animate-pulse"
               style={{
-                transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`
+                transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
+                animationDuration: '3s'
               }}
+              title="Surprise me with a new trip!"
             >
-              <Plane className="h-6 w-6 text-white" />
+              <Plane className="h-6 w-6 text-[#171821]" />
             </div>
           </div>
         </div>

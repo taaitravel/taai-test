@@ -78,7 +78,7 @@ const Dashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
-        <HeroSection userProfile={userProfile} />
+        <HeroSection userProfile={userProfile} activeItineraries={activeItineraries} />
 
         {/* Enhanced Stats Cards with Charts */}
         <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} />
