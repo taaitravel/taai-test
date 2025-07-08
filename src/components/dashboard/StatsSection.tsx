@@ -74,7 +74,7 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyFlights}>
                     <Bar dataKey="flights" fill="hsl(351, 85%, 75%)" radius={2} />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'white' }} />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#ffffff' }} />
                     <YAxis hide />
                   </BarChart>
                 </ResponsiveContainer>
