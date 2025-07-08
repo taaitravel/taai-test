@@ -64,22 +64,20 @@ export const HeroSection = ({ userProfile, activeItineraries = [] }: HeroSection
           </div>
 
           {/* Upcoming Travel */}
-          <div className="flex items-center justify-center lg:justify-center lg:flex-col lg:text-center gap-4" style={{ flexBasis: '33%' }}>
+          <div className="flex items-center justify-between lg:justify-between lg:items-center" style={{ flexBasis: '33%' }}>
             {nextTrip ? (
-              <div className="text-left lg:text-center">
+              <div className="text-left">
                 <p className="text-sm text-white/70 mb-1">Upcoming Travel</p>
                 <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                   {format(new Date(nextTrip.itin_date_start), 'MMM d')}
                 </div>
                 <p className="text-xs text-white/70 mb-2">{nextTrip.itin_name}</p>
-                <div className="lg:hidden">
-                  <Badge className="bg-white/20 text-white border-white/30 text-xs">
-                    {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
-                  </Badge>
-                </div>
+                <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                  {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
+                </Badge>
               </div>
             ) : (
-              <div className="text-left lg:text-center">
+              <div className="text-left">
                 <p className="text-sm text-white/70 mb-1">No Upcoming Trips</p>
                 <div className="text-lg sm:text-xl font-bold text-white mb-1">Plan One!</div>
                 <p className="text-xs text-white/70 mb-2">Create your next adventure</p>
@@ -88,7 +86,7 @@ export const HeroSection = ({ userProfile, activeItineraries = [] }: HeroSection
             <div 
               ref={planeRef}
               onClick={handlePlaneTripClick}
-              className="w-20 h-20 lg:w-36 lg:h-36 gold-gradient-flowing rounded-full flex items-center justify-center transition-all duration-300 ease-out cursor-pointer hover:scale-110 animate-pulse"
+              className="w-20 h-20 lg:w-36 lg:h-36 gold-gradient-flowing rounded-full flex items-center justify-center transition-all duration-300 ease-out cursor-pointer hover:scale-110 animate-pulse ml-4"
               style={{
                 transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
                 animationDuration: '3s'
