@@ -54,54 +54,56 @@ export const HeroSection = ({ userProfile, activeItineraries = [] }: HeroSection
   return (
     <div className="mb-6">
       {/* Combined Welcome and Upcoming Travel */}
-      <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 rounded-2xl border border-white/30 backdrop-blur-md">
-        <div className="flex items-center">
-          {/* Welcome Section - 66% */}
-          <div className="flex-1 pr-8" style={{ flexBasis: '66%' }}>
-            <h1 className="text-2xl font-bold text-white mb-2">
+      <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent p-4 sm:p-6 rounded-2xl border border-white/30 backdrop-blur-md">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-0">
+          {/* Welcome Section */}
+          <div className="flex-1 lg:pr-8">
+            <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">
               Welcome back, {userProfile?.first_name || 'Traveler'}!
             </h1>
-            <p className="text-white/70">
-              Ready to plan your next adventure?
+            <p className="text-white/70 mb-3">
+              Ready for upcoming travel?
             </p>
-            <div className="mt-3 flex space-x-1">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-              <div className="w-2 h-2 bg-white/30 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-            </div>
+            {nextTrip && (
+              <div className="text-white/70 text-sm">
+                {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
+              </div>
+            )}
           </div>
 
-          {/* Upcoming Travel - 33% */}
-          <div className="flex items-center justify-between" style={{ flexBasis: '33%' }}>
+          {/* Upcoming Travel */}
+          <div className="flex items-center justify-between lg:justify-center lg:flex-col lg:text-center" style={{ flexBasis: '33%' }}>
             {nextTrip ? (
-              <div className="text-center">
+              <div className="text-left lg:text-center">
                 <p className="text-sm text-white/70 mb-1">Upcoming Travel</p>
-                <div className="text-3xl font-bold text-white mb-1">
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                   {format(new Date(nextTrip.itin_date_start), 'MMM d')}
                 </div>
-                <p className="text-xs text-white/70 mb-2">{nextTrip.itin_name || 'Your Trip'}</p>
-                <Badge className="bg-white/20 text-white border-white/30 text-xs">
-                  {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
-                </Badge>
+                <p className="text-xs text-white/70 mb-2">{nextTrip.itin_name}</p>
+                <div className="lg:hidden">
+                  <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                    {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
+                  </Badge>
+                </div>
               </div>
             ) : (
-              <div className="text-center">
+              <div className="text-left lg:text-center">
                 <p className="text-sm text-white/70 mb-1">No Upcoming Trips</p>
-                <div className="text-lg font-bold text-white mb-1">Plan One!</div>
+                <div className="text-lg sm:text-xl font-bold text-white mb-1">Plan One!</div>
                 <p className="text-xs text-white/70 mb-2">Create your next adventure</p>
               </div>
             )}
             <div 
               ref={planeRef}
               onClick={handlePlaneTripClick}
-              className="w-12 h-12 gold-gradient-flowing rounded-full flex items-center justify-center transition-all duration-300 ease-out ml-4 cursor-pointer hover:scale-110 animate-pulse"
+              className="w-10 h-10 sm:w-12 sm:h-12 gold-gradient-flowing rounded-full flex items-center justify-center transition-all duration-300 ease-out ml-4 lg:ml-0 lg:mt-4 cursor-pointer hover:scale-110 animate-pulse"
               style={{
                 transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
                 animationDuration: '3s'
               }}
               title="Surprise me with a new trip!"
             >
-              <Plane className="h-6 w-6 text-[#171821]" />
+              <Plane className="h-5 w-5 sm:h-6 sm:w-6 text-[#171821]" />
             </div>
           </div>
         </div>
