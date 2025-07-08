@@ -43,7 +43,7 @@ export const DashboardNavigation = ({ travelerLevel }: DashboardNavigationProps)
                   <Menu className="h-6 w-6" />
                 </Button>
               </DrawerTrigger>
-              <DrawerContent className="h-screen bg-gradient-to-br from-[#171821] via-[#2a1f3d] to-[#171821] border-none">
+              <DrawerContent className="h-screen gold-gradient-flowing border-none">
                 <div className="flex flex-col h-full">
                   {/* Header with close button */}
                   <div className="flex justify-between items-center p-6 border-b border-white/10">
