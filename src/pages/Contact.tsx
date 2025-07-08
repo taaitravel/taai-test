@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Mail, MapPin, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -254,21 +254,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="text-white font-semibold">Email Us</h3>
-                      <p className="text-white/70">support@taai.travel</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <Phone className="h-8 w-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold">Call Us</h3>
-                      <p className="text-white/70">+1 (555) 123-4567</p>
+                      <p className="text-white/70">info@taai.travel</p>
                     </div>
                   </div>
                 </CardContent>
@@ -282,7 +268,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="text-white font-semibold">Visit Us</h3>
-                      <p className="text-white/70">123 Innovation Drive<br />Tech City, TC 12345</p>
+                      <p className="text-white/70">Miami, Florida</p>
                     </div>
                   </div>
                 </CardContent>
@@ -290,11 +276,10 @@ const Contact = () => {
             </div>
 
             <div className="p-6 rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/20">
-              <h3 className="text-white font-semibold mb-3">Business Hours</h3>
-              <div className="space-y-1 text-white/70">
-                <p>Monday - Friday: 9:00 AM - 6:00 PM EST</p>
-                <p>Saturday: 10:00 AM - 4:00 PM EST</p>
-                <p>Sunday: Closed</p>
+              <h3 className="text-white font-semibold mb-3">24/7 Support</h3>
+              <div className="space-y-2 text-white/70">
+                <p>Our system works 24/7 to serve you.</p>
+                <p>Our support team will respond to all inquiries within 72 hours.</p>
               </div>
             </div>
           </div>
