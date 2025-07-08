@@ -89,7 +89,7 @@ const Index = () => {
                   
                   {/* Mobile Overlay Menu */}
                   {isMenuOpen && (
-                    <div className="fixed inset-0 z-50 bg-gradient-to-br from-[#171821] via-[#171821] to-[#2d2a1f] backdrop-blur-md">
+                    <div className="fixed inset-0 z-50 bg-[#171821]/95 backdrop-blur-md">
                       <div className="flex flex-col h-full">
                         {/* Header with close button */}
                         <div className="flex justify-between items-center p-6 border-b border-white/10">
