@@ -64,7 +64,7 @@ export const HeroSection = ({ userProfile, activeItineraries = [] }: HeroSection
           </div>
 
           {/* Upcoming Travel */}
-          <div className="flex items-center justify-between lg:justify-center lg:flex-col lg:text-center" style={{ flexBasis: '33%' }}>
+          <div className="flex items-center justify-center lg:justify-center lg:flex-col lg:text-center gap-4" style={{ flexBasis: '33%' }}>
             {nextTrip ? (
               <div className="text-left lg:text-center">
                 <p className="text-sm text-white/70 mb-1">Upcoming Travel</p>
@@ -88,14 +88,14 @@ export const HeroSection = ({ userProfile, activeItineraries = [] }: HeroSection
             <div 
               ref={planeRef}
               onClick={handlePlaneTripClick}
-              className="w-10 h-10 sm:w-12 sm:h-12 gold-gradient-flowing rounded-full flex items-center justify-center transition-all duration-300 ease-out ml-4 lg:ml-0 lg:mt-4 cursor-pointer hover:scale-110 animate-pulse"
+              className="w-20 h-20 lg:w-36 lg:h-36 gold-gradient-flowing rounded-full flex items-center justify-center transition-all duration-300 ease-out cursor-pointer hover:scale-110 animate-pulse"
               style={{
                 transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
                 animationDuration: '3s'
               }}
               title="Surprise me with a new trip!"
             >
-              <Plane className="h-5 w-5 sm:h-6 sm:w-6 text-[#171821]" />
+              <Plane className="h-10 w-10 lg:h-16 lg:w-16 text-[#171821]" />
             </div>
           </div>
         </div>
