@@ -27,11 +27,11 @@ export const ItineraryStackedSection = ({
       </h3>
       
       {items.length > 0 ? (
-        <div className="relative h-[400px]">
+        <div className="relative w-[260px] h-[380px]">
           {items.slice(0, 3).map((item, index) => (
           <Card 
             key={index}
-            className="absolute w-full aspect-[16/23] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
+            className="absolute w-full h-full trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
             style={{
               transform: `translateY(${index * 10}px) translateX(${index * 5}px)`,
               zIndex: 10 - index

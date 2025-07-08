@@ -24,14 +24,14 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
               <p className="text-white/70 text-sm">Loading...</p>
             </div>
           ) : (
-            <div className="relative h-[400px]">
+            <div className="relative w-[260px] h-[380px]">
               {activeItineraries
                 .filter(trip => ['planning', 'upcoming', 'active'].includes(trip.status))
                 .slice(0, 3)
                 .map((trip, index) => (
                   <Card 
                     key={trip.id}
-                    className="absolute w-full aspect-[16/23] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
+                    className="absolute w-full h-full trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
                     style={{
                       transform: `translateY(${index * 10}px) translateX(${index * 5}px)`,
                       zIndex: 10 - index
@@ -79,14 +79,14 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
             <Clock className="h-5 w-5 mr-2" />
             Past Trips
           </h3>
-          <div className="relative h-[400px]">
+          <div className="relative w-[260px] h-[380px]">
             {activeItineraries
               .filter(trip => trip.status === 'completed')
               .slice(0, 3)
               .map((trip, index) => (
                 <Card 
                   key={trip.id}
-                  className="absolute w-full aspect-[16/23] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
+                  className="absolute w-full h-full trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
                   style={{
                     transform: `translateY(${index * 10}px) translateX(${index * 5}px)`,
                     zIndex: 10 - index
