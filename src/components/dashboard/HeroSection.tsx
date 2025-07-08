@@ -61,14 +61,6 @@ export const HeroSection = ({ userProfile, activeItineraries = [] }: HeroSection
             <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">
               Welcome back, {userProfile?.first_name || 'Traveler'}!
             </h1>
-            <p className="text-white/70 mb-3">
-              Ready for upcoming travel?
-            </p>
-            {nextTrip && (
-              <div className="text-white/70 text-sm">
-                {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
-              </div>
-            )}
           </div>
 
           {/* Upcoming Travel */}
