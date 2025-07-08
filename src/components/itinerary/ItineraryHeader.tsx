@@ -1,6 +1,6 @@
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { Button } from "@/components/ui/button";
-import { Edit, Share2, Download } from "lucide-react";
+import { Edit, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ItineraryHeaderProps {
@@ -20,21 +20,19 @@ export const ItineraryHeader = ({ itineraryId }: ItineraryHeaderProps) => {
       showTripButtons={false}
       customActions={
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-          <Button variant="outline" size="sm" className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300">
-            <Download className="h-4 w-4 mr-2" />
-            Export
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-10 h-10 p-0 rounded-full bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
+          >
+            <Share2 className="h-4 w-4" />
           </Button>
           <Button 
             size="sm" 
-            className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+            className="w-10 h-10 p-0 rounded-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
             onClick={() => navigate(`/edit-itinerary?id=${itineraryId}`)}
           >
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
+            <Edit className="h-4 w-4" />
           </Button>
         </div>
       }
