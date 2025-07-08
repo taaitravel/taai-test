@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { User, Plus, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -125,6 +126,33 @@ export const MobileNavigation = ({
                 <Badge className="bg-white/20 text-white border-white/30">
                   {travelerLevel}
                 </Badge>
+                {showTripButtons && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        className="gold-gradient hover:opacity-90 text-[#171821] font-semibold p-2 rounded-full w-10 h-10"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-[#171821] border-white/30 text-white">
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/create-itinerary')}
+                        className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        AI Trip
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/create-manual-itinerary')}
+                        className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Manual Trip
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 {showProfileButton && (
                   <Button 
                     variant="ghost"
@@ -134,24 +162,6 @@ export const MobileNavigation = ({
                   >
                     <User className="h-5 w-5" />
                   </Button>
-                )}
-                {showTripButtons && (
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button 
-                      onClick={() => navigate('/create-itinerary')}
-                      className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      AI Trip
-                    </Button>
-                    <Button 
-                      onClick={() => navigate('/create-manual-itinerary')}
-                      className="bg-[#1f1f27] border-white/30 text-white hover:bg-white/10 border"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Manual
-                    </Button>
-                  </div>
                 )}
                 {customActions}
               </>
