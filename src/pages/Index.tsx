@@ -3,14 +3,38 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut, User } from "lucide-react";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut, User, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, signOut, userProfile } = useAuth();
+  const isMobile = useIsMobile();
   const [userType, setUserType] = useState<'individual' | 'company' | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleMenuItemClick = (path: string) => {
+    navigate(path);
+    setIsMenuOpen(false);
+  };
+
+  const getMenuItems = () => {
+    if (user) {
+      return [
+        { label: "Contact Us", path: "/contact" },
+        { label: "Dashboard", path: "/dashboard" }
+      ];
+    } else {
+      return [
+        { label: "What We Do", path: "/what-we-do" },
+        { label: "Contact Us", path: "/contact" },
+        { label: "Dashboard", path: "/dashboard" }
+      ];
+    }
+  };
 
   const features = [
     {
@@ -51,30 +75,100 @@ const Index = () => {
       <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 relative">
-            {/* Left side - Navigation links */}
+            {/* Left side - Mobile Menu or Desktop Navigation */}
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                className="text-white hover:text-white hover:bg-white/10"
-                onClick={() => navigate('/what-we-do')}
-              >
-                What we do
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="text-white hover:text-white hover:bg-white/10"
-                onClick={() => navigate('/contact')}
-              >
-                Contact Us
-              </Button>
-              {!user && (
-                <Button 
-                  onClick={() => navigate('/login')}
-                  variant="outline" 
-                  className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
-                >
-                  Sign In
-                </Button>
+              {isMobile ? (
+                <Drawer open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                  <DrawerTrigger asChild>
+                    <Button 
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/10 p-2 rounded-full"
+                    >
+                      <Menu className="h-6 w-6" />
+                    </Button>
+                  </DrawerTrigger>
+                  <DrawerContent className="h-screen gold-gradient-flowing border-none">
+                    <div className="flex flex-col h-full">
+                      {/* Header with close button */}
+                      <div className="flex justify-between items-center p-6 border-b border-white/10">
+                        <img 
+                          src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
+                          alt="TAAI Travel" 
+                          className="h-12" 
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-white hover:bg-white/10 p-2 rounded-full"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <X className="h-6 w-6" />
+                        </Button>
+                      </div>
+                      
+                      {/* Menu Items */}
+                      <div className="flex-1 flex flex-col justify-center space-y-8 px-6">
+                        {getMenuItems().map((item) => (
+                          <button
+                            key={item.path}
+                            onClick={() => handleMenuItemClick(item.path)}
+                            className="text-white text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                        {!user && (
+                          <button
+                            onClick={() => handleMenuItemClick('/login')}
+                            className="text-white text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
+                          >
+                            Sign In
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </DrawerContent>
+                </Drawer>
+              ) : (
+                <>
+                  {!user && (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        className="text-white hover:text-white hover:bg-white/10"
+                        onClick={() => navigate('/what-we-do')}
+                      >
+                        What We Do
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="text-white hover:text-white hover:bg-white/10"
+                        onClick={() => navigate('/contact')}
+                      >
+                        Contact Us
+                      </Button>
+                      <Button 
+                        onClick={() => navigate('/login')}
+                        variant="outline" 
+                        className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
+                      >
+                        Sign In
+                      </Button>
+                    </>
+                  )}
+                  {user && (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        className="text-white hover:text-white hover:bg-white/10"
+                        onClick={() => navigate('/contact')}
+                      >
+                        Contact Us
+                      </Button>
+                    </>
+                  )}
+                </>
               )}
             </div>
 
@@ -85,7 +179,7 @@ const Index = () => {
 
             {/* Right side - User icon when logged in */}
             <div className="flex items-center space-x-4">
-              {user && (
+              {user && !isMobile && (
                 <Button 
                   variant="ghost"
                   size="sm"
@@ -95,6 +189,8 @@ const Index = () => {
                   <User className="h-6 w-6" />
                 </Button>
               )}
+              {/* Mobile Right Space (for symmetry) */}
+              {isMobile && !user && <div className="w-10"></div>}
             </div>
           </div>
         </div>
