@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut } from "lucide-react";
+import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -53,11 +53,19 @@ const Index = () => {
           <div className="flex justify-between items-center h-16 relative">
             {/* Left side - Navigation links */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">
-                Features
+              <Button 
+                variant="ghost" 
+                className="text-white hover:text-white hover:bg-white/10"
+                onClick={() => navigate('/what-we-do')}
+              >
+                What we do
               </Button>
-              <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">
-                About
+              <Button 
+                variant="ghost" 
+                className="text-white hover:text-white hover:bg-white/10"
+                onClick={() => navigate('/contact')}
+              >
+                Contact Us
               </Button>
               {!user && (
                 <Button 
@@ -75,25 +83,17 @@ const Index = () => {
               <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
             </div>
 
-            {/* Right side - Auth buttons when logged in */}
+            {/* Right side - User icon when logged in */}
             <div className="flex items-center space-x-4">
               {user && (
-                <>
-                  <Button 
-                    onClick={() => navigate('/dashboard')}
-                    className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-                  >
-                    Dashboard
-                  </Button>
-                  <Button 
-                    onClick={signOut}
-                    variant="outline" 
-                    className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/10 p-2 rounded-full"
+                  onClick={() => navigate('/dashboard')}
+                >
+                  <User className="h-6 w-6" />
+                </Button>
               )}
             </div>
           </div>
