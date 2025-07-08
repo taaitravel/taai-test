@@ -59,9 +59,9 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
         </div>
 
         {/* First Row: YTD and Countries Visited */}
-        <div className="grid grid-cols-2 gap-5 mb-5">
-          {/* YTD Flights Card */}
-          <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          {/* YTD Flights Card - Hidden on mobile */}
+          <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm hidden md:block">
             <CardContent className="p-3">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -105,7 +105,7 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
         </div>
 
         {/* Second Row: Total Spent and Stats Table */}
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Total Spent Card with Pie Chart */}
           <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
             <CardContent className="p-3">
@@ -152,7 +152,7 @@ export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps)
           </Card>
 
           {/* Vertical Stats Table */}
-          <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
+          <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm hidden md:block">
             <CardContent className="p-3">
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-white/10">

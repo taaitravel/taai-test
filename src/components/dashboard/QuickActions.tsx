@@ -12,10 +12,10 @@ export const QuickActions = ({ activeItineraries, onBrowseTrips }: QuickActionsP
   const navigate = useNavigate();
 
   return (
-    <div className="col-span-2">
-      <div className="flex items-center justify-between mb-6">
+    <div className="w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <h2 className="text-2xl font-bold text-white">Travel Hub</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button 
             size="sm"
             onClick={() => navigate('/create-itinerary')}
@@ -68,7 +68,7 @@ export const QuickActions = ({ activeItineraries, onBrowseTrips }: QuickActionsP
       </Card>
 
       {/* Quick Actions Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <Card className="hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 cursor-pointer bg-[#171821]/80 backdrop-blur-md border-white/30 group">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">

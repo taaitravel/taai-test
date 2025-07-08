@@ -46,17 +46,21 @@ export const DashboardContent = () => {
         onClearFilters={handleClearFilters}
       />
 
-      {/* Trips Section - 25%, 25%, 50% Layout */}
-      <div className="grid grid-cols-4 gap-6">
-        <TripsSection 
-          activeItineraries={activeItineraries} 
-          loading={loading} 
-          onTripClick={openTripBrowser}
-        />
-        <QuickActions 
-          activeItineraries={activeItineraries}
-          onBrowseTrips={openTripBrowser}
-        />
+      {/* Trips Section - Responsive Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-4">
+          <TripsSection 
+            activeItineraries={activeItineraries} 
+            loading={loading} 
+            onTripClick={openTripBrowser}
+          />
+        </div>
+        <div className="lg:col-span-4 mt-6 lg:mt-0">
+          <QuickActions 
+            activeItineraries={activeItineraries}
+            onBrowseTrips={openTripBrowser}
+          />
+        </div>
       </div>
 
       {/* Trip Browser Modal */}
