@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, User } from "lucide-react";
 import AIReservationChat from "@/components/AIReservationChat";
+import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -87,42 +88,15 @@ const CreateItinerary = () => {
 
   return (
     <div className="min-h-screen bg-[#171821] flex flex-col">
-      {/* Navigation - Dashboard Header Style */}
-      <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/dashboard')}
-                className="text-white hover:bg-white/10"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </div>
-            <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
-            </div>
-            <div className="flex items-center">
-            </div>
-            <div className="flex items-center space-x-4">
-              <Badge className="bg-white/20 text-white border-white/30">
-                Master Traveler
-              </Badge>
-              <Button 
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/10 p-2 rounded-full"
-                onClick={() => navigate('/profile-setup')}
-              >
-                <User className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Navigation - Mobile Responsive */}
+      <MobileNavigation 
+        travelerLevel="Master Traveler"
+        showBackButton={true}
+        backPath="/dashboard"
+        backLabel="Back to Dashboard"
+        showProfileButton={true}
+        showTripButtons={false}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-6">

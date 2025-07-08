@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, MapPin, Calendar, DollarSign, Users } from "lucide-react";
+import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -117,151 +118,154 @@ const CreateManualItinerary = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
-      <Card className="w-full max-w-2xl shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
-        <CardHeader className="text-center space-y-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/dashboard')}
-            className="absolute top-4 left-4 text-white bg-black/30 hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          
-          <div className="flex items-center justify-center">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[120px] w-auto" />
-          </div>
-          
-          <div className="space-y-2">
-            <CardTitle className="text-2xl text-white">Create Manual Itinerary</CardTitle>
-            <CardDescription className="text-white/70">
-              Plan your trip manually when the AI assistant isn't available
-            </CardDescription>
-          </div>
-        </CardHeader>
+    <div className="min-h-screen bg-[#171821] flex flex-col">
+      {/* Navigation - Mobile Responsive */}
+      <MobileNavigation 
+        travelerLevel="Master Traveler"
+        showBackButton={true}
+        backPath="/dashboard"
+        backLabel="Back to Dashboard"
+        showProfileButton={true}
+        showTripButtons={false}
+      />
 
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-white flex items-center">
-              <MapPin className="h-4 w-4 mr-2" />
-              Trip Name *
-            </Label>
-            <Input
-              id="name"
-              placeholder="Summer Vacation to Europe"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-white">Trip Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Describe your trip plans, preferences, or special requirements..."
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white min-h-[80px]"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+        <Card className="w-full max-w-2xl shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
+          <CardHeader className="text-center space-y-2">
+            <div className="flex items-center justify-center">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[120px] w-auto" />
+            </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="dateStart" className="text-white flex items-center">
-                <Calendar className="h-4 w-4 mr-2" />
-                Start Date *
+              <CardTitle className="text-2xl text-white">Create Manual Itinerary</CardTitle>
+              <CardDescription className="text-white/70">
+                Plan your trip manually when the AI assistant isn't available
+              </CardDescription>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-white flex items-center">
+                <MapPin className="h-4 w-4 mr-2" />
+                Trip Name *
               </Label>
               <Input
-                id="dateStart"
-                type="date"
-                value={formData.dateStart}
-                onChange={(e) => handleInputChange('dateStart', e.target.value)}
+                id="name"
+                placeholder="Summer Vacation to Europe"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="dateEnd" className="text-white flex items-center">
-                <Calendar className="h-4 w-4 mr-2" />
-                End Date *
-              </Label>
-              <Input
-                id="dateEnd"
-                type="date"
-                value={formData.dateEnd}
-                onChange={(e) => handleInputChange('dateEnd', e.target.value)}
-                className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              <Label htmlFor="description" className="text-white">Trip Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Describe your trip plans, preferences, or special requirements..."
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white min-h-[80px]"
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="locations" className="text-white flex items-center">
-              <MapPin className="h-4 w-4 mr-2" />
-              Destinations *
-            </Label>
-            <Input
-              id="locations"
-              placeholder="Paris, London, Rome (separate with commas)"
-              value={formData.locations}
-              onChange={(e) => handleInputChange('locations', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
-            />
-            <p className="text-xs text-white/50">Enter multiple destinations separated by commas</p>
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dateStart" className="text-white flex items-center">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Start Date *
+                </Label>
+                <Input
+                  id="dateStart"
+                  type="date"
+                  value={formData.dateStart}
+                  onChange={(e) => handleInputChange('dateStart', e.target.value)}
+                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateEnd" className="text-white flex items-center">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  End Date *
+                </Label>
+                <Input
+                  id="dateEnd"
+                  type="date"
+                  value={formData.dateEnd}
+                  onChange={(e) => handleInputChange('dateEnd', e.target.value)}
+                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                />
+              </div>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="budget" className="text-white flex items-center">
-                <DollarSign className="h-4 w-4 mr-2" />
-                Budget (USD)
+              <Label htmlFor="locations" className="text-white flex items-center">
+                <MapPin className="h-4 w-4 mr-2" />
+                Destinations *
               </Label>
               <Input
-                id="budget"
-                type="number"
-                placeholder="5000"
-                value={formData.budget}
-                onChange={(e) => handleInputChange('budget', e.target.value)}
+                id="locations"
+                placeholder="Paris, London, Rome (separate with commas)"
+                value={formData.locations}
+                onChange={(e) => handleInputChange('locations', e.target.value)}
                 className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
               />
+              <p className="text-xs text-white/50">Enter multiple destinations separated by commas</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="attendeeCount" className="text-white flex items-center">
-                <Users className="h-4 w-4 mr-2" />
-                Number of Travelers
-              </Label>
-              <Input
-                id="attendeeCount"
-                type="number"
-                min="1"
-                max="20"
-                value={formData.attendeeCount}
-                onChange={(e) => handleInputChange('attendeeCount', e.target.value)}
-                className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
-              />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="budget" className="text-white flex items-center">
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  Budget (USD)
+                </Label>
+                <Input
+                  id="budget"
+                  type="number"
+                  placeholder="5000"
+                  value={formData.budget}
+                  onChange={(e) => handleInputChange('budget', e.target.value)}
+                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="attendeeCount" className="text-white flex items-center">
+                  <Users className="h-4 w-4 mr-2" />
+                  Number of Travelers
+                </Label>
+                <Input
+                  id="attendeeCount"
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={formData.attendeeCount}
+                  onChange={(e) => handleInputChange('attendeeCount', e.target.value)}
+                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                />
+              </div>
             </div>
-          </div>
 
-          <Separator className="bg-white/30" />
+            <Separator className="bg-white/30" />
 
-          <Button 
-            className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-            onClick={handleCreateItinerary}
-            disabled={loading}
-          >
-            {loading ? "Creating Itinerary..." : "Create Itinerary"}
-          </Button>
-
-          <div className="text-center text-sm text-white/70">
-            Need help planning? Try our{" "}
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/create-itinerary')}>
-              AI Assistant
+            <Button 
+              className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+              onClick={handleCreateItinerary}
+              disabled={loading}
+            >
+              {loading ? "Creating Itinerary..." : "Create Itinerary"}
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+
+            <div className="text-center text-sm text-white/70">
+              Need help planning? Try our{" "}
+              <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/create-itinerary')}>
+                AI Assistant
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
