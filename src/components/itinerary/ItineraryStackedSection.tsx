@@ -20,20 +20,20 @@ export const ItineraryStackedSection = ({
   emptyMessage 
 }: StackedCardProps) => {
   return (
-    <div className="mb-8">
+    <div className="mb-12 md:mb-8">
       <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
         <Icon className="h-5 w-5 mr-2" />
         {title}
       </h3>
       
       {items.length > 0 ? (
-        <div className="relative h-[300px]">
+        <div className="relative h-[320px] md:h-[300px]">
           {items.slice(0, 3).map((item, index) => (
           <Card 
             key={index}
             className="absolute w-full aspect-[16/20] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
             style={{
-              transform: `translateY(${index * 10}px) translateX(${index * 5}px)`,
+              transform: `translateY(${index * 15}px) translateX(${index * 8}px)`,
               zIndex: 10 - index
             }}
             onClick={() => onCardClick(index)}
