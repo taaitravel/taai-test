@@ -509,7 +509,7 @@ const ProfileSetup = () => {
             <Button 
               variant="outline" 
               onClick={handleBack}
-              className="flex items-center space-x-2 border-white/50 text-white hover:bg-white/10 hover:border-white"
+              className="flex items-center space-x-2 bg-[#171821] border-white/50 text-white hover:bg-white/10 hover:border-white"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back</span>
