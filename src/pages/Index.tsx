@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut, User, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,14 +24,17 @@ const Index = () => {
   const getMenuItems = () => {
     if (user) {
       return [
-        { label: "Contact Us", path: "/contact" },
-        { label: "Dashboard", path: "/dashboard" }
+        { label: "Dashboard", path: "/dashboard" },
+        { label: "Create AI Trip", path: "/create-itinerary" },
+        { label: "Create Manual Trip", path: "/create-manual-itinerary" },
+        { label: "Profile", path: "/profile-setup" },
+        { label: "Contact Us", path: "/contact" }
       ];
     } else {
       return [
         { label: "What We Do", path: "/what-we-do" },
         { label: "Contact Us", path: "/contact" },
-        { label: "Dashboard", path: "/dashboard" }
+        { label: "Sign In", path: "/login" }
       ];
     }
   };
@@ -77,22 +81,20 @@ const Index = () => {
             {/* Left side - Mobile Menu or Desktop Navigation */}
             <div className="flex items-center space-x-4">
               {isMobile ? (
-                <>
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/10 p-2 rounded-full"
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  >
-                    <Menu className="h-6 w-6" />
-                  </Button>
-                  
-                  {/* Mobile Overlay Menu */}
-                  {isMenuOpen && (
-                    <div className="fixed inset-0 z-50 bg-[#171821]/95 backdrop-blur-md">
-                      <div className="flex flex-col h-full">
-                        {/* Header with close button */}
-                        <div className="flex justify-between items-center p-6 border-b border-white/10">
+                <Drawer open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                  <DrawerTrigger asChild>
+                    <Button 
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/10 p-2 rounded-full"
+                    >
+                      <Menu className="h-6 w-6" />
+                    </Button>
+                  </DrawerTrigger>
+                  <DrawerContent className="h-screen bg-[#171821]/95 backdrop-blur-md border-none">
+                    <div className="flex flex-col h-full">
+                      {/* Header with close button */}
+                      <div className="flex justify-between items-center p-6 border-b border-white/10">
                           <img 
                             src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
                             alt="TAAI Travel" 
@@ -114,24 +116,25 @@ const Index = () => {
                             <button
                               key={item.path}
                               onClick={() => handleMenuItemClick(item.path)}
-                              className="text-white text-2xl font-bold text-left hover:text-primary py-4"
+                              className="text-white text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
                             >
                               {item.label}
                             </button>
                           ))}
-                          {!user && (
-                            <button
-                              onClick={() => handleMenuItemClick('/login')}
-                              className="text-white text-2xl font-bold text-left hover:text-primary py-4"
-                            >
-                              Sign In
-                            </button>
-                          )}
                         </div>
+                        
+                        {/* Footer with traveler level for logged in users */}
+                        {user && (
+                          <div className="p-6 border-t border-white/10">
+                            <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
+                              Master Traveler
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
-                </>
+                  </DrawerContent>
+                </Drawer>
               ) : (
                 <>
                   {!user && (
