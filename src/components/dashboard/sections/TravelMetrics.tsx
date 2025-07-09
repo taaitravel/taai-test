@@ -4,6 +4,7 @@ import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Calendar, Map, BarChart3 } from "lucide-react";
 import { CountriesMap } from "@/components/CountriesMap";
+import { FlightProgressIndicator } from "../FlightProgressIndicator";
 
 interface TravelMetricsProps {
   userStats: {
@@ -54,30 +55,21 @@ export const TravelMetrics = ({ userStats, visitedCountries }: TravelMetricsProp
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        {/* Flights Chart - Hidden on mobile */}
-        <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm hidden md:block">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-3">
+        {/* Flight Progress Indicator */}
+        <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm font-medium text-white/70 mb-1">Flights (Last 6 Months)</p>
-                <p className="text-2xl font-bold text-white">{Number(userStats.flightsThisYear)}</p>
+                <p className="text-sm font-medium text-white/70 mb-1">Flight Progress</p>
+                <p className="text-xs text-white/50">Track your journey to the next level</p>
               </div>
-              <Calendar className="h-6 w-6 text-white/70" />
             </div>
-            <ChartContainer config={chartConfig} className="h-20 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyFlights}>
-                  <Bar dataKey="flights" fill="hsl(351, 85%, 75%)" radius={2} />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: 12, fill: 'white' }} 
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis hide />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            <div className="flex justify-center">
+              <FlightProgressIndicator 
+                currentFlights={Number(userStats.flightsThisYear)} 
+                currentLevel={userStats.travelerLevel}
+              />
+            </div>
           </CardContent>
         </Card>
 
