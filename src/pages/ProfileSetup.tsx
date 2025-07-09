@@ -301,29 +301,39 @@ const ProfileSetup = () => {
                 return (
                   <div key={month} className="text-center">
                     <div className="text-xs text-white/70 mb-1">{month}</div>
-                    <div className="border border-white/30 rounded-lg p-3 hover:border-white/50 transition-colors">
-                      <div className="flex items-center justify-between mb-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMonthDecrease(index)}
-                          disabled={flightCount === 0}
-                          className="h-6 w-6 p-0 text-white hover:text-white"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="font-semibold text-white">{flightCount}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMonthClick(index)}
-                          disabled={flightCount >= 10}
-                          className="h-6 w-6 p-0 text-white hover:text-white"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                    <div className={`relative rounded-lg p-3 transition-all duration-300 ${
+                      flightCount > 0 
+                        ? 'bg-gradient-to-r from-[hsl(351,85%,75%)] via-[hsl(15,80%,70%)] to-[hsl(25,75%,65%)] p-[2px]' 
+                        : 'border border-white/30 hover:border-white/50'
+                    }`}>
+                      <div className={`${
+                        flightCount > 0 
+                          ? 'bg-[#171821] rounded-md p-3 -m-3' 
+                          : ''
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleMonthDecrease(index)}
+                            disabled={flightCount === 0}
+                            className="h-6 w-6 p-0 text-white hover:text-white"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="font-semibold text-white">{flightCount}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleMonthClick(index)}
+                            disabled={flightCount >= 10}
+                            className="h-6 w-6 p-0 text-white hover:text-white"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="text-xs text-white/70">flights</div>
                       </div>
-                      <div className="text-xs text-white/70">flights</div>
                     </div>
                   </div>
                 );
