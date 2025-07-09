@@ -190,8 +190,8 @@
 }
 
 .trip-card-past {
-  background: #2a2a2a;
-  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   opacity: 1;
 }
 
