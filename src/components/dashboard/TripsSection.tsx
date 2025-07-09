@@ -11,7 +11,7 @@ interface TripsSectionProps {
 export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsSectionProps) => {
   return (
     <div className="col-span-2">
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column - Upcoming Trips Stack (50%) */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
