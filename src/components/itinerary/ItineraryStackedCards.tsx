@@ -25,9 +25,9 @@ export const ItineraryStackedCards = ({
 }: ItineraryStackedCardsProps) => {
   return (
     <div className="mb-8">
-      {/* Mobile Layout - 2 columns */}
-      <div className="grid grid-cols-2 lg:hidden gap-4">
-        {/* Column 1: Flights and Hotels */}
+      {/* Mobile Layout - Single column on small screens, 2 columns on medium */}
+      <div className="block sm:grid sm:grid-cols-2 lg:hidden gap-4 space-y-8 sm:space-y-0">
+        {/* All sections stacked vertically on mobile, side by side on sm+ */}
         <div className="space-y-8">
           <ItineraryStackedSection
             title="Flights"
@@ -47,7 +47,7 @@ export const ItineraryStackedCards = ({
           />
         </div>
         
-        {/* Column 2: Activities and Reservations */}
+        {/* Second column for medium screens and up */}
         <div className="space-y-8">
           <ItineraryStackedSection
             title="Activities"

@@ -27,7 +27,7 @@ export const ItineraryStackedSection = ({
       </h3>
       
       {items.length > 0 ? (
-        <div className="relative w-[260px] h-[380px]">
+        <div className="relative w-full max-w-[260px] sm:w-[240px] md:w-[260px] h-[320px] sm:h-[350px] md:h-[380px] mx-auto sm:mx-0">
           {items.slice(0, 3).map((item, index) => (
           <Card 
             key={index}
