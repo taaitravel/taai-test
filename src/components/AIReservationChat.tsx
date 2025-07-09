@@ -75,43 +75,34 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
         // Travel Services
         { type: 'quick-action', label: '✈️ Book Flights', data: { action: 'flights' } },
         { type: 'quick-action', label: '🏨 Reserve Hotels', data: { action: 'hotels' } },
+        { type: 'quick-action', label: '📦 Travel Packages', data: { action: 'packages' } },
         { type: 'quick-action', label: '🚗 Rent a Car', data: { action: 'car' } },
         { type: 'quick-action', label: '🎯 Plan Activities', data: { action: 'activities' } },
-        // Seasons & Deals
+        // Seasons & Deals - Reduced to 4 items
         { type: 'quick-action', label: '🌸 Spring Getaway', data: { action: 'spring' } },
         { type: 'quick-action', label: '☀️ Summer Vacation', data: { action: 'summer' } },
         { type: 'quick-action', label: '🍂 Fall Adventure', data: { action: 'fall' } },
         { type: 'quick-action', label: '❄️ Winter Escape', data: { action: 'winter' } },
-        { type: 'quick-action', label: '💰 Best Deals', data: { action: 'deals' } },
-        { type: 'quick-action', label: '📅 Flexible Dates', data: { action: 'flexible' } },
-        // Terrains & Destinations
+        // Terrains & Destinations - Reduced to 4 items
         { type: 'quick-action', label: '🏝️ Tropical Paradise', data: { action: 'tropical' } },
-        { type: 'quick-action', label: '🏜️ Desert Adventure', data: { action: 'desert' } },
         { type: 'quick-action', label: '🏔️ Mountain Retreat', data: { action: 'mountain' } },
         { type: 'quick-action', label: '🏖️ Beach Vacation', data: { action: 'beach' } },
-        { type: 'quick-action', label: '🌲 Forest Escape', data: { action: 'forest' } },
         { type: 'quick-action', label: '🏙️ City Break', data: { action: 'city' } },
-        // Luxury & Premium
+        // Luxury & Premium - Reduced to 4 items
         { type: 'quick-action', label: '💎 Luxury Resort', data: { action: 'luxury' } },
         { type: 'quick-action', label: '🛥️ Private Yacht', data: { action: 'yacht' } },
         { type: 'quick-action', label: '✈️ Private Jet', data: { action: 'private-jet' } },
-        { type: 'quick-action', label: '🍾 Wine Tours', data: { action: 'wine' } },
-        { type: 'quick-action', label: '🏌️ Golf Resorts', data: { action: 'golf' } },
         { type: 'quick-action', label: '💆 Spa Retreat', data: { action: 'spa' } },
-        // Extreme Sports & Adventure
+        // Extreme Sports & Adventure - Reduced to 4 items
         { type: 'quick-action', label: '🪂 Skydiving', data: { action: 'skydiving' } },
         { type: 'quick-action', label: '🏂 Skiing/Snowboarding', data: { action: 'skiing' } },
         { type: 'quick-action', label: '🤿 Scuba Diving', data: { action: 'diving' } },
         { type: 'quick-action', label: '🧗 Rock Climbing', data: { action: 'climbing' } },
-        { type: 'quick-action', label: '🏄 Surfing', data: { action: 'surfing' } },
-        { type: 'quick-action', label: '🚁 Helicopter Tours', data: { action: 'helicopter' } },
-        // Events & Entertainment
+        // Events & Entertainment - Reduced to 4 items
         { type: 'quick-action', label: '🏎️ F1 Grand Prix', data: { action: 'f1' } },
         { type: 'quick-action', label: '🎵 Concerts & Music', data: { action: 'concerts' } },
         { type: 'quick-action', label: '⚽ Sports Events', data: { action: 'sports' } },
-        { type: 'quick-action', label: '🎭 Theater & Shows', data: { action: 'theater' } },
-        { type: 'quick-action', label: '🎨 Art & Culture', data: { action: 'culture' } },
-        { type: 'quick-action', label: '🍴 Food Festivals', data: { action: 'food' } }
+        { type: 'quick-action', label: '🎭 Theater & Shows', data: { action: 'theater' } }
       ]
     }
   ]);
@@ -382,12 +373,12 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
   const renderActionButtons = (actions: ChatAction[]) => {
     // Check if this is the initial message with organized categories
     if (actions.length > 10) {
-      const travelServices = actions.slice(0, 4);
-      const seasonsDeals = actions.slice(4, 10);
-      const terrains = actions.slice(10, 16);
-      const luxury = actions.slice(16, 22);
-      const extremeSports = actions.slice(22, 28);
-      const events = actions.slice(28);
+      const travelServices = actions.slice(0, 5); // Now includes packages
+      const seasonsDeals = actions.slice(5, 9);
+      const terrains = actions.slice(9, 13);
+      const luxury = actions.slice(13, 17);
+      const extremeSports = actions.slice(17, 21);
+      const events = actions.slice(21);
 
       return (
         <div className="mt-4 space-y-4">
