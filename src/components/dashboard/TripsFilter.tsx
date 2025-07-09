@@ -77,10 +77,10 @@ export const TripsFilter = ({
                   <SelectTrigger className="bg-white/10 border-white/30 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="start_date">Trip Start Date</SelectItem>
-                    <SelectItem value="end_date">Trip End Date</SelectItem>
-                    <SelectItem value="created_at">Date Created</SelectItem>
+                  <SelectContent className="bg-[#171821] border-white/30 text-white z-50">
+                    <SelectItem value="start_date" className="focus:bg-white/10 focus:text-white">Trip Start Date</SelectItem>
+                    <SelectItem value="end_date" className="focus:bg-white/10 focus:text-white">Trip End Date</SelectItem>
+                    <SelectItem value="created_at" className="focus:bg-white/10 focus:text-white">Date Created</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -103,12 +103,13 @@ export const TripsFilter = ({
                       {dateFrom ? format(dateFrom, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0 bg-[#171821] border-white/30" align="start">
                     <Calendar
                       mode="single"
                       selected={dateFrom}
                       onSelect={onDateFromChange}
                       initialFocus
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -132,12 +133,13 @@ export const TripsFilter = ({
                       {dateTo ? format(dateTo, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0 bg-[#171821] border-white/30" align="start">
                     <Calendar
                       mode="single"
                       selected={dateTo}
                       onSelect={onDateToChange}
                       initialFocus
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
