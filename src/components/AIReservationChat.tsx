@@ -668,8 +668,8 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   className={cn(
                     "rounded-lg px-3 py-2 text-sm",
                     message.isBot
-                      ? "bg-[#1f1f27] text-white border border-white/20"
-                      : "bg-primary text-primary-foreground"
+                      ? "bg-[#ff849c] text-white border border-white/20"
+                      : "bg-[#ffce87] text-primary-foreground"
                   )}
                 >
                   {message.text}
