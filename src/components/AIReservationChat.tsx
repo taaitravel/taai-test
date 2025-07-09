@@ -392,7 +392,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                  className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 shadow-lg transition-all duration-300"
+                  className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -410,7 +410,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 shadow-lg transition-all duration-300"
+                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -428,7 +428,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 shadow-lg transition-all duration-300"
+                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -446,7 +446,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 shadow-lg transition-all duration-300"
+                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -464,7 +464,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 shadow-lg transition-all duration-300"
+                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -482,7 +482,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   variant="outline"
                   size="sm"
                   onClick={() => handleActionClick(action)}
-                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 shadow-lg transition-all duration-300"
+                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white shadow-lg transition-all duration-300"
                 >
                   {action.label}
                 </Button>
@@ -504,7 +504,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0"
+                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white"
                   >
                     <CalendarIcon className="h-3 w-3 mr-2" />
                     {action.label}
@@ -548,7 +548,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0"
+                    className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white"
                   >
                     <Users className="h-3 w-3 mr-2" />
                     {action.label}
@@ -597,7 +597,7 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
               variant="outline"
               size="sm"
               onClick={() => handleActionClick(action)}
-              className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 shadow-lg transition-all duration-300"
+              className="bg-[#171821] text-white border border-white/20 hover:bg-gradient-to-r hover:from-[#ff849c] hover:via-[#ff9171] hover:to-[#ffce87] hover:border-0 hover:text-white active:text-white shadow-lg transition-all duration-300"
             >
               {action.label}
             </Button>
