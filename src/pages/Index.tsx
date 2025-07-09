@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,43 +94,42 @@ const Index = () => {
                     <div className="flex flex-col h-full">
                       {/* Header with close button */}
                       <div className="flex justify-between items-center p-6 border-b border-white/10">
-                          <img 
-                            src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
-                            alt="TAAI Travel" 
-                            className="h-12" 
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-white hover:bg-white/10 p-2 rounded-full"
-                            onClick={() => setIsMenuOpen(false)}
-                          >
-                            <X className="h-6 w-6" />
-                          </Button>
-                        </div>
-                        
-                        {/* Menu Items */}
-                        <div className="flex-1 flex flex-col justify-center space-y-8 px-6">
-                          {getMenuItems().map((item) => (
-                            <button
-                              key={item.path}
-                              onClick={() => handleMenuItemClick(item.path)}
-                              className="text-white text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
-                            >
-                              {item.label}
-                            </button>
-                          ))}
-                        </div>
-                        
-                        {/* Footer with traveler level for logged in users */}
-                        {user && (
-                          <div className="p-6 border-t border-white/10">
-                            <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
-                              Master Traveler
-                            </Badge>
-                          </div>
-                        )}
+                        <img 
+                          src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
+                          alt="TAAI Travel" 
+                          className="h-12" 
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-white hover:bg-white/10 p-2 rounded-full"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <X className="h-6 w-6" />
+                        </Button>
                       </div>
+                      
+                      {/* Menu Items */}
+                      <div className="flex-1 flex flex-col justify-center space-y-8 px-6">
+                        {getMenuItems().map((item) => (
+                          <button
+                            key={item.path}
+                            onClick={() => handleMenuItemClick(item.path)}
+                            className="text-white text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {/* Footer with traveler level for logged in users */}
+                      {user && (
+                        <div className="p-6 border-t border-white/10">
+                          <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
+                            Master Traveler
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </DrawerContent>
                 </Drawer>
