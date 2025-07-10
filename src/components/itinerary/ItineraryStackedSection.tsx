@@ -65,7 +65,7 @@ export const FlightCardRenderer = (flight: any, index: number) => (
   <>
     <div>
       <div className="text-2xl mb-2 opacity-60">✈️</div>
-      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-[#171822] text-sm mb-1 line-clamp-2">
         {flight.airline} {flight.flight_number}
       </h4>
       <p className="text-white/50 text-xs mb-2">
@@ -94,7 +94,7 @@ export const HotelCardRenderer = (hotel: any, index: number) => (
   <>
     <div>
       <div className="text-2xl mb-2 opacity-60">🏨</div>
-      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-[#171822] text-sm mb-1 line-clamp-2">
         {hotel.name}
       </h4>
       <p className="text-white/50 text-xs mb-2">{hotel.city}</p>
@@ -122,7 +122,7 @@ export const ActivityCardRenderer = (activity: any, index: number) => (
   <>
     <div>
       <div className="text-2xl mb-2 opacity-60">🎯</div>
-      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-[#171822] text-sm mb-1 line-clamp-2">
         {activity.name}
       </h4>
       <p className="text-white/50 text-xs mb-2">{activity.city}</p>
@@ -149,7 +149,7 @@ export const ReservationCardRenderer = (reservation: any, index: number) => (
       <div className="text-2xl mb-2 opacity-60">
         {reservation.type === 'restaurant' ? '🍽️' : '📅'}
       </div>
-      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-[#171822] text-sm mb-1 line-clamp-2">
         {reservation.name}
       </h4>
       <p className="text-white/50 text-xs mb-2">{reservation.city}</p>
