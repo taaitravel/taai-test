@@ -41,22 +41,22 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
                     <CardContent className="p-4 h-full flex flex-col justify-between">
                       <div>
                         <div className="text-2xl mb-2 opacity-60">{trip.image || '✈️'}</div>
-                        <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">{trip.name}</h4>
-                        <p className="text-white/50 text-xs mb-2">{trip.dates}</p>
+                        <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2">{trip.name}</h4>
+                        <p className="text-white/50 text-sm mb-2">{trip.dates}</p>
                         <div className="flex flex-wrap gap-1 mb-2">
                           {trip.locations.slice(0, 2).map((location: string, idx: number) => (
-                            <Badge key={idx} variant="secondary" className="text-xs bg-white/10 text-white/60 border-white/20">
+                            <Badge key={idx} variant="secondary" className="text-sm bg-white/10 text-white/60 border-white/20">
                               {location}
                             </Badge>
                           ))}
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <div className="flex items-center text-xs text-white/50">
+                        <div className="flex items-center text-sm text-white/50">
                           <Users className="h-3 w-3 mr-1" />
                           {trip.people} people
                         </div>
-                        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
+                        <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
                           {trip.status}
                         </Badge>
                       </div>
@@ -96,22 +96,22 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
                   <CardContent className="p-4 h-full flex flex-col justify-between">
                     <div>
                       <div className="text-2xl mb-2 opacity-60">{trip.image || '📸'}</div>
-                      <h4 className="font-bold text-white/80 text-sm mb-1 line-clamp-2">{trip.name}</h4>
-                      <p className="text-white/50 text-xs mb-2">{trip.dates}</p>
+                      <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2">{trip.name}</h4>
+                      <p className="text-white/50 text-sm mb-2">{trip.dates}</p>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {trip.locations.slice(0, 2).map((location: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="text-xs bg-white/10 text-white/60 border-white/20">
+                          <Badge key={idx} variant="secondary" className="text-sm bg-white/10 text-white/60 border-white/20">
                             {location}
                           </Badge>
                         ))}
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center text-xs text-white/50">
+                      <div className="flex items-center text-sm text-white/50">
                         <Users className="h-3 w-3 mr-1" />
                         {trip.people} people
                       </div>
-                      <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
+                      <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
                         completed
                       </Badge>
                     </div>
@@ -128,7 +128,7 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
             {activeItineraries.filter(trip => trip.status === 'completed').length === 0 && (
               <div className="text-center py-8 text-white/50">
                 <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-xs">No past trips yet</p>
+                <p className="text-sm">No past trips yet</p>
               </div>
             )}
           </div>
