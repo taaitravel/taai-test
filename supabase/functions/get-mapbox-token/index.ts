@@ -13,7 +13,7 @@ serve(async (req) => {
 
   try {
     console.log('get-mapbox-token function called');
-    const mapboxToken = Deno.env.get('MAPBOX_PK');
+    const mapboxToken = Deno.env.get('MAPBOX-TAAI-TOKEN');
     console.log('Retrieved token exists:', !!mapboxToken);
     
     if (!mapboxToken) {
