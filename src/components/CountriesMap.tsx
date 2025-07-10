@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useCountryData } from '@/hooks/useCountryData';
 
 interface CountriesMapProps {
   visitedCountries: string[];
@@ -13,6 +14,7 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { countryCoordinates } = useCountryData(visitedCountries);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -20,6 +22,7 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
     const initializeMap = async () => {
       try {
         console.log('CountriesMap: Attempting to get Mapbox token...');
+        
         // Get Mapbox token from Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         console.log('CountriesMap: Token response:', { data, error });
@@ -105,6 +108,41 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
           spinGlobe();
         });
 
+        // Add markers for visited countries when they become available
+        const addCountryMarkers = () => {
+          if (countryCoordinates && countryCoordinates.length > 0) {
+            countryCoordinates.forEach((country) => {
+              if (country.latitude && country.longitude) {
+                // Create custom marker element
+                const markerEl = document.createElement('div');
+                markerEl.className = 'country-marker';
+                markerEl.style.cssText = `
+                  width: 12px;
+                  height: 12px;
+                  background: #ffce87;
+                  border: 2px solid #ffffff;
+                  border-radius: 50%;
+                  box-shadow: 0 0 10px rgba(255, 206, 135, 0.6);
+                  cursor: pointer;
+                `;
+
+                // Create popup
+                const popup = new mapboxgl.Popup({ offset: 25 })
+                  .setHTML(`<div style="color: #171821; font-weight: 500; padding: 4px;">${country.country_name}</div>`);
+
+                // Add marker to map
+                new mapboxgl.Marker(markerEl)
+                  .setLngLat([country.longitude, country.latitude])
+                  .setPopup(popup)
+                  .addTo(map.current!);
+              }
+            });
+          }
+        };
+
+        // Add markers when map loads and when country coordinates are available
+        map.current.on('load', addCountryMarkers);
+
         // Start the globe spinning
         spinGlobe();
 
@@ -123,7 +161,39 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
     return () => {
       map.current?.remove();
     };
-  }, [visitedCountries]);
+  }, []);
+
+  // Add markers when country coordinates change
+  useEffect(() => {
+    if (map.current && countryCoordinates.length > 0) {
+      countryCoordinates.forEach((country) => {
+        if (country.latitude && country.longitude) {
+          // Create custom marker element
+          const markerEl = document.createElement('div');
+          markerEl.className = 'country-marker';
+          markerEl.style.cssText = `
+            width: 12px;
+            height: 12px;
+            background: #ffce87;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 206, 135, 0.6);
+            cursor: pointer;
+          `;
+
+          // Create popup
+          const popup = new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`<div style="color: #171821; font-weight: 500; padding: 4px;">${country.country_name}</div>`);
+
+          // Add marker to map
+          new mapboxgl.Marker(markerEl)
+            .setLngLat([country.longitude, country.latitude])
+            .setPopup(popup)
+            .addTo(map.current!);
+        }
+      });
+    }
+  }, [countryCoordinates]);
 
   if (error) {
     return (

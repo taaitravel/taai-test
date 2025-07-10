@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      country_coordinates: {
+        Row: {
+          country_code: string | null
+          country_name: string
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          updated_at: string
+        }
+        Insert: {
+          country_code?: string | null
+          country_name: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string | null
+          country_name?: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       itinerary: {
         Row: {
           activities: Json | null
