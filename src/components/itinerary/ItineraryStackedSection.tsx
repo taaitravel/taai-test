@@ -53,7 +53,7 @@ export const ItineraryStackedSection = ({
       ) : (
         <div className="text-center py-8 text-white/50">
           <Icon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-xs">{emptyMessage}</p>
+          <p className="text-sm">{emptyMessage}</p>
         </div>
       )}
     </div>
@@ -65,24 +65,24 @@ export const FlightCardRenderer = (flight: any, index: number) => (
   <>
     <div>
       <div className="text-2xl mb-2 opacity-60">✈️</div>
-      <h4 className="font-bold text-[#171822] text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2">
         {flight.airline} {flight.flight_number}
       </h4>
-      <p className="text-white/50 text-xs mb-2">
+      <p className="text-white/50 text-sm mb-2">
         {flight.from} → {flight.to}
       </p>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
+        <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
           ${flight.cost}
         </Badge>
       </div>
     </div>
     <div className="space-y-1">
-      <div className="flex items-center text-xs text-white/50">
+      <div className="flex items-center text-sm text-white/50">
         <Calendar className="h-3 w-3 mr-1" />
         {new Date(flight.departure).toLocaleDateString()}
       </div>
-      <p className="text-white/50 text-xs">
+      <p className="text-white/50 text-sm">
         {new Date(flight.departure).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
       </p>
     </div>
@@ -94,24 +94,24 @@ export const HotelCardRenderer = (hotel: any, index: number) => (
   <>
     <div>
       <div className="text-2xl mb-2 opacity-60">🏨</div>
-      <h4 className="font-bold text-[#171822] text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2">
         {hotel.name}
       </h4>
-      <p className="text-white/50 text-xs mb-2">{hotel.city}</p>
+      <p className="text-white/50 text-sm mb-2">{hotel.city}</p>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
+        <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
           ${hotel.cost}
         </Badge>
       </div>
     </div>
     <div className="space-y-1">
-      <div className="flex items-center text-xs text-white/50">
+      <div className="flex items-center text-sm text-white/50">
         <Calendar className="h-3 w-3 mr-1" />
         {hotel.nights} nights
       </div>
       <div className="flex items-center text-white/50">
         <Star className="h-3 w-3 fill-current mr-1" />
-        <span className="text-xs">{hotel.rating}</span>
+        <span className="text-sm">{hotel.rating}</span>
       </div>
     </div>
   </>
@@ -122,22 +122,22 @@ export const ActivityCardRenderer = (activity: any, index: number) => (
   <>
     <div>
       <div className="text-2xl mb-2 opacity-60">🎯</div>
-      <h4 className="font-bold text-[#171822] text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2">
         {activity.name}
       </h4>
-      <p className="text-white/50 text-xs mb-2">{activity.city}</p>
+      <p className="text-white/50 text-sm mb-2">{activity.city}</p>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
+        <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
           ${activity.cost}
         </Badge>
       </div>
     </div>
     <div className="space-y-1">
-      <div className="flex items-center text-xs text-white/50">
+      <div className="flex items-center text-sm text-white/50">
         <Calendar className="h-3 w-3 mr-1" />
         {new Date(activity.date).toLocaleDateString()}
       </div>
-      <p className="text-white/50 text-xs">{activity.duration}</p>
+      <p className="text-white/50 text-sm">{activity.duration}</p>
     </div>
   </>
 );
@@ -149,22 +149,22 @@ export const ReservationCardRenderer = (reservation: any, index: number) => (
       <div className="text-2xl mb-2 opacity-60">
         {reservation.type === 'restaurant' ? '🍽️' : '📅'}
       </div>
-      <h4 className="font-bold text-[#171822] text-sm mb-1 line-clamp-2">
+      <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2">
         {reservation.name}
       </h4>
-      <p className="text-white/50 text-xs mb-2">{reservation.city}</p>
+      <p className="text-white/50 text-sm mb-2">{reservation.city}</p>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
+        <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
           {reservation.type}
         </Badge>
       </div>
     </div>
     <div className="space-y-1">
-      <div className="flex items-center text-xs text-white/50">
+      <div className="flex items-center text-sm text-white/50">
         <Users className="h-3 w-3 mr-1" />
         {reservation.party_size} people
       </div>
-      <p className="text-white/50 text-xs">
+      <p className="text-white/50 text-sm">
         {new Date(reservation.date).toLocaleDateString()} • {reservation.time}
       </p>
     </div>
