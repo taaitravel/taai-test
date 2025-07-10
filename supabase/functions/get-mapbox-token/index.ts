@@ -17,7 +17,7 @@ serve(async (req) => {
     console.log('Retrieved token exists:', !!mapboxToken);
     
     if (!mapboxToken) {
-      console.error('MAPBOX_PK environment variable not found');
+      console.error('MAPBOX-TAAI-TOKEN environment variable not found');
       return new Response(
         JSON.stringify({ error: 'Mapbox token not configured' }),
         { 
