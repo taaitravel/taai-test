@@ -21,7 +21,7 @@ interface ChatInterfaceProps {
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
   context, 
-  placeholder = "Ask me anything about travel planning..." 
+  placeholder = "Ask TAAI about flights, hotels, budgets, or trip planning..." 
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -104,7 +104,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
-          <h3 className="font-semibold">Travel Assistant</h3>
+          <h3 className="font-semibold">TAAI Assistant</h3>
         </div>
         <Button
           variant="ghost"
@@ -122,7 +122,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             {messages.length === 0 && (
               <div className="text-center text-muted-foreground py-8">
                 <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Hi! I'm your travel assistant. How can I help you plan your next adventure?</p>
+                <p className="text-sm">Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?</p>
               </div>
             )}
             
