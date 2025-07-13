@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, User } from "lucide-react";
 import AIReservationChat from "@/components/AIReservationChat";
+import { ChatInterface } from "@/components/chat/ChatInterface";
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,22 +99,54 @@ const CreateItinerary = () => {
         showTripButtons={false}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-6">
+      {/* Main Content - Side by Side Chat Comparison */}
+      <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-6">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-white mb-2">Create Your Perfect Itinerary</h1>
-          <p className="text-white/70">Let our AI assistant help you plan and book your entire trip</p>
+          <p className="text-white/70">Compare our traditional booking assistant with the new TAAI Assistant</p>
         </div>
 
-        {/* AI Reservation Chat - Full Featured */}
-        <div className="flex-1 max-w-4xl mx-auto w-full">
-          <AIReservationChat 
-            itineraryData={itineraryData}
-            onUpdateData={updateItineraryData}
-            onSaveItinerary={saveItinerary}
-            isSaving={isSaving}
-            prefilledMessage={prefilledMessage}
-          />
+        {/* Two Column Layout for Chat Comparison */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Side - Traditional AI Reservation Chat */}
+          <div className="flex flex-col">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center py-2 rounded-t-lg font-semibold">
+              Traditional Booking Assistant
+            </div>
+            <div className="flex-1 border-2 border-blue-500/30 rounded-b-lg bg-black/20 p-4">
+              <AIReservationChat 
+                itineraryData={itineraryData}
+                onUpdateData={updateItineraryData}
+                onSaveItinerary={saveItinerary}
+                isSaving={isSaving}
+                prefilledMessage={prefilledMessage}
+              />
+            </div>
+          </div>
+
+          {/* Right Side - TAAI Assistant */}
+          <div className="flex flex-col">
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-2 rounded-t-lg font-semibold">
+              TAAI Assistant (NEW)
+            </div>
+            <div className="flex-1 border-2 border-orange-500/30 rounded-b-lg bg-black/20 p-4 relative">
+              <ChatInterface 
+                context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
+                placeholder="Ask TAAI about planning your perfect trip..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Save Button Section */}
+        <div className="mt-6 text-center">
+          <Button
+            onClick={saveItinerary}
+            disabled={isSaving || !itineraryData.name}
+            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold"
+          >
+            {isSaving ? "Saving..." : "Save Itinerary"}
+          </Button>
         </div>
       </div>
     </div>
