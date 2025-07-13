@@ -7,6 +7,7 @@ import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut, User, Me
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ChatInterface } from "@/components/chat/ChatInterface";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -343,6 +344,9 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Chat Interface */}
+      <ChatInterface context="travel planning and general travel assistance" />
     </div>
   );
 };
