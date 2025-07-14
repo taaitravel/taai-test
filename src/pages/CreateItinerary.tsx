@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, User } from "lucide-react";
 import AIReservationChat from "@/components/AIReservationChat";
 import { ChatInterface } from "@/components/chat/ChatInterface";
+import { BookingCart } from "@/components/booking/BookingCart";
+import { QuickAddToCart } from "@/components/booking/QuickAddToCart";
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +35,7 @@ const CreateItinerary = () => {
   const { user } = useAuth();
   const [itineraryData, setItineraryData] = useState<ItineraryData>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
   
   // Get prefilled message from navigation state
   const prefilledMessage = location.state?.prefilledMessage || null;
@@ -78,7 +81,9 @@ const CreateItinerary = () => {
       if (error) throw error;
 
       toast.success("Itinerary saved successfully!");
-      navigate(`/itinerary?id=${data.id}`);
+      setSavedItineraryId(data.id.toString());
+      // Don't navigate immediately, let user use booking features
+      // navigate(`/itinerary?id=${data.id}`);
     } catch (error) {
       console.error('Error saving itinerary:', error);
       toast.error("Failed to save itinerary. Please try again.");
@@ -139,15 +144,57 @@ const CreateItinerary = () => {
           </div>
         </div>
 
-        {/* Save Button Section */}
-        <div className="mt-6 text-center">
-          <Button
-            onClick={saveItinerary}
-            disabled={isSaving || !itineraryData.name}
-            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold"
-          >
-            {isSaving ? "Saving..." : "Save Itinerary"}
-          </Button>
+        {/* Booking Section */}
+        {savedItineraryId && (
+          <div className="mt-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">Book Your Trip</h2>
+              <p className="text-white/70">Add items to cart, save price snapshots, or book individual items</p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left - Quick Add to Cart */}
+              <QuickAddToCart 
+                itineraryId={savedItineraryId}
+                onItemAdded={() => {
+                  // Refresh cart when item is added
+                }}
+              />
+              
+              {/* Right - Booking Cart */}
+              <BookingCart 
+                itineraryId={savedItineraryId}
+                onCartUpdate={(items) => {
+                  console.log('Cart updated:', items);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Save/Continue Button Section */}
+        <div className="mt-6 text-center space-y-4">
+          {!savedItineraryId ? (
+            <Button
+              onClick={saveItinerary}
+              disabled={isSaving || !itineraryData.name}
+              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold"
+            >
+              {isSaving ? "Saving..." : "Save Itinerary & Enable Booking"}
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-white/70 text-sm">
+                ✅ Itinerary saved! You can now add items to your booking cart above.
+              </p>
+              <Button
+                onClick={() => navigate(`/itinerary?id=${savedItineraryId}`)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg"
+              >
+                View Complete Itinerary
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

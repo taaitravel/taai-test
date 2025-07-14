@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booked_at: string
+          booking_details: Json
+          booking_ref: string | null
+          created_at: string
+          id: string
+          itinerary_id: string | null
+          quote_id: string | null
+          status: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          booked_at?: string
+          booking_details: Json
+          booking_ref?: string | null
+          created_at?: string
+          id?: string
+          itinerary_id?: string | null
+          quote_id?: string | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          booked_at?: string
+          booking_details?: Json
+          booking_ref?: string | null
+          created_at?: string
+          id?: string
+          itinerary_id?: string | null
+          quote_id?: string | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cart_items: {
+        Row: {
+          created_at: string
+          external_ref: string
+          id: string
+          item_data: Json | null
+          itinerary_id: string | null
+          price: number
+          saved_at: string
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          external_ref: string
+          id?: string
+          item_data?: Json | null
+          itinerary_id?: string | null
+          price: number
+          saved_at?: string
+          type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          external_ref?: string
+          id?: string
+          item_data?: Json | null
+          itinerary_id?: string | null
+          price?: number
+          saved_at?: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contact_inquiries: {
         Row: {
           company_name: string | null
@@ -186,6 +275,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quotes: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          items: Json
+          itinerary_id: string | null
+          quote_name: string | null
+          status: string | null
+          total_price: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          items: Json
+          itinerary_id?: string | null
+          quote_name?: string | null
+          status?: string | null
+          total_price: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          items?: Json
+          itinerary_id?: string | null
+          quote_name?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       users: {
         Row: {
