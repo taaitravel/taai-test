@@ -17,11 +17,13 @@ interface Message {
 interface ChatInterfaceProps {
   context?: string;
   placeholder?: string;
+  embedded?: boolean; // New prop for embedded vs floating mode
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
   context, 
-  placeholder = "Ask TAAI about flights, hotels, budgets, or trip planning..." 
+  placeholder = "Ask TAAI about flights, hotels, budgets, or trip planning...",
+  embedded = false
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -87,6 +89,79 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  // For embedded mode, render directly without floating behavior
+  if (embedded) {
+    return (
+      <div className="h-full flex flex-col bg-transparent">
+        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+          <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center text-white/60 py-8">
+                <Bot className="h-8 w-8 mx-auto mb-3 text-orange-400" />
+                <p className="text-sm text-white/80">Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?</p>
+              </div>
+            )}
+            
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === 'user'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
+                      : 'bg-white/10 text-white border border-white/20'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0 text-orange-400" />}
+                    {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-white/10 border border-white/20 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-4 w-4 text-orange-400" />
+                    <Loader2 className="h-4 w-4 animate-spin text-orange-400" />
+                    <span className="text-sm text-white/80">Thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        <div className="p-4 border-t border-white/20">
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={placeholder}
+              disabled={isLoading}
+              className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-orange-400"
+            />
+            <Button
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              size="icon"
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Floating mode behavior (original)
   if (!isOpen) {
     return (
       <Button

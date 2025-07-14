@@ -129,10 +129,11 @@ const CreateItinerary = () => {
             <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-2 rounded-t-lg font-semibold">
               TAAI Assistant (NEW)
             </div>
-            <div className="flex-1 border-2 border-orange-500/30 rounded-b-lg bg-black/20 p-4 relative">
+            <div className="flex-1 border-2 border-orange-500/30 rounded-b-lg bg-black/20 relative">
               <ChatInterface 
                 context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
                 placeholder="Ask TAAI about planning your perfect trip..."
+                embedded={true}
               />
             </div>
           </div>
