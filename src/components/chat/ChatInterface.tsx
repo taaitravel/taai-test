@@ -3,32 +3,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Send, Bot, User, Loader2 } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Loader2, Hotel } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { SwipeHotelSelector } from '@/components/swipe/SwipeHotelSelector';
 
 interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  searchResults?: any[];
+  resultType?: string;
+  functionUsed?: string;
 }
 
 interface ChatInterfaceProps {
   context?: string;
   placeholder?: string;
   embedded?: boolean; // New prop for embedded vs floating mode
+  itineraryId?: string; // For saving swipe results
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
   context, 
   placeholder = "Ask TAAI about flights, hotels, budgets, or trip planning...",
-  embedded = false
+  embedded = false,
+  itineraryId
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [showSwipeInterface, setShowSwipeInterface] = useState(false);
+  const [currentSearchResults, setCurrentSearchResults] = useState<any[]>([]);
+  const [currentResultType, setCurrentResultType] = useState<string>('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -67,9 +76,19 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         content: data.response,
         role: 'assistant',
         timestamp: new Date(),
+        searchResults: data.searchResults,
+        resultType: data.resultType,
+        functionUsed: data.functionUsed,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Show swipe interface for hotel searches
+      if (data.resultType === 'hotels' && data.searchResults?.length && itineraryId) {
+        setCurrentSearchResults(data.searchResults);
+        setCurrentResultType(data.resultType);
+        setShowSwipeInterface(true);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -93,70 +112,122 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   if (embedded) {
     return (
       <div className="h-full flex flex-col bg-transparent">
-        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-          <div className="space-y-4">
-            {messages.length === 0 && (
-              <div className="text-center text-white/60 py-8">
-                <Bot className="h-8 w-8 mx-auto mb-3 text-orange-400" />
-                <p className="text-sm text-white/80">Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?</p>
-              </div>
-            )}
-            
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+        {/* Show swipe interface if we have hotel search results */}
+        {showSwipeInterface && currentResultType === 'hotels' && itineraryId ? (
+          <div className="flex-1 p-4">
+            <div className="mb-4 text-center">
+              <Button
+                onClick={() => setShowSwipeInterface(false)}
+                variant="outline"
+                className="mb-4 border-white/30 text-white hover:bg-white/10"
               >
-                <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
-                      : 'bg-white/10 text-white border border-white/20'
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0 text-orange-400" />}
-                    {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white/10 border border-white/20 rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-orange-400" />
-                    <Loader2 className="h-4 w-4 animate-spin text-orange-400" />
-                    <span className="text-sm text-white/80">Thinking...</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-
-        <div className="p-4 border-t border-white/20">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={placeholder}
-              disabled={isLoading}
-              className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-orange-400"
+                ← Back to Chat
+              </Button>
+              <h3 className="text-lg font-semibold text-white mb-2">Swipe to Choose Hotels</h3>
+              <p className="text-white/70 text-sm">Swipe right to like, left to pass</p>
+            </div>
+            <SwipeHotelSelector
+              hotels={currentSearchResults}
+              itineraryId={itineraryId}
+              onSwipeComplete={(liked, rejected) => {
+                setShowSwipeInterface(false);
+                toast({
+                  title: "Swipe Complete!",
+                  description: `You liked ${liked.length} out of ${currentSearchResults.length} hotels.`,
+                });
+              }}
+              onHotelLiked={(hotel) => {
+                console.log('Hotel liked:', hotel);
+              }}
+              onHotelRejected={(hotel) => {
+                console.log('Hotel rejected:', hotel);
+              }}
             />
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              size="icon"
-              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
           </div>
-        </div>
+        ) : (
+          <>
+            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+              <div className="space-y-4">
+                {messages.length === 0 && (
+                  <div className="text-center text-white/60 py-8">
+                    <Bot className="h-8 w-8 mx-auto mb-3 text-orange-400" />
+                    <p className="text-sm text-white/80">Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?</p>
+                  </div>
+                )}
+                
+                {messages.map((message) => (
+                  <div key={message.id} className="space-y-3">
+                    <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className={`max-w-[80%] rounded-lg p-3 ${
+                          message.role === 'user'
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
+                            : 'bg-white/10 text-white border border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0 text-orange-400" />}
+                          {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Show swipe button for hotel results */}
+                    {message.role === 'assistant' && message.resultType === 'hotels' && message.searchResults?.length && itineraryId && (
+                      <div className="flex justify-start">
+                        <Button
+                          onClick={() => {
+                            setCurrentSearchResults(message.searchResults || []);
+                            setCurrentResultType(message.resultType || '');
+                            setShowSwipeInterface(true);
+                          }}
+                          className="bg-white/10 hover:bg-white/20 border border-white/30 text-white"
+                        >
+                          <Hotel className="h-4 w-4 mr-2" />
+                          Swipe Through These Hotels
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white/10 border border-white/20 rounded-lg p-3">
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-4 w-4 text-orange-400" />
+                        <Loader2 className="h-4 w-4 animate-spin text-orange-400" />
+                        <span className="text-sm text-white/80">Thinking...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            <div className="p-4 border-t border-white/20">
+              <div className="flex gap-2">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={placeholder}
+                  disabled={isLoading}
+                  className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-orange-400"
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={!input.trim() || isLoading}
+                  size="icon"
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     );
   }

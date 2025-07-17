@@ -64,6 +64,7 @@ async function searchHotels(params: any) {
   // This would typically call a real hotel search API
   return [
     {
+      id: `expedia#HOTEL_${params.destination.toUpperCase()}_001`,
       name: `Grand Hotel ${params.destination}`,
       price: 150,
       rating: 4.5,
@@ -71,8 +72,13 @@ async function searchHotels(params: any) {
       checkIn: params.checkIn,
       checkOut: params.checkOut,
       amenities: ['WiFi', 'Pool', 'Spa', 'Restaurant'],
+      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500&h=300&fit=crop',
+      description: `Luxury hotel in the heart of ${params.destination} with premium amenities`,
+      coordinates: { lat: 40.7589, lng: -73.9851 },
+      source: 'expedia'
     },
     {
+      id: `booking#HOTEL_${params.destination.toUpperCase()}_002`,
       name: `Budget Inn ${params.destination}`,
       price: 80,
       rating: 3.8,
@@ -80,7 +86,25 @@ async function searchHotels(params: any) {
       checkIn: params.checkIn,
       checkOut: params.checkOut,
       amenities: ['WiFi', 'Breakfast'],
+      image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=500&h=300&fit=crop',
+      description: `Comfortable and affordable accommodation in ${params.destination}`,
+      coordinates: { lat: 40.7505, lng: -73.9934 },
+      source: 'booking'
     },
+    {
+      id: `hotels#HOTEL_${params.destination.toUpperCase()}_003`,
+      name: `Boutique ${params.destination} Hotel`,
+      price: 200,
+      rating: 4.2,
+      location: params.destination,
+      checkIn: params.checkIn,
+      checkOut: params.checkOut,
+      amenities: ['WiFi', 'Restaurant', 'Fitness Center', 'Business Center'],
+      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&h=300&fit=crop',
+      description: `Stylish boutique hotel with modern amenities in ${params.destination}`,
+      coordinates: { lat: 40.7614, lng: -73.9776 },
+      source: 'hotels.com'
+    }
   ];
 }
 

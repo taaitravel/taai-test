@@ -139,6 +139,7 @@ const CreateItinerary = () => {
                 context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
                 placeholder="Ask TAAI about planning your perfect trip..."
                 embedded={true}
+                itineraryId={savedItineraryId || undefined}
               />
             </div>
           </div>
