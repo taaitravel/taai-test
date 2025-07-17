@@ -7,6 +7,10 @@ import { MessageCircle, Send, Bot, User, Loader2, Hotel } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SwipeHotelSelector } from '@/components/swipe/SwipeHotelSelector';
+import { SwipeFlightSelector } from '@/components/swipe/SwipeFlightSelector';
+import { SwipeActivitySelector } from '@/components/swipe/SwipeActivitySelector';
+import { SwipeRestaurantSelector } from '@/components/swipe/SwipeRestaurantSelector';
+import { HotelSwipeItem, FlightSwipeItem, ActivitySwipeItem, RestaurantSwipeItem } from '@/components/swipe/types';
 
 interface Message {
   id: string;
@@ -35,9 +39,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [swipeHotels, setSwipeHotels] = useState<HotelSwipeItem[]>([]);
+  const [swipeFlights, setSwipeFlights] = useState<FlightSwipeItem[]>([]);
+  const [swipeActivities, setSwipeActivities] = useState<ActivitySwipeItem[]>([]);
+  const [swipeRestaurants, setSwipeRestaurants] = useState<RestaurantSwipeItem[]>([]);
   const [showSwipeInterface, setShowSwipeInterface] = useState(false);
-  const [currentSearchResults, setCurrentSearchResults] = useState<any[]>([]);
-  const [currentResultType, setCurrentResultType] = useState<string>('');
+  const [swipeType, setSwipeType] = useState<'hotel' | 'flight' | 'activity' | 'restaurant' | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -83,11 +90,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Show swipe interface for hotel searches
-      if (data.resultType === 'hotels' && data.searchResults?.length && itineraryId) {
-        setCurrentSearchResults(data.searchResults);
-        setCurrentResultType(data.resultType);
-        setShowSwipeInterface(true);
+      // Extract different types of results from the response
+      if (data.hotels && Array.isArray(data.hotels)) {
+        setSwipeHotels(data.hotels);
+      }
+      if (data.flights && Array.isArray(data.flights)) {
+        setSwipeFlights(data.flights);
+      }
+      if (data.activities && Array.isArray(data.activities)) {
+        setSwipeActivities(data.activities);
+      }
+      if (data.restaurants && Array.isArray(data.restaurants)) {
+        setSwipeRestaurants(data.restaurants);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -108,41 +122,63 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  const handleStartSwiping = (type: 'hotel' | 'flight' | 'activity' | 'restaurant') => {
+    setSwipeType(type);
+    setShowSwipeInterface(true);
+  };
+
+  const handleBackToChat = () => {
+    setShowSwipeInterface(false);
+    setSwipeType(null);
+  };
+
   // For embedded mode, render directly without floating behavior
   if (embedded) {
     return (
       <div className="h-full flex flex-col bg-transparent">
-        {/* Show swipe interface if we have hotel search results */}
-        {showSwipeInterface && currentResultType === 'hotels' && itineraryId ? (
+        {/* Swipe Interface */}
+        {showSwipeInterface && swipeType && itineraryId ? (
           <div className="flex-1 p-4">
-            <div className="mb-4 text-center">
-              <Button
-                onClick={() => setShowSwipeInterface(false)}
-                variant="outline"
-                className="mb-4 border-white/30 text-white hover:bg-white/10"
-              >
-                ← Back to Chat
-              </Button>
-              <h3 className="text-lg font-semibold text-white mb-2">Swipe to Choose Hotels</h3>
-              <p className="text-white/70 text-sm">Swipe right to like, left to pass</p>
-            </div>
-            <SwipeHotelSelector
-              hotels={currentSearchResults}
-              itineraryId={itineraryId}
-              onSwipeComplete={(liked, rejected) => {
-                setShowSwipeInterface(false);
-                toast({
-                  title: "Swipe Complete!",
-                  description: `You liked ${liked.length} out of ${currentSearchResults.length} hotels.`,
-                });
-              }}
-              onHotelLiked={(hotel) => {
-                console.log('Hotel liked:', hotel);
-              }}
-              onHotelRejected={(hotel) => {
-                console.log('Hotel rejected:', hotel);
-              }}
-            />
+            {swipeType === 'hotel' && (
+              <SwipeHotelSelector
+                hotels={swipeHotels}
+                itineraryId={itineraryId}
+                onBack={handleBackToChat}
+                onSwipeComplete={(liked, rejected) => {
+                  console.log('Hotel swipe complete:', { liked, rejected });
+                }}
+              />
+            )}
+            {swipeType === 'flight' && (
+              <SwipeFlightSelector
+                flights={swipeFlights}
+                itineraryId={itineraryId}
+                onBack={handleBackToChat}
+                onSwipeComplete={(liked, rejected) => {
+                  console.log('Flight swipe complete:', { liked, rejected });
+                }}
+              />
+            )}
+            {swipeType === 'activity' && (
+              <SwipeActivitySelector
+                activities={swipeActivities}
+                itineraryId={itineraryId}
+                onBack={handleBackToChat}
+                onSwipeComplete={(liked, rejected) => {
+                  console.log('Activity swipe complete:', { liked, rejected });
+                }}
+              />
+            )}
+            {swipeType === 'restaurant' && (
+              <SwipeRestaurantSelector
+                restaurants={swipeRestaurants}
+                itineraryId={itineraryId}
+                onBack={handleBackToChat}
+                onSwipeComplete={(liked, rejected) => {
+                  console.log('Restaurant swipe complete:', { liked, rejected });
+                }}
+              />
+            )}
           </div>
         ) : (
           <>
@@ -172,25 +208,46 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Show swipe button for hotel results */}
-                    {message.role === 'assistant' && message.resultType === 'hotels' && message.searchResults?.length && itineraryId && (
-                      <div className="flex justify-start">
-                        <Button
-                          onClick={() => {
-                            setCurrentSearchResults(message.searchResults || []);
-                            setCurrentResultType(message.resultType || '');
-                            setShowSwipeInterface(true);
-                          }}
-                          className="bg-white/10 hover:bg-white/20 border border-white/30 text-white"
-                        >
-                          <Hotel className="h-4 w-4 mr-2" />
-                          Swipe Through These Hotels
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 ))}
+                
+                {/* Show swipe buttons if results are available */}
+                {(swipeHotels.length > 0 || swipeFlights.length > 0 || swipeActivities.length > 0 || swipeRestaurants.length > 0) && (
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {swipeHotels.length > 0 && (
+                      <Button
+                        onClick={() => handleStartSwiping('hotel')}
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium px-4 py-2 text-sm"
+                      >
+                        🏨 Swipe Hotels ({swipeHotels.length})
+                      </Button>
+                    )}
+                    {swipeFlights.length > 0 && (
+                      <Button
+                        onClick={() => handleStartSwiping('flight')}
+                        className="bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-600 hover:to-blue-600 text-white font-medium px-4 py-2 text-sm"
+                      >
+                        ✈️ Swipe Flights ({swipeFlights.length})
+                      </Button>
+                    )}
+                    {swipeActivities.length > 0 && (
+                      <Button
+                        onClick={() => handleStartSwiping('activity')}
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium px-4 py-2 text-sm"
+                      >
+                        🎯 Swipe Activities ({swipeActivities.length})
+                      </Button>
+                    )}
+                    {swipeRestaurants.length > 0 && (
+                      <Button
+                        onClick={() => handleStartSwiping('restaurant')}
+                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium px-4 py-2 text-sm"
+                      >
+                        🍽️ Swipe Restaurants ({swipeRestaurants.length})
+                      </Button>
+                    )}
+                  </div>
+                )}
                 
                 {isLoading && (
                   <div className="flex justify-start">
