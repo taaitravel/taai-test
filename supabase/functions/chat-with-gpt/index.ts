@@ -8,6 +8,130 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Define available functions for OpenAI function calling
+const functions = [
+  {
+    name: 'searchHotels',
+    description: 'Search hotels by destination and date',
+    parameters: {
+      type: 'object',
+      properties: {
+        destination: { type: 'string', description: 'Hotel destination city or location' },
+        checkIn: { type: 'string', format: 'date', description: 'Check-in date in YYYY-MM-DD format' },
+        checkOut: { type: 'string', format: 'date', description: 'Check-out date in YYYY-MM-DD format' },
+        guests: { type: 'number', description: 'Number of guests', default: 2 },
+        budget: { type: 'number', description: 'Budget range per night in USD' },
+      },
+      required: ['destination', 'checkIn', 'checkOut'],
+    },
+  },
+  {
+    name: 'searchFlights',
+    description: 'Search flights between two cities with dates',
+    parameters: {
+      type: 'object',
+      properties: {
+        origin: { type: 'string', description: 'Departure city or airport code' },
+        destination: { type: 'string', description: 'Arrival city or airport code' },
+        departDate: { type: 'string', format: 'date', description: 'Departure date in YYYY-MM-DD format' },
+        returnDate: { type: 'string', format: 'date', description: 'Return date in YYYY-MM-DD format (optional for one-way)' },
+        passengers: { type: 'number', description: 'Number of passengers', default: 1 },
+        class: { type: 'string', enum: ['economy', 'business', 'first'], description: 'Flight class preference' },
+      },
+      required: ['origin', 'destination', 'departDate'],
+    },
+  },
+  {
+    name: 'searchActivities',
+    description: 'Search activities and attractions by destination',
+    parameters: {
+      type: 'object',
+      properties: {
+        destination: { type: 'string', description: 'Destination city or location' },
+        startDate: { type: 'string', format: 'date', description: 'Activity start date in YYYY-MM-DD format' },
+        endDate: { type: 'string', format: 'date', description: 'Activity end date in YYYY-MM-DD format' },
+        category: { type: 'string', enum: ['tours', 'attractions', 'outdoor', 'cultural', 'food', 'adventure'], description: 'Activity category' },
+        budget: { type: 'number', description: 'Budget range per person in USD' },
+      },
+      required: ['destination'],
+    },
+  },
+];
+
+// Mock search functions (replace with real API calls)
+async function searchHotels(params: any) {
+  console.log('Searching hotels with params:', params);
+  // This would typically call a real hotel search API
+  return [
+    {
+      name: `Grand Hotel ${params.destination}`,
+      price: 150,
+      rating: 4.5,
+      location: params.destination,
+      checkIn: params.checkIn,
+      checkOut: params.checkOut,
+      amenities: ['WiFi', 'Pool', 'Spa', 'Restaurant'],
+    },
+    {
+      name: `Budget Inn ${params.destination}`,
+      price: 80,
+      rating: 3.8,
+      location: params.destination,
+      checkIn: params.checkIn,
+      checkOut: params.checkOut,
+      amenities: ['WiFi', 'Breakfast'],
+    },
+  ];
+}
+
+async function searchFlights(params: any) {
+  console.log('Searching flights with params:', params);
+  // This would typically call a real flight search API
+  return [
+    {
+      airline: 'Sky Airlines',
+      price: 350,
+      departure: `${params.origin} 10:30 AM`,
+      arrival: `${params.destination} 2:45 PM`,
+      duration: '4h 15m',
+      stops: 0,
+      date: params.departDate,
+    },
+    {
+      airline: 'Global Airways',
+      price: 420,
+      departure: `${params.origin} 2:15 PM`,
+      arrival: `${params.destination} 6:30 PM`,
+      duration: '4h 15m',
+      stops: 0,
+      date: params.departDate,
+    },
+  ];
+}
+
+async function searchActivities(params: any) {
+  console.log('Searching activities with params:', params);
+  // This would typically call a real activities search API
+  return [
+    {
+      name: `City Tour of ${params.destination}`,
+      price: 45,
+      duration: '3 hours',
+      rating: 4.7,
+      category: 'tours',
+      description: `Guided walking tour of ${params.destination}`,
+    },
+    {
+      name: `${params.destination} Food Experience`,
+      price: 65,
+      duration: '2.5 hours',
+      rating: 4.9,
+      category: 'food',
+      description: `Culinary adventure through ${params.destination}`,
+    },
+  ];
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -33,7 +157,7 @@ serve(async (req) => {
 - Travel safety and document requirements
 - Personalized travel experiences based on preferences
 
-You have access to extensive travel data and can provide specific recommendations for flights, accommodations, activities, and dining. Always be helpful, professional, and focus on creating amazing travel experiences. When discussing costs, provide realistic estimates and suggest ways to optimize budgets.
+You have access to search functions for hotels, flights, and activities. When users ask about travel options, use the appropriate search functions to provide real-time recommendations. Always be helpful, professional, and focus on creating amazing travel experiences.
 
 ${context ? `Current Context: ${context}` : ''}`;
 
@@ -49,7 +173,9 @@ ${context ? `Current Context: ${context}` : ''}`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        max_tokens: 1000,
+        functions: functions,
+        function_call: 'auto',
+        max_tokens: 1500,
         temperature: 0.7,
       }),
     });
@@ -61,7 +187,72 @@ ${context ? `Current Context: ${context}` : ''}`;
       throw new Error(`OpenAI API error: ${data.error?.message || 'Unknown error'}`);
     }
 
-    const aiResponse = data.choices[0].message.content;
+    const choice = data.choices[0];
+
+    // Check if OpenAI wants to call a function
+    if (choice.finish_reason === 'function_call' && choice.message.function_call) {
+      const functionCall = choice.message.function_call;
+      const functionName = functionCall.name;
+      const functionArgs = JSON.parse(functionCall.arguments || '{}');
+
+      console.log(`Executing function: ${functionName}`, functionArgs);
+
+      let searchResults;
+      let resultType;
+
+      // Execute the appropriate search function
+      switch (functionName) {
+        case 'searchHotels':
+          searchResults = await searchHotels(functionArgs);
+          resultType = 'hotels';
+          break;
+        case 'searchFlights':
+          searchResults = await searchFlights(functionArgs);
+          resultType = 'flights';
+          break;
+        case 'searchActivities':
+          searchResults = await searchActivities(functionArgs);
+          resultType = 'activities';
+          break;
+        default:
+          throw new Error(`Unknown function: ${functionName}`);
+      }
+
+      // Generate a follow-up response with the search results
+      const followUpResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: message },
+            { role: 'assistant', content: null, function_call: functionCall },
+            { role: 'function', name: functionName, content: JSON.stringify(searchResults) }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+        }),
+      });
+
+      const followUpData = await followUpResponse.json();
+      const aiResponse = followUpData.choices[0].message.content;
+
+      return new Response(JSON.stringify({ 
+        response: aiResponse,
+        searchResults: searchResults,
+        resultType: resultType,
+        functionUsed: functionName 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // No function call, return regular response
+    const aiResponse = choice.message.content;
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
