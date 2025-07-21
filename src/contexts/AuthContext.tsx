@@ -149,6 +149,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password
     });
     
+    // Handle email confirmation errors specifically
+    if (error?.message === "Email not confirmed") {
+      return { 
+        error: { 
+          ...error, 
+          message: "Please check your email and click the confirmation link before signing in. Check your spam folder if you don't see it." 
+        } 
+      };
+    }
+    
     return { error };
   };
 

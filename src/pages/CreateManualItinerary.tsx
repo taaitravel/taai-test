@@ -11,6 +11,7 @@ import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { LocationSelector } from "@/components/LocationSelector";
 
 const CreateManualItinerary = () => {
   const navigate = useNavigate();
@@ -22,10 +23,10 @@ const CreateManualItinerary = () => {
     description: '',
     dateStart: '',
     dateEnd: '',
-    locations: '',
     budget: '',
     attendeeCount: '1'
   });
+  const [selectedLocations, setSelectedLocations] = useState<Array<{ city: string; lat: number; lng: number }>>([]);
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
@@ -42,10 +43,10 @@ const CreateManualItinerary = () => {
       return;
     }
 
-    if (!formData.name || !formData.dateStart || !formData.dateEnd || !formData.locations) {
+    if (!formData.name || !formData.dateStart || !formData.dateEnd || selectedLocations.length === 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields and select at least one destination.",
         variant: "destructive"
       });
       return;
@@ -66,8 +67,8 @@ const CreateManualItinerary = () => {
     setLoading(true);
 
     try {
-      // Convert locations string to array
-      const locationsArray = formData.locations.split(',').map(loc => loc.trim()).filter(loc => loc);
+      // Use selected geolocations
+      const locationsArray = selectedLocations.map(loc => loc.city);
       
       // Create attendees array based on count
       const attendeesArray = Array.from({ length: parseInt(formData.attendeeCount) }, (_, i) => ({
@@ -85,6 +86,7 @@ const CreateManualItinerary = () => {
           itin_date_start: formData.dateStart,
           itin_date_end: formData.dateEnd,
           itin_locations: locationsArray,
+          itin_map_locations: selectedLocations,
           budget: formData.budget ? parseFloat(formData.budget) : null,
           user_type: userProfile?.user_type || 'individual',
           attendees: attendeesArray,
@@ -201,18 +203,16 @@ const CreateManualItinerary = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="locations" className="text-white flex items-center">
+              <Label className="text-white flex items-center">
                 <MapPin className="h-4 w-4 mr-2" />
                 Destinations *
               </Label>
-              <Input
-                id="locations"
-                placeholder="Paris, London, Rome (separate with commas)"
-                value={formData.locations}
-                onChange={(e) => handleInputChange('locations', e.target.value)}
-                className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              <LocationSelector
+                onLocationsChange={setSelectedLocations}
+                placeholder="Search for cities like Madrid, Paris, Tokyo..."
+                maxLocations={10}
               />
-              <p className="text-xs text-white/50">Enter multiple destinations separated by commas</p>
+              <p className="text-xs text-white/50">Search and select specific cities for accurate geolocation</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
