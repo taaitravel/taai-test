@@ -11,6 +11,7 @@ interface SwipeActivitySelectorProps {
   onActivityLiked?: (activity: ActivitySwipeItem) => void;
   onActivityRejected?: (activity: ActivitySwipeItem) => void;
   onBack?: () => void;
+  onLocationAdded?: () => void;
 }
 
 export const SwipeActivitySelector: React.FC<SwipeActivitySelectorProps> = (props) => {
@@ -22,6 +23,9 @@ export const SwipeActivitySelector: React.FC<SwipeActivitySelectorProps> = (prop
       renderCard={SwipeActivityRenderer}
       emptyIcon={Activity}
       title="Swipe Activities"
+      onLocationAdded={props.onLocationAdded}
+      onItemLiked={props.onActivityLiked}
+      onItemRejected={props.onActivityRejected}
     />
   );
 };

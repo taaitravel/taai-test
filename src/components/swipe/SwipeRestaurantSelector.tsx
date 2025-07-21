@@ -11,6 +11,7 @@ interface SwipeRestaurantSelectorProps {
   onRestaurantLiked?: (restaurant: RestaurantSwipeItem) => void;
   onRestaurantRejected?: (restaurant: RestaurantSwipeItem) => void;
   onBack?: () => void;
+  onLocationAdded?: () => void;
 }
 
 export const SwipeRestaurantSelector: React.FC<SwipeRestaurantSelectorProps> = (props) => {
@@ -22,6 +23,9 @@ export const SwipeRestaurantSelector: React.FC<SwipeRestaurantSelectorProps> = (
       renderCard={SwipeRestaurantRenderer}
       emptyIcon={Utensils}
       title="Swipe Restaurants"
+      onLocationAdded={props.onLocationAdded}
+      onItemLiked={props.onRestaurantLiked}
+      onItemRejected={props.onRestaurantRejected}
     />
   );
 };

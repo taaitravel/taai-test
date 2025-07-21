@@ -27,13 +27,15 @@ interface ChatInterfaceProps {
   placeholder?: string;
   embedded?: boolean; // New prop for embedded vs floating mode
   itineraryId?: string; // For saving swipe results
+  onLocationAdded?: () => void; // Callback when new locations are added
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
   context, 
   placeholder = "Ask TAAI about flights, hotels, budgets, or trip planning...",
   embedded = false,
-  itineraryId
+  itineraryId,
+  onLocationAdded
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -144,6 +146,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 hotels={swipeHotels}
                 itineraryId={itineraryId}
                 onBack={handleBackToChat}
+                onLocationAdded={onLocationAdded}
                 onSwipeComplete={(liked, rejected) => {
                   console.log('Hotel swipe complete:', { liked, rejected });
                 }}
@@ -154,6 +157,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 flights={swipeFlights}
                 itineraryId={itineraryId}
                 onBack={handleBackToChat}
+                onLocationAdded={onLocationAdded}
                 onSwipeComplete={(liked, rejected) => {
                   console.log('Flight swipe complete:', { liked, rejected });
                 }}
@@ -164,6 +168,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 activities={swipeActivities}
                 itineraryId={itineraryId}
                 onBack={handleBackToChat}
+                onLocationAdded={onLocationAdded}
                 onSwipeComplete={(liked, rejected) => {
                   console.log('Activity swipe complete:', { liked, rejected });
                 }}
@@ -174,6 +179,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 restaurants={swipeRestaurants}
                 itineraryId={itineraryId}
                 onBack={handleBackToChat}
+                onLocationAdded={onLocationAdded}
                 onSwipeComplete={(liked, rejected) => {
                   console.log('Restaurant swipe complete:', { liked, rejected });
                 }}

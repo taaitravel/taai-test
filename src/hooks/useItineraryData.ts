@@ -2,15 +2,22 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ItineraryData } from "@/types/itinerary";
+import { useMapLocationSync } from "./useMapLocationSync";
 
 export const useItineraryData = (itineraryId: string | null) => {
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [budgetRefreshTrigger, setBudgetRefreshTrigger] = useState(0);
+  const [mapRefreshTrigger, setMapRefreshTrigger] = useState(0);
   const { toast } = useToast();
+  const { syncMapLocations, isUpdating } = useMapLocationSync(itineraryId);
 
   const refreshBudgetData = () => {
     setBudgetRefreshTrigger(prev => prev + 1);
+  };
+
+  const refreshMapData = () => {
+    setMapRefreshTrigger(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -54,12 +61,15 @@ export const useItineraryData = (itineraryId: string | null) => {
     };
 
     fetchItinerary();
-  }, [itineraryId, toast]);
+  }, [itineraryId, toast, mapRefreshTrigger]);
 
   return {
     itineraryData,
     loading,
     budgetRefreshTrigger,
-    refreshBudgetData
+    refreshBudgetData,
+    refreshMapData,
+    syncMapLocations,
+    isUpdating
   };
 };

@@ -11,7 +11,7 @@ const Itinerary = () => {
   const [searchParams] = useSearchParams();
   const itineraryId = searchParams.get('id');
   
-  const { itineraryData, loading, budgetRefreshTrigger } = useItineraryData(itineraryId);
+  const { itineraryData, loading, budgetRefreshTrigger, refreshMapData, syncMapLocations } = useItineraryData(itineraryId);
   
   const {
     browserState,
@@ -48,6 +48,8 @@ const Itinerary = () => {
         onHotelClick={openHotelBrowser}
         onActivityClick={openActivityBrowser}
         onReservationClick={openReservationBrowser}
+        refreshMapData={refreshMapData}
+        syncMapLocations={syncMapLocations}
       />
 
       <ItineraryBrowsers

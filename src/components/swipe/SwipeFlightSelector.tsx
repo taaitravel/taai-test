@@ -11,6 +11,7 @@ interface SwipeFlightSelectorProps {
   onFlightLiked?: (flight: FlightSwipeItem) => void;
   onFlightRejected?: (flight: FlightSwipeItem) => void;
   onBack?: () => void;
+  onLocationAdded?: () => void;
 }
 
 export const SwipeFlightSelector: React.FC<SwipeFlightSelectorProps> = (props) => {
@@ -22,6 +23,9 @@ export const SwipeFlightSelector: React.FC<SwipeFlightSelectorProps> = (props) =
       renderCard={SwipeFlightRenderer}
       emptyIcon={Plane}
       title="Swipe Flights"
+      onLocationAdded={props.onLocationAdded}
+      onItemLiked={props.onFlightLiked}
+      onItemRejected={props.onFlightRejected}
     />
   );
 };

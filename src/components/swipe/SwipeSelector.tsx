@@ -24,6 +24,7 @@ interface SwipeSelectorProps<T extends SwipeItem> {
   onItemLiked?: (item: T) => void;
   onItemRejected?: (item: T) => void;
   onBack?: () => void;
+  onLocationAdded?: () => void;
   renderCard: (item: T, isTop: boolean) => React.ReactNode;
   emptyIcon: React.ComponentType<any>;
   title: string;
@@ -37,6 +38,7 @@ export function SwipeSelector<T extends SwipeItem>({
   onItemLiked,
   onItemRejected,
   onBack,
+  onLocationAdded,
   renderCard,
   emptyIcon: EmptyIcon,
   title
@@ -64,6 +66,77 @@ export function SwipeSelector<T extends SwipeItem>({
     }
   }, [isComplete, likedItems, rejectedItems, onSwipeComplete]);
 
+  const extractLocationFromItem = (item: T): string | null => {
+    // Extract location from various possible fields
+    const location = item.city || item.location || item.destination || item.to || item.from;
+    if (typeof location === 'string') {
+      // Clean up location string - remove common suffixes and get just the city/country
+      return location.split(',')[0].trim();
+    }
+    return null;
+  };
+
+  const updateItineraryMapLocations = async (newLocation: string) => {
+    try {
+      // Get current itinerary data
+      const { data: itineraryData, error: fetchError } = await supabase
+        .from('itinerary')
+        .select('itin_locations, itin_map_locations')
+        .eq('id', parseInt(itineraryId))
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Safely handle the JSON fields from Supabase
+      const currentLocations = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
+      const currentMapLocations = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
+
+      // Check if location is already in the list
+      const locationExists = currentLocations.some((loc: any) => 
+        typeof loc === 'string' && (
+          loc.toLowerCase().includes(newLocation.toLowerCase()) ||
+          newLocation.toLowerCase().includes(loc.toLowerCase())
+        )
+      );
+
+      if (!locationExists) {
+        // Add new location to the list
+        const updatedLocations = [...currentLocations, newLocation];
+        
+        // Geocode the new location
+        const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode-countries', {
+          body: { countries: [newLocation] }
+        });
+
+        let updatedMapLocations = [...currentMapLocations];
+        
+        if (!geocodeError && geocodeData?.countries?.length > 0) {
+          const geocodedLocation = geocodeData.countries[0];
+          updatedMapLocations.push({
+            city: newLocation,
+            lat: geocodedLocation.latitude,
+            lng: geocodedLocation.longitude
+          });
+        }
+
+        // Update itinerary with new locations
+        const { error: updateError } = await supabase
+          .from('itinerary')
+          .update({
+            itin_locations: updatedLocations,
+            itin_map_locations: updatedMapLocations
+          })
+          .eq('id', parseInt(itineraryId));
+
+        if (updateError) throw updateError;
+        
+        console.log('Successfully updated itinerary map with new location:', newLocation);
+      }
+    } catch (error) {
+      console.error('Error updating itinerary map locations:', error);
+    }
+  };
+
   const saveToCart = async (item: T, action: 'liked' | 'rejected') => {
     if (!user || !itineraryId) {
       toast.error('User not authenticated or itinerary not found');
@@ -88,6 +161,14 @@ export function SwipeSelector<T extends SwipeItem>({
       if (error) throw error;
 
       if (action === 'liked') {
+        // Extract and geocode location if it's a liked item
+        const location = extractLocationFromItem(item);
+        if (location) {
+          await updateItineraryMapLocations(location);
+          // Notify parent component that a new location was added
+          onLocationAdded?.();
+        }
+        
         toast.success(`${item.name} added to your preferences!`);
       }
     } catch (error) {

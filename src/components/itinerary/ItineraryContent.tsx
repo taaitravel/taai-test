@@ -13,6 +13,8 @@ interface ItineraryContentProps {
   onHotelClick: (index: number) => void;
   onActivityClick: (index: number) => void;
   onReservationClick: (index: number) => void;
+  refreshMapData?: () => void;
+  syncMapLocations?: () => void;
 }
 
 export const ItineraryContent = ({
@@ -22,6 +24,8 @@ export const ItineraryContent = ({
   onHotelClick,
   onActivityClick,
   onReservationClick,
+  refreshMapData,
+  syncMapLocations,
 }: ItineraryContentProps) => {
   const duration = Math.ceil(
     (new Date(itineraryData.itin_date_end).getTime() - 
@@ -47,6 +51,7 @@ export const ItineraryContent = ({
         <ItineraryMapSection
           mapLocations={itineraryData.itin_map_locations || []}
           locationNames={itineraryData.itin_locations || []}
+          onSyncLocations={syncMapLocations}
         />
       </div>
 

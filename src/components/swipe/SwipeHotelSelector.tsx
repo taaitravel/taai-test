@@ -11,6 +11,7 @@ interface SwipeHotelSelectorProps {
   onHotelLiked?: (hotel: HotelSwipeItem) => void;
   onHotelRejected?: (hotel: HotelSwipeItem) => void;
   onBack?: () => void;
+  onLocationAdded?: () => void;
 }
 
 export const SwipeHotelSelector: React.FC<SwipeHotelSelectorProps> = (props) => {
@@ -22,6 +23,9 @@ export const SwipeHotelSelector: React.FC<SwipeHotelSelectorProps> = (props) => 
       renderCard={SwipeHotelRenderer}
       emptyIcon={MapPin}
       title="Swipe Hotels"
+      onLocationAdded={props.onLocationAdded}
+      onItemLiked={props.onHotelLiked}
+      onItemRejected={props.onHotelRejected}
     />
   );
 };
