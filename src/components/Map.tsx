@@ -35,6 +35,8 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         
         console.log('Token response:', { data, error });
+        console.log('Response data type:', typeof data);
+        console.log('Response data keys:', data ? Object.keys(data) : 'no data');
         
         if (error) {
           console.error('Error getting Mapbox token:', error);
