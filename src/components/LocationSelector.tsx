@@ -38,17 +38,17 @@ export const LocationSelector = ({
     setIsSearching(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('geocode-countries', {
-        body: { countries: [query] }
+      const { data, error } = await supabase.functions.invoke('search-cities', {
+        body: { query }
       });
 
       if (error) throw error;
 
-      if (data?.countries?.length > 0) {
-        const locations = data.countries.map((country: any) => ({
-          city: country.country_name,
-          lat: country.latitude,
-          lng: country.longitude
+      if (data?.locations?.length > 0) {
+        const locations = data.locations.map((location: any) => ({
+          city: location.fullName,
+          lat: location.lat,
+          lng: location.lng
         }));
         setSearchResults(locations);
       } else {

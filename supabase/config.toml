@@ -18,5 +18,8 @@ port = 54323
 enabled = true
 port = 54324
 
+[functions.search-cities]
+verify_jwt = false
+
 [functions.search-travel-options]
 verify_jwt = false
