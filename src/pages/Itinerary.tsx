@@ -6,6 +6,7 @@ import { ItineraryBrowsers } from "@/components/itinerary/ItineraryBrowsers";
 import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingState";
 import { useItineraryData } from "@/hooks/useItineraryData";
 import { useBrowserState } from "@/hooks/useBrowserState";
+import MapboxTest from "@/components/MapboxTest";
 
 const Itinerary = () => {
   const [searchParams] = useSearchParams();
@@ -40,6 +41,11 @@ const Itinerary = () => {
   return (
     <div className="min-h-screen bg-[#171821]">
       <ItineraryHeader itineraryId={itineraryData.id} />
+      
+      {/* Temporary Mapbox test component */}
+      <div className="p-4">
+        <MapboxTest />
+      </div>
       
       <ItineraryContent
         itineraryData={itineraryData}

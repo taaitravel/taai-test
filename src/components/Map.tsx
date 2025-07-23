@@ -31,6 +31,8 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
     const initializeMap = async () => {
       try {
         console.log('Attempting to get Mapbox token...');
+        console.log('Supabase client:', !!supabase);
+        
         // Get Mapbox token from Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         
@@ -40,7 +42,7 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         
         if (error) {
           console.error('Error getting Mapbox token:', error);
-          setError('Unable to load map. Please check configuration.');
+          setError(`Unable to load map: ${error.message || 'Token fetch failed'}`);
           setIsLoading(false);
           return;
         }

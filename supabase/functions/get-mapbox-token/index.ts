@@ -13,12 +13,12 @@ serve(async (req) => {
 
   try {
     console.log('get-mapbox-token function called');
-    const mapboxToken = Deno.env.get('MAPBOX_TAAI_TOKEN');
+    const mapboxToken = Deno.env.get('MAPBOX-TAAI-TOKEN');
     console.log('Retrieved token exists:', !!mapboxToken);
     console.log('Environment variables available:', Object.keys(Deno.env.toObject()).filter(key => key.includes('MAPBOX')));
     
     if (!mapboxToken) {
-      console.error('MAPBOX_TAAI_TOKEN environment variable not found');
+      console.error('MAPBOX-TAAI-TOKEN environment variable not found');
       return new Response(
         JSON.stringify({ error: 'Mapbox token not configured' }),
         { 
