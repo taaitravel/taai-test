@@ -23,97 +23,82 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('=== MAP USEEFFECT TRIGGERED ===');
-    console.log('Map container exists:', !!mapContainer.current);
-    console.log('Locations passed to Map:', locations);
+    console.log('🗺️ Map useEffect triggered');
+    console.log('📍 Locations to display:', locations);
+    console.log('🏗️ Container exists:', !!mapContainer.current);
     
     if (!mapContainer.current) {
-      console.log('No map container, returning early');
+      console.error('❌ No map container found');
       return;
     }
 
     const initializeMap = async () => {
       try {
-        console.log('=== MAP INITIALIZATION START ===');
-        console.log('Attempting to get Mapbox token...');
-        console.log('Supabase client:', !!supabase);
-        console.log('Functions available:', !!supabase?.functions);
+        console.log('🚀 Starting map initialization...');
         
-        // Get Mapbox token from Supabase Edge Function
-        console.log('Calling supabase.functions.invoke...');
+        // Get Mapbox token
+        console.log('🔑 Fetching Mapbox token...');
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         
-        console.log('=== EDGE FUNCTION RESPONSE ===');
-        console.log('Token response:', { data, error });
-        console.log('Response data type:', typeof data);
-        console.log('Response data keys:', data ? Object.keys(data) : 'no data');
-        console.log('Error details:', error);
+        console.log('📤 Token response:', { data, error });
         
         if (error) {
-          console.error('Error getting Mapbox token:', error);
-          setError(`Unable to load map: ${error.message || 'Token fetch failed'}`);
-          setIsLoading(false);
-          return;
+          throw new Error(`Token fetch failed: ${error.message}`);
         }
 
         const mapboxToken = data?.token;
-        console.log('Extracted token exists:', !!mapboxToken);
-        console.log('Token length:', mapboxToken ? mapboxToken.length : 0);
-        
         if (!mapboxToken) {
-          console.error('No token in response data');
-          setError('Mapbox token not configured.');
-          setIsLoading(false);
-          return;
+          throw new Error('No Mapbox token received');
         }
 
-        console.log('Setting mapbox access token...');
-        // Initialize map
+        console.log('✅ Token received, length:', mapboxToken.length);
+        
+        // Initialize Mapbox
         mapboxgl.accessToken = mapboxToken;
         
-        // Determine map center and zoom based on locations
+        // Calculate map center and zoom
         let center: [number, number] = [0, 0];
         let zoom = 2;
 
         if (locations.length > 0) {
-          // Calculate center of all locations
           const avgLat = locations.reduce((sum, loc) => sum + loc.lat, 0) / locations.length;
           const avgLng = locations.reduce((sum, loc) => sum + loc.lng, 0) / locations.length;
           center = [avgLng, avgLat];
           zoom = locations.length === 1 ? 10 : 6;
         }
 
+        console.log('🎯 Map center:', center, 'zoom:', zoom);
+
+        // Create map
         map.current = new mapboxgl.Map({
-          container: mapContainer.current,
+          container: mapContainer.current!,
           style: 'mapbox://styles/mapbox/dark-v11',
           center: center,
           zoom: zoom,
         });
 
         // Add navigation controls
-        map.current.addControl(
-          new mapboxgl.NavigationControl({
-            visualizePitch: true,
-          }),
-          'top-right'
-        );
+        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
         map.current.on('load', () => {
+          console.log('🎉 Map loaded successfully!');
+          
           // Add markers for each location
           locations.forEach((location, index) => {
+            console.log(`📍 Adding marker ${index + 1}: ${location.city}`);
+            
             // Create popup
-            const popup = new mapboxgl.Popup({
-              offset: 25
-            }).setHTML(`<strong>${location.city}</strong>`);
+            const popup = new mapboxgl.Popup({ offset: 25 })
+              .setHTML(`<strong>${location.city}</strong>`);
 
-            // Add marker to map
+            // Add marker
             new mapboxgl.Marker()
               .setLngLat([location.lng, location.lat])
               .setPopup(popup)
               .addTo(map.current!);
           });
 
-          // If there are multiple locations, fit the map to show all markers
+          // Fit map to show all markers
           if (locations.length > 1) {
             const bounds = new mapboxgl.LngLatBounds();
             locations.forEach(location => {
@@ -123,11 +108,18 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
           }
 
           setIsLoading(false);
+          console.log('✅ Map initialization complete!');
         });
 
-      } catch (err) {
-        console.error('Error initializing map:', err);
-        setError('Failed to load map');
+        map.current.on('error', (e) => {
+          console.error('💥 Map error:', e);
+          setError('Failed to load map');
+          setIsLoading(false);
+        });
+
+      } catch (err: any) {
+        console.error('💥 Initialization error:', err);
+        setError(err.message || 'Failed to initialize map');
         setIsLoading(false);
       }
     };
@@ -136,7 +128,10 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
 
     // Cleanup
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        console.log('🧹 Cleaning up map...');
+        map.current.remove();
+      }
     };
   }, [locations]);
 
@@ -168,7 +163,8 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
       <div className="h-full flex items-center justify-center bg-[#2d2a1f] rounded-lg border border-yellow-500/20">
         <div className="text-center">
           <MapPin className="h-12 w-12 text-yellow-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-yellow-200 font-medium">Loading Map...</p>
+          <p className="text-yellow-200 font-medium">Initializing Map...</p>
+          <p className="text-yellow-300/70 text-sm mt-1">Loading Tokyo & Osaka</p>
         </div>
       </div>
     );
