@@ -88,47 +88,13 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         map.current.on('load', () => {
           // Add markers for each location
           locations.forEach((location, index) => {
-            // Create custom marker element
-            const markerEl = document.createElement('div');
-            markerEl.className = 'custom-marker';
-            markerEl.innerHTML = `
-              <div style="
-                background: linear-gradient(135deg, #fbbf24, #f59e0b);
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #1f2937;
-                font-weight: bold;
-                font-size: 12px;
-                box-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
-                border: 2px solid white;
-              ">
-                ${index + 1}
-              </div>
-            `;
-
             // Create popup
             const popup = new mapboxgl.Popup({
-              offset: 25,
-              className: 'custom-popup'
-            }).setHTML(`
-              <div style="
-                background: #1f2937;
-                color: white;
-                padding: 8px 12px;
-                border-radius: 6px;
-                font-size: 14px;
-                font-weight: 500;
-              ">
-                ${location.city}
-              </div>
-            `);
+              offset: 25
+            }).setHTML(`<strong>${location.city}</strong>`);
 
             // Add marker to map
-            new mapboxgl.Marker(markerEl)
+            new mapboxgl.Marker()
               .setLngLat([location.lng, location.lat])
               .setPopup(popup)
               .addTo(map.current!);
