@@ -23,10 +23,14 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Map component mounted with locations:', locations);
-    console.log('Location names:', locationNames);
+    console.log('=== MAP USEEFFECT TRIGGERED ===');
+    console.log('Map container exists:', !!mapContainer.current);
+    console.log('Locations passed to Map:', locations);
     
-    if (!mapContainer.current) return;
+    if (!mapContainer.current) {
+      console.log('No map container, returning early');
+      return;
+    }
 
     const initializeMap = async () => {
       try {
