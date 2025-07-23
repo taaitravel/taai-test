@@ -30,15 +30,20 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
 
     const initializeMap = async () => {
       try {
+        console.log('=== MAP INITIALIZATION START ===');
         console.log('Attempting to get Mapbox token...');
         console.log('Supabase client:', !!supabase);
+        console.log('Functions available:', !!supabase?.functions);
         
         // Get Mapbox token from Supabase Edge Function
+        console.log('Calling supabase.functions.invoke...');
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         
+        console.log('=== EDGE FUNCTION RESPONSE ===');
         console.log('Token response:', { data, error });
         console.log('Response data type:', typeof data);
         console.log('Response data keys:', data ? Object.keys(data) : 'no data');
+        console.log('Error details:', error);
         
         if (error) {
           console.error('Error getting Mapbox token:', error);
@@ -48,7 +53,9 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         }
 
         const mapboxToken = data?.token;
-        console.log('Extracted token:', mapboxToken ? 'Token exists' : 'No token');
+        console.log('Extracted token exists:', !!mapboxToken);
+        console.log('Token length:', mapboxToken ? mapboxToken.length : 0);
+        
         if (!mapboxToken) {
           console.error('No token in response data');
           setError('Mapbox token not configured.');
