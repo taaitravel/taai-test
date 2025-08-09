@@ -61,10 +61,9 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         let zoom = 2;
 
         if (locations.length > 0) {
-          const avgLat = locations.reduce((sum, loc) => sum + loc.lat, 0) / locations.length;
-          const avgLng = locations.reduce((sum, loc) => sum + loc.lng, 0) / locations.length;
-          center = [avgLng, avgLat];
-          zoom = locations.length === 1 ? 10 : 6;
+          const first = locations[0];
+          center = [first.lng, first.lat];
+          zoom = 10;
         }
 
         console.log('🎯 Map center:', center, 'zoom:', zoom);
@@ -98,14 +97,6 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
               .addTo(map.current!);
           });
 
-          // Fit map to show all markers
-          if (locations.length > 1) {
-            const bounds = new mapboxgl.LngLatBounds();
-            locations.forEach(location => {
-              bounds.extend([location.lng, location.lat]);
-            });
-            map.current!.fitBounds(bounds, { padding: 50 });
-          }
 
           setIsLoading(false);
           console.log('✅ Map initialization complete!');

@@ -46,10 +46,10 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/dark-v11',
-          projection: 'globe',
-          center: [30, 15],
-          zoom: 1.5,
-          pitch: 45,
+          projection: 'mercator',
+          center: [0, 0],
+          zoom: 2,
+          pitch: 0,
         });
 
         // Add atmosphere and fog effects
@@ -61,52 +61,6 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
           });
         });
 
-        // Rotation animation settings
-        const secondsPerRevolution = 180;
-        const maxSpinZoom = 4;
-        const slowSpinZoom = 2;
-        let userInteracting = false;
-        let spinEnabled = true;
-
-        // Spin globe function
-        function spinGlobe() {
-          if (!map.current) return;
-          
-          const zoom = map.current.getZoom();
-          if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
-            let distancePerSecond = 360 / secondsPerRevolution;
-            if (zoom > slowSpinZoom) {
-              const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
-              distancePerSecond *= zoomDif;
-            }
-            const center = map.current.getCenter();
-            center.lng -= distancePerSecond;
-            map.current.easeTo({ center, duration: 1000, easing: (n) => n });
-          }
-        }
-
-        // Event listeners for interaction
-        map.current.on('mousedown', () => {
-          userInteracting = true;
-        });
-        
-        map.current.on('dragstart', () => {
-          userInteracting = true;
-        });
-        
-        map.current.on('mouseup', () => {
-          userInteracting = false;
-          spinGlobe();
-        });
-        
-        map.current.on('touchend', () => {
-          userInteracting = false;
-          spinGlobe();
-        });
-
-        map.current.on('moveend', () => {
-          spinGlobe();
-        });
 
         // Add markers for visited countries when they become available
         const addCountryMarkers = () => {
@@ -143,8 +97,6 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
         // Add markers when map loads and when country coordinates are available
         map.current.on('load', addCountryMarkers);
 
-        // Start the globe spinning
-        spinGlobe();
 
         setIsLoading(false);
 
@@ -166,6 +118,11 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
   // Add markers when country coordinates change
   useEffect(() => {
     if (map.current && countryCoordinates.length > 0) {
+      const first = countryCoordinates[0];
+      if (first.longitude && first.latitude) {
+        map.current.setCenter([first.longitude, first.latitude]);
+        map.current.setZoom(3);
+      }
       countryCoordinates.forEach((country) => {
         if (country.latitude && country.longitude) {
           // Create custom marker element
@@ -229,7 +186,7 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
         <div className="absolute inset-0 flex items-center justify-center bg-[#171821]/80 rounded-lg border border-white/20">
           <div className="text-center">
             <MapPin className="h-8 w-8 text-white/60 mx-auto mb-2 animate-pulse" />
-            <p className="text-white/80 font-medium text-sm">Loading Globe...</p>
+            <p className="text-white/80 font-medium text-sm">Loading Map...</p>
           </div>
         </div>
       )}
