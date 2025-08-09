@@ -15,65 +15,80 @@ export const useMapLocationSync = (itineraryId: string | null) => {
       // Get current itinerary data
       const { data: itineraryData, error: fetchError } = await supabase
         .from('itinerary')
-        .select('itin_locations, itin_map_locations')
+        .select('itin_locations, itin_map_locations, hotels, activities, reservations, flights')
         .eq('id', parseInt(itineraryId))
         .single();
 
       if (fetchError) throw fetchError;
 
-      const currentLocations = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
       const currentMapLocations = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
 
-      // Check if we need to geocode any missing locations
+      // Build a unified list of location names from itinerary + details
+      const baseLocations = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
+      const hotelCities = Array.isArray(itineraryData.hotels) ? itineraryData.hotels.map((h: any) => h?.city).filter(Boolean) : [];
+      const activityCities = Array.isArray(itineraryData.activities) ? itineraryData.activities.map((a: any) => a?.city).filter(Boolean) : [];
+      const reservationCities = Array.isArray(itineraryData.reservations) ? itineraryData.reservations.map((r: any) => r?.city).filter(Boolean) : [];
+      const flightCities = Array.isArray(itineraryData.flights)
+        ? itineraryData.flights.flatMap((f: any) => [f?.from, f?.to]).filter(Boolean)
+        : [];
+
+      const allLocationNames: string[] = Array.from(new Set([
+        ...baseLocations,
+        ...hotelCities,
+        ...activityCities,
+        ...reservationCities,
+        ...flightCities
+      ].filter((v: any) => typeof v === 'string' && v.trim().length > 0)));
+
+      // Determine which names need geocoding
       const locationsToGeocode: string[] = [];
-      
-      currentLocations.forEach((location: any) => {
-        if (typeof location === 'string') {
-          const hasMapLocation = currentMapLocations.some((mapLoc: any) => 
-            mapLoc?.city && mapLoc.city.toLowerCase().includes(location.toLowerCase())
-          );
-          
-          if (!hasMapLocation) {
-            locationsToGeocode.push(location);
-          }
-        }
+      allLocationNames.forEach((name: string) => {
+        const hasMapLocation = currentMapLocations.some((mapLoc: any) =>
+          mapLoc?.city && mapLoc.city.toLowerCase().includes(name.toLowerCase())
+        );
+        if (!hasMapLocation) locationsToGeocode.push(name);
       });
 
       if (locationsToGeocode.length > 0) {
-        console.log('Geocoding missing locations:', locationsToGeocode);
-        
-        // Geocode missing locations
-        const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode-countries', {
-          body: { countries: locationsToGeocode }
-        });
+        console.log('Geocoding missing locations (cities/countries):', locationsToGeocode);
 
-        if (!geocodeError && geocodeData?.countries?.length > 0) {
-          const newMapLocations = [...currentMapLocations];
-          
-          geocodeData.countries.forEach((geocodedLocation: any) => {
-            newMapLocations.push({
-              city: geocodedLocation.country_name,
-              lat: geocodedLocation.latitude,
-              lng: geocodedLocation.longitude
+        const newMapLocations = [...currentMapLocations];
+
+        for (const query of locationsToGeocode) {
+          try {
+            const { data: geocodeResp, error: geocodeErr } = await supabase.functions.invoke('search-cities', {
+              body: { query }
             });
-          });
-
-          // Update itinerary with new map locations
-          const { error: updateError } = await supabase
-            .from('itinerary')
-            .update({
-              itin_map_locations: newMapLocations
-            })
-            .eq('id', parseInt(itineraryId));
-
-          if (updateError) throw updateError;
-          
-          console.log('Successfully synced map locations');
-          toast({
-            title: "Success",
-            description: "Map locations updated"
-          });
+            if (!geocodeErr && Array.isArray(geocodeResp?.locations) && geocodeResp.locations.length > 0) {
+              const best = geocodeResp.locations[0];
+              newMapLocations.push({
+                city: best.fullName || best.city || query,
+                lat: best.lat,
+                lng: best.lng
+              });
+            } else if (geocodeErr) {
+              console.warn('Geocode error for', query, geocodeErr);
+            }
+          } catch (e) {
+            console.warn('Error invoking search-cities for', query, e);
+          }
         }
+
+        // Update itinerary with new map locations
+        const { error: updateError } = await supabase
+          .from('itinerary')
+          .update({
+            itin_map_locations: newMapLocations
+          })
+          .eq('id', parseInt(itineraryId));
+
+        if (updateError) throw updateError;
+        
+        console.log('Successfully synced map locations');
+        toast({
+          title: 'Success',
+          description: 'Map locations updated'
+        });
       }
     } catch (error) {
       console.error('Error syncing map locations:', error);

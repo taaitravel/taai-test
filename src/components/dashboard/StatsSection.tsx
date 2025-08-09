@@ -10,12 +10,13 @@ interface StatsSectionProps {
     travelerLevel: string;
   };
   visitedCountries: string[];
+  activeItineraries: any[];
 }
 
-export const StatsSection = ({ userStats, visitedCountries }: StatsSectionProps) => {
+export const StatsSection = ({ userStats, visitedCountries, activeItineraries }: StatsSectionProps) => {
   return (
     <div className="mb-8">
-      <TravelMetrics userStats={userStats} visitedCountries={visitedCountries} />
+      <TravelMetrics userStats={userStats} visitedCountries={visitedCountries} activeItineraries={activeItineraries} />
     </div>
   );
 };
