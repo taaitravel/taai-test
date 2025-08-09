@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ItineraryData } from "@/types/itinerary";
 import { ItineraryInfoHeader } from "./ItineraryInfoHeader";
 import { TripOverviewSection } from "./TripOverviewSection";
@@ -5,6 +6,8 @@ import { ItineraryMapSection } from "./ItineraryMapSection";
 import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItinerarySidebar } from "./ItinerarySidebar";
+import { AddItemDialog, ItemType } from "./AddItemDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
@@ -30,6 +33,10 @@ export const ItineraryContent = ({
   onReservationClick,
   refreshMapData,
   syncMapLocations,
+  onAddFlight,
+  onAddHotel,
+  onAddActivity,
+  onAddReservation,
 }: ItineraryContentProps) => {
   const duration = Math.ceil(
     (new Date(itineraryData.itin_date_end).getTime() - 
@@ -66,6 +73,10 @@ export const ItineraryContent = ({
         onHotelClick={onHotelClick}
         onActivityClick={onActivityClick}
         onReservationClick={onReservationClick}
+        onAddFlight={onAddFlight}
+        onAddHotel={onAddHotel}
+        onAddActivity={onAddActivity}
+        onAddReservation={onAddReservation}
       />
 
       {/* Essential Metrics & Daily Schedule */}

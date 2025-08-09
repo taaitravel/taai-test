@@ -11,6 +11,7 @@ interface ItineraryBrowserProps {
   onIndexChange: (index: number) => void;
   title: string;
   type: 'flights' | 'hotels' | 'activities' | 'reservations';
+  onEdit?: (index: number) => void;
 }
 
 export const ItineraryBrowser = ({ 
@@ -20,7 +21,8 @@ export const ItineraryBrowser = ({
   currentIndex, 
   onIndexChange,
   title,
-  type 
+  type,
+  onEdit
 }: ItineraryBrowserProps) => {
   if (!isOpen || items.length === 0) return null;
 
@@ -185,15 +187,26 @@ export const ItineraryBrowser = ({
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="relative w-full max-w-md">
-        {/* Close Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute -top-12 right-0 text-white hover:bg-white/10 z-10"
-          onClick={onClose}
-        >
-          <X className="h-5 w-5" />
-        </Button>
+        {/* Close and Edit Buttons */}
+        <div className="absolute -top-12 right-0 flex items-center gap-2 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/10"
+            onClick={() => onEdit && onEdit(currentIndex)}
+            disabled={!onEdit}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/10"
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
 
         {/* Counter */}
         <div className="absolute -top-12 left-0 text-white/70 text-sm">

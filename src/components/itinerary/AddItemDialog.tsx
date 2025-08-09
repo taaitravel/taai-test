@@ -21,16 +21,22 @@ interface AddItemDialogProps {
   onSubmit: (type: ItemType, item: any) => Promise<void>;
   suggestions?: Suggestions;
   defaultCity?: string;
+  initialItem?: any | null;
 }
 
-export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClose, onSubmit, suggestions, defaultCity }) => {
+export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClose, onSubmit, suggestions, defaultCity, initialItem }) => {
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState<any>({});
 
   useEffect(() => {
     if (open && type) {
-      // Reset form per type
+      // If editing, prefill with existing item
+      if (initialItem) {
+        setForm(initialItem);
+        return;
+      }
+      // Otherwise set defaults per type
       const baseCity = defaultCity || '';
       switch (type) {
         case 'flights':
@@ -47,12 +53,13 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           break;
       }
     }
-  }, [open, type, defaultCity]);
+  }, [open, type, defaultCity, initialItem]);
 
   const title = useMemo(() => {
     if (!type) return '';
-    return `Add ${type.slice(0, 1).toUpperCase() + type.slice(1, type.length - (type.endsWith('s') ? 1 : 0))}`;
-  }, [type]);
+    const verb = initialItem ? 'Edit' : 'Add';
+    return `${verb} ${type.slice(0, 1).toUpperCase() + type.slice(1, type.length - (type.endsWith('s') ? 1 : 0))}`;
+  }, [type, initialItem]);
 
   const handleChange = (key: string, value: any) => {
     setForm((prev: any) => ({ ...prev, [key]: value }));

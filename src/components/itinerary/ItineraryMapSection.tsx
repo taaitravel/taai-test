@@ -48,7 +48,7 @@ export const ItineraryMapSection = ({ mapLocations, locationNames, onSyncLocatio
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-96 rounded-lg overflow-hidden">
+          <div className="h-[250px] rounded-lg overflow-hidden">
             <Map 
               locations={mapLocations} 
               locationNames={locationNames}
