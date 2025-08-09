@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plane, Users, Building2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Captcha } from '@/components/ui/captcha';
 
 const Signup = () => {
   const location = useLocation();
@@ -32,6 +33,7 @@ const Signup = () => {
     registeredAddress: ''
   });
   const [loading, setLoading] = useState(false);
+  const [captchaValid, setCaptchaValid] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -44,6 +46,17 @@ const Signup = () => {
   };
 
   const handleSignup = async () => {
+    // Require successful captcha verification
+    if (!captchaValid) {
+      toast({
+        title: "Verification required",
+        description: "Please complete the captcha before creating your account.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Basic validations
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Password Mismatch",
@@ -60,6 +73,50 @@ const Signup = () => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Strong password policy (8+ chars, upper, lower, number, symbol)
+    const pwd = formData.password;
+    const strongPwd = pwd.length >= 8 && /[a-z]/.test(pwd) && /[A-Z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd);
+    if (!strongPwd) {
+      toast({
+        title: "Weak password",
+        description: "Use 8+ characters including upper, lower, number and symbol.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Email format check
+    const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email);
+    if (!emailOk) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Required fields by account type
+    if (userType === 'individual') {
+      if (!formData.firstName || !formData.userName) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in first name and username.",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      if (!formData.companyName || !formData.adminName) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in company name and admin contact name.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setLoading(true);
@@ -271,10 +328,15 @@ const Signup = () => {
 
           <Separator className="bg-white/30" />
 
+          <div className="space-y-2">
+            <Label className="text-white">Verification</Label>
+            <Captcha onVerify={(isValid) => setCaptchaValid(isValid)} />
+          </div>
+
           <Button 
             className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
             onClick={handleSignup}
-            disabled={loading}
+            disabled={loading || !captchaValid}
           >
             {loading ? "Creating Account..." : "Create Account"}
           </Button>
