@@ -221,22 +221,19 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center bg-[#171821]/80 rounded-lg border border-white/20">
-        <div className="text-center">
-          <MapPin className="h-8 w-8 text-white/60 mx-auto mb-2 animate-pulse" />
-          <p className="text-white/80 font-medium text-sm">Loading Globe...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden">
       <div ref={mapContainer} className="absolute inset-0" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-background/10 rounded-lg" />
-      {visitedCountries.length > 0 && (
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#171821]/80 rounded-lg border border-white/20">
+          <div className="text-center">
+            <MapPin className="h-8 w-8 text-white/60 mx-auto mb-2 animate-pulse" />
+            <p className="text-white/80 font-medium text-sm">Loading Globe...</p>
+          </div>
+        </div>
+      )}
+      {visitedCountries.length > 0 && !isLoading && (
         <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded px-2 py-1">
           <p className="text-xs text-white/80 font-medium">{visitedCountries.length} countries</p>
         </div>
