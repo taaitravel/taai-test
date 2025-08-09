@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const openAIApiKey = Deno.env.get('CHAT-GPT-TAAI');
+const yelpApiKey = Deno.env.get('YELP_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,6 +53,21 @@ const functions = [
         endDate: { type: 'string', format: 'date', description: 'Activity end date in YYYY-MM-DD format' },
         category: { type: 'string', enum: ['tours', 'attractions', 'outdoor', 'cultural', 'food', 'adventure'], description: 'Activity category' },
         budget: { type: 'number', description: 'Budget range per person in USD' },
+      },
+      required: ['destination'],
+    },
+  },
+  {
+    name: 'searchRestaurants',
+    description: 'Search restaurants by destination, cuisine, and preferences',
+    parameters: {
+      type: 'object',
+      properties: {
+        destination: { type: 'string', description: 'City or area to search in' },
+        cuisine: { type: 'string', description: 'Cuisine or keyword (e.g., sushi, pizza)' },
+        price: { type: 'string', description: 'Price levels 1-4 as a comma-separated string (e.g., 1,2,3)' },
+        limit: { type: 'number', description: 'Max results to return', default: 20 },
+        openNow: { type: 'boolean', description: 'Only show places open now' },
       },
       required: ['destination'],
     },
@@ -156,6 +172,50 @@ async function searchActivities(params: any) {
   ];
 }
 
+async function searchRestaurants(params: any) {
+  if (!yelpApiKey) {
+    throw new Error('Yelp API key not configured');
+  }
+  const queryParams: Record<string, string> = {
+    term: params.cuisine || 'restaurants',
+    location: params.destination,
+    limit: String(params.limit || 20),
+    sort_by: 'best_match',
+  };
+  if (params.price) queryParams.price = params.price; // e.g., '1,2,3'
+  if (params.openNow) queryParams.open_now = 'true';
+
+  const query = new URLSearchParams(queryParams).toString();
+  const url = `https://api.yelp.com/v3/businesses/search?${query}`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${yelpApiKey}` },
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error('Yelp API error:', res.status, errText);
+    throw new Error(`Yelp API error: ${res.status}`);
+  }
+  const data = await res.json();
+  const businesses = data.businesses || [];
+  const restaurants = businesses.map((b: any) => ({
+    id: b.id,
+    name: b.name,
+    price: 0,
+    image: b.image_url,
+    description: b.location?.display_address?.join(', '),
+    location: b.location?.address1 || b.location?.city || params.destination,
+    city: b.location?.city || params.destination,
+    cuisine: (b.categories || []).map((c: any) => c.title).join(', '),
+    rating: b.rating,
+    priceRange: b.price,
+    coordinates: b.coordinates,
+    url: b.url,
+    source: 'yelp',
+  }));
+  return restaurants;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -238,6 +298,10 @@ ${context ? `Current Context: ${context}` : ''}`;
           searchResults = await searchActivities(functionArgs);
           resultType = 'activities';
           break;
+        case 'searchRestaurants':
+          searchResults = await searchRestaurants(functionArgs);
+          resultType = 'restaurants';
+          break;
         default:
           throw new Error(`Unknown function: ${functionName}`);
       }
@@ -265,12 +329,18 @@ ${context ? `Current Context: ${context}` : ''}`;
       const followUpData = await followUpResponse.json();
       const aiResponse = followUpData.choices[0].message.content;
 
-      return new Response(JSON.stringify({ 
+      const payload: any = { 
         response: aiResponse,
         searchResults: searchResults,
         resultType: resultType,
         functionUsed: functionName 
-      }), {
+      };
+      if (resultType === 'hotels') payload.hotels = searchResults;
+      if (resultType === 'flights') payload.flights = searchResults;
+      if (resultType === 'activities') payload.activities = searchResults;
+      if (resultType === 'restaurants') payload.restaurants = searchResults;
+
+      return new Response(JSON.stringify(payload), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
