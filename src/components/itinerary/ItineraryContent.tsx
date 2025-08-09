@@ -15,6 +15,10 @@ interface ItineraryContentProps {
   onReservationClick: (index: number) => void;
   refreshMapData?: () => void;
   syncMapLocations?: () => void;
+  onAddFlight?: () => void;
+  onAddHotel?: () => void;
+  onAddActivity?: () => void;
+  onAddReservation?: () => void;
 }
 
 export const ItineraryContent = ({

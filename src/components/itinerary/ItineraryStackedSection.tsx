@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, MapPin, Calendar, Users, Star, Utensils } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Plane, MapPin, Calendar, Users, Star, Utensils, Plus } from "lucide-react";
 
 interface StackedCardProps {
   title: string;
@@ -9,6 +10,7 @@ interface StackedCardProps {
   onCardClick: (index: number) => void;
   renderCard: (item: any, index: number) => React.ReactNode;
   emptyMessage: string;
+  onAddClick?: () => void;
 }
 
 export const ItineraryStackedSection = ({ 
@@ -17,14 +19,28 @@ export const ItineraryStackedSection = ({
   items, 
   onCardClick, 
   renderCard,
-  emptyMessage 
+  emptyMessage,
+  onAddClick
 }: StackedCardProps) => {
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-        <Icon className="h-5 w-5 mr-2" />
-        {title}
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-white flex items-center">
+          <Icon className="h-5 w-5 mr-2" />
+          {title}
+        </h3>
+        {typeof (onAddClick) !== 'undefined' && (
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Add ${title}`}
+            onClick={onAddClick}
+            className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
       
       {items.length > 0 ? (
         <div className="relative w-[200px] h-[270px] sm:w-[240px] md:w-[260px] sm:h-[350px] md:h-[380px] mx-auto sm:mx-0">

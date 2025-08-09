@@ -14,6 +14,10 @@ interface ItineraryStackedCardsProps {
   onHotelClick: (index: number) => void;
   onActivityClick: (index: number) => void;
   onReservationClick: (index: number) => void;
+  onAddFlight?: () => void;
+  onAddHotel?: () => void;
+  onAddActivity?: () => void;
+  onAddReservation?: () => void;
 }
 
 export const ItineraryStackedCards = ({
@@ -21,7 +25,11 @@ export const ItineraryStackedCards = ({
   onFlightClick,
   onHotelClick,
   onActivityClick,
-  onReservationClick
+  onReservationClick,
+  onAddFlight,
+  onAddHotel,
+  onAddActivity,
+  onAddReservation
 }: ItineraryStackedCardsProps) => {
   return (
     <div className="mb-8">
@@ -36,6 +44,7 @@ export const ItineraryStackedCards = ({
             onCardClick={onFlightClick}
             renderCard={FlightCardRenderer}
             emptyMessage="No flights booked"
+            onAddClick={onAddFlight}
           />
           <ItineraryStackedSection
             title="Hotels"
@@ -44,6 +53,7 @@ export const ItineraryStackedCards = ({
             onCardClick={onHotelClick}
             renderCard={HotelCardRenderer}
             emptyMessage="No hotels booked"
+            onAddClick={onAddHotel}
           />
         </div>
         
@@ -56,6 +66,7 @@ export const ItineraryStackedCards = ({
             onCardClick={onActivityClick}
             renderCard={ActivityCardRenderer}
             emptyMessage="No activities planned"
+            onAddClick={onAddActivity}
           />
           <ItineraryStackedSection
             title="Reservations"
@@ -64,6 +75,7 @@ export const ItineraryStackedCards = ({
             onCardClick={onReservationClick}
             renderCard={ReservationCardRenderer}
             emptyMessage="No reservations made"
+            onAddClick={onAddReservation}
           />
         </div>
       </div>
@@ -79,6 +91,7 @@ export const ItineraryStackedCards = ({
             onCardClick={onFlightClick}
             renderCard={FlightCardRenderer}
             emptyMessage="No flights booked"
+            onAddClick={onAddFlight}
           />
         </div>
         
@@ -91,6 +104,7 @@ export const ItineraryStackedCards = ({
             onCardClick={onHotelClick}
             renderCard={HotelCardRenderer}
             emptyMessage="No hotels booked"
+            onAddClick={onAddHotel}
           />
         </div>
 
@@ -103,6 +117,7 @@ export const ItineraryStackedCards = ({
             onCardClick={onActivityClick}
             renderCard={ActivityCardRenderer}
             emptyMessage="No activities planned"
+            onAddClick={onAddActivity}
           />
         </div>
         
@@ -115,6 +130,7 @@ export const ItineraryStackedCards = ({
             onCardClick={onReservationClick}
             renderCard={ReservationCardRenderer}
             emptyMessage="No reservations made"
+            onAddClick={onAddReservation}
           />
         </div>
       </div>
