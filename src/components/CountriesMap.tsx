@@ -197,7 +197,7 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
 
   if (error) {
     return (
-      <div className="h-full flex items-center justify-center bg-[#171821]/80 rounded-lg border border-white/20">
+      <div className="h-[250px] flex items-center justify-center bg-[#171821]/80 rounded-lg border border-white/20">
         <div className="text-center">
           <MapPin className="h-8 w-8 text-white/60 mx-auto mb-2" />
           <p className="text-white/80 font-medium text-sm">Map Unavailable</p>
@@ -222,7 +222,7 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
   }
 
   return (
-    <div className="relative w-full h-full rounded-lg overflow-hidden">
+    <div className="relative w-full h-[250px] rounded-lg overflow-hidden">
       <div ref={mapContainer} className="absolute inset-0" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-background/10 rounded-lg" />
       {isLoading && (
