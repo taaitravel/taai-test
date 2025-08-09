@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useCityGeocodes } from '@/hooks/useCityGeocodes';
 
 interface MapLocation {
   city: string;
@@ -21,10 +22,14 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { coords } = useCityGeocodes(locationNames || []);
+  const resolvedLocations: MapLocation[] = (locations && locations.length > 0)
+    ? locations
+    : coords.map(c => ({ city: c.name, lat: c.lat, lng: c.lng }));
 
   useEffect(() => {
     console.log('🗺️ Map useEffect triggered');
-    console.log('📍 Locations to display:', locations);
+    console.log('📍 Locations to display:', resolvedLocations.length ? resolvedLocations : locationNames);
     console.log('🏗️ Container exists:', !!mapContainer.current);
     
     if (!mapContainer.current) {
@@ -78,7 +83,7 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
           console.log('🎉 Map loaded successfully!');
           
           // Add markers for each location
-          locations.forEach((location, index) => {
+          resolvedLocations.forEach((location, index) => {
             console.log(`📍 Adding marker ${index + 1}: ${location.city}`);
             
             // Create popup
@@ -119,7 +124,7 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         map.current.remove();
       }
     };
-  }, [locations]);
+  }, [JSON.stringify(resolvedLocations)]);
 
   if (error) {
     return (
