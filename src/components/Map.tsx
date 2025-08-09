@@ -60,11 +60,6 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         let center: [number, number] = [0, 0];
         let zoom = 2;
 
-        if (locations.length > 0) {
-          const first = locations[0];
-          center = [first.lng, first.lat];
-          zoom = 10;
-        }
 
         console.log('🎯 Map center:', center, 'zoom:', zoom);
 
