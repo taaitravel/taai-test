@@ -58,7 +58,7 @@ export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         {/* Flight Progress Indicator */}
         <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
-          <CardContent className="p-4">
+          <CardContent className="p-4 min-h-[250px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm font-medium text-white/70 mb-1">Flight Progress</p>
@@ -84,7 +84,7 @@ export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }
               </div>
               <Map className="h-6 w-6 text-white/70" />
             </div>
-            <div className="h-32">
+            <div className="h-[250px]">
               <CountriesMap visitedCountries={visitedCountries} />
             </div>
           </CardContent>
@@ -102,7 +102,7 @@ export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }
               </div>
               <BarChart3 className="h-6 w-6 text-white/70" />
             </div>
-            <div className="h-32">
+            <div className="h-[150px]">
               <ChartContainer config={chartConfig} className="h-full w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
