@@ -16,9 +16,10 @@ interface TravelMetricsProps {
     travelerLevel: string;
   };
   visitedCountries: string[];
+  activeItineraries?: any[];
 }
 
-export const TravelMetrics = ({ userStats, visitedCountries }: TravelMetricsProps) => {
+export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }: TravelMetricsProps) => {
   const monthlyFlights = [
     { month: 'Jul', flights: 5 },
     { month: 'Aug', flights: 2 },

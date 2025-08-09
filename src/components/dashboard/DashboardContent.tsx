@@ -33,7 +33,7 @@ export const DashboardContent = () => {
       <HeroSection userProfile={userProfile} activeItineraries={activeItineraries} />
 
       {/* Enhanced Stats Cards with Charts */}
-      <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} />
+      <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} activeItineraries={activeItineraries} />
 
       {/* Trips Filter */}
       <TripsFilter
