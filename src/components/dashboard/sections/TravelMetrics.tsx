@@ -2,8 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Calendar, Map, BarChart3 } from "lucide-react";
-import { CountriesMap } from "@/components/CountriesMap";
+import { Calendar, Map as LucideMap, BarChart3 } from "lucide-react";
+import MapComponent from "@/components/Map";
 import { FlightProgressIndicator } from "../FlightProgressIndicator";
 
 interface TravelMetricsProps {
@@ -41,9 +41,18 @@ export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }
       label: "Flights",
       color: "hsl(var(--primary))",
     }
-  };
+};
 
-  return (
+// Aggregate upcoming/active destinations for dashboard map
+const upcomingStatuses = ["planning", "upcoming", "active"]; 
+const upcomingTrips = (activeItineraries || []).filter((t: any) => upcomingStatuses.includes(t?.status));
+const dashboardLocationNames: string[] = Array.from(new Set(
+  upcomingTrips.flatMap((t: any) => Array.isArray(t?.itin_locations) ? t.itin_locations : [])
+    .filter((c: any) => typeof c === 'string' && c.trim().length > 0)
+));
+const destinationsCount = dashboardLocationNames.length;
+
+return (
     <Card className="border-white/30 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md p-5">
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-xl font-bold text-white">Travel Metrics</h2>
@@ -74,18 +83,18 @@ export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }
           </CardContent>
         </Card>
 
-        {/* Countries Map */}
+        {/* Destinations Map */}
         <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-medium text-white/70 mb-1">Countries Visited</p>
-                <p className="text-2xl font-bold text-white">{visitedCountries.length}</p>
+                <p className="text-sm font-medium text-white/70 mb-1">Upcoming Destinations</p>
+                <p className="text-2xl font-bold text-white">{destinationsCount}</p>
               </div>
-              <Map className="h-6 w-6 text-white/70" />
+              <LucideMap className="h-6 w-6 text-white/70" />
             </div>
             <div className="h-[250px]">
-              <CountriesMap visitedCountries={visitedCountries} />
+              <MapComponent locationNames={dashboardLocationNames} />
             </div>
           </CardContent>
         </Card>
