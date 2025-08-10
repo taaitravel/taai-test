@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.search-travel-options]
 verify_jwt = false
+
+[functions.search-yelp-businesses]
+verify_jwt = false

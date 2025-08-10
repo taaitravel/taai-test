@@ -51,7 +51,22 @@ const Itinerary = () => {
     const current = ((itineraryData as any)[type] || []) as any[];
     const updated = [...current];
     updated[editIndex] = item;
-    await supabase.from('itinerary').update({ [type]: updated }).eq('id', itineraryData.id);
+
+    // Append geocoded location to itin_map_locations for Mapbox, when provided
+    let newMapLocations = ([...(itineraryData.itin_map_locations || [])] as any[]);
+    const loc = (item as any).location;
+    if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+      const category = type === 'hotels' ? 'hotel' : type === 'activities' ? 'activity' : type === 'reservations' ? 'reservation' : undefined;
+      const cityName = loc.name || item.city || '';
+      if (category && cityName) {
+        const exists = newMapLocations.some((l: any) => l.lat === loc.lat && l.lng === loc.lng && l.city === cityName);
+        if (!exists) {
+          newMapLocations = [...newMapLocations, { city: cityName, lat: loc.lat, lng: loc.lng, category }];
+        }
+      }
+    }
+
+    await supabase.from('itinerary').update({ [type]: updated, itin_map_locations: newMapLocations }).eq('id', itineraryData.id);
     setEditOpen(false);
     refreshMapData();
   };

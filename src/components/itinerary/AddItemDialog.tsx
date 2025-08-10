@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PlaceSearch, PlaceResult } from "@/components/inputs/PlaceSearch";
 
 export type ItemType = 'flights' | 'hotels' | 'activities' | 'reservations';
 
@@ -28,6 +29,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState<any>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const inputClass = "bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary";
 
@@ -36,6 +38,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
       // If editing, prefill with existing item
       if (initialItem) {
         setForm(initialItem);
+        setErrors({});
         return;
       }
       // Otherwise set defaults per type
@@ -45,15 +48,16 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           setForm({ airline: '', flight_number: '', departure: '', arrival: '', from: baseCity, to: baseCity, cost: '' });
           break;
         case 'hotels':
-          setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost: '', rating: 4 });
+          setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost: '', rating: 4, link_url: '', location: null });
           break;
         case 'activities':
-          setForm({ name: '', city: baseCity, date: '', cost: '', duration: '' });
+          setForm({ name: '', city: baseCity, date: '', cost: '', duration: '', link_url: '', location: null });
           break;
         case 'reservations':
-          setForm({ type: 'restaurant', name: '', city: baseCity, date: '', time: '', party_size: 2 });
+          setForm({ type: 'restaurant', name: '', city: baseCity, date: '', time: '', party_size: 2, link_url: '', location: null });
           break;
       }
+      setErrors({});
     }
   }, [open, type, defaultCity, initialItem]);
 
@@ -71,8 +75,61 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
     setForm((prev: any) => ({ ...prev, [key]: value }));
   };
 
+  const setSelectedLocation = (place: PlaceResult) => {
+    setForm((prev: any) => ({ ...prev, city: place.name, location: place }));
+  };
+
+  const validate = (): boolean => {
+    const nextErrors: Record<string, string> = {};
+    if (!type) return false;
+
+    // Common numeric validations
+    const numberFields: string[] = [];
+    if (type === 'hotels') numberFields.push('cost', 'nights', 'rating');
+    if (type === 'activities') numberFields.push('cost');
+    if (type === 'reservations') numberFields.push('party_size');
+
+    numberFields.forEach((f) => {
+      const v = form[f];
+      if (v !== '' && v !== undefined && isNaN(Number(v))) nextErrors[f] = 'Must be a number';
+      if ((f === 'cost' || f === 'party_size' || f === 'nights' || f === 'rating') && Number(v) < 0) nextErrors[f] = 'Must be >= 0';
+    });
+
+    if (type === 'hotels') {
+      if (!form.name) nextErrors.name = 'Hotel name is required';
+      if (!form.check_in) nextErrors.check_in = 'Check-in is required';
+      if (!form.check_out) nextErrors.check_out = 'Check-out is required';
+      if (form.check_in && form.check_out) {
+        const start = new Date(form.check_in);
+        const end = new Date(form.check_out);
+        if (end < start) nextErrors.check_out = 'Check-out must be after check-in';
+        const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        if (nights < 1) nextErrors.nights = 'Minimum 1 night';
+      }
+      if (!form.location) nextErrors.location = 'Select a location';
+    }
+
+    if (type === 'reservations') {
+      if (!form.name) nextErrors.name = 'Reservation name is required';
+      if (!form.type) nextErrors.type = 'Type is required';
+      if (!form.date) nextErrors.date = 'Date is required';
+      if (!form.time) nextErrors.time = 'Time is required';
+      if (!form.location) nextErrors.location = 'Select a location';
+    }
+
+    if (type === 'activities') {
+      if (!form.name) nextErrors.name = 'Activity name is required';
+      if (!form.date) nextErrors.date = 'Date is required';
+      if (!form.location && !form.city) nextErrors.location = 'Select a city or location';
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
     if (!type) return;
+    if (!validate()) return;
     setLoading(true);
     try {
       // Normalize numeric fields
@@ -80,6 +137,12 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
       ['cost', 'nights', 'rating', 'party_size'].forEach((k) => {
         if (k in item && item[k] !== '') item[k] = Number(item[k]);
       });
+
+      // If a location has been chosen, ensure city is set for backward compatibility
+      if (item.location && item.location.name) {
+        item.city = item.city || item.location.name;
+      }
+
       await onSubmit(type, item);
       onClose();
     } finally {
@@ -132,25 +195,29 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
       case 'hotels':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div className="sm:col-span-2">
               <Label htmlFor="name">Hotel name</Label>
               <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="hotels" className={inputClass} />
+              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
-            <div>
-              <Label htmlFor="city">City</Label>
-              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" className={inputClass} />
+            <div className="sm:col-span-2">
+              <PlaceSearch id="hotel-location" label="Location" placeholder="Search hotel or area" mode="poi" onSelect={setSelectedLocation} />
+              {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
             <div>
               <Label htmlFor="check_in">Check-in</Label>
               <Input id="check_in" type="date" value={form.check_in || ''} onChange={(e) => handleChange('check_in', e.target.value)} className={inputClass} />
+              {errors.check_in && <p className="text-sm text-red-600 mt-1">{errors.check_in}</p>}
             </div>
             <div>
               <Label htmlFor="check_out">Check-out</Label>
               <Input id="check_out" type="date" value={form.check_out || ''} onChange={(e) => handleChange('check_out', e.target.value)} className={inputClass} />
+              {errors.check_out && <p className="text-sm text-red-600 mt-1">{errors.check_out}</p>}
             </div>
             <div>
               <Label htmlFor="nights">Nights</Label>
               <Input id="nights" type="number" min="1" value={form.nights || 1} onChange={(e) => handleChange('nights', e.target.value)} className={inputClass} />
+              {errors.nights && <p className="text-sm text-red-600 mt-1">{errors.nights}</p>}
             </div>
             <div>
               <Label htmlFor="rating">Rating</Label>
@@ -160,22 +227,28 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
               <Label htmlFor="cost">Cost (USD)</Label>
               <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
             </div>
+            <div className="sm:col-span-2">
+              <Label htmlFor="link_url">Hotel link (optional)</Label>
+              <Input id="link_url" placeholder="https://..." value={form.link_url || ''} onChange={(e) => handleChange('link_url', e.target.value)} className={inputClass} />
+            </div>
           </div>
         );
       case 'activities':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div className="sm:col-span-2">
               <Label htmlFor="name">Activity name</Label>
               <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="activities" className={inputClass} />
+              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
-            <div>
-              <Label htmlFor="city">City</Label>
-              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" className={inputClass} />
+            <div className="sm:col-span-2">
+              <PlaceSearch id="activity-location" label="Location or city" placeholder="Search a place or city" mode="poi" onSelect={setSelectedLocation} />
+              {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
             <div>
               <Label htmlFor="date">Date</Label>
               <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} className={inputClass} />
+              {errors.date && <p className="text-sm text-red-600 mt-1">{errors.date}</p>}
             </div>
             <div>
               <Label htmlFor="duration">Duration</Label>
@@ -185,6 +258,10 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
               <Label htmlFor="cost">Cost (USD)</Label>
               <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
             </div>
+            <div className="sm:col-span-2">
+              <Label htmlFor="link_url">Link to activity (optional)</Label>
+              <Input id="link_url" placeholder="https://..." value={form.link_url || ''} onChange={(e) => handleChange('link_url', e.target.value)} className={inputClass} />
+            </div>
           </div>
         );
       case 'reservations':
@@ -193,31 +270,43 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
             <div>
               <Label htmlFor="name">Reservation name</Label>
               <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} className={inputClass} />
+              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
             <div>
               <Label htmlFor="type">Type</Label>
               <Input id="type" value={form.type || 'restaurant'} onChange={(e) => handleChange('type', e.target.value)} list="reservation-types" className={inputClass} />
               <datalist id="reservation-types">
                 <option value="restaurant" />
+                <option value="conference" />
                 <option value="meeting" />
                 <option value="event" />
+                <option value="tour" />
+                <option value="show" />
+                <option value="other" />
               </datalist>
+              {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type}</p>}
             </div>
-            <div>
-              <Label htmlFor="city">City</Label>
-              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" className={inputClass} />
+            <div className="sm:col-span-2">
+              <PlaceSearch id="reservation-location" label="Location" placeholder="Search venue or restaurant" mode={form.type === 'restaurant' ? 'restaurant' : 'poi'} onSelect={setSelectedLocation} />
+              {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
             <div>
               <Label htmlFor="date">Date</Label>
               <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} className={inputClass} />
+              {errors.date && <p className="text-sm text-red-600 mt-1">{errors.date}</p>}
             </div>
             <div>
               <Label htmlFor="time">Time</Label>
               <Input id="time" type="time" value={form.time || ''} onChange={(e) => handleChange('time', e.target.value)} className={inputClass} />
+              {errors.time && <p className="text-sm text-red-600 mt-1">{errors.time}</p>}
             </div>
             <div>
               <Label htmlFor="party_size">Party size</Label>
               <Input id="party_size" type="number" min="1" value={form.party_size || 2} onChange={(e) => handleChange('party_size', e.target.value)} className={inputClass} />
+            </div>
+            <div className="sm:col-span-2">
+              <Label htmlFor="link_url">Link (optional)</Label>
+              <Input id="link_url" placeholder="https://..." value={form.link_url || ''} onChange={(e) => handleChange('link_url', e.target.value)} className={inputClass} />
             </div>
           </div>
         );
