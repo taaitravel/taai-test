@@ -12,6 +12,7 @@ interface CountriesMapProps {
 export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { countryCoordinates } = useCountryData(visitedCountries);
@@ -53,49 +54,12 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
         });
 
         // Add atmosphere and fog effects
-        map.current.on('style.load', () => {
-          map.current?.setFog({
-            color: 'rgb(35, 35, 35)',
-            'high-color': 'rgb(100, 100, 125)',
-            'horizon-blend': 0.2,
-          });
-        });
+        // Default map settings (no fog or custom projection)
 
 
-        // Add markers for visited countries when they become available
-        const addCountryMarkers = () => {
-          if (countryCoordinates && countryCoordinates.length > 0) {
-            countryCoordinates.forEach((country) => {
-              if (country.latitude && country.longitude) {
-                // Create custom marker element
-                const markerEl = document.createElement('div');
-                markerEl.className = 'country-marker';
-                markerEl.style.cssText = `
-                  width: 12px;
-                  height: 12px;
-                  background: #ffce87;
-                  border: 2px solid #ffffff;
-                  border-radius: 50%;
-                  box-shadow: 0 0 10px rgba(255, 206, 135, 0.6);
-                  cursor: pointer;
-                `;
 
-                // Create popup
-                const popup = new mapboxgl.Popup({ offset: 25 })
-                  .setHTML(`<div style="color: #171821; font-weight: 500; padding: 4px;">${country.country_name}</div>`);
+        // Markers will be handled in effect when coordinates are available
 
-                // Add marker to map
-                new mapboxgl.Marker(markerEl)
-                  .setLngLat([country.longitude, country.latitude])
-                  .setPopup(popup)
-                  .addTo(map.current!);
-              }
-            });
-          }
-        };
-
-        // Add markers when map loads and when country coordinates are available
-        map.current.on('load', addCountryMarkers);
 
 
         setIsLoading(false);
@@ -115,17 +79,18 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
     };
   }, []);
 
-  // Add markers when country coordinates change
+  // Add/Update markers when country coordinates change
   useEffect(() => {
-    if (map.current && countryCoordinates.length > 0) {
-      const first = countryCoordinates[0];
-      if (first.longitude && first.latitude) {
-        map.current.setCenter([first.longitude, first.latitude]);
-        map.current.setZoom(3);
-      }
+    const addMarkers = () => {
+      if (!map.current) return;
+      // Clear old markers
+      markersRef.current.forEach((m) => m.remove());
+      markersRef.current = [];
+      if (!countryCoordinates || countryCoordinates.length === 0) return;
+
+      const bounds = new mapboxgl.LngLatBounds();
       countryCoordinates.forEach((country) => {
-        if (country.latitude && country.longitude) {
-          // Create custom marker element
+        if (country.longitude && country.latitude) {
           const markerEl = document.createElement('div');
           markerEl.className = 'country-marker';
           markerEl.style.cssText = `
@@ -137,20 +102,33 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
             box-shadow: 0 0 10px rgba(255, 206, 135, 0.6);
             cursor: pointer;
           `;
-
-          // Create popup
           const popup = new mapboxgl.Popup({ offset: 25 })
             .setHTML(`<div style="color: #171821; font-weight: 500; padding: 4px;">${country.country_name}</div>`);
-
-          // Add marker to map
-          new mapboxgl.Marker(markerEl)
+          const marker = new mapboxgl.Marker(markerEl)
             .setLngLat([country.longitude, country.latitude])
             .setPopup(popup)
             .addTo(map.current!);
+          markersRef.current.push(marker);
+          bounds.extend([country.longitude, country.latitude]);
         }
       });
+
+      if (bounds.isEmpty()) return;
+      if (countryCoordinates.length > 1) {
+        map.current.fitBounds(bounds, { padding: 40, duration: 800 });
+      } else {
+        const first = countryCoordinates[0];
+        map.current.easeTo({ center: [Number(first.longitude), Number(first.latitude)], zoom: 3, duration: 800 });
+      }
+    };
+
+    if (!map.current) return;
+    if (map.current.isStyleLoaded()) {
+      addMarkers();
+    } else {
+      map.current.once('load', addMarkers);
     }
-  }, [countryCoordinates]);
+  }, [JSON.stringify(countryCoordinates)]);
 
   if (error) {
     return (

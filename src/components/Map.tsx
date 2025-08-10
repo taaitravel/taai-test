@@ -92,13 +92,8 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         });
 
         // Atmosphere and fog for consistency with dashboard map
-        map.current.on('style.load', () => {
-          map.current?.setFog({
-            color: 'rgb(35, 35, 35)',
-            'high-color': 'rgb(100, 100, 125)',
-            'horizon-blend': 0.2,
-          });
-        });
+        // Default map settings (no fog)
+
 
         // Add navigation controls
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
