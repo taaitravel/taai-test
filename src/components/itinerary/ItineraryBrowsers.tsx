@@ -12,6 +12,14 @@ interface ItineraryBrowsersProps {
   onHotelIndexChange: (index: number) => void;
   onActivityIndexChange: (index: number) => void;
   onReservationIndexChange: (index: number) => void;
+  onEditFlight?: (index: number) => void;
+  onEditHotel?: (index: number) => void;
+  onEditActivity?: (index: number) => void;
+  onEditReservation?: (index: number) => void;
+  onDeleteFlight?: (index: number) => void;
+  onDeleteHotel?: (index: number) => void;
+  onDeleteActivity?: (index: number) => void;
+  onDeleteReservation?: (index: number) => void;
 }
 
 export const ItineraryBrowsers = ({
@@ -25,6 +33,14 @@ export const ItineraryBrowsers = ({
   onHotelIndexChange,
   onActivityIndexChange,
   onReservationIndexChange,
+  onEditFlight,
+  onEditHotel,
+  onEditActivity,
+  onEditReservation,
+  onDeleteFlight,
+  onDeleteHotel,
+  onDeleteActivity,
+  onDeleteReservation,
 }: ItineraryBrowsersProps) => {
   return (
     <>
@@ -36,6 +52,8 @@ export const ItineraryBrowsers = ({
         onIndexChange={onFlightIndexChange}
         title="Flights"
         type="flights"
+        onEdit={onEditFlight}
+        onDelete={onDeleteFlight}
       />
 
       <ItineraryBrowser
@@ -46,6 +64,8 @@ export const ItineraryBrowsers = ({
         onIndexChange={onHotelIndexChange}
         title="Hotels"
         type="hotels"
+        onEdit={onEditHotel}
+        onDelete={onDeleteHotel}
       />
 
       <ItineraryBrowser
@@ -56,6 +76,8 @@ export const ItineraryBrowsers = ({
         onIndexChange={onActivityIndexChange}
         title="Activities"
         type="activities"
+        onEdit={onEditActivity}
+        onDelete={onDeleteActivity}
       />
 
       <ItineraryBrowser
@@ -66,6 +88,8 @@ export const ItineraryBrowsers = ({
         onIndexChange={onReservationIndexChange}
         title="Reservations"
         type="reservations"
+        onEdit={onEditReservation}
+        onDelete={onDeleteReservation}
       />
     </>
   );

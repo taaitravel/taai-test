@@ -1,4 +1,4 @@
-import { Calendar, Users, DollarSign } from "lucide-react";
+import { Calendar, Users, Wallet } from "lucide-react";
 import { ItineraryData } from "@/types/itinerary";
 
 interface ItineraryInfoHeaderProps {
@@ -24,7 +24,7 @@ export const ItineraryInfoHeader = ({ itineraryData }: ItineraryInfoHeaderProps)
           <span>{peopleCount} {peopleCount === 1 ? 'Traveler' : 'Travelers'}</span>
         </div>
         <div className="flex items-center space-x-2">
-          <DollarSign className="h-4 w-4" />
+          <Wallet className="h-4 w-4" />
           <span>${Number(itineraryData.budget).toLocaleString()}</span>
         </div>
       </div>

@@ -12,6 +12,7 @@ interface ItineraryBrowserProps {
   title: string;
   type: 'flights' | 'hotels' | 'activities' | 'reservations';
   onEdit?: (index: number) => void;
+  onDelete?: (index: number) => void;
 }
 
 export const ItineraryBrowser = ({ 
@@ -22,7 +23,8 @@ export const ItineraryBrowser = ({
   onIndexChange,
   title,
   type,
-  onEdit
+  onEdit,
+  onDelete
 }: ItineraryBrowserProps) => {
   if (!isOpen || items.length === 0) return null;
 
@@ -197,6 +199,16 @@ export const ItineraryBrowser = ({
             disabled={!onEdit}
           >
             Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
+            onClick={() => onDelete && onDelete(currentIndex)}
+            disabled={!onDelete}
+            aria-label="Delete item"
+          >
+            Delete
           </Button>
           <Button
             variant="ghost"

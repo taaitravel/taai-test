@@ -8,6 +8,8 @@ import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItinerarySidebar } from "./ItinerarySidebar";
 import { AddItemDialog, ItemType } from "./AddItemDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
@@ -55,10 +57,22 @@ export const ItineraryContent = ({
     // Ask parent hook to refetch
     refreshMapData?.();
   };
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <ItineraryInfoHeader itineraryData={itineraryData} />
 
+  // Destination adding (upcoming trips only)
+  const [newDest, setNewDest] = useState("");
+  const isUpcoming = new Date(itineraryData.itin_date_start).getTime() > Date.now();
+  const handleAddDestination = async () => {
+    const name = newDest.trim();
+    if (!name) return;
+    const current = itineraryData.itin_locations || [];
+    const updated = Array.from(new Set([...current, name]));
+    await supabase.from('itinerary').update({ itin_locations: updated }).eq('id', itineraryData.id);
+    setNewDest("");
+    refreshMapData?.();
+  };
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
+      <ItineraryInfoHeader itineraryData={itineraryData} />
       {/* Trip Overview & Map Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <TripOverviewSection
@@ -73,6 +87,17 @@ export const ItineraryContent = ({
           mapLocations={itineraryData.itin_map_locations || []}
           locationNames={itineraryData.itin_locations || []}
         />
+        {isUpcoming && (
+          <div className="mt-4 flex items-center gap-2">
+            <Input
+              placeholder="Add destination city"
+              value={newDest}
+              onChange={(e) => setNewDest(e.target.value)}
+              className="max-w-xs"
+            />
+            <Button onClick={handleAddDestination}>Add Destination</Button>
+          </div>
+        )}
       </div>
 
       {/* Stacked Cards Section */}

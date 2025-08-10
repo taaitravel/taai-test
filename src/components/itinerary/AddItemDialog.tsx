@@ -161,23 +161,23 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="name">Activity name</Label>
-              <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="activities" />
+              <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="activities" className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
             </div>
             <div>
               <Label htmlFor="city">City</Label>
-              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" />
+              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
             </div>
             <div>
               <Label htmlFor="date">Date</Label>
-              <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} />
+              <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
             </div>
             <div>
               <Label htmlFor="duration">Duration</Label>
-              <Input id="duration" placeholder="e.g., 3h 30m" value={form.duration || ''} onChange={(e) => handleChange('duration', e.target.value)} />
+              <Input id="duration" placeholder="e.g., 3h 30m" value={form.duration || ''} onChange={(e) => handleChange('duration', e.target.value)} className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
             </div>
             <div>
               <Label htmlFor="cost">Cost (USD)</Label>
-              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} />
+              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
             </div>
           </div>
         );
@@ -220,7 +220,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className={`sm:max-w-lg ${type === 'activities' ? 'gold-gradient text-[#171821]' : ''}`}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>

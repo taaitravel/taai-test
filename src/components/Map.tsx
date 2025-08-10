@@ -65,6 +65,19 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         let center: [number, number] = [0, 0];
         let zoom = 2;
 
+        // Prepare bounds if we have locations
+        const hasLocations = resolvedLocations && resolvedLocations.length > 0;
+        const bounds = new mapboxgl.LngLatBounds();
+        if (hasLocations) {
+          resolvedLocations.forEach((loc) => bounds.extend([loc.lng, loc.lat]));
+          if (resolvedLocations.length === 1) {
+            center = [resolvedLocations[0].lng, resolvedLocations[0].lat];
+            zoom = 8;
+          } else {
+            center = bounds.getCenter().toArray() as [number, number];
+            zoom = 2;
+          }
+        }
 
         console.log('🎯 Map center:', center, 'zoom:', zoom);
 
@@ -97,6 +110,14 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
               .addTo(map.current!);
           });
 
+          // Fit bounds when multiple markers
+          if (hasLocations) {
+            if (resolvedLocations.length > 1) {
+              map.current!.fitBounds(bounds, { padding: 40, duration: 800 });
+            } else if (resolvedLocations.length === 1) {
+              map.current!.easeTo({ center, zoom, duration: 800 });
+            }
+          }
 
           setIsLoading(false);
           console.log('✅ Map initialization complete!');
@@ -155,7 +176,7 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         <div className="text-center">
           <MapPin className="h-12 w-12 text-yellow-400 mx-auto mb-4 animate-pulse" />
           <p className="text-yellow-200 font-medium">Initializing Map...</p>
-          <p className="text-yellow-300/70 text-sm mt-1">Loading Tokyo & Osaka</p>
+          <p className="text-yellow-300/70 text-sm mt-1">Loading destinations…</p>
         </div>
       </div>
     );
