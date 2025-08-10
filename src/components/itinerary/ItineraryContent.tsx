@@ -36,6 +36,32 @@ export const ItineraryContent = ({
   );
   const destinations = itineraryData.itin_locations || [];
   const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
+  // Build map search queries from itinerary data (hotels, reservations, activities)
+  const normalize = (s?: string) => (typeof s === 'string' ? s.trim() : '').replace(/\s+/g, ' ').trim();
+  const isOther = (s?: string) => normalize(s).toLowerCase() === 'other';
+  const q = (...parts: (string | undefined)[]) => normalize(parts.filter(Boolean).join(', '));
+
+  const hotelQueries = (itineraryData.hotels || []).map((h: any) => {
+    if (isOther(h?.name) || isOther(h?.city) || isOther(h?.address)) return '';
+    return q(h?.address, h?.name, h?.city);
+  });
+  const activityQueries = (itineraryData.activities || []).map((a: any) => {
+    if (isOther(a?.name) || isOther(a?.city) || isOther(a?.address)) return '';
+    return q(a?.address, a?.name, a?.city);
+  });
+  const reservationQueries = (itineraryData.reservations || []).map((r: any) => {
+    if (isOther(r?.type) || isOther(r?.name) || isOther(r?.city) || isOther(r?.address)) return '';
+    return q(r?.address, r?.name, r?.city);
+  });
+
+  const derivedLocationNames = Array.from(
+    new Set([
+      ...destinations,
+      ...hotelQueries,
+      ...activityQueries,
+      ...reservationQueries,
+    ].filter((v) => !!v && !isOther(v)))
+  );
 
   // Local add modal state and handlers
   const [addOpen, setAddOpen] = useState(false);
@@ -114,7 +140,7 @@ export const ItineraryContent = ({
         />
         <ItineraryMapSection
           mapLocations={itineraryData.itin_map_locations || []}
-          locationNames={itineraryData.itin_locations || []}
+          locationNames={derivedLocationNames}
         />
         {isUpcoming && (
           <div className="mt-4 flex items-center gap-2">
