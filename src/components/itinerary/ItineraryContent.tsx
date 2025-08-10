@@ -62,11 +62,40 @@ export const ItineraryContent = ({
   const [newDest, setNewDest] = useState("");
   const isUpcoming = new Date(itineraryData.itin_date_start).getTime() > Date.now();
   const handleAddDestination = async () => {
-    const name = newDest.trim();
-    if (!name) return;
-    const current = itineraryData.itin_locations || [];
-    const updated = Array.from(new Set([...current, name]));
-    await supabase.from('itinerary').update({ itin_locations: updated }).eq('id', itineraryData.id);
+    const raw = newDest.trim();
+    if (!raw) return;
+
+    // Normalize destination using Mapbox via Edge Function
+    let normalizedName = raw;
+    let newMapLoc: { city: string; lat: number; lng: number } | null = null;
+    try {
+      const { data, error } = await supabase.functions.invoke('search-cities', { body: { query: raw } });
+      if (!error && Array.isArray(data?.locations) && data.locations.length > 0) {
+        const best = data.locations[0];
+        normalizedName = best.fullName || best.city || raw;
+        newMapLoc = { city: normalizedName, lat: best.lat, lng: best.lng };
+      }
+    } catch (e) {
+      console.warn('Failed to normalize destination, using raw input', e);
+    }
+
+    // Update readable list (itin_locations) with normalizedName
+    const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
+    const updatedNames = Array.from(new Set([...currentNames, normalizedName]));
+
+    // Update map coords if we resolved them
+    const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
+    let updatedMap = currentMap;
+    if (newMapLoc) {
+      const exists = currentMap.some((m) => m.city?.toLowerCase() === newMapLoc!.city.toLowerCase());
+      updatedMap = exists ? currentMap : [...currentMap, newMapLoc];
+    }
+
+    await supabase
+      .from('itinerary')
+      .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
+      .eq('id', itineraryData.id);
+
     setNewDest("");
     refreshMapData?.();
   };

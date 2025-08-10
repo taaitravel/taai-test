@@ -20,6 +20,7 @@ interface MapProps {
 const Map = ({ locations = [], locationNames = [] }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { coords } = useCityGeocodes(locationNames || []);
@@ -85,6 +86,7 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         map.current = new mapboxgl.Map({
           container: mapContainer.current!,
           style: 'mapbox://styles/mapbox/dark-v11',
+          projection: 'mercator',
           center: center,
           zoom: zoom,
         });
@@ -134,26 +136,37 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
 
   // Add/Update markers when locations change (aligned with CountriesMap flow)
   useEffect(() => {
+    const addMarkers = () => {
+      if (!map.current) return;
+      if (!resolvedLocations || resolvedLocations.length === 0) return;
+      
+      // Clear old markers
+      markersRef.current.forEach((m) => m.remove());
+      markersRef.current = [];
+
+      const bounds = new mapboxgl.LngLatBounds();
+      resolvedLocations.forEach((location) => {
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>${location.city}</strong>`);
+        const marker = new mapboxgl.Marker()
+          .setLngLat([location.lng, location.lat])
+          .setPopup(popup)
+          .addTo(map.current!);
+        markersRef.current.push(marker);
+        bounds.extend([location.lng, location.lat]);
+      });
+
+      if (resolvedLocations.length > 1) {
+        map.current.fitBounds(bounds, { padding: 40, duration: 800 });
+      } else {
+        map.current.easeTo({ center: [resolvedLocations[0].lng, resolvedLocations[0].lat], zoom: 8, duration: 800 });
+      }
+    };
+
     if (!map.current) return;
-    if (!resolvedLocations || resolvedLocations.length === 0) return;
-
-    const bounds = new mapboxgl.LngLatBounds();
-    resolvedLocations.forEach((location) => {
-      const popup = new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`<strong>${location.city}</strong>`);
-
-      new mapboxgl.Marker()
-        .setLngLat([location.lng, location.lat])
-        .setPopup(popup)
-        .addTo(map.current!);
-
-      bounds.extend([location.lng, location.lat]);
-    });
-
-    if (resolvedLocations.length > 1) {
-      map.current.fitBounds(bounds, { padding: 40, duration: 800 });
+    if (map.current.isStyleLoaded()) {
+      addMarkers();
     } else {
-      map.current.easeTo({ center: [resolvedLocations[0].lng, resolvedLocations[0].lat], zoom: 8, duration: 800 });
+      map.current.once('load', addMarkers);
     }
   }, [JSON.stringify(resolvedLocations)]);
 
