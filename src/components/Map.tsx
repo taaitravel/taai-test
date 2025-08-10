@@ -89,38 +89,20 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
           zoom: zoom,
         });
 
+        // Atmosphere and fog for consistency with dashboard map
+        map.current.on('style.load', () => {
+          map.current?.setFog({
+            color: 'rgb(35, 35, 35)',
+            'high-color': 'rgb(100, 100, 125)',
+            'horizon-blend': 0.2,
+          });
+        });
+
         // Add navigation controls
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
         map.current.on('load', () => {
           console.log('🎉 Map loaded successfully!');
-          
-          // Add markers for each location
-          resolvedLocations.forEach((location, index) => {
-            console.log(`📍 Adding marker ${index + 1}: ${location.city}`);
-            
-            // Create popup
-            const popup = new mapboxgl.Popup({ offset: 25 })
-              .setHTML(`<strong>${location.city}</strong>`);
-
-            // Add marker
-            new mapboxgl.Marker()
-              .setLngLat([location.lng, location.lat])
-              .setPopup(popup)
-              .addTo(map.current!);
-          });
-
-          // Fit bounds when multiple markers
-          if (hasLocations) {
-            if (resolvedLocations.length > 1) {
-              map.current!.fitBounds(bounds, { padding: 40, duration: 800 });
-            } else if (resolvedLocations.length === 1) {
-              map.current!.easeTo({ center, zoom, duration: 800 });
-            }
-          }
-
-          setIsLoading(false);
-          console.log('✅ Map initialization complete!');
         });
 
         map.current.on('error', (e) => {
@@ -128,6 +110,9 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
           setError('Failed to load map');
           setIsLoading(false);
         });
+
+        // Mark initialized for UI parity with dashboard map
+        setIsLoading(false);
 
       } catch (err: any) {
         console.error('💥 Initialization error:', err);
@@ -145,6 +130,31 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
         map.current.remove();
       }
     };
+  }, []);
+
+  // Add/Update markers when locations change (aligned with CountriesMap flow)
+  useEffect(() => {
+    if (!map.current) return;
+    if (!resolvedLocations || resolvedLocations.length === 0) return;
+
+    const bounds = new mapboxgl.LngLatBounds();
+    resolvedLocations.forEach((location) => {
+      const popup = new mapboxgl.Popup({ offset: 25 })
+        .setHTML(`<strong>${location.city}</strong>`);
+
+      new mapboxgl.Marker()
+        .setLngLat([location.lng, location.lat])
+        .setPopup(popup)
+        .addTo(map.current!);
+
+      bounds.extend([location.lng, location.lat]);
+    });
+
+    if (resolvedLocations.length > 1) {
+      map.current.fitBounds(bounds, { padding: 40, duration: 800 });
+    } else {
+      map.current.easeTo({ center: [resolvedLocations[0].lng, resolvedLocations[0].lat], zoom: 8, duration: 800 });
+    }
   }, [JSON.stringify(resolvedLocations)]);
 
   if (error) {
