@@ -29,6 +29,8 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
 
   const [form, setForm] = useState<any>({});
 
+  const inputClass = "bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary";
+
   useEffect(() => {
     if (open && type) {
       // If editing, prefill with existing item
@@ -58,7 +60,11 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
   const title = useMemo(() => {
     if (!type) return '';
     const verb = initialItem ? 'Edit' : 'Add';
-    return `${verb} ${type.slice(0, 1).toUpperCase() + type.slice(1, type.length - (type.endsWith('s') ? 1 : 0))}`;
+    const singular =
+      type === 'activities'
+        ? 'Activity'
+        : (type.endsWith('s') ? type.slice(0, -1) : type);
+    return `${verb} ${singular.charAt(0).toUpperCase()}${singular.slice(1)}`;
   }, [type, initialItem]);
 
   const handleChange = (key: string, value: any) => {
@@ -90,7 +96,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="airline">Airline</Label>
-              <Input id="airline" value={form.airline || ''} onChange={(e) => handleChange('airline', e.target.value)} list="airlines" />
+              <Input id="airline" value={form.airline || ''} onChange={(e) => handleChange('airline', e.target.value)} list="airlines" className={inputClass} />
               <datalist id="airlines">
                 {(suggestions?.airlines || []).map((a) => (
                   <option key={a} value={a} />
@@ -99,27 +105,27 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
             </div>
             <div>
               <Label htmlFor="flight_number">Flight number</Label>
-              <Input id="flight_number" value={form.flight_number || ''} onChange={(e) => handleChange('flight_number', e.target.value)} />
+              <Input id="flight_number" value={form.flight_number || ''} onChange={(e) => handleChange('flight_number', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="from">From</Label>
-              <Input id="from" value={form.from || ''} onChange={(e) => handleChange('from', e.target.value)} list="cities" />
+              <Input id="from" value={form.from || ''} onChange={(e) => handleChange('from', e.target.value)} list="cities" className={inputClass} />
             </div>
             <div>
               <Label htmlFor="to">To</Label>
-              <Input id="to" value={form.to || ''} onChange={(e) => handleChange('to', e.target.value)} list="cities" />
+              <Input id="to" value={form.to || ''} onChange={(e) => handleChange('to', e.target.value)} list="cities" className={inputClass} />
             </div>
             <div>
               <Label htmlFor="departure">Departure</Label>
-              <Input id="departure" type="datetime-local" value={form.departure || ''} onChange={(e) => handleChange('departure', e.target.value)} />
+              <Input id="departure" type="datetime-local" value={form.departure || ''} onChange={(e) => handleChange('departure', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="arrival">Arrival</Label>
-              <Input id="arrival" type="datetime-local" value={form.arrival || ''} onChange={(e) => handleChange('arrival', e.target.value)} />
+              <Input id="arrival" type="datetime-local" value={form.arrival || ''} onChange={(e) => handleChange('arrival', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="cost">Cost (USD)</Label>
-              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} />
+              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
             </div>
           </div>
         );
@@ -128,31 +134,31 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="name">Hotel name</Label>
-              <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="hotels" />
+              <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="hotels" className={inputClass} />
             </div>
             <div>
               <Label htmlFor="city">City</Label>
-              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" />
+              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" className={inputClass} />
             </div>
             <div>
               <Label htmlFor="check_in">Check-in</Label>
-              <Input id="check_in" type="date" value={form.check_in || ''} onChange={(e) => handleChange('check_in', e.target.value)} />
+              <Input id="check_in" type="date" value={form.check_in || ''} onChange={(e) => handleChange('check_in', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="check_out">Check-out</Label>
-              <Input id="check_out" type="date" value={form.check_out || ''} onChange={(e) => handleChange('check_out', e.target.value)} />
+              <Input id="check_out" type="date" value={form.check_out || ''} onChange={(e) => handleChange('check_out', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="nights">Nights</Label>
-              <Input id="nights" type="number" min="1" value={form.nights || 1} onChange={(e) => handleChange('nights', e.target.value)} />
+              <Input id="nights" type="number" min="1" value={form.nights || 1} onChange={(e) => handleChange('nights', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="rating">Rating</Label>
-              <Input id="rating" type="number" min="1" max="5" value={form.rating || 4} onChange={(e) => handleChange('rating', e.target.value)} />
+              <Input id="rating" type="number" min="1" max="5" value={form.rating || 4} onChange={(e) => handleChange('rating', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="cost">Cost (USD)</Label>
-              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} />
+              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
             </div>
           </div>
         );
@@ -161,23 +167,23 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="name">Activity name</Label>
-              <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="activities" className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
+              <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="activities" className={inputClass} />
             </div>
             <div>
               <Label htmlFor="city">City</Label>
-              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
+              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" className={inputClass} />
             </div>
             <div>
               <Label htmlFor="date">Date</Label>
-              <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
+              <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="duration">Duration</Label>
-              <Input id="duration" placeholder="e.g., 3h 30m" value={form.duration || ''} onChange={(e) => handleChange('duration', e.target.value)} className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
+              <Input id="duration" placeholder="e.g., 3h 30m" value={form.duration || ''} onChange={(e) => handleChange('duration', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="cost">Cost (USD)</Label>
-              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary" />
+              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
             </div>
           </div>
         );
@@ -186,11 +192,11 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="name">Reservation name</Label>
-              <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} />
+              <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="type">Type</Label>
-              <Input id="type" value={form.type || 'restaurant'} onChange={(e) => handleChange('type', e.target.value)} list="reservation-types" />
+              <Input id="type" value={form.type || 'restaurant'} onChange={(e) => handleChange('type', e.target.value)} list="reservation-types" className={inputClass} />
               <datalist id="reservation-types">
                 <option value="restaurant" />
                 <option value="meeting" />
@@ -199,19 +205,19 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
             </div>
             <div>
               <Label htmlFor="city">City</Label>
-              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" />
+              <Input id="city" value={form.city || ''} onChange={(e) => handleChange('city', e.target.value)} list="cities" className={inputClass} />
             </div>
             <div>
               <Label htmlFor="date">Date</Label>
-              <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} />
+              <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="time">Time</Label>
-              <Input id="time" type="time" value={form.time || ''} onChange={(e) => handleChange('time', e.target.value)} />
+              <Input id="time" type="time" value={form.time || ''} onChange={(e) => handleChange('time', e.target.value)} className={inputClass} />
             </div>
             <div>
               <Label htmlFor="party_size">Party size</Label>
-              <Input id="party_size" type="number" min="1" value={form.party_size || 2} onChange={(e) => handleChange('party_size', e.target.value)} />
+              <Input id="party_size" type="number" min="1" value={form.party_size || 2} onChange={(e) => handleChange('party_size', e.target.value)} className={inputClass} />
             </div>
           </div>
         );
@@ -220,7 +226,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className={`sm:max-w-lg ${type === 'activities' ? 'gold-gradient text-[#171821]' : ''}`}>
+      <DialogContent className="sm:max-w-lg gold-gradient text-[#171821]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -249,7 +255,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
 
         <DialogFooter className="mt-6">
           <Button variant="ghost" onClick={onClose} disabled={loading}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading || !type}>{loading ? 'Saving...' : 'Save'}</Button>
+          <Button variant="contrast" onClick={handleSubmit} disabled={loading || !type}>{loading ? 'Saving...' : 'Save'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
