@@ -42,6 +42,25 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
   }, []);
 
   useEffect(() => {
+    const fetchMapbox = async (q: string, types: "place,region" | "poi") => {
+      const { data: tokenResp, error: tokenErr } = await supabase.functions.invoke("get-mapbox-token");
+      if (tokenErr) throw tokenErr;
+      const token = tokenResp?.token;
+      if (!token) throw new Error("No Mapbox token");
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?types=${types}&limit=8&access_token=${token}`;
+      const resp = await fetch(url);
+      const json = await resp.json();
+      const items: PlaceResult[] = (json.features || []).map((f: any) => ({
+        id: f.id,
+        name: f.text || f.place_name,
+        lat: f.center?.[1],
+        lng: f.center?.[0],
+        address: f.place_name,
+        source: "mapbox",
+      }));
+      return items;
+    };
+
     const fetchResults = async () => {
       if (!query || query.trim().length < 2) {
         setResults([]);
@@ -51,10 +70,10 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       try {
         if (mode === "restaurant") {
           const { data, error } = await supabase.functions.invoke("search-yelp-businesses", {
-            body: { term: query, location: undefined },
+            body: { term: query },
           });
           if (error) throw error;
-          const items: PlaceResult[] = (data?.businesses || []).map((b: any) => ({
+          let items: PlaceResult[] = (data?.businesses || []).map((b: any) => ({
             id: b.id,
             name: b.name,
             lat: b.coordinates?.latitude,
@@ -63,26 +82,15 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
             source: "yelp",
             url: b.url,
           }));
+
+          // Fallback to Mapbox POI if Yelp yields no results
+          if (!items.length) {
+            items = await fetchMapbox(query, "poi");
+          }
           setResults(items);
         } else {
-          // Mapbox search
-          const { data: tokenResp, error: tokenErr } = await supabase.functions.invoke("get-mapbox-token");
-          if (tokenErr) throw tokenErr;
-          const token = tokenResp?.token;
-          if (!token) throw new Error("No Mapbox token");
-
           const typesParam = mode === "city" ? "place,region" : "poi";
-          const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?types=${typesParam}&limit=8&access_token=${token}`;
-          const resp = await fetch(url);
-          const json = await resp.json();
-          const items: PlaceResult[] = (json.features || []).map((f: any) => ({
-            id: f.id,
-            name: f.text || f.place_name,
-            lat: f.center?.[1],
-            lng: f.center?.[0],
-            address: f.place_name,
-            source: "mapbox",
-          }));
+          const items = await fetchMapbox(query, typesParam);
           setResults(items);
         }
       } catch (e) {
