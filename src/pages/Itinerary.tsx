@@ -49,7 +49,6 @@ const Itinerary = () => {
         onActivityClick={openActivityBrowser}
         onReservationClick={openReservationBrowser}
         refreshMapData={refreshMapData}
-        syncMapLocations={syncMapLocations}
       />
 
       <ItineraryBrowsers

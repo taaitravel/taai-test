@@ -17,11 +17,6 @@ interface ItineraryContentProps {
   onActivityClick: (index: number) => void;
   onReservationClick: (index: number) => void;
   refreshMapData?: () => void;
-  syncMapLocations?: () => void;
-  onAddFlight?: () => void;
-  onAddHotel?: () => void;
-  onAddActivity?: () => void;
-  onAddReservation?: () => void;
 }
 
 export const ItineraryContent = ({
@@ -32,11 +27,6 @@ export const ItineraryContent = ({
   onActivityClick,
   onReservationClick,
   refreshMapData,
-  syncMapLocations,
-  onAddFlight,
-  onAddHotel,
-  onAddActivity,
-  onAddReservation,
 }: ItineraryContentProps) => {
   const duration = Math.ceil(
     (new Date(itineraryData.itin_date_end).getTime() - 
@@ -45,6 +35,26 @@ export const ItineraryContent = ({
   const destinations = itineraryData.itin_locations || [];
   const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
 
+  // Local add modal state and handlers
+  const [addOpen, setAddOpen] = useState(false);
+  const [addType, setAddType] = useState<ItemType | null>(null);
+
+  const openAdd = (type: ItemType) => {
+    setAddType(type);
+    setAddOpen(true);
+  };
+
+  const handleAddSubmit = async (type: ItemType, item: any) => {
+    const current = (itineraryData as any)[type] || [];
+    const newArray = [...current, item];
+    await supabase
+      .from('itinerary')
+      .update({ [type]: newArray })
+      .eq('id', itineraryData.id);
+    setAddOpen(false);
+    // Ask parent hook to refetch
+    refreshMapData?.();
+  };
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <ItineraryInfoHeader itineraryData={itineraryData} />
@@ -62,7 +72,6 @@ export const ItineraryContent = ({
         <ItineraryMapSection
           mapLocations={itineraryData.itin_map_locations || []}
           locationNames={itineraryData.itin_locations || []}
-          onSyncLocations={syncMapLocations}
         />
       </div>
 
@@ -73,10 +82,10 @@ export const ItineraryContent = ({
         onHotelClick={onHotelClick}
         onActivityClick={onActivityClick}
         onReservationClick={onReservationClick}
-        onAddFlight={onAddFlight}
-        onAddHotel={onAddHotel}
-        onAddActivity={onAddActivity}
-        onAddReservation={onAddReservation}
+        onAddFlight={() => openAdd('flights')}
+        onAddHotel={() => openAdd('hotels')}
+        onAddActivity={() => openAdd('activities')}
+        onAddReservation={() => openAdd('reservations')}
       />
 
       {/* Essential Metrics & Daily Schedule */}
@@ -91,6 +100,16 @@ export const ItineraryContent = ({
           refreshTrigger={budgetRefreshTrigger} 
         />
       </div>
+
+      {/* Add Item Dialog */}
+      <AddItemDialog
+        open={addOpen}
+        type={addType}
+        onClose={() => setAddOpen(false)}
+        onSubmit={handleAddSubmit}
+        defaultCity={destinations[0] || ''}
+        suggestions={{ cities: destinations }}
+      />
     </div>
   );
 };

@@ -1,7 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Map from "@/components/Map";
-import { RefreshCw } from "lucide-react";
 
 interface MapLocation {
   city: string;
@@ -12,10 +10,8 @@ interface MapLocation {
 interface ItineraryMapSectionProps {
   mapLocations: MapLocation[];
   locationNames: string[];
-  onSyncLocations?: () => void;
 }
-
-export const ItineraryMapSection = ({ mapLocations, locationNames, onSyncLocations }: ItineraryMapSectionProps) => {
+export const ItineraryMapSection = ({ mapLocations, locationNames }: ItineraryMapSectionProps) => {
   // Debug information
   console.log('ItineraryMapSection render:', {
     mapLocationsCount: mapLocations.length,
@@ -34,17 +30,6 @@ export const ItineraryMapSection = ({ mapLocations, locationNames, onSyncLocatio
                 Explore your destinations and discover nearby attractions
               </CardDescription>
             </div>
-            {onSyncLocations && (
-              <Button
-                onClick={onSyncLocations}
-                variant="outline"
-                size="sm"
-                className="border-white/20 text-white/70 hover:text-white"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Sync Locations
-              </Button>
-            )}
           </div>
         </CardHeader>
         <CardContent>

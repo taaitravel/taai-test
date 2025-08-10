@@ -61,45 +61,7 @@ export const useItineraryData = (itineraryId: string | null) => {
     };
 
     fetchItinerary();
-
-    // Realtime updates for this itinerary
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'itinerary', filter: itineraryId ? `id=eq.${parseInt(itineraryId)}` : undefined },
-        () => setMapRefreshTrigger((prev) => prev + 1)
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [itineraryId, toast, refreshBudgetData]);
-
-  // Refetch when mapRefreshTrigger changes
-  useEffect(() => {
-    const refetch = async () => {
-      try {
-        let query = supabase.from('itinerary').select('*');
-        if (itineraryId) query = query.eq('id', parseInt(itineraryId));
-        const { data, error } = await query.single();
-        if (error) return;
-        const transformedData: ItineraryData = {
-          ...data,
-          itin_locations: data.itin_locations as string[],
-          itin_map_locations: data.itin_map_locations as Array<{ city: string; lat: number; lng: number }>,
-          attendees: data.attendees as Array<{ id: number; name: string; email: string; avatar: string; status: string }>,
-          flights: data.flights as Array<{ airline: string; flight_number: string; departure: string; arrival: string; from: string; to: string; cost: number }>,
-          hotels: data.hotels as Array<{ name: string; city: string; check_in: string; check_out: string; nights: number; cost: number; rating: number }>,
-          activities: data.activities as Array<{ name: string; city: string; date: string; cost: number; duration: string }>,
-          reservations: data.reservations as Array<{ type: string; name: string; city: string; date: string; time: string; party_size: number }>,
-        };
-        setItineraryData(transformedData);
-      } catch {}
-    };
-    if (!loading) refetch();
-  }, [mapRefreshTrigger]);
+  }, [itineraryId, toast, mapRefreshTrigger]);
 
   return {
     itineraryData,
