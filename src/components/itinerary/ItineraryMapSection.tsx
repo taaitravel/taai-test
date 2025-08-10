@@ -5,6 +5,7 @@ interface MapLocation {
   city: string;
   lat: number;
   lng: number;
+  category?: 'hotel' | 'activity' | 'reservation' | 'destination';
 }
 
 interface ItineraryMapSectionProps {

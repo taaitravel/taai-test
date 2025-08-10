@@ -10,6 +10,7 @@ interface MapLocation {
   city: string;
   lat: number;
   lng: number;
+  category?: 'hotel' | 'activity' | 'reservation' | 'destination';
 }
 
 interface MapProps {
@@ -23,10 +24,24 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { coords } = useCityGeocodes(locationNames || []);
-  const resolvedLocations: MapLocation[] = (locations && locations.length > 0)
-    ? locations
-    : coords.map(c => ({ city: c.name, lat: c.lat, lng: c.lng }));
+const { coords } = useCityGeocodes(locationNames || []);
+const resolvedLocations: MapLocation[] = (locations && locations.length > 0)
+  ? locations
+  : coords.map(c => ({ city: c.name, lat: c.lat, lng: c.lng }));
+
+// Marker color resolver using semantic tokens
+const getMarkerColor = (category?: string) => {
+  switch (category) {
+    case 'activity':
+      return 'hsl(var(--marker-activity))';
+    case 'hotel':
+      return 'hsl(var(--marker-hotel))';
+    case 'reservation':
+      return 'hsl(var(--marker-reservation))';
+    default:
+      return 'hsl(var(--primary))';
+  }
+};
 
   useEffect(() => {
     console.log('🗺️ Map useEffect triggered');
@@ -139,16 +154,27 @@ const Map = ({ locations = [], locationNames = [] }: MapProps) => {
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
 
-      const bounds = new mapboxgl.LngLatBounds();
-      resolvedLocations.forEach((location) => {
-        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>${location.city}</strong>`);
-        const marker = new mapboxgl.Marker()
-          .setLngLat([location.lng, location.lat])
-          .setPopup(popup)
-          .addTo(map.current!);
-        markersRef.current.push(marker);
-        bounds.extend([location.lng, location.lat]);
-      });
+const bounds = new mapboxgl.LngLatBounds();
+resolvedLocations.forEach((location) => {
+  const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>${location.city}</strong>`);
+
+  // Custom marker element with category-based styling
+  const el = document.createElement('div');
+  el.style.width = '14px';
+  el.style.height = '14px';
+  el.style.borderRadius = '50%';
+  el.style.backgroundColor = getMarkerColor(location.category);
+  el.style.border = '2px solid rgba(0,0,0,0.5)';
+  el.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.2)';
+
+  const marker = new mapboxgl.Marker({ element: el })
+    .setLngLat([location.lng, location.lat])
+    .setPopup(popup)
+    .addTo(map.current!);
+
+  markersRef.current.push(marker);
+  bounds.extend([location.lng, location.lat]);
+});
 
       if (resolvedLocations.length > 1) {
         map.current.fitBounds(bounds, { padding: 40, duration: 800 });

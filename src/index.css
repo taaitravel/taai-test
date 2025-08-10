@@ -48,6 +48,12 @@
     --sidebar-accent-foreground: 351 85% 75%;
     --sidebar-border: 45 42 35;
     --sidebar-ring: 351 85% 75%;
+
+    /* Map marker semantic tokens */
+    --marker-activity: 36 100% 76%; /* #ffce87 */
+    --marker-hotel: 348 100% 76%;    /* #ff849c */
+    --marker-reservation: 0 0% 100%; /* #ffffff */
+    --marker-outline: 0 0% 0%;
   }
 
   .dark {
@@ -90,6 +96,12 @@
     --sidebar-accent-foreground: 351 85% 75%;
     --sidebar-border: 45 42 35;
     --sidebar-ring: 351 85% 75%;
+
+    /* Map marker semantic tokens */
+    --marker-activity: 36 100% 76%; /* #ffce87 */
+    --marker-hotel: 348 100% 76%;    /* #ff849c */
+    --marker-reservation: 0 0% 100%; /* #ffffff */
+    --marker-outline: 0 0% 0%;
   }
 }
 
