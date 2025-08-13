@@ -36,32 +36,8 @@ export const ItineraryContent = ({
   );
   const destinations = itineraryData.itin_locations || [];
   const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
-  // Build map search queries from itinerary data (hotels, reservations, activities)
-  const normalize = (s?: string) => (typeof s === 'string' ? s.trim() : '').replace(/\s+/g, ' ').trim();
-  const isOther = (s?: string) => normalize(s).toLowerCase() === 'other';
-  const q = (...parts: (string | undefined)[]) => normalize(parts.filter(Boolean).join(', '));
-
-  const hotelQueries = (itineraryData.hotels || []).map((h: any) => {
-    if (isOther(h?.name) || isOther(h?.city) || isOther(h?.address)) return '';
-    return q(h?.address, h?.name, h?.city);
-  });
-  const activityQueries = (itineraryData.activities || []).map((a: any) => {
-    if (isOther(a?.name) || isOther(a?.city) || isOther(a?.address)) return '';
-    return q(a?.address, a?.name, a?.city);
-  });
-  const reservationQueries = (itineraryData.reservations || []).map((r: any) => {
-    if (isOther(r?.type) || isOther(r?.name) || isOther(r?.city) || isOther(r?.address)) return '';
-    return q(r?.address, r?.name, r?.city);
-  });
-
-  const derivedLocationNames = Array.from(
-    new Set([
-      ...destinations,
-      ...hotelQueries,
-      ...activityQueries,
-      ...reservationQueries,
-    ].filter((v) => !!v && !isOther(v)))
-  );
+  // Use only stored itinerary destination names for map geocoding (no assumptions)
+  const derivedLocationNames = destinations;
 
   // Local add modal state and handlers
   const [addOpen, setAddOpen] = useState(false);
@@ -76,40 +52,17 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
   const current = (itineraryData as any)[type] || [];
   const newArray = [...current, item];
 
-  // Attempt to geocode and persist a new map location for hotels/activities/reservations
+  // Update map locations only if the user selected a precise location with coordinates
   const currentMap = Array.isArray(itineraryData.itin_map_locations) ? (itineraryData.itin_map_locations as any[]) : [];
   let updatedMap: any[] = currentMap;
 
-  const toQuery = ((): { label: string; query: string; category?: string } | null => {
-    const normalize = (s?: string) => (typeof s === 'string' ? s.trim() : '').replace(/\s+/g, ' ').trim();
-    const q = (...parts: (string | undefined)[]) => normalize(parts.filter(Boolean).join(', '));
-    if (type === 'hotels') {
-      return { label: normalize(item?.name) || normalize(item?.city), query: q(item?.address, item?.name, item?.city), category: 'hotel' };
-    }
-    if (type === 'activities') {
-      return { label: normalize(item?.name) || normalize(item?.city), query: q(item?.address, item?.name, item?.city), category: 'activity' };
-    }
-    if (type === 'reservations') {
-      return { label: normalize(item?.name) || normalize(item?.city), query: q(item?.address, item?.name, item?.city), category: 'reservation' };
-    }
-    return null;
-  })();
-
-  if (toQuery && toQuery.label && toQuery.query && !isOther(toQuery.label)) {
-    try {
-      const { data, error } = await supabase.functions.invoke('search-cities', { body: { query: toQuery.query } });
-      if (!error && Array.isArray(data?.locations) && data.locations.length > 0) {
-        const best = data.locations[0];
-        const exists = currentMap.some((m: any) => (m?.city || '').toLowerCase() === toQuery!.label.toLowerCase());
-        if (!exists) {
-          updatedMap = [
-            ...currentMap,
-            { city: toQuery.label, lat: best.lat, lng: best.lng, category: toQuery.category },
-          ];
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to geocode new item, proceeding without map update', e);
+  const loc = item?.location;
+  if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+    const category = type === 'hotels' ? 'hotel' : type === 'activities' ? 'activity' : type === 'reservations' ? 'reservation' : undefined;
+    const label = loc.name || item.city || '';
+    const exists = currentMap.some((m: any) => (m?.lat === loc.lat && m?.lng === loc.lng) || (m?.city || '').toLowerCase() === (label || '').toLowerCase());
+    if (!exists && label) {
+      updatedMap = [...currentMap, { city: label, lat: loc.lat, lng: loc.lng, category }];
     }
   }
 
@@ -164,57 +117,9 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
     refreshMapData?.();
   };
 
-  // Ensure existing hotels/activities/reservations have geocoded map locations persisted
-  useEffect(() => {
-    const run = async () => {
-      try {
-        const existing = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
-        const existingLabels = new Set(existing.map((m: any) => (m?.city || '').toLowerCase()));
+  // Removed auto-geocoding/sync of hotels/activities/reservations to map.
+  // We now rely solely on stored itin_map_locations and explicit user-selected coordinates.
 
-        type Want = { label: string; query: string; category: 'hotel' | 'activity' | 'reservation' };
-        const wants: Want[] = [];
-
-        const pushIfValid = (label?: string, query?: string, category?: Want['category']) => {
-          const L = normalize(label);
-          const Q = normalize(query);
-          if (!L || isOther(L) || !Q) return;
-          if (!existingLabels.has(L.toLowerCase())) wants.push({ label: L, query: Q, category: category! });
-        };
-
-        (itineraryData.hotels || []).forEach((h: any) => pushIfValid(h?.name || h?.city, q(h?.address, h?.name, h?.city), 'hotel'));
-        (itineraryData.activities || []).forEach((a: any) => pushIfValid(a?.name || a?.city, q(a?.address, a?.name, a?.city), 'activity'));
-        (itineraryData.reservations || []).forEach((r: any) => pushIfValid(r?.name || r?.city, q(r?.address, r?.name, r?.city), 'reservation'));
-
-        if (wants.length === 0) return;
-
-        const geocoded = await Promise.all(
-          wants.map(async (w) => {
-            try {
-              const { data, error } = await supabase.functions.invoke('search-cities', { body: { query: w.query } });
-              if (!error && Array.isArray(data?.locations) && data.locations.length > 0) {
-                const best = data.locations[0];
-                return { city: w.label, lat: best.lat, lng: best.lng, category: w.category };
-              }
-            } catch (e) {
-              console.warn('ensureGeocodes error for', w, e);
-            }
-            return undefined;
-          })
-        );
-
-        const additions = geocoded.filter(Boolean) as any[];
-        if (additions.length === 0) return;
-
-        const updated = [...existing, ...additions];
-        await supabase.from('itinerary').update({ itin_map_locations: updated }).eq('id', itineraryData.id);
-        refreshMapData?.();
-      } catch (e) {
-        console.warn('ensureGeocodes run failed', e);
-      }
-    };
-
-    run();
-  }, [itineraryData.id, JSON.stringify(itineraryData.hotels), JSON.stringify(itineraryData.activities), JSON.stringify(itineraryData.reservations)]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
