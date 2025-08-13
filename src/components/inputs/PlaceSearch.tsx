@@ -70,19 +70,14 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
   }, []);
 
   useEffect(() => {
-    const fetchMapbox = async (q: string, types: "place,region" | "poi") => {
+    const fetchMapbox = async (q: string, types: string) => {
       const { data: tokenResp, error: tokenErr } = await supabase.functions.invoke("get-mapbox-token");
       if (tokenErr) throw tokenErr;
       const token = tokenResp?.token;
       if (!token) throw new Error("No Mapbox token");
 
-      // Append city to query when available to bias results, and use proximity when coords provided
-      const effectiveQuery = (() => {
-        if (mode !== "city" && locationBias?.city && !q.toLowerCase().includes(locationBias.city.toLowerCase())) {
-          return `${q}, ${locationBias.city}`;
-        }
-        return q;
-      })();
+      // Use only the user query; bias via proximity when available
+      const effectiveQuery = q;
       const proximity = biasCoords
         ? `&proximity=${biasCoords.lng},${biasCoords.lat}`
         : "";
@@ -134,7 +129,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
           }
           setResults(items);
         } else {
-          const typesParam = mode === "city" ? "place,region" : "poi";
+          const typesParam = mode === "city" ? "place,region" : "poi,place,region";
           const items = await fetchMapbox(query, typesParam);
           setResults(items);
         }
