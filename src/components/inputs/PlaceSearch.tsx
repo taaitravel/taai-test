@@ -32,6 +32,33 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<PlaceResult[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [biasCoords, setBiasCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Resolve city name to coordinates for better provider results
+  useEffect(() => {
+    let active = true;
+    const resolve = async () => {
+      if (locationBias?.lat !== undefined && locationBias?.lng !== undefined) {
+        setBiasCoords({ lat: locationBias.lat, lng: locationBias.lng });
+        return;
+      }
+      if (locationBias?.city) {
+        try {
+          const { data, error } = await supabase.functions.invoke('search-cities', { body: { query: locationBias.city } });
+          if (!error && Array.isArray(data?.locations) && data.locations.length > 0) {
+            const best = data.locations[0];
+            if (active) setBiasCoords({ lat: best.lat, lng: best.lng });
+          }
+        } catch (_e) {
+          // ignore
+        }
+      } else {
+        setBiasCoords(null);
+      }
+    };
+    resolve();
+    return () => { active = false; };
+  }, [locationBias?.city, locationBias?.lat, locationBias?.lng]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -56,8 +83,8 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
         }
         return q;
       })();
-      const proximity = (locationBias?.lat !== undefined && locationBias?.lng !== undefined)
-        ? `&proximity=${locationBias.lng},${locationBias.lat}`
+      const proximity = biasCoords
+        ? `&proximity=${biasCoords.lng},${biasCoords.lat}`
         : "";
 
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(effectiveQuery)}.json?types=${types}&limit=8${proximity}&access_token=${token}`;
@@ -83,9 +110,9 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       try {
         if (mode === "restaurant") {
           const body: any = { term: query };
-          if (locationBias?.lat !== undefined && locationBias?.lng !== undefined) {
-            body.latitude = locationBias.lat;
-            body.longitude = locationBias.lng;
+          if (biasCoords) {
+            body.latitude = biasCoords.lat;
+            body.longitude = biasCoords.lng;
           } else if (locationBias?.city) {
             body.location = locationBias.city;
           }
@@ -121,7 +148,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
 
     const t = setTimeout(fetchResults, 300);
     return () => clearTimeout(t);
-  }, [query, mode, JSON.stringify(locationBias)]);
+  }, [query, mode, JSON.stringify(locationBias), JSON.stringify(biasCoords)]);
 
   return (
     <div ref={containerRef} className="relative">
