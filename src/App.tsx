@@ -19,6 +19,7 @@ import EditItinerary from "./pages/EditItinerary";
 import WhatWeDo from "./pages/WhatWeDo";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import AdminRoles from "./pages/AdminRoles";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,11 @@ const App = () => (
             } />
             <Route path="/what-we-do" element={<WhatWeDo />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/admin/roles" element={
+              <ProtectedRoute>
+                <AdminRoles />
+              </ProtectedRoute>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
