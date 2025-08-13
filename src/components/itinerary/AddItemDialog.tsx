@@ -48,7 +48,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           setForm({ airline: '', flight_number: '', departure: '', arrival: '', from: baseCity, to: baseCity, cost: '' });
           break;
         case 'hotels':
-          setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost: '', rating: 4, link_url: '', location: null });
+setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost: '', rating: 4, link_url: '', location: null });
           break;
         case 'activities':
           setForm({ name: '', city: baseCity, date: '', cost: '', duration: '', link_url: '', location: null });
@@ -95,19 +95,19 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
       if ((f === 'cost' || f === 'party_size' || f === 'nights' || f === 'rating') && Number(v) < 0) nextErrors[f] = 'Must be >= 0';
     });
 
-    if (type === 'hotels') {
-      if (!form.name) nextErrors.name = 'Hotel name is required';
-      if (!form.check_in) nextErrors.check_in = 'Check-in is required';
-      if (!form.check_out) nextErrors.check_out = 'Check-out is required';
-      if (form.check_in && form.check_out) {
-        const start = new Date(form.check_in);
-        const end = new Date(form.check_out);
-        if (end < start) nextErrors.check_out = 'Check-out must be after check-in';
-        const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-        if (nights < 1) nextErrors.nights = 'Minimum 1 night';
-      }
-      if (!form.location) nextErrors.location = 'Select a location';
-    }
+if (type === 'hotels') {
+  if (!form.name) nextErrors.name = 'Hotel name is required';
+  if (!form.check_in) nextErrors.check_in = 'Check-in is required';
+  if (!form.check_out) nextErrors.check_out = 'Check-out is required';
+  if (form.check_in && form.check_out) {
+    const start = new Date(form.check_in);
+    const end = new Date(form.check_out);
+    if (end <= start) nextErrors.check_out = 'Check-out must be after check-in';
+    const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    if (nights < 1) nextErrors.check_out = 'Minimum 1 night';
+  }
+  if (!form.location) nextErrors.location = 'Select a location';
+}
 
     if (type === 'reservations') {
       if (!form.name) nextErrors.name = 'Reservation name is required';
@@ -143,7 +143,18 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
         item.city = item.city || item.location.name;
       }
 
-      await onSubmit(type, item);
+await onSubmit(type, (() => {
+  const item = { ...form };
+  if (type === 'hotels') {
+    const start = form.check_in ? new Date(form.check_in) : null;
+    const end = form.check_out ? new Date(form.check_out) : null;
+    const nights = start && end ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+    const perNight = Number(item.cost || 0);
+    item.nights = nights;
+    item.cost = perNight * Math.max(nights, 0);
+  }
+  return item;
+})());
       onClose();
     } finally {
       setLoading(false);
@@ -204,29 +215,24 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
               <PlaceSearch id="hotel-location" label="Location" placeholder="Search hotel or area" mode="poi" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
               {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
-            <div>
-              <Label htmlFor="check_in">Check-in</Label>
-              <Input id="check_in" type="date" value={form.check_in || ''} onChange={(e) => handleChange('check_in', e.target.value)} className={inputClass} />
-              {errors.check_in && <p className="text-sm text-red-600 mt-1">{errors.check_in}</p>}
-            </div>
-            <div>
-              <Label htmlFor="check_out">Check-out</Label>
-              <Input id="check_out" type="date" value={form.check_out || ''} onChange={(e) => handleChange('check_out', e.target.value)} className={inputClass} />
-              {errors.check_out && <p className="text-sm text-red-600 mt-1">{errors.check_out}</p>}
-            </div>
-            <div>
-              <Label htmlFor="nights">Nights</Label>
-              <Input id="nights" type="number" min="1" value={form.nights || 1} onChange={(e) => handleChange('nights', e.target.value)} className={inputClass} />
-              {errors.nights && <p className="text-sm text-red-600 mt-1">{errors.nights}</p>}
-            </div>
+<div>
+  <Label htmlFor="check_in">Check-in</Label>
+  <Input id="check_in" type="date" value={form.check_in || ''} onChange={(e) => { const v = e.target.value; handleChange('check_in', v); if (form.check_out) { const s = new Date(v); const eDate = new Date(form.check_out); const n = Math.ceil((eDate.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)); setForm((prev:any)=>({ ...prev, nights: Math.max(n, 0) })); } }} className={inputClass} />
+  {errors.check_in && <p className="text-sm text-red-600 mt-1">{errors.check_in}</p>}
+</div>
+<div>
+  <Label htmlFor="check_out">Check-out</Label>
+  <Input id="check_out" type="date" value={form.check_out || ''} onChange={(e) => { const v = e.target.value; handleChange('check_out', v); if (form.check_in) { const s = new Date(form.check_in); const eDate = new Date(v); const n = Math.ceil((eDate.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)); setForm((prev:any)=>({ ...prev, nights: Math.max(n, 0) })); } }} className={inputClass} />
+  {errors.check_out && <p className="text-sm text-red-600 mt-1">{errors.check_out}</p>}
+</div>
             <div>
               <Label htmlFor="rating">Rating</Label>
               <Input id="rating" type="number" min="1" max="5" value={form.rating || 4} onChange={(e) => handleChange('rating', e.target.value)} className={inputClass} />
             </div>
-            <div>
-              <Label htmlFor="cost">Cost (USD)</Label>
-              <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
-            </div>
+<div>
+  <Label htmlFor="cost">Cost per night (USD)</Label>
+  <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
+</div>
             <div className="sm:col-span-2">
               <Label htmlFor="link_url">Hotel link (optional)</Label>
               <Input id="link_url" placeholder="https://..." value={form.link_url || ''} onChange={(e) => handleChange('link_url', e.target.value)} className={inputClass} />

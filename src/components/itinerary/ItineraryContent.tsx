@@ -166,15 +166,21 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
 
       {/* Essential Metrics & Daily Schedule */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <DailyScheduleSection
-          startDate={itineraryData.itin_date_start}
-          duration={duration}
-          destinations={destinations}
-          flights={itineraryData.flights || []}
-          hotels={itineraryData.hotels || []}
-          activities={itineraryData.activities || []}
-          reservations={itineraryData.reservations || []}
-        />
+<DailyScheduleSection
+  startDate={itineraryData.itin_date_start}
+  duration={duration}
+  destinations={destinations}
+  flights={itineraryData.flights || []}
+  hotels={itineraryData.hotels || []}
+  activities={itineraryData.activities || []}
+  reservations={itineraryData.reservations || []}
+  onViewItem={(type, index) => {
+    if (type === 'flights') return onFlightClick(index);
+    if (type === 'hotels') return onHotelClick(index);
+    if (type === 'activities') return onActivityClick(index);
+    if (type === 'reservations') return onReservationClick(index);
+  }}
+/>
         <ItinerarySidebar 
           itineraryData={itineraryData} 
           refreshTrigger={budgetRefreshTrigger} 
