@@ -201,7 +201,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
               {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
             <div className="sm:col-span-2">
-              <PlaceSearch id="hotel-location" label="Location" placeholder="Search hotel or area" mode="poi" onSelect={setSelectedLocation} />
+              <PlaceSearch id="hotel-location" label="Location" placeholder="Search hotel or area" mode="poi" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
               {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
             <div>
@@ -242,7 +242,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
               {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
             <div className="sm:col-span-2">
-              <PlaceSearch id="activity-location" label="Location or city" placeholder="Search a place or city" mode="poi" onSelect={setSelectedLocation} />
+              <PlaceSearch id="activity-location" label="Location or city" placeholder="Search a place or city" mode="poi" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
               {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
             <div>
@@ -287,7 +287,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
               {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type}</p>}
             </div>
             <div className="sm:col-span-2">
-              <PlaceSearch id="reservation-location" label="Location" placeholder="Search venue or restaurant" mode={form.type === 'restaurant' ? 'restaurant' : 'poi'} onSelect={setSelectedLocation} />
+              <PlaceSearch id="reservation-location" label="Location" placeholder="Search venue or restaurant" mode={form.type === 'restaurant' ? 'restaurant' : 'poi'} onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
               {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
             <div>

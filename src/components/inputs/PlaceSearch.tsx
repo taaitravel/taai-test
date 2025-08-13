@@ -21,11 +21,12 @@ interface PlaceSearchProps {
   mode: "city" | "poi" | "restaurant";
   defaultQuery?: string;
   onSelect: (place: PlaceResult) => void;
+  locationBias?: { city?: string; lat?: number; lng?: number };
 }
 
 const dropdownBase = "absolute z-20 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-background text-foreground shadow-md";
 
-export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder, mode, defaultQuery = "", onSelect }) => {
+export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder, mode, defaultQuery = "", onSelect, locationBias }) => {
   const [query, setQuery] = useState(defaultQuery);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,7 +48,19 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       if (tokenErr) throw tokenErr;
       const token = tokenResp?.token;
       if (!token) throw new Error("No Mapbox token");
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?types=${types}&limit=8&access_token=${token}`;
+
+      // Append city to query when available to bias results, and use proximity when coords provided
+      const effectiveQuery = (() => {
+        if (mode !== "city" && locationBias?.city && !q.toLowerCase().includes(locationBias.city.toLowerCase())) {
+          return `${q}, ${locationBias.city}`;
+        }
+        return q;
+      })();
+      const proximity = (locationBias?.lat !== undefined && locationBias?.lng !== undefined)
+        ? `&proximity=${locationBias.lng},${locationBias.lat}`
+        : "";
+
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(effectiveQuery)}.json?types=${types}&limit=8${proximity}&access_token=${token}`;
       const resp = await fetch(url);
       const json = await resp.json();
       const items: PlaceResult[] = (json.features || []).map((f: any) => ({
@@ -69,9 +82,14 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       setLoading(true);
       try {
         if (mode === "restaurant") {
-          const { data, error } = await supabase.functions.invoke("search-yelp-businesses", {
-            body: { term: query },
-          });
+          const body: any = { term: query };
+          if (locationBias?.lat !== undefined && locationBias?.lng !== undefined) {
+            body.latitude = locationBias.lat;
+            body.longitude = locationBias.lng;
+          } else if (locationBias?.city) {
+            body.location = locationBias.city;
+          }
+          const { data, error } = await supabase.functions.invoke("search-yelp-businesses", { body });
           if (error) throw error;
           let items: PlaceResult[] = (data?.businesses || []).map((b: any) => ({
             id: b.id,
@@ -103,7 +121,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
 
     const t = setTimeout(fetchResults, 300);
     return () => clearTimeout(t);
-  }, [query, mode]);
+  }, [query, mode, JSON.stringify(locationBias)]);
 
   return (
     <div ref={containerRef} className="relative">
