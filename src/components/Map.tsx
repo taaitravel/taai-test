@@ -242,8 +242,8 @@ const getHoverColor = (category?: string) => {
   // Show error state
   if (error) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-[#171821] rounded-lg border border-white/30">
-        <div className="text-center text-white/70">
+      <div className="w-full h-full flex items-center justify-center bg-background/80 rounded-lg border border-border">
+        <div className="text-center text-muted-foreground">
           <p className="text-sm">{error}</p>
           <p className="text-xs mt-2">Please check your connection and try again</p>
         </div>
@@ -251,17 +251,33 @@ const getHoverColor = (category?: string) => {
     );
   }
 
+  // Show location validation errors
+  const invalidLocations = locations.filter(loc => 
+    !loc.lat || !loc.lng || 
+    loc.lat < -90 || loc.lat > 90 || 
+    loc.lng < -180 || loc.lng > 180
+  );
+
+  if (invalidLocations.length > 0) {
+    console.warn('🚨 Invalid coordinates detected:', invalidLocations);
+  }
+
   // Show loading state
   if (!mapboxToken || !mapLoaded) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-[#171821] rounded-lg border border-white/30">
-        <div className="text-center text-white/70">
+      <div className="w-full h-full flex items-center justify-center bg-background/80 rounded-lg border border-border">
+        <div className="text-center text-muted-foreground">
           <div className="animate-pulse mb-2">
             <div className="w-8 h-8 mx-auto rounded-full border-2 border-primary/30 border-t-primary animate-spin"></div>
           </div>
           <p className="text-sm">
             {!mapboxToken ? 'Loading map...' : 'Initializing map...'}
           </p>
+          {locations.length > 0 && (
+            <p className="text-xs mt-2">
+              Found {locations.length} locations to display
+            </p>
+          )}
         </div>
       </div>
     );
