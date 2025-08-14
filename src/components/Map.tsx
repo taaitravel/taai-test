@@ -115,6 +115,7 @@ const getMarkerColor = (category?: string) => {
 
         map.current.on('load', () => {
           console.log('🎉 Map loaded successfully!');
+          setIsLoading(false);
         });
 
         map.current.on('error', (e) => {

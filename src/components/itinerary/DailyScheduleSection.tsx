@@ -46,7 +46,7 @@ export const DailyScheduleSection = ({
 
 type EventItem = {
   type: 'flight' | 'hotel-checkin' | 'hotel-checkout' | 'activity' | 'reservation';
-  group: 'flights' | 'hotels' | 'activities' | 'reservations';
+  group: string;
   index: number; // index within its group array
   title: string;
   subtitle?: string;
@@ -150,7 +150,7 @@ const reservationEvents: EventItem[] = (reservations || []).map((r: any, idx: nu
     {onViewItem && (
       <button
         aria-label="View details"
-        onClick={() => onViewItem(e.group, e.index)}
+        onClick={() => onViewItem(e.group as 'flights' | 'hotels' | 'activities' | 'reservations', e.index)}
         className="w-6 h-6 rounded-full border border-white/30 text-white/70 hover:bg-white/10 flex items-center justify-center"
       >
         •

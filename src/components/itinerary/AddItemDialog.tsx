@@ -141,6 +141,7 @@ if (type === 'hotels') {
       // If a location has been chosen, ensure city is set for backward compatibility
       if (item.location && item.location.name) {
         item.city = item.city || item.location.name;
+        item.location = item.location.name; // Store location as string for database
       }
 
 await onSubmit(type, (() => {
