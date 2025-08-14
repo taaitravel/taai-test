@@ -147,15 +147,27 @@ const reservationEvents: EventItem[] = (reservations || []).map((r: any, idx: nu
         {e.datetime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
       </span>
     )}
-    {onViewItem && (
-      <button
-        aria-label="View details"
-        onClick={() => onViewItem(e.group as 'flights' | 'hotels' | 'activities' | 'reservations', e.index)}
-        className="w-6 h-6 rounded-full border border-white/30 text-white/70 hover:bg-white/10 flex items-center justify-center"
-      >
-        •
-      </button>
-    )}
+                    {onViewItem && (
+                      <button
+                        aria-label="View details"
+                        onClick={() => onViewItem(e.group as 'flights' | 'hotels' | 'activities' | 'reservations', e.index)}
+                        className="w-6 h-6 rounded-full border border-white/30 hover:border-white/50 transition-colors duration-200"
+                        style={{
+                          backgroundColor: 'transparent',
+                          '--hover-bg': e.type === 'flight' ? 'hsl(351, 85%, 75%)' : 
+                                       e.type.includes('hotel') ? 'hsl(15, 80%, 70%)' : 
+                                       e.type === 'activity' ? 'hsl(25, 75%, 65%)' : 
+                                       'hsl(200, 70%, 70%)'
+                        } as React.CSSProperties}
+                        onMouseEnter={(elem) => {
+                          elem.currentTarget.style.backgroundColor = (elem.currentTarget.style as any)['--hover-bg'];
+                        }}
+                        onMouseLeave={(elem) => {
+                          elem.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                      </button>
+                    )}
   </div>
 </div>
 {e.subtitle && <div className="text-xs text-white/70 mt-1">{e.subtitle}</div>}
