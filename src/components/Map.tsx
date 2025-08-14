@@ -120,7 +120,7 @@ const getHoverColor = (category?: string) => {
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v10',
+        style: 'mapbox://styles/mapbox/dark-v11',
         projection: 'mercator',
         zoom: mapZoom,
         center: mapCenter,
