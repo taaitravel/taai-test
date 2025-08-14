@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Map } from "@/components/Map";
+import { MapTest } from "@/components/MapTest";
 
 interface MapLocation {
   city: string;
@@ -13,10 +14,9 @@ interface ItineraryMapSectionProps {
 }
 
 export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) => {
-  console.log('ItineraryMapSection render:', {
-    mapLocationsCount: mapLocations.length,
-    mapLocations
-  });
+  console.log('🧭 ItineraryMapSection render - mapLocations received:', mapLocations);
+  console.log('🧭 MapLocations count:', mapLocations.length);
+  console.log('🧭 MapLocations structure:', JSON.stringify(mapLocations, null, 2));
 
   return (
     <div className="lg:col-span-2">
@@ -31,9 +31,14 @@ export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) 
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="h-[300px] rounded-lg overflow-hidden">
             <Map locations={mapLocations} />
+          </div>
+          
+          {/* Test component to verify map works */}
+          <div className="border-t border-white/20 pt-4">
+            <MapTest />
           </div>
         </CardContent>
       </Card>

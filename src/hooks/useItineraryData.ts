@@ -46,6 +46,10 @@ export const useItineraryData = (itineraryId: string | null) => {
           reservations: data.reservations as Array<{ type: string; name: string; city: string; date: string; time: string; party_size: number }>,
         };
 
+        console.log('📊 useItineraryData - Raw data from DB:', data);
+        console.log('📊 useItineraryData - Transformed itin_map_locations:', transformedData.itin_map_locations);
+        console.log('📊 useItineraryData - Map locations count:', transformedData.itin_map_locations?.length || 0);
+
         setItineraryData(transformedData);
         refreshBudgetData();
       } catch (error) {
