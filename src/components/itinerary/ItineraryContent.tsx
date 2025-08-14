@@ -143,7 +143,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
               placeholder="Add destination city"
               value={newDest}
               onChange={(e) => setNewDest(e.target.value)}
-              className="max-w-xs"
+              className="max-w-xs bg-card/50 border-border/30 text-foreground placeholder:text-muted-foreground/60 focus:bg-card focus:border-border"
             />
             <Button onClick={handleAddDestination}>Add Destination</Button>
           </div>
