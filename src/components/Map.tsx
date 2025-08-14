@@ -120,7 +120,7 @@ const getHoverColor = (category?: string) => {
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: 'mapbox://styles/mapbox/light-v11',
         projection: 'mercator',
         zoom: mapZoom,
         center: mapCenter,
@@ -267,9 +267,6 @@ const getHoverColor = (category?: string) => {
     return (
       <div className="w-full h-full flex items-center justify-center bg-background/80 rounded-lg border border-border">
         <div className="text-center text-muted-foreground">
-          <div className="animate-pulse mb-2">
-            <div className="w-8 h-8 mx-auto rounded-full border-2 border-primary/30 border-t-primary animate-spin"></div>
-          </div>
           <p className="text-sm">
             {!mapboxToken ? 'Loading map...' : 'Initializing map...'}
           </p>
