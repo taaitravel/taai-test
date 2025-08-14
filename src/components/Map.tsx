@@ -264,7 +264,7 @@ const getHoverColor = (category?: string) => {
   // Show loading state
   if (!mapboxToken || !mapLoaded) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-background/80 rounded-lg border border-border">
+        <div className="w-full h-full flex items-center justify-center bg-white/90 rounded-lg border border-gray-200">
         <div className="text-center text-muted-foreground">
           <p className="text-sm">
             {!mapboxToken ? 'Loading map...' : 'Initializing map...'}
