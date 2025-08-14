@@ -22,12 +22,10 @@ const Map = ({ locations = [] }: MapProps) => {
   const [error, setError] = useState<string | null>(null);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
 
-  // Debug logging
-  console.log('🗺️ Map component render - locations received:', locations);
-  console.log('🗺️ Locations count:', locations.length);
-  console.log('🗺️ Map container ref:', mapContainer.current);
-  console.log('🗺️ Map loaded state:', mapLoaded);
-  console.log('🗺️ Mapbox token loaded:', !!mapboxToken);
+  // Simple validation
+  if (locations.some(loc => !loc.lat || !loc.lng)) {
+    console.warn('Invalid coordinates detected in locations');
+  }
 
 const getCategoryColor = (category?: string) => {
   // Using budget overview colors from BudgetPieChart
@@ -63,26 +61,17 @@ const getHoverColor = (category?: string) => {
 
   // Fetch Mapbox token
   useEffect(() => {
-    console.log('🔑 Starting token fetch...');
     const fetchMapboxToken = async () => {
       try {
-        console.log('🔑 Calling get-mapbox-token function...');
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        console.log('🔑 Token response:', { data, error });
         
-        if (error) {
-          console.error('🔑 Token fetch error:', error);
-          throw error;
-        }
+        if (error) throw error;
         if (data?.token) {
-          console.log('🔑 Token received successfully, length:', data.token.length);
           setMapboxToken(data.token);
         } else {
-          console.error('🔑 No token in response:', data);
           throw new Error('No token received');
         }
       } catch (err: any) {
-        console.error('🔑 Failed to fetch Mapbox token:', err);
         setError('Failed to load map: ' + (err?.message || 'Unknown error'));
       }
     };
@@ -92,22 +81,9 @@ const getHoverColor = (category?: string) => {
 
   // Initialize map
   useEffect(() => {
-    console.log('🗺️ Map initialization effect triggered');
-    console.log('🗺️ Container exists:', !!mapContainer.current);
-    console.log('🗺️ Token available:', !!mapboxToken);
-    
-    if (!mapContainer.current) {
-      console.log('🗺️ No container yet, waiting...');
-      return;
-    }
-    
-    if (!mapboxToken) {
-      console.log('🗺️ No token yet, waiting...');
-      return;
-    }
+    if (!mapContainer.current || !mapboxToken) return;
 
     try {
-      console.log('🗺️ Starting map initialization with token...');
       mapboxgl.accessToken = mapboxToken;
       
       const mapCenter: [number, number] = locations.length > 0 
@@ -116,16 +92,13 @@ const getHoverColor = (category?: string) => {
         
       const mapZoom = locations.length > 1 ? 2 : 8;
       
-      console.log('🗺️ Map center:', mapCenter, 'zoom:', mapZoom);
-      
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
         projection: 'mercator',
         zoom: mapZoom,
         center: mapCenter,
       });
-
-      console.log('🗺️ Map instance created:', !!map.current);
 
       // Add navigation controls
       map.current.addControl(
@@ -136,41 +109,26 @@ const getHoverColor = (category?: string) => {
       );
 
       map.current.on('load', () => {
-        console.log('🎉 Map loaded successfully!');
         setMapLoaded(true);
         setError(null);
       });
 
-      map.current.on('error', (e) => {
-        console.error('💥 Map error:', e);
+      map.current.on('error', () => {
         setError('Map failed to load properly');
       });
 
-      console.log('🗺️ Event listeners attached');
-
     } catch (err: any) {
-      console.error('💥 Map initialization error:', err);
       setError('Failed to initialize map: ' + err.message);
     }
 
     return () => {
-      console.log('🧹 Cleaning up map...');
       map.current?.remove();
     };
-  }, [mapboxToken, locations]); // Added locations to dependency array
+  }, [mapboxToken, locations]);
 
   // Add markers to map
   useEffect(() => {
-    console.log('🎯 Markers effect triggered');
-    console.log('🎯 Map loaded:', mapLoaded);
-    console.log('🎯 Locations:', locations);
-    
-    if (!map.current || !mapLoaded || !locations.length) {
-      console.log('🎯 Not ready for markers yet');
-      return;
-    }
-
-    console.log('Adding markers for locations:', locations);
+    if (!map.current || !mapLoaded || !locations.length) return;
 
     // Remove existing markers
     const existingMarkers = document.querySelectorAll('.mapboxgl-marker');
@@ -250,21 +208,11 @@ const getHoverColor = (category?: string) => {
     );
   }
 
-  // Show location validation errors
-  const invalidLocations = locations.filter(loc => 
-    !loc.lat || !loc.lng || 
-    loc.lat < -90 || loc.lat > 90 || 
-    loc.lng < -180 || loc.lng > 180
-  );
-
-  if (invalidLocations.length > 0) {
-    console.warn('🚨 Invalid coordinates detected:', invalidLocations);
-  }
 
   // Show loading state
   if (!mapboxToken || !mapLoaded) {
     return (
-        <div className="w-full h-full flex items-center justify-center bg-white/90 rounded-lg border border-gray-200">
+        <div className="w-full h-full flex items-center justify-center bg-background/80 rounded-lg border border-border">
         <div className="text-center text-muted-foreground">
           <p className="text-sm">
             {!mapboxToken ? 'Loading map...' : 'Initializing map...'}

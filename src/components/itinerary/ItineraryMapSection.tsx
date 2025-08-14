@@ -14,43 +14,40 @@ interface ItineraryMapSectionProps {
 }
 
 export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) => {
-  console.log('🧭 ItineraryMapSection render - mapLocations received:', mapLocations);
-  console.log('🧭 MapLocations count:', mapLocations.length);
-  console.log('🧭 MapLocations structure:', JSON.stringify(mapLocations, null, 2));
+  // Simple validation and deduplication
+  const validLocations = mapLocations.filter(location => 
+    location.lat && location.lng && location.city &&
+    location.lat >= -90 && location.lat <= 90 &&
+    location.lng >= -180 && location.lng <= 180
+  );
 
-  // Clean and deduplicate map locations by coordinates
-  const cleanedLocations = mapLocations.filter((location, index, array) => {
-    // Remove invalid locations
-    if (!location.lat || !location.lng || !location.city) return false;
+  // Simple deduplication: keep specific venues over generic cities
+  const seen = new Set<string>();
+  const cleanedLocations: MapLocation[] = [];
+  
+  validLocations.forEach(location => {
+    const key = `${location.lat.toFixed(3)},${location.lng.toFixed(3)}`;
     
-    // For locations with same coordinates, prioritize specific venues over generic cities
-    const sameCoordLocations = array.filter(l => 
-      Math.abs(l.lat - location.lat) < 0.001 && 
-      Math.abs(l.lng - location.lng) < 0.001
-    );
-    
-    if (sameCoordLocations.length > 1) {
-      // Prioritize locations with categories (hotels, activities, etc.) over generic city names
-      const hasCategory = location.category;
-      const isGenericCity = !location.category && location.city.includes(', ');
+    if (!seen.has(key)) {
+      seen.add(key);
+      cleanedLocations.push(location);
+    } else {
+      // Replace if current is more specific
+      const existingIndex = cleanedLocations.findIndex(l => 
+        `${l.lat.toFixed(3)},${l.lng.toFixed(3)}` === key
+      );
       
-      // If current location has a category, keep it
-      if (hasCategory) return true;
-      
-      // If current location is a generic city but there are categorized locations at same coords, remove it
-      if (isGenericCity && sameCoordLocations.some(l => l.category)) return false;
-      
-      // Otherwise keep first occurrence
-      return array.findIndex(l => 
-        Math.abs(l.lat - location.lat) < 0.001 && 
-        Math.abs(l.lng - location.lng) < 0.001
-      ) === index;
+      if (existingIndex >= 0) {
+        const existing = cleanedLocations[existingIndex];
+        const isCurrentMoreSpecific = location.category || !location.city.includes(', ');
+        const isExistingMoreSpecific = existing.category || !existing.city.includes(', ');
+        
+        if (isCurrentMoreSpecific && !isExistingMoreSpecific) {
+          cleanedLocations[existingIndex] = location;
+        }
+      }
     }
-    
-    return true;
   });
-
-  console.log('🧭 Cleaned locations count:', cleanedLocations.length);
 
   return (
     <div className="lg:col-span-2">
