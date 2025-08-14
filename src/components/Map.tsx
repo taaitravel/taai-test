@@ -271,7 +271,7 @@ const getHoverColor = (category?: string) => {
           </p>
           {locations.length > 0 && (
             <p className="text-xs mt-2">
-              Found {locations.length} locations to display
+              Preparing {locations.length} location{locations.length !== 1 ? 's' : ''} for display
             </p>
           )}
         </div>
