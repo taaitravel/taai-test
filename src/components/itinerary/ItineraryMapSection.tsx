@@ -32,7 +32,7 @@ export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) 
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="h-[300px] rounded-lg overflow-hidden">
+          <div className="h-[550px] md:h-[365px] rounded-lg overflow-hidden">
             <Map locations={mapLocations} />
           </div>
         </CardContent>
