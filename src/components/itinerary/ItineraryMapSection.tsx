@@ -35,11 +35,6 @@ export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) 
           <div className="h-[300px] rounded-lg overflow-hidden">
             <Map locations={mapLocations} />
           </div>
-          
-          {/* Test component to verify map works */}
-          <div className="border-t border-white/20 pt-4">
-            <MapTest />
-          </div>
         </CardContent>
       </Card>
     </div>
