@@ -136,7 +136,6 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
         />
         <ItineraryMapSection
           mapLocations={itineraryData.itin_map_locations || []}
-          locationNames={derivedLocationNames}
         />
         {isUpcoming && (
           <div className="mt-4 flex items-center gap-2">

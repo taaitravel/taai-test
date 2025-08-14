@@ -2,243 +2,219 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useCityGeocodes } from '@/hooks/useCityGeocodes';
 
 interface MapLocation {
   city: string;
   lat: number;
   lng: number;
-  category?: 'hotel' | 'activity' | 'reservation' | 'destination';
+  category?: 'flight' | 'hotel' | 'activity' | 'reservation';
 }
 
 interface MapProps {
   locations?: MapLocation[];
-  locationNames?: string[];
 }
 
-const Map = ({ locations = [], locationNames = [] }: MapProps) => {
+const Map = ({ locations = [] }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-const { coords } = useCityGeocodes(locationNames || []);
-const resolvedLocations: MapLocation[] = (locations && locations.length > 0)
-  ? locations
-  : coords.map(c => ({ city: c.name, lat: c.lat, lng: c.lng }));
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
 
-// Marker color resolver using semantic tokens
-const getMarkerColor = (category?: string) => {
+const getCategoryColor = (category?: string) => {
+  // Using budget overview colors from BudgetPieChart
   switch (category) {
-    case 'activity':
-      return 'hsl(var(--marker-activity))';
+    case 'flight':
+      return '#feb2b2'; // hsl(351, 85%, 75%) - Primary pink
     case 'hotel':
-      return 'hsl(var(--marker-hotel))';
+      return '#fdba74'; // hsl(15, 80%, 70%) - Orange  
+    case 'activity':
+      return '#fcd34d'; // hsl(25, 75%, 65%) - Yellow-orange
     case 'reservation':
-      return 'hsl(var(--marker-reservation))';
+      return '#93c5fd'; // hsl(200, 70%, 70%) - Blue
     default:
-      return 'hsl(var(--primary))';
+      return '#feb2b2'; // Default to primary pink
   }
 };
 
+const getHoverColor = (category?: string) => {
+  // Slightly brighter versions for hover
+  switch (category) {
+    case 'flight':
+      return '#fca5a5'; // Slightly brighter pink
+    case 'hotel':
+      return '#fb923c'; // Slightly brighter orange
+    case 'activity':
+      return '#fbbf24'; // Slightly brighter yellow
+    case 'reservation':
+      return '#60a5fa'; // Slightly brighter blue
+    default:
+      return '#fca5a5'; // Default hover
+  }
+};
+
+  // Fetch Mapbox token
   useEffect(() => {
-    console.log('🗺️ Map useEffect triggered');
-    console.log('📍 Raw locations prop:', locations);
-    console.log('📍 Raw locationNames prop:', locationNames);
-    console.log('📍 Resolved locations:', resolvedLocations);
-    console.log('📍 Coords from useCityGeocodes:', coords);
-    console.log('🏗️ Container exists:', !!mapContainer.current);
-    
-    if (!mapContainer.current) {
-      console.error('❌ No map container found');
-      return;
-    }
-
-    const initializeMap = async () => {
+    const fetchMapboxToken = async () => {
       try {
-        console.log('🚀 Starting map initialization...');
-        
-        // Get Mapbox token
-        console.log('🔑 Fetching Mapbox token...');
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        
-        console.log('📤 Token response:', { data, error });
-        
-        if (error) {
-          throw new Error(`Token fetch failed: ${error.message}`);
+        if (error) throw error;
+        if (data?.token) {
+          setMapboxToken(data.token);
+        } else {
+          throw new Error('No token received');
         }
-
-        const mapboxToken = data?.token;
-        if (!mapboxToken) {
-          throw new Error('No Mapbox token received');
-        }
-
-        console.log('✅ Token received, length:', mapboxToken.length);
-        
-        // Initialize Mapbox
-        mapboxgl.accessToken = mapboxToken;
-        
-        // Calculate map center and zoom
-        let center: [number, number] = [0, 0];
-        let zoom = 2;
-
-        // Prepare bounds if we have locations
-        const hasLocations = resolvedLocations && resolvedLocations.length > 0;
-        const bounds = new mapboxgl.LngLatBounds();
-        if (hasLocations) {
-          resolvedLocations.forEach((loc) => bounds.extend([loc.lng, loc.lat]));
-          if (resolvedLocations.length === 1) {
-            center = [resolvedLocations[0].lng, resolvedLocations[0].lat];
-            zoom = 8;
-          } else {
-            center = bounds.getCenter().toArray() as [number, number];
-            zoom = 2;
-          }
-        }
-
-        console.log('🎯 Map center:', center, 'zoom:', zoom);
-
-        // Create map
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current!,
-          style: 'mapbox://styles/mapbox/dark-v11',
-          projection: 'mercator',
-          center: center,
-          zoom: zoom,
-        });
-
-        // Atmosphere and fog for consistency with dashboard map
-        // Default map settings (no fog)
-
-
-        // Add navigation controls
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-        map.current.on('load', () => {
-          console.log('🎉 Map loaded successfully!');
-          
-          // Add markers immediately when map loads if we have locations
-          if (hasLocations) {
-            console.log('🎯 Adding initial markers on map load');
-            addMarkersToMap();
-          }
-          
-          setIsLoading(false);
-        });
-
-        map.current.on('error', (e) => {
-          console.error('💥 Map error:', e);
-          setError('Failed to load map');
-          setIsLoading(false);
-        });
-
-        // Fit bounds if we have multiple locations, otherwise center on single location
-        if (hasLocations && resolvedLocations.length > 1) {
-          map.current.fitBounds(bounds, { padding: 40, duration: 1000 });
-        } else if (hasLocations && resolvedLocations.length === 1) {
-          map.current.easeTo({ center: [resolvedLocations[0].lng, resolvedLocations[0].lat], zoom: 8, duration: 1000 });
-        }
-
       } catch (err: any) {
-        console.error('💥 Initialization error:', err);
-        setError(err.message || 'Failed to initialize map');
-        setIsLoading(false);
+        console.error('Failed to fetch Mapbox token:', err);
+        setError('Failed to load map: ' + (err?.message || 'Unknown error'));
       }
     };
 
-    initializeMap();
-
-    // Cleanup
-    return () => {
-      if (map.current) {
-        console.log('🧹 Cleaning up map...');
-        map.current.remove();
-      }
-    };
+    fetchMapboxToken();
   }, []);
 
-  // Function to add markers to the map
-  const addMarkersToMap = () => {
-    if (!map.current) return;
-    if (!resolvedLocations || resolvedLocations.length === 0) return;
-    
-    console.log('🎯 Adding markers for:', resolvedLocations);
-    
-    // Clear old markers
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxToken) return;
 
-    const bounds = new mapboxgl.LngLatBounds();
-    resolvedLocations.forEach((location) => {
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>${location.city}</strong>`);
+    try {
+      mapboxgl.accessToken = mapboxToken;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/dark-v10', // Changed to dark style
+        projection: 'mercator',
+        zoom: locations.length > 1 ? 2 : 8,
+        center: locations.length > 0 
+          ? [locations[0].lng, locations[0].lat] 
+          : [0, 20],
+      });
 
-      // Custom marker element with category-based styling
+      // Add navigation controls
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+        }),
+        'top-right'
+      );
+
+      map.current.on('load', () => {
+        console.log('Map loaded successfully');
+        setMapLoaded(true);
+        setError(null);
+      });
+
+      map.current.on('error', (e) => {
+        console.error('Map error:', e);
+        setError('Map failed to load properly');
+      });
+
+    } catch (err: any) {
+      console.error('Map initialization error:', err);
+      setError('Failed to initialize map: ' + err.message);
+    }
+
+    return () => {
+      map.current?.remove();
+    };
+  }, [mapboxToken]);
+
+  // Add markers to map
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !locations.length) return;
+
+    console.log('Adding markers for locations:', locations);
+
+    // Remove existing markers
+    const existingMarkers = document.querySelectorAll('.mapboxgl-marker');
+    existingMarkers.forEach(marker => marker.remove());
+
+    locations.forEach((location) => {
+      // Create marker element
       const el = document.createElement('div');
-      el.style.width = '14px';
-      el.style.height = '14px';
-      el.style.borderRadius = '50%';
-      el.style.backgroundColor = getMarkerColor(location.category);
-      el.style.border = '2px solid rgba(0,0,0,0.5)';
-      el.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.2)';
+      el.className = 'custom-marker';
+      
+      const categoryColor = getCategoryColor(location.category);
+      el.style.cssText = `
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: ${categoryColor};
+        border: 3px solid #ffffff;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      `;
 
-      const marker = new mapboxgl.Marker({ element: el })
+      // Add hover effects
+      el.addEventListener('mouseenter', () => {
+        el.style.transform = 'scale(1.2)';
+        el.style.backgroundColor = getHoverColor(location.category);
+      });
+
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = 'scale(1)';
+        el.style.backgroundColor = categoryColor;
+      });
+
+      // Create popup
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: false,
+        className: 'custom-popup'
+      }).setHTML(`
+        <div style="color: #171821; font-weight: 600; padding: 8px; background: white; border-radius: 6px;">
+          <div style="font-size: 14px;">${location.city}</div>
+          ${location.category ? `<div style="font-size: 12px; color: #666; text-transform: capitalize;">${location.category}</div>` : ''}
+        </div>
+      `);
+
+      // Add marker to map
+      new mapboxgl.Marker(el)
         .setLngLat([location.lng, location.lat])
         .setPopup(popup)
         .addTo(map.current!);
-
-      markersRef.current.push(marker);
-      bounds.extend([location.lng, location.lat]);
     });
 
-    if (resolvedLocations.length > 1) {
-      map.current.fitBounds(bounds, { padding: 40, duration: 800 });
-    } else {
-      map.current.easeTo({ center: [resolvedLocations[0].lng, resolvedLocations[0].lat], zoom: 8, duration: 800 });
+    // Fit map to bounds if multiple locations
+    if (locations.length > 1) {
+      const bounds = new mapboxgl.LngLatBounds();
+      locations.forEach(location => {
+        bounds.extend([location.lng, location.lat]);
+      });
+      map.current!.fitBounds(bounds, { 
+        padding: { top: 50, bottom: 50, left: 50, right: 50 }
+      });
+    } else if (locations.length === 1) {
+      map.current!.setCenter([locations[0].lng, locations[0].lat]);
+      map.current!.setZoom(8);
     }
-  };
+  }, [mapLoaded, locations]);
 
-  // Add/Update markers when locations change
-  useEffect(() => {
-    if (!map.current) return;
-    if (map.current.isStyleLoaded()) {
-      addMarkersToMap();
-    } else {
-      map.current.once('load', addMarkersToMap);
-    }
-  }, [JSON.stringify(resolvedLocations)]);
-
+  // Show error state
   if (error) {
     return (
-      <div className="h-full flex items-center justify-center bg-[#2d2a1f] rounded-lg border border-yellow-500/20">
-        <div className="text-center">
-          <MapPin className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-          <p className="text-yellow-200 font-medium">Map Unavailable</p>
-          <p className="text-yellow-300/70 text-sm mt-1">{error}</p>
-          {locationNames.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <p className="text-yellow-300/70 text-sm">Your destinations:</p>
-              {locationNames.map((location, index) => (
-                <div key={index} className="flex items-center justify-center space-x-2 text-sm text-yellow-300/70">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                  <span>{location}</span>
-                </div>
-              ))}
-            </div>
-          )}
+      <div className="w-full h-full flex items-center justify-center bg-[#171821] rounded-lg border border-white/30">
+        <div className="text-center text-white/70">
+          <p className="text-sm">{error}</p>
+          <p className="text-xs mt-2">Please check your connection and try again</p>
         </div>
       </div>
     );
   }
 
-  if (isLoading) {
+  // Show loading state
+  if (!mapboxToken || !mapLoaded) {
     return (
-      <div className="h-full flex items-center justify-center bg-[#2d2a1f] rounded-lg border border-yellow-500/20">
-        <div className="text-center">
-          <MapPin className="h-12 w-12 text-yellow-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-yellow-200 font-medium">Initializing Map...</p>
-          <p className="text-yellow-300/70 text-sm mt-1">Loading destinations…</p>
+      <div className="w-full h-full flex items-center justify-center bg-[#171821] rounded-lg border border-white/30">
+        <div className="text-center text-white/70">
+          <div className="animate-pulse mb-2">
+            <div className="w-8 h-8 mx-auto rounded-full border-2 border-primary/30 border-t-primary animate-spin"></div>
+          </div>
+          <p className="text-sm">
+            {!mapboxToken ? 'Loading map...' : 'Initializing map...'}
+          </p>
         </div>
       </div>
     );
@@ -251,4 +227,5 @@ const getMarkerColor = (category?: string) => {
   );
 };
 
+export { Map };
 export default Map;

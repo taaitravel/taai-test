@@ -1,25 +1,23 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Map from "@/components/Map";
+import { Map } from "@/components/Map";
 
 interface MapLocation {
   city: string;
   lat: number;
   lng: number;
-  category?: 'hotel' | 'activity' | 'reservation' | 'destination';
+  category?: 'flight' | 'hotel' | 'activity' | 'reservation';
 }
 
 interface ItineraryMapSectionProps {
   mapLocations: MapLocation[];
-  locationNames: string[];
 }
-export const ItineraryMapSection = ({ mapLocations, locationNames }: ItineraryMapSectionProps) => {
-  // Debug information
+
+export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) => {
   console.log('ItineraryMapSection render:', {
     mapLocationsCount: mapLocations.length,
-    locationNamesCount: locationNames.length,
-    mapLocations,
-    locationNames
+    mapLocations
   });
+
   return (
     <div className="lg:col-span-2">
       <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md h-full">
@@ -34,11 +32,8 @@ export const ItineraryMapSection = ({ mapLocations, locationNames }: ItineraryMa
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] rounded-lg overflow-hidden">
-            <Map 
-              locations={mapLocations} 
-              locationNames={locationNames}
-            />
+          <div className="h-[300px] rounded-lg overflow-hidden">
+            <Map locations={mapLocations} />
           </div>
         </CardContent>
       </Card>
