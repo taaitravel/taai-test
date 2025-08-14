@@ -23,11 +23,31 @@ export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) 
     // Remove invalid locations
     if (!location.lat || !location.lng || !location.city) return false;
     
-    // Remove duplicates based on coordinates (keep first occurrence)
-    return array.findIndex(l => 
+    // For locations with same coordinates, prioritize specific venues over generic cities
+    const sameCoordLocations = array.filter(l => 
       Math.abs(l.lat - location.lat) < 0.001 && 
       Math.abs(l.lng - location.lng) < 0.001
-    ) === index;
+    );
+    
+    if (sameCoordLocations.length > 1) {
+      // Prioritize locations with categories (hotels, activities, etc.) over generic city names
+      const hasCategory = location.category;
+      const isGenericCity = !location.category && location.city.includes(', ');
+      
+      // If current location has a category, keep it
+      if (hasCategory) return true;
+      
+      // If current location is a generic city but there are categorized locations at same coords, remove it
+      if (isGenericCity && sameCoordLocations.some(l => l.category)) return false;
+      
+      // Otherwise keep first occurrence
+      return array.findIndex(l => 
+        Math.abs(l.lat - location.lat) < 0.001 && 
+        Math.abs(l.lng - location.lng) < 0.001
+      ) === index;
+    }
+    
+    return true;
   });
 
   console.log('🧭 Cleaned locations count:', cleanedLocations.length);
