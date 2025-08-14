@@ -1,5 +1,5 @@
-import { useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
 import { ItineraryContent } from "@/components/itinerary/ItineraryContent";
 import { ItineraryBrowsers } from "@/components/itinerary/ItineraryBrowsers";
@@ -11,7 +11,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Itinerary = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const itineraryId = searchParams.get('id');
+
+  // Redirect to dashboard if no itinerary ID is provided
+  useEffect(() => {
+    if (!itineraryId) {
+      console.log('No itinerary ID provided, redirecting to dashboard');
+      navigate('/dashboard');
+    }
+  }, [itineraryId, navigate]);
   
   const { itineraryData, loading, budgetRefreshTrigger, refreshMapData } = useItineraryData(itineraryId);
   

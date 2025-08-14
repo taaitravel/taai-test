@@ -45,7 +45,10 @@ const getMarkerColor = (category?: string) => {
 
   useEffect(() => {
     console.log('🗺️ Map useEffect triggered');
-    console.log('📍 Locations to display:', resolvedLocations.length ? resolvedLocations : locationNames);
+    console.log('📍 Raw locations prop:', locations);
+    console.log('📍 Raw locationNames prop:', locationNames);
+    console.log('📍 Resolved locations:', resolvedLocations);
+    console.log('📍 Coords from useCityGeocodes:', coords);
     console.log('🏗️ Container exists:', !!mapContainer.current);
     
     if (!mapContainer.current) {
@@ -115,6 +118,13 @@ const getMarkerColor = (category?: string) => {
 
         map.current.on('load', () => {
           console.log('🎉 Map loaded successfully!');
+          
+          // Add markers immediately when map loads if we have locations
+          if (hasLocations) {
+            console.log('🎯 Adding initial markers on map load');
+            addMarkersToMap();
+          }
+          
           setIsLoading(false);
         });
 
@@ -124,8 +134,12 @@ const getMarkerColor = (category?: string) => {
           setIsLoading(false);
         });
 
-        // Mark initialized for UI parity with dashboard map
-        setIsLoading(false);
+        // Fit bounds if we have multiple locations, otherwise center on single location
+        if (hasLocations && resolvedLocations.length > 1) {
+          map.current.fitBounds(bounds, { padding: 40, duration: 1000 });
+        } else if (hasLocations && resolvedLocations.length === 1) {
+          map.current.easeTo({ center: [resolvedLocations[0].lng, resolvedLocations[0].lat], zoom: 8, duration: 1000 });
+        }
 
       } catch (err: any) {
         console.error('💥 Initialization error:', err);
@@ -145,50 +159,53 @@ const getMarkerColor = (category?: string) => {
     };
   }, []);
 
-  // Add/Update markers when locations change (aligned with CountriesMap flow)
+  // Function to add markers to the map
+  const addMarkersToMap = () => {
+    if (!map.current) return;
+    if (!resolvedLocations || resolvedLocations.length === 0) return;
+    
+    console.log('🎯 Adding markers for:', resolvedLocations);
+    
+    // Clear old markers
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    const bounds = new mapboxgl.LngLatBounds();
+    resolvedLocations.forEach((location) => {
+      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>${location.city}</strong>`);
+
+      // Custom marker element with category-based styling
+      const el = document.createElement('div');
+      el.style.width = '14px';
+      el.style.height = '14px';
+      el.style.borderRadius = '50%';
+      el.style.backgroundColor = getMarkerColor(location.category);
+      el.style.border = '2px solid rgba(0,0,0,0.5)';
+      el.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.2)';
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([location.lng, location.lat])
+        .setPopup(popup)
+        .addTo(map.current!);
+
+      markersRef.current.push(marker);
+      bounds.extend([location.lng, location.lat]);
+    });
+
+    if (resolvedLocations.length > 1) {
+      map.current.fitBounds(bounds, { padding: 40, duration: 800 });
+    } else {
+      map.current.easeTo({ center: [resolvedLocations[0].lng, resolvedLocations[0].lat], zoom: 8, duration: 800 });
+    }
+  };
+
+  // Add/Update markers when locations change
   useEffect(() => {
-    const addMarkers = () => {
-      if (!map.current) return;
-      if (!resolvedLocations || resolvedLocations.length === 0) return;
-      
-      // Clear old markers
-      markersRef.current.forEach((m) => m.remove());
-      markersRef.current = [];
-
-const bounds = new mapboxgl.LngLatBounds();
-resolvedLocations.forEach((location) => {
-  const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>${location.city}</strong>`);
-
-  // Custom marker element with category-based styling
-  const el = document.createElement('div');
-  el.style.width = '14px';
-  el.style.height = '14px';
-  el.style.borderRadius = '50%';
-  el.style.backgroundColor = getMarkerColor(location.category);
-  el.style.border = '2px solid rgba(0,0,0,0.5)';
-  el.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.2)';
-
-  const marker = new mapboxgl.Marker({ element: el })
-    .setLngLat([location.lng, location.lat])
-    .setPopup(popup)
-    .addTo(map.current!);
-
-  markersRef.current.push(marker);
-  bounds.extend([location.lng, location.lat]);
-});
-
-      if (resolvedLocations.length > 1) {
-        map.current.fitBounds(bounds, { padding: 40, duration: 800 });
-      } else {
-        map.current.easeTo({ center: [resolvedLocations[0].lng, resolvedLocations[0].lat], zoom: 8, duration: 800 });
-      }
-    };
-
     if (!map.current) return;
     if (map.current.isStyleLoaded()) {
-      addMarkers();
+      addMarkersToMap();
     } else {
-      map.current.once('load', addMarkers);
+      map.current.once('load', addMarkersToMap);
     }
   }, [JSON.stringify(resolvedLocations)]);
 
