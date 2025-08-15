@@ -79,12 +79,19 @@ const getHoverColor = (category?: string) => {
     fetchMapboxToken();
   }, []);
 
-  // Initialize map
+  // Initialize map with forced refresh
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
 
+    // Force cleanup of any existing map
+    if (map.current) {
+      console.log('🗺️ FORCE REMOVING existing map');
+      map.current.remove();
+      map.current = null;
+    }
+
     try {
-      console.log('🗺️ Starting map initialization with token:', !!mapboxToken);
+      console.log('🗺️ FORCE CREATING NEW MAP with token:', !!mapboxToken);
       mapboxgl.accessToken = mapboxToken;
       
       const mapCenter: [number, number] = locations.length > 0 
@@ -93,17 +100,19 @@ const getHoverColor = (category?: string) => {
         
       const mapZoom = locations.length > 1 ? 2 : 8;
       
-      console.log('🗺️ Map config:', { center: mapCenter, zoom: mapZoom, locations: locations.length });
+      console.log('🗺️ CREATING MAP WITH STYLE: dark-v11');
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/outdoors-v12',
+        style: 'mapbox://styles/mapbox/dark-v11',
         projection: 'mercator',
         zoom: mapZoom,
         center: mapCenter,
+        hash: false,
+        refreshExpiredTiles: true
       });
 
-      console.log('🗺️ Map instance created, adding controls...');
+      console.log('🗺️ Map instance created, style:', map.current.getStyle());
 
       // Add navigation controls
       map.current.addControl(
@@ -114,7 +123,7 @@ const getHoverColor = (category?: string) => {
       );
 
       map.current.on('load', () => {
-        console.log('🗺️ Map loaded successfully!');
+        console.log('🗺️ Map loaded successfully! Style URL:', map.current?.getStyle()?.name);
         setMapLoaded(true);
         setError(null);
       });
@@ -125,7 +134,7 @@ const getHoverColor = (category?: string) => {
       });
 
       map.current.on('styledata', () => {
-        console.log('🗺️ Map style loaded');
+        console.log('🗺️ Map style loaded:', map.current?.getStyle()?.name);
       });
 
     } catch (err: any) {
@@ -134,9 +143,13 @@ const getHoverColor = (category?: string) => {
     }
 
     return () => {
-      map.current?.remove();
+      console.log('🗺️ Cleanup: removing map');
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
-  }, [mapboxToken, locations]);
+  }, [mapboxToken, locations.length]); // Added locations.length to force refresh
 
   // Add markers to map
   useEffect(() => {
