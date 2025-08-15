@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 interface UserWithRoles {
   id: string;
@@ -16,36 +17,17 @@ interface UserWithRoles {
 
 const AdminRoles = () => {
   const { toast } = useToast();
-  const [myRoles, setMyRoles] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { isAdmin, loading: rolesLoading } = useUserRoles();
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [role, setRole] = useState<"admin" | "support">("support");
   const [users, setUsers] = useState<UserWithRoles[]>([]);
-  const isAdmin = useMemo(() => myRoles.includes("admin"), [myRoles]);
 
   useEffect(() => {
     document.title = "Admin Roles | TAAI";
   }, []);
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        // Check my roles via RLS policy
-        const { data, error } = await supabase
-          .from("user_roles")
-          .select("role");
-        if (error) throw error;
-        setMyRoles((data || []).map((r: any) => r.role));
-      } catch (e: any) {
-        console.error(e);
-        toast({ title: "Error", description: e.message || "Failed to load roles", variant: "destructive" });
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, [toast]);
+  // Remove the manual role fetching since useUserRoles handles it
 
   const refreshList = async () => {
     try {
@@ -85,7 +67,7 @@ const AdminRoles = () => {
     }
   };
 
-  if (loading) {
+  if (rolesLoading) {
     return (
       <main className="min-h-screen container mx-auto p-4">
         <div>Loading...</div>

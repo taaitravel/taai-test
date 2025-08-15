@@ -63,7 +63,18 @@ const getHoverColor = (category?: string) => {
   useEffect(() => {
     const fetchMapboxToken = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        // Get current session for auth header
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setError('Authentication required for map access');
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke('get-mapbox-token', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
         
         if (error) throw error;
         if (data?.token) {

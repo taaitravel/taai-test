@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { Navigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
@@ -8,8 +9,9 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
   const { user, userProfile, loading } = useAuth();
+  const { isAdmin, loading: rolesLoading } = useUserRoles();
 
-  if (loading) {
+  if (loading || rolesLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-foreground">Loading...</div>
@@ -26,7 +28,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/terms" state={{ requireAcceptance: true }} replace />;
   }
 
-  if (requireAdmin && userProfile?.user_type !== 'admin') {
+  if (requireAdmin && !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-foreground">Access denied. Admin privileges required.</div>
