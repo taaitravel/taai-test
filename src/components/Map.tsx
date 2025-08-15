@@ -94,7 +94,7 @@ const getHoverColor = (category?: string) => {
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
+        style: 'mapbox://styles/mapbox/satellite-v9',
         projection: 'mercator',
         zoom: mapZoom,
         center: mapCenter,
