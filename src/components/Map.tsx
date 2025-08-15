@@ -84,6 +84,7 @@ const getHoverColor = (category?: string) => {
     if (!mapContainer.current || !mapboxToken) return;
 
     try {
+      console.log('🗺️ Starting map initialization with token:', !!mapboxToken);
       mapboxgl.accessToken = mapboxToken;
       
       const mapCenter: [number, number] = locations.length > 0 
@@ -92,13 +93,17 @@ const getHoverColor = (category?: string) => {
         
       const mapZoom = locations.length > 1 ? 2 : 8;
       
+      console.log('🗺️ Map config:', { center: mapCenter, zoom: mapZoom, locations: locations.length });
+      
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-v9',
+        style: 'mapbox://styles/mapbox/outdoors-v12',
         projection: 'mercator',
         zoom: mapZoom,
         center: mapCenter,
       });
+
+      console.log('🗺️ Map instance created, adding controls...');
 
       // Add navigation controls
       map.current.addControl(
@@ -109,15 +114,22 @@ const getHoverColor = (category?: string) => {
       );
 
       map.current.on('load', () => {
+        console.log('🗺️ Map loaded successfully!');
         setMapLoaded(true);
         setError(null);
       });
 
-      map.current.on('error', () => {
-        setError('Map failed to load properly');
+      map.current.on('error', (e) => {
+        console.error('🗺️ Map error:', e);
+        setError('Map failed to load properly: ' + e.error?.message);
+      });
+
+      map.current.on('styledata', () => {
+        console.log('🗺️ Map style loaded');
       });
 
     } catch (err: any) {
+      console.error('🗺️ Map initialization error:', err);
       setError('Failed to initialize map: ' + err.message);
     }
 
