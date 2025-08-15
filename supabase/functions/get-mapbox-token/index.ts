@@ -52,11 +52,11 @@ serve(async (req) => {
 
     console.log('User authenticated:', user.id);
     
-    const mapboxToken = Deno.env.get('MAPBOX_TAAI_TOKEN');
+    const mapboxToken = Deno.env.get('MAPBOX-TAAI-ITIN-TOKEN');
     console.log('Retrieved token exists:', !!mapboxToken);
     
     if (!mapboxToken) {
-      console.error('MAPBOX_TAAI_TOKEN environment variable not found');
+      console.error('MAPBOX-TAAI-ITIN-TOKEN environment variable not found');
       return new Response(
         JSON.stringify({ error: 'Mapbox token not configured' }),
         { 
