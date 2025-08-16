@@ -63,26 +63,26 @@ const getHoverColor = (category?: string) => {
   useEffect(() => {
     const fetchMapboxToken = async () => {
       try {
-        // Get current session for auth header
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setError('Authentication required for map access');
+        console.log('Map: Attempting to get Mapbox token...');
+        
+        // Use the same approach as CountriesMap
+        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        console.log('Map: Token response:', { data, error });
+        
+        if (error) {
+          setError('Unable to load map. Please check configuration.');
           return;
         }
 
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token', {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
-          }
-        });
-        
-        if (error) throw error;
-        if (data?.token) {
-          setMapboxToken(data.token);
-        } else {
-          throw new Error('No token received');
+        const mapboxToken = data?.token;
+        if (!mapboxToken) {
+          setError('Mapbox token not configured.');
+          return;
         }
+        
+        setMapboxToken(mapboxToken);
       } catch (err: any) {
+        console.error('Map: Error getting token:', err);
         setError('Failed to load map: ' + (err?.message || 'Unknown error'));
       }
     };

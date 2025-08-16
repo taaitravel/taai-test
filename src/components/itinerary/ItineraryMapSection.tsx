@@ -14,40 +14,33 @@ interface ItineraryMapSectionProps {
 }
 
 export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) => {
-  // Simple validation and deduplication
-  const validLocations = mapLocations.filter(location => 
+  console.log('ItineraryMapSection: Raw mapLocations received:', mapLocations);
+  
+  // Filter to show only main destination cities (no category or flight category)
+  // This excludes hotels, activities, and restaurants to show core travel destinations
+  const mainDestinations = mapLocations.filter(location => 
     location.lat && location.lng && location.city &&
     location.lat >= -90 && location.lat <= 90 &&
-    location.lng >= -180 && location.lng <= 180
+    location.lng >= -180 && location.lng <= 180 &&
+    (!location.category || location.category === 'flight') // Only show destinations and flight stops
   );
 
-  // Simple deduplication: keep specific venues over generic cities
+  console.log('ItineraryMapSection: Filtered main destinations:', mainDestinations);
+
+  // Simple deduplication for main destinations
   const seen = new Set<string>();
   const cleanedLocations: MapLocation[] = [];
   
-  validLocations.forEach(location => {
+  mainDestinations.forEach(location => {
     const key = `${location.lat.toFixed(3)},${location.lng.toFixed(3)}`;
     
     if (!seen.has(key)) {
       seen.add(key);
       cleanedLocations.push(location);
-    } else {
-      // Replace if current is more specific
-      const existingIndex = cleanedLocations.findIndex(l => 
-        `${l.lat.toFixed(3)},${l.lng.toFixed(3)}` === key
-      );
-      
-      if (existingIndex >= 0) {
-        const existing = cleanedLocations[existingIndex];
-        const isCurrentMoreSpecific = location.category || !location.city.includes(', ');
-        const isExistingMoreSpecific = existing.category || !existing.city.includes(', ');
-        
-        if (isCurrentMoreSpecific && !isExistingMoreSpecific) {
-          cleanedLocations[existingIndex] = location;
-        }
-      }
     }
   });
+
+  console.log('ItineraryMapSection: Final cleaned locations:', cleanedLocations);
 
   return (
     <div className="lg:col-span-2">
@@ -57,7 +50,7 @@ export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) 
             <div>
               <CardTitle className="text-white">Trip Map</CardTitle>
               <CardDescription className="text-white/70">
-                Explore your destinations and discover nearby attractions
+                {cleanedLocations.length} destination{cleanedLocations.length !== 1 ? 's' : ''} • Explore and discover nearby attractions
               </CardDescription>
             </div>
           </div>
