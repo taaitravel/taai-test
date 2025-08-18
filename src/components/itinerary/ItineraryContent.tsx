@@ -8,6 +8,7 @@ import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItinerarySidebar } from "./ItinerarySidebar";
 import { AddItemDialog, ItemType } from "./AddItemDialog";
+import { ExpediaAPITest } from "@/components/ExpediaAPITest";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -240,6 +241,11 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           itineraryData={itineraryData} 
           refreshTrigger={budgetRefreshTrigger} 
         />
+      </div>
+
+      {/* Expedia API Test Section */}
+      <div className="bg-background">
+        <ExpediaAPITest />
       </div>
 
       {/* Add Item Dialog */}
