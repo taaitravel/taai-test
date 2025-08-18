@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { ItineraryData } from "@/types/itinerary";
 import { ItineraryInfoHeader } from "./ItineraryInfoHeader";
 import { TripOverviewSection } from "./TripOverviewSection";
-import { ItineraryMapSection } from "./ItineraryMapSection";
+import { ItineraryGlobalMapSection } from "./ItineraryGlobalMapSection";
+import { ItineraryDetailedMapSection } from "./ItineraryDetailedMapSection";
 import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItinerarySidebar } from "./ItinerarySidebar";
@@ -10,6 +11,8 @@ import { AddItemDialog, ItemType } from "./AddItemDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
@@ -36,8 +39,7 @@ export const ItineraryContent = ({
   );
   const destinations = itineraryData.itin_locations || [];
   const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
-  // Use only stored itinerary destination names for map geocoding (no assumptions)
-  const derivedLocationNames = destinations;
+  const { updateItineraryWithEnhancedCities } = useEnhancedCityFormatting();
 
   // Local add modal state and handlers
   const [addOpen, setAddOpen] = useState(false);
@@ -82,39 +84,64 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
     const raw = newDest.trim();
     if (!raw) return;
 
-    // Normalize destination using Mapbox via Edge Function
-    let normalizedName = raw;
-    let newMapLoc: { city: string; lat: number; lng: number } | null = null;
+    // Use enhanced city formatting for proper display
     try {
-      const { data, error } = await supabase.functions.invoke('search-cities', { body: { query: raw } });
-      if (!error && Array.isArray(data?.locations) && data.locations.length > 0) {
-        const best = data.locations[0];
-        normalizedName = best.fullName || best.city || raw;
-        newMapLoc = { city: normalizedName, lat: best.lat, lng: best.lng };
+      const { data, error } = await supabase.functions.invoke('enhance-city-formatting', { 
+        body: { queries: [raw] } 
+      });
+      
+      if (!error && data?.results?.length > 0) {
+        const enhanced = data.results[0];
+        const formattedName = enhanced.formattedName;
+        const newMapLoc = { 
+          city: formattedName, 
+          lat: enhanced.lat, 
+          lng: enhanced.lng,
+          category: 'destination'
+        };
+
+        // Update readable list with formatted name
+        const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
+        const updatedNames = Array.from(new Set([...currentNames, formattedName]));
+
+        // Update map coords
+        const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
+        const exists = currentMap.some((m) => m.city?.toLowerCase() === formattedName.toLowerCase());
+        const updatedMap = exists ? currentMap : [...currentMap, newMapLoc];
+
+        await supabase
+          .from('itinerary')
+          .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
+          .eq('id', itineraryData.id);
+
+        setNewDest("");
+        refreshMapData?.();
+      } else {
+        // Fallback to basic approach
+        const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
+        const updatedNames = Array.from(new Set([...currentNames, raw]));
+        
+        await supabase
+          .from('itinerary')
+          .update({ itin_locations: updatedNames })
+          .eq('id', itineraryData.id);
+        
+        setNewDest("");
+        refreshMapData?.();
       }
     } catch (e) {
-      console.warn('Failed to normalize destination, using raw input', e);
+      console.warn('Failed to add destination', e);
     }
+  };
 
-    // Update readable list (itin_locations) with normalizedName
-    const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
-    const updatedNames = Array.from(new Set([...currentNames, normalizedName]));
-
-    // Update map coords if we resolved them
-    const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
-    let updatedMap = currentMap;
-    if (newMapLoc) {
-      const exists = currentMap.some((m) => m.city?.toLowerCase() === newMapLoc!.city.toLowerCase());
-      updatedMap = exists ? currentMap : [...currentMap, newMapLoc];
+  // Enhanced city formatting button for existing destinations
+  const handleEnhanceExistingCities = async () => {
+    if (destinations.length > 0) {
+      const success = await updateItineraryWithEnhancedCities(itineraryData.id, destinations);
+      if (success) {
+        refreshMapData?.();
+      }
     }
-
-    await supabase
-      .from('itinerary')
-      .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
-      .eq('id', itineraryData.id);
-
-    setNewDest("");
-    refreshMapData?.();
   };
 
   // Removed auto-geocoding/sync of hotels/activities/reservations to map.
@@ -134,18 +161,47 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           description={itineraryData.itin_desc}
           attendees={itineraryData.attendees}
         />
-        <ItineraryMapSection
-          mapLocations={itineraryData.itin_map_locations || []}
-        />
-        {isUpcoming && (
-          <div className="mt-4 flex items-center gap-2">
-            <Input
-              placeholder="Add destination city"
-              value={newDest}
-              onChange={(e) => setNewDest(e.target.value)}
-              className="max-w-xs bg-white/90 border-gray-200 text-gray-900 placeholder:text-gray-500"
+        <Tabs defaultValue="global" className="lg:col-span-2">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="global">Global View</TabsTrigger>
+            <TabsTrigger value="detailed">Detailed View</TabsTrigger>
+          </TabsList>
+          <TabsContent value="global" className="mt-4">
+            <ItineraryGlobalMapSection 
+              destinations={destinations}
+              mapLocations={itineraryData.itin_map_locations || []}
             />
-            <Button onClick={handleAddDestination}>Add Destination</Button>
+          </TabsContent>
+          <TabsContent value="detailed" className="mt-4">
+            <ItineraryDetailedMapSection 
+              mapLocations={itineraryData.itin_map_locations || []}
+              hotels={itineraryData.hotels || []}
+              activities={itineraryData.activities || []}
+              reservations={itineraryData.reservations || []}
+            />
+          </TabsContent>
+        </Tabs>
+        {isUpcoming && (
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Add destination city"
+                value={newDest}
+                onChange={(e) => setNewDest(e.target.value)}
+                className="max-w-xs bg-white/90 border-gray-200 text-gray-900 placeholder:text-gray-500"
+              />
+              <Button onClick={handleAddDestination}>Add Destination</Button>
+            </div>
+            {destinations.length > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleEnhanceExistingCities}
+                className="text-xs"
+              >
+                Enhance City Formatting
+              </Button>
+            )}
           </div>
         )}
       </div>

@@ -30,5 +30,8 @@ verify_jwt = false
 [functions.search-yelp-businesses]
 verify_jwt = false
 
+[functions.enhance-city-formatting]
+verify_jwt = false
+
 [functions.manage-user-roles]
 verify_jwt = true

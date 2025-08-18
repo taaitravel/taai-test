@@ -8,7 +8,7 @@ interface MapLocation {
   city: string;
   lat: number;
   lng: number;
-  category?: 'flight' | 'hotel' | 'activity' | 'reservation';
+  category?: 'flight' | 'hotel' | 'activity' | 'reservation' | 'destination';
 }
 
 interface MapProps {
@@ -38,6 +38,8 @@ const getCategoryColor = (category?: string) => {
       return '#fcd34d'; // hsl(25, 75%, 65%) - Yellow-orange
     case 'reservation':
       return '#93c5fd'; // hsl(200, 70%, 70%) - Blue
+    case 'destination':
+      return '#a78bfa'; // hsl(266, 75%, 75%) - Purple for destinations
     default:
       return '#feb2b2'; // Default to primary pink
   }
@@ -54,6 +56,8 @@ const getHoverColor = (category?: string) => {
       return '#fbbf24'; // Slightly brighter yellow
     case 'reservation':
       return '#60a5fa'; // Slightly brighter blue
+    case 'destination':
+      return '#8b5cf6'; // Slightly brighter purple
     default:
       return '#fca5a5'; // Default hover
   }
