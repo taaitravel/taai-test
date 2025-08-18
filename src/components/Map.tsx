@@ -65,7 +65,8 @@ const Map = ({ locations = [] }: MapProps) => {
         console.log('🗺️ Map: Attempting to get Mapbox token...');
         
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        console.log('🗺️ Map: Token response:', { data: !!data, error });
+        console.log('🗺️ Map: Token response data:', data);
+        console.log('🗺️ Map: Token response error:', error);
         
         if (error) {
           console.error('🗺️ Map: Token error:', error);
@@ -74,15 +75,18 @@ const Map = ({ locations = [] }: MapProps) => {
           return;
         }
 
-        const mapboxToken = data?.token;
-        if (!mapboxToken) {
-          console.error('🗺️ Map: No token received');
-          setError('Mapbox token not configured.');
+        // The token might be directly in data or nested in data.token
+        const mapboxToken = data?.token || data;
+        console.log('🗺️ Map: Extracted token:', mapboxToken ? 'Token received' : 'No token');
+        
+        if (!mapboxToken || typeof mapboxToken !== 'string') {
+          console.error('🗺️ Map: Invalid token received:', typeof mapboxToken);
+          setError('Invalid Mapbox token received.');
           setLoading(false);
           return;
         }
         
-        console.log('🗺️ Map: Token received successfully');
+        console.log('🗺️ Map: Token received successfully, length:', mapboxToken.length);
         setMapboxToken(mapboxToken);
       } catch (err: any) {
         console.error('🗺️ Map: Error getting token:', err);
@@ -275,7 +279,11 @@ const Map = ({ locations = [] }: MapProps) => {
   }
 
   console.log('🗺️ Map: Rendering map container');
-  return <div ref={mapContainer} className="h-full w-full" />;
+  return (
+    <div className="h-full w-full relative">
+      <div ref={mapContainer} className="absolute inset-0" />
+    </div>
+  );
 };
 
 export { Map };
