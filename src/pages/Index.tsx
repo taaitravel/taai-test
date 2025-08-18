@@ -1,24 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut, User, Menu, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut, userProfile } = useAuth();
   const isMobile = useIsMobile();
   const [userType, setUserType] = useState<'individual' | 'company' | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRouterReady, setIsRouterReady] = useState(false);
+
+  // Ensure router context is ready
+  useEffect(() => {
+    setIsRouterReady(true);
+  }, [location]);
 
   const handleMenuItemClick = (path: string) => {
-    navigate(path);
-    setIsMenuOpen(false);
+    if (isRouterReady) {
+      navigate(path);
+      setIsMenuOpen(false);
+    }
   };
 
   const getMenuItems = () => {
@@ -141,19 +150,19 @@ const Index = () => {
                       <Button 
                         variant="ghost" 
                         className="text-white hover:text-white hover:bg-white/10"
-                        onClick={() => navigate('/what-we-do')}
+                        onClick={() => isRouterReady && navigate('/what-we-do')}
                       >
                         What We Do
                       </Button>
                       <Button 
                         variant="ghost" 
                         className="text-white hover:text-white hover:bg-white/10"
-                        onClick={() => navigate('/contact')}
+                        onClick={() => isRouterReady && navigate('/contact')}
                       >
                         Contact Us
                       </Button>
                       <Button 
-                        onClick={() => navigate('/login')}
+                        onClick={() => isRouterReady && navigate('/login')}
                         variant="outline" 
                         className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
                       >
@@ -166,7 +175,7 @@ const Index = () => {
                       <Button 
                         variant="ghost" 
                         className="text-white hover:text-white hover:bg-white/10"
-                        onClick={() => navigate('/contact')}
+                        onClick={() => isRouterReady && navigate('/contact')}
                       >
                         Contact Us
                       </Button>
@@ -188,7 +197,7 @@ const Index = () => {
                   variant="ghost"
                   size="sm"
                   className="text-white hover:bg-white/10 p-2 rounded-full"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => isRouterReady && navigate('/dashboard')}
                 >
                   <User className="h-6 w-6" />
                 </Button>
@@ -255,7 +264,7 @@ const Index = () => {
             size="lg" 
             className="gold-gradient hover:opacity-90 text-[#171821] px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
             disabled={!userType}
-            onClick={() => navigate('/signup', { state: { userType } })}
+            onClick={() => isRouterReady && navigate('/signup', { state: { userType } })}
           >
             Start Your Journey
             <Plane className="ml-2 h-5 w-5" />
@@ -309,7 +318,7 @@ const Index = () => {
             size="lg" 
             variant="secondary"
             className="bg-[#171821] text-white hover:bg-[#171821]/90 border-2 border-[#171821] px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => navigate('/signup')}
+            onClick={() => isRouterReady && navigate('/signup')}
           >
             Get Started Today
           </Button>
@@ -329,14 +338,14 @@ const Index = () => {
             <Button 
               variant="link" 
               className="p-0 h-auto font-normal text-white/70 hover:text-white transition-colors"
-              onClick={() => navigate('/terms')}
+              onClick={() => isRouterReady && navigate('/terms')}
             >
               Privacy Policy
             </Button>
             <Button 
               variant="link" 
               className="p-0 h-auto font-normal text-white/70 hover:text-white transition-colors"
-              onClick={() => navigate('/terms')}
+              onClick={() => isRouterReady && navigate('/terms')}
             >
               Terms of Service
             </Button>
