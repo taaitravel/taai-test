@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,178 +14,173 @@ interface MapProps {
   locations?: MapLocation[];
 }
 
-const Map = ({ locations = [] }: MapProps) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
-
-  // Simple validation
-  if (locations.some(loc => !loc.lat || !loc.lng)) {
-    console.warn('Invalid coordinates detected in locations');
-  }
-
 const getCategoryColor = (category?: string) => {
-  // Using budget overview colors from BudgetPieChart
   switch (category) {
     case 'flight':
-      return '#feb2b2'; // hsl(351, 85%, 75%) - Primary pink
+      return '#feb2b2';
     case 'hotel':
-      return '#fdba74'; // hsl(15, 80%, 70%) - Orange  
+      return '#fdba74';
     case 'activity':
-      return '#fcd34d'; // hsl(25, 75%, 65%) - Yellow-orange
+      return '#fcd34d';
     case 'reservation':
-      return '#93c5fd'; // hsl(200, 70%, 70%) - Blue
+      return '#93c5fd';
     case 'destination':
-      return '#a78bfa'; // hsl(266, 75%, 75%) - Purple for destinations
+      return '#a78bfa';
     default:
-      return '#feb2b2'; // Default to primary pink
+      return '#feb2b2';
   }
 };
 
 const getHoverColor = (category?: string) => {
-  // Slightly brighter versions for hover
   switch (category) {
     case 'flight':
-      return '#fca5a5'; // Slightly brighter pink
+      return '#fca5a5';
     case 'hotel':
-      return '#fb923c'; // Slightly brighter orange
+      return '#fb923c';
     case 'activity':
-      return '#fbbf24'; // Slightly brighter yellow
+      return '#fbbf24';
     case 'reservation':
-      return '#60a5fa'; // Slightly brighter blue
+      return '#60a5fa';
     case 'destination':
-      return '#8b5cf6'; // Slightly brighter purple
+      return '#8b5cf6';
     default:
-      return '#fca5a5'; // Default hover
+      return '#fca5a5';
   }
 };
+
+const Map = ({ locations = [] }: MapProps) => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  console.log('🗺️ Map component rendered with locations:', locations.length);
+  console.log('🗺️ Map locations details:', locations);
 
   // Fetch Mapbox token
   useEffect(() => {
     const fetchMapboxToken = async () => {
       try {
-        console.log('Map: Attempting to get Mapbox token...');
+        console.log('🗺️ Map: Attempting to get Mapbox token...');
         
-        // Use the same approach as CountriesMap
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        console.log('Map: Token response:', { data, error });
+        console.log('🗺️ Map: Token response:', { data: !!data, error });
         
         if (error) {
+          console.error('🗺️ Map: Token error:', error);
           setError('Unable to load map. Please check configuration.');
+          setLoading(false);
           return;
         }
 
         const mapboxToken = data?.token;
         if (!mapboxToken) {
+          console.error('🗺️ Map: No token received');
           setError('Mapbox token not configured.');
+          setLoading(false);
           return;
         }
         
+        console.log('🗺️ Map: Token received successfully');
         setMapboxToken(mapboxToken);
       } catch (err: any) {
-        console.error('Map: Error getting token:', err);
+        console.error('🗺️ Map: Error getting token:', err);
         setError('Failed to load map: ' + (err?.message || 'Unknown error'));
+        setLoading(false);
       }
     };
 
     fetchMapboxToken();
   }, []);
 
-  // Initialize map with forced refresh
+  // Initialize map when token is available
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
+    if (!mapboxToken || !mapContainer.current || map.current) return;
 
-    // Force cleanup of any existing map
-    if (map.current) {
-      console.log('🗺️ FORCE REMOVING existing map');
-      map.current.remove();
-      map.current = null;
-    }
-
+    console.log('🗺️ Map: Initializing map with token');
+    
     try {
-      console.log('🗺️ FORCE CREATING NEW MAP with token:', !!mapboxToken);
       mapboxgl.accessToken = mapboxToken;
-      
-      const mapCenter: [number, number] = locations.length > 0 
-        ? [locations[0].lng, locations[0].lat] 
-        : [0, 20];
-        
-      const mapZoom = locations.length > 1 ? 2 : 8;
-      
-      console.log('🗺️ CREATING MAP WITH STYLE: dark-v11');
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        projection: 'mercator',
-        zoom: mapZoom,
-        center: mapCenter,
-        hash: false,
-        refreshExpiredTiles: true
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [0, 20],
+        zoom: 2,
+        projection: 'mercator' as any,
       });
 
-      console.log('🗺️ Map instance created, style:', map.current.getStyle());
-
-      // Add navigation controls
-      map.current.addControl(
-        new mapboxgl.NavigationControl({
-          visualizePitch: true,
-        }),
-        'top-right'
-      );
+      console.log('🗺️ Map: Map instance created');
 
       map.current.on('load', () => {
-        console.log('🗺️ Map loaded successfully! Style URL:', map.current?.getStyle()?.name);
-        setMapLoaded(true);
+        console.log('🗺️ Map: Map loaded successfully');
+        setLoading(false);
         setError(null);
       });
 
       map.current.on('error', (e) => {
-        console.error('🗺️ Map error:', e);
-        setError('Map failed to load properly: ' + e.error?.message);
-      });
-
-      map.current.on('styledata', () => {
-        console.log('🗺️ Map style loaded:', map.current?.getStyle()?.name);
+        console.error('🗺️ Map: Map error:', e);
+        setError('Map failed to load');
+        setLoading(false);
       });
 
     } catch (err: any) {
-      console.error('🗺️ Map initialization error:', err);
+      console.error('🗺️ Map: Error initializing map:', err);
       setError('Failed to initialize map: ' + err.message);
+      setLoading(false);
     }
 
     return () => {
-      console.log('🗺️ Cleanup: removing map');
       if (map.current) {
+        console.log('🗺️ Map: Cleaning up map');
         map.current.remove();
         map.current = null;
       }
     };
-  }, [mapboxToken, locations.length]); // Added locations.length to force refresh
+  }, [mapboxToken]);
 
-  // Add markers to map
+  // Add markers when locations change
   useEffect(() => {
-    if (!map.current || !mapLoaded || !locations.length) return;
+    if (!map.current || !locations.length || loading) {
+      console.log('🗺️ Map: Not ready for markers - map:', !!map.current, 'locations:', locations.length, 'loading:', loading);
+      return;
+    }
 
-    // Remove existing markers
+    console.log('🗺️ Map: Adding markers for locations:', locations);
+
+    // Clear existing markers
     const existingMarkers = document.querySelectorAll('.mapboxgl-marker');
     existingMarkers.forEach(marker => marker.remove());
 
-    locations.forEach((location) => {
+    const bounds = new mapboxgl.LngLatBounds();
+    let validLocations = 0;
+
+    locations.forEach((location, index) => {
+      console.log(`🗺️ Map: Processing location ${index}:`, location);
+      
+      if (!location.lat || !location.lng || 
+          location.lat < -90 || location.lat > 90 || 
+          location.lng < -180 || location.lng > 180) {
+        console.warn('🗺️ Map: Invalid coordinates for location:', location);
+        return;
+      }
+
+      validLocations++;
+      bounds.extend([location.lng, location.lat]);
+
       // Create marker element
       const el = document.createElement('div');
       el.className = 'custom-marker';
       
       const categoryColor = getCategoryColor(location.category);
       el.style.cssText = `
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         background-color: ${categoryColor};
-        border: 3px solid #ffffff;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         cursor: pointer;
         transition: all 0.2s ease;
       `;
@@ -215,63 +209,73 @@ const getHoverColor = (category?: string) => {
       `);
 
       // Add marker to map
-      new mapboxgl.Marker(el)
-        .setLngLat([location.lng, location.lat])
-        .setPopup(popup)
-        .addTo(map.current!);
+      try {
+        new mapboxgl.Marker(el)
+          .setLngLat([location.lng, location.lat])
+          .setPopup(popup)
+          .addTo(map.current!);
+        
+        console.log(`🗺️ Map: Added marker for ${location.city} at [${location.lng}, ${location.lat}]`);
+      } catch (markerErr) {
+        console.error(`🗺️ Map: Error adding marker for ${location.city}:`, markerErr);
+      }
     });
 
-    // Fit map to bounds if multiple locations
-    if (locations.length > 1) {
-      const bounds = new mapboxgl.LngLatBounds();
-      locations.forEach(location => {
-        bounds.extend([location.lng, location.lat]);
-      });
-      map.current!.fitBounds(bounds, { 
-        padding: { top: 50, bottom: 50, left: 50, right: 50 }
-      });
-    } else if (locations.length === 1) {
-      map.current!.setCenter([locations[0].lng, locations[0].lat]);
-      map.current!.setZoom(8);
+    console.log(`🗺️ Map: Added ${validLocations} valid markers out of ${locations.length} locations`);
+
+    // Fit map to markers or center on single location
+    if (validLocations > 0) {
+      try {
+        if (validLocations === 1) {
+          const location = locations.find(l => l.lat && l.lng);
+          if (location) {
+            console.log('🗺️ Map: Centering on single location:', location);
+            map.current?.setCenter([location.lng, location.lat]);
+            map.current?.setZoom(10);
+          }
+        } else {
+          console.log('🗺️ Map: Fitting to bounds for multiple locations');
+          map.current?.fitBounds(bounds, { 
+            padding: 50,
+            maxZoom: 15 
+          });
+        }
+      } catch (err) {
+        console.error('🗺️ Map: Error setting map bounds:', err);
+      }
+    } else {
+      console.warn('🗺️ Map: No valid locations to display');
     }
-  }, [mapLoaded, locations]);
+  }, [locations, loading]);
 
-  // Show error state
+  console.log('🗺️ Map: Current state - loading:', loading, 'error:', error, 'token:', !!mapboxToken);
+
   if (error) {
+    console.error('🗺️ Map: Rendering error state:', error);
     return (
-      <div className="w-full h-full flex items-center justify-center bg-background/80 rounded-lg border border-border">
-        <div className="text-center text-muted-foreground">
+      <div className="h-full flex items-center justify-center bg-muted text-muted-foreground">
+        <div className="text-center">
+          <p className="text-lg font-medium mb-2">Unable to load map</p>
           <p className="text-sm">{error}</p>
-          <p className="text-xs mt-2">Please check your connection and try again</p>
         </div>
       </div>
     );
   }
 
-
-  // Show loading state
-  if (!mapboxToken || !mapLoaded) {
+  if (loading) {
+    console.log('🗺️ Map: Rendering loading state');
     return (
-        <div className="w-full h-full flex items-center justify-center bg-background/80 rounded-lg border border-border">
-        <div className="text-center text-muted-foreground">
-          <p className="text-sm">
-            {!mapboxToken ? 'Loading map...' : 'Initializing map...'}
-          </p>
-          {locations.length > 0 && (
-            <p className="text-xs mt-2">
-              Preparing {locations.length} location{locations.length !== 1 ? 's' : ''} for display
-            </p>
-          )}
+      <div className="h-full flex items-center justify-center bg-muted text-muted-foreground">
+        <div className="text-center">
+          <p className="text-lg font-medium mb-2">Loading map...</p>
+          <p className="text-sm">Initializing Mapbox</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="relative w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
-    </div>
-  );
+  console.log('🗺️ Map: Rendering map container');
+  return <div ref={mapContainer} className="h-full w-full" />;
 };
 
 export { Map };
