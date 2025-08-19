@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ImageGallery } from '@/components/ui/image-gallery';
 import { Star, MapPin, Calendar, Users, Clock, Plane, Utensils, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { EnhancedHotelItem, EnhancedFlightItem, EnhancedActivityItem, EnhancedReservationItem } from '@/types/enhanced-itinerary';
 
 const getStatusIcon = (status?: string) => {
   switch (status) {
@@ -29,18 +30,18 @@ const getStatusColor = (status?: string) => {
   }
 };
 
-// Hotel Card Renderer
-export const SwipeHotelRenderer = (hotel: any, isTop: boolean) => (
+// Enhanced Hotel Card Renderer
+export const EnhancedHotelRenderer = (hotel: EnhancedHotelItem, isTop: boolean) => (
   <>
     {isTop && (
       <ImageGallery
-        images={hotel.images || (hotel.image ? [hotel.image] : [])}
+        images={hotel.images || []}
         alt={hotel.name}
         className="mb-4"
         overlayContent={
           <div className="flex items-center justify-between w-full">
             <Badge className="bg-black/50 text-white border-none">
-              ${hotel.price || hotel.cost}/night
+              ${hotel.cost}/night
             </Badge>
             {hotel.rating && (
               <div className="flex items-center gap-1">
@@ -76,21 +77,22 @@ export const SwipeHotelRenderer = (hotel: any, isTop: boolean) => (
         </p>
       )}
       
-      {isTop && hotel.checkIn && hotel.checkOut && (
+      {isTop && (
         <div className="flex items-center gap-4 text-xs text-white/60">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>{hotel.checkIn}</span>
+            <span>{hotel.check_in}</span>
           </div>
           <span>→</span>
-          <span>{hotel.checkOut}</span>
+          <span>{hotel.check_out}</span>
+          <span>• {hotel.nights} nights</span>
         </div>
       )}
       
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge className={`text-sm ${hotel.booking_status ? getStatusColor(hotel.booking_status) : 'bg-white/10 text-white/60 border-white/20'}`}>
-            ${hotel.price || hotel.cost}
+            ${hotel.cost}
           </Badge>
           {hotel.booking_status && (
             <Badge variant="outline" className={`text-xs ${getStatusColor(hotel.booking_status)}`}>
@@ -106,7 +108,7 @@ export const SwipeHotelRenderer = (hotel: any, isTop: boolean) => (
         )}
       </div>
       
-      {isTop && hotel.amenities && (
+      {isTop && hotel.amenities && hotel.amenities.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {hotel.amenities.slice(0, 3).map((amenity: string, index: number) => (
             <Badge key={index} variant="outline" className="text-xs border-white/30 text-white/70">
@@ -124,8 +126,8 @@ export const SwipeHotelRenderer = (hotel: any, isTop: boolean) => (
   </>
 );
 
-// Flight Card Renderer
-export const SwipeFlightRenderer = (flight: any, isTop: boolean) => (
+// Enhanced Flight Card Renderer
+export const EnhancedFlightRenderer = (flight: EnhancedFlightItem, isTop: boolean) => (
   <>
     <div className="space-y-3">
       <div className="flex items-center gap-2">
@@ -166,7 +168,7 @@ export const SwipeFlightRenderer = (flight: any, isTop: boolean) => (
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge className={`text-sm ${flight.booking_status ? getStatusColor(flight.booking_status) : 'bg-blue-500/20 text-blue-300 border-blue-500/30'}`}>
-            ${flight.cost || flight.price}
+            ${flight.cost}
           </Badge>
           {flight.booking_status && (
             <Badge variant="outline" className={`text-xs ${getStatusColor(flight.booking_status)}`}>
@@ -181,23 +183,38 @@ export const SwipeFlightRenderer = (flight: any, isTop: boolean) => (
           </div>
         )}
       </div>
+
+      {isTop && (flight.seat_class || flight.aircraft_type) && (
+        <div className="flex flex-wrap gap-1">
+          {flight.seat_class && (
+            <Badge variant="outline" className="text-xs border-white/30 text-white/70">
+              {flight.seat_class}
+            </Badge>
+          )}
+          {flight.aircraft_type && (
+            <Badge variant="outline" className="text-xs border-white/30 text-white/70">
+              {flight.aircraft_type}
+            </Badge>
+          )}
+        </div>
+      )}
     </div>
   </>
 );
 
-// Activity Card Renderer
-export const SwipeActivityRenderer = (activity: any, isTop: boolean) => (
+// Enhanced Activity Card Renderer
+export const EnhancedActivityRenderer = (activity: EnhancedActivityItem, isTop: boolean) => (
   <>
     {isTop && (
       <ImageGallery
-        images={activity.images || (activity.image ? [activity.image] : [])}
+        images={activity.images || []}
         alt={activity.name}
         aspectRatio="wide"
         className="mb-3"
         overlayContent={
           <div className="flex items-center justify-between w-full">
             <Badge className="bg-black/50 text-white border-none">
-              ${activity.price || activity.cost}
+              ${activity.cost}
             </Badge>
             {activity.rating && (
               <div className="flex items-center gap-1">
@@ -218,7 +235,7 @@ export const SwipeActivityRenderer = (activity: any, isTop: boolean) => (
         </div>
         <div className="flex items-center gap-1 text-white/70 text-sm">
           <MapPin className="h-3 w-3" />
-          {activity.location || activity.city}
+          {activity.location}
         </div>
         {activity.booking_reference && (
           <div className="text-white/50 text-xs mt-1">
@@ -236,7 +253,7 @@ export const SwipeActivityRenderer = (activity: any, isTop: boolean) => (
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge className={`text-sm ${activity.booking_status ? getStatusColor(activity.booking_status) : 'bg-green-500/20 text-green-300 border-green-500/30'}`}>
-            ${activity.price || activity.cost}
+            ${activity.cost}
           </Badge>
           {activity.booking_status && (
             <Badge variant="outline" className={`text-xs ${getStatusColor(activity.booking_status)}`}>
@@ -258,16 +275,31 @@ export const SwipeActivityRenderer = (activity: any, isTop: boolean) => (
           {new Date(activity.date).toLocaleDateString()}
         </div>
       )}
+
+      {isTop && (activity.category || activity.difficulty_level) && (
+        <div className="flex flex-wrap gap-1">
+          {activity.category && (
+            <Badge variant="outline" className="text-xs border-white/30 text-white/70">
+              {activity.category}
+            </Badge>
+          )}
+          {activity.difficulty_level && (
+            <Badge variant="outline" className="text-xs border-white/30 text-white/70">
+              {activity.difficulty_level}
+            </Badge>
+          )}
+        </div>
+      )}
     </div>
   </>
 );
 
-// Restaurant Card Renderer
-export const SwipeRestaurantRenderer = (restaurant: any, isTop: boolean) => (
+// Enhanced Restaurant Card Renderer
+export const EnhancedRestaurantRenderer = (restaurant: EnhancedReservationItem, isTop: boolean) => (
   <>
-    {isTop && (
+    {isTop && restaurant.images && restaurant.images.length > 0 && (
       <ImageGallery
-        images={restaurant.images || (restaurant.image ? [restaurant.image] : [])}
+        images={restaurant.images}
         alt={restaurant.name}
         aspectRatio="wide"
         className="mb-3"
@@ -297,7 +329,7 @@ export const SwipeRestaurantRenderer = (restaurant: any, isTop: boolean) => (
         </div>
         <div className="flex items-center gap-1 text-white/70 text-sm">
           <MapPin className="h-3 w-3" />
-          {restaurant.location || restaurant.city}
+          {restaurant.city}
         </div>
         {restaurant.booking_reference && (
           <div className="text-white/50 text-xs mt-1">
@@ -315,7 +347,7 @@ export const SwipeRestaurantRenderer = (restaurant: any, isTop: boolean) => (
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Utensils className="h-4 w-4 text-orange-400" />
-          <span className="text-white/70 text-sm">{restaurant.cuisine || restaurant.type || 'Restaurant'}</span>
+          <span className="text-white/70 text-sm">{restaurant.cuisine || restaurant.type}</span>
           {restaurant.booking_status && (
             <Badge variant="outline" className={`text-xs ${getStatusColor(restaurant.booking_status)}`}>
               {restaurant.booking_status}
@@ -330,24 +362,22 @@ export const SwipeRestaurantRenderer = (restaurant: any, isTop: boolean) => (
         )}
       </div>
       
-      {restaurant.priceRange && (
-        <Badge className="text-sm bg-orange-500/20 text-orange-300 border-orange-500/30">
-          {restaurant.priceRange}
-        </Badge>
-      )}
-      
       <div className="flex items-center justify-between text-white/60 text-sm">
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
-          {restaurant.date && new Date(restaurant.date).toLocaleDateString()} • {restaurant.time}
+          {new Date(restaurant.date).toLocaleDateString()} • {restaurant.time}
         </div>
-        {restaurant.party_size && (
-          <div className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            {restaurant.party_size} people
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          <Users className="h-3 w-3" />
+          {restaurant.party_size} people
+        </div>
       </div>
+
+      {restaurant.price_range && (
+        <Badge className="text-sm bg-orange-500/20 text-orange-300 border-orange-500/30">
+          {restaurant.price_range}
+        </Badge>
+      )}
     </div>
   </>
 );

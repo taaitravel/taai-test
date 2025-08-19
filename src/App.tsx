@@ -21,6 +21,7 @@ import WhatWeDo from "./pages/WhatWeDo";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import AdminRoles from "./pages/AdminRoles";
+import EnhancedItineraryDemo from "./pages/EnhancedItineraryDemo";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
                 <AdminRoles />
               </ProtectedRoute>
             } />
+            <Route path="/demo" element={<EnhancedItineraryDemo />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

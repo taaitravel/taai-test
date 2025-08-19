@@ -14,6 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_commissions: {
+        Row: {
+          agent_id: string
+          booking_id: string
+          commission_amount: number
+          commission_rate: number
+          commission_status: string | null
+          created_at: string
+          earned_date: string | null
+          id: string
+          paid_date: string | null
+        }
+        Insert: {
+          agent_id: string
+          booking_id: string
+          commission_amount: number
+          commission_rate: number
+          commission_status?: string | null
+          created_at?: string
+          earned_date?: string | null
+          id?: string
+          paid_date?: string | null
+        }
+        Update: {
+          agent_id?: string
+          booking_id?: string
+          commission_amount?: number
+          commission_rate?: number
+          commission_status?: string | null
+          created_at?: string
+          earned_date?: string | null
+          id?: string
+          paid_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_commissions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "expedia_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_audit_log: {
+        Row: {
+          action: string
+          booking_id: string
+          created_at: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_audit_log_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "expedia_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_payments: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          payment_amount: number
+          payment_date: string
+          payment_method: string
+          payment_reference: string | null
+          payment_status: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          payment_amount: number
+          payment_date?: string
+          payment_method: string
+          payment_reference?: string | null
+          payment_status?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          payment_amount?: number
+          payment_date?: string
+          payment_method?: string
+          payment_reference?: string | null
+          payment_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "expedia_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booked_at: string
@@ -63,6 +186,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      business_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_date: string
+          metric_type: string
+          metric_value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date: string
+          metric_type: string
+          metric_value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_type?: string
+          metric_value?: number
+        }
+        Relationships: []
       }
       cart_items: {
         Row: {
@@ -168,6 +318,92 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      expedia_bookings: {
+        Row: {
+          base_cost: number
+          booking_date: string
+          booking_details: Json
+          booking_reference: string
+          booking_status: string | null
+          booking_type: string
+          commission_amount: number | null
+          commission_rate: number | null
+          created_at: string
+          currency: string | null
+          expedia_data: Json | null
+          expedia_property_id: string | null
+          fees: number
+          id: string
+          images: Json | null
+          itinerary_id: number
+          payment_status: string | null
+          service_end_date: string | null
+          service_start_date: string | null
+          taxes: number
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_cost?: number
+          booking_date?: string
+          booking_details?: Json
+          booking_reference: string
+          booking_status?: string | null
+          booking_type: string
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          currency?: string | null
+          expedia_data?: Json | null
+          expedia_property_id?: string | null
+          fees?: number
+          id?: string
+          images?: Json | null
+          itinerary_id: number
+          payment_status?: string | null
+          service_end_date?: string | null
+          service_start_date?: string | null
+          taxes?: number
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_cost?: number
+          booking_date?: string
+          booking_details?: Json
+          booking_reference?: string
+          booking_status?: string | null
+          booking_type?: string
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          currency?: string | null
+          expedia_data?: Json | null
+          expedia_property_id?: string | null
+          fees?: number
+          id?: string
+          images?: Json | null
+          itinerary_id?: number
+          payment_status?: string | null
+          service_end_date?: string | null
+          service_start_date?: string | null
+          taxes?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expedia_bookings_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       itinerary: {
         Row: {
