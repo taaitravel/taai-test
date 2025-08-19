@@ -66,7 +66,14 @@ export const useExpediaAPI = () => {
     }
   };
 
-  // Specific methods for common Expedia endpoints
+  // Test endpoint to verify API connection
+  const testConnection = async () => {
+    return callExpediaAPI({
+      endpoint: 'https://expedia13.p.rapidapi.com/api/v1/test'
+    });
+  };
+
+  // Search for hotels
   const searchHotels = async (params: {
     destination: string;
     checkin: string;
@@ -76,20 +83,19 @@ export const useExpediaAPI = () => {
     rooms?: number;
   }) => {
     return callExpediaAPI({
-      endpoint: 'https://apidojo-booking-v1.p.rapidapi.com/properties/list',
+      endpoint: 'https://expedia13.p.rapidapi.com/api/v1/hotels/search',
       params: {
-        dest_id: params.destination,
-        checkin_date: params.checkin,
-        checkout_date: params.checkout,
-        adults_number: (params.adults || 2).toString(),
-        children_number: (params.children || 0).toString(),
-        room_number: (params.rooms || 1).toString(),
-        units: 'metric',
-        locale: 'en-us'
+        destination: params.destination,
+        checkin: params.checkin,
+        checkout: params.checkout,
+        adults: (params.adults || 2).toString(),
+        children: (params.children || 0).toString(),
+        rooms: (params.rooms || 1).toString()
       }
     });
   };
 
+  // Search for flights
   const searchFlights = async (params: {
     origin: string;
     destination: string;
@@ -97,36 +103,77 @@ export const useExpediaAPI = () => {
     return_date?: string;
     adults?: number;
     children?: number;
+    class?: string;
   }) => {
-    // Note: This is a placeholder - actual flight search endpoints may vary
     return callExpediaAPI({
-      endpoint: 'https://apidojo-booking-v1.p.rapidapi.com/flights/search',
+      endpoint: 'https://expedia13.p.rapidapi.com/api/v1/flights/search',
       params: {
-        from: params.origin,
-        to: params.destination,
-        departure: params.departure_date,
-        return: params.return_date || '',
+        origin: params.origin,
+        destination: params.destination,
+        departure_date: params.departure_date,
+        return_date: params.return_date || '',
         adults: (params.adults || 1).toString(),
-        children: (params.children || 0).toString()
+        children: (params.children || 0).toString(),
+        class: params.class || 'economy'
       }
     });
   };
 
+  // Search for activities/attractions
+  const searchActivities = async (params: {
+    destination: string;
+    category?: string;
+    date?: string;
+  }) => {
+    return callExpediaAPI({
+      endpoint: 'https://expedia13.p.rapidapi.com/api/v1/activities/search',
+      params: {
+        destination: params.destination,
+        category: params.category || 'all',
+        date: params.date || ''
+      }
+    });
+  };
+
+  // Get destination details and suggestions
   const getDestinations = async (query: string) => {
     return callExpediaAPI({
-      endpoint: 'https://apidojo-booking-v1.p.rapidapi.com/locations/search',
+      endpoint: 'https://expedia13.p.rapidapi.com/api/v1/destinations/search',
       params: {
-        query,
-        locale: 'en-us'
+        query
+      }
+    });
+  };
+
+  // Get detailed information about a specific hotel
+  const getHotelDetails = async (hotelId: string) => {
+    return callExpediaAPI({
+      endpoint: 'https://expedia13.p.rapidapi.com/api/v1/hotels/details',
+      params: {
+        hotel_id: hotelId
+      }
+    });
+  };
+
+  // Get flight details
+  const getFlightDetails = async (flightId: string) => {
+    return callExpediaAPI({
+      endpoint: 'https://expedia13.p.rapidapi.com/api/v1/flights/details',
+      params: {
+        flight_id: flightId
       }
     });
   };
 
   return {
     callExpediaAPI,
+    testConnection,
     searchHotels,
     searchFlights,
+    searchActivities,
     getDestinations,
+    getHotelDetails,
+    getFlightDetails,
     loading
   };
 };

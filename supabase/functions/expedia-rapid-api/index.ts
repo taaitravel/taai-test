@@ -67,7 +67,7 @@ serve(async (req) => {
 
     const rapidApiHeaders: Record<string, string> = {
       'X-RapidAPI-Key': rapidApiKey,
-      'X-RapidAPI-Host': 'apidojo-booking-v1.p.rapidapi.com', // Default host, can be overridden
+      'X-RapidAPI-Host': 'expedia13.p.rapidapi.com',
     };
 
     // Add content-type for POST/PUT requests
