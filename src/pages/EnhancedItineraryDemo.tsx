@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useMockExpediaData } from '@/hooks/useMockExpediaData';
+import { ItineraryStackedSection } from '@/components/itinerary/ItineraryStackedSection';
 import { 
-  SwipeHotelRenderer, 
-  SwipeFlightRenderer, 
-  SwipeActivityRenderer, 
-  SwipeRestaurantRenderer 
-} from '@/components/swipe/SwipeCardRenderers';
-import { BusinessMetricsDashboard } from '@/components/admin/BusinessMetricsDashboard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+  EnhancedHotelCardRenderer,
+  EnhancedFlightCardRenderer,
+  EnhancedActivityCardRenderer,
+  EnhancedReservationCardRenderer
+} from '@/components/itinerary/EnhancedStackedCardRenderer';
 import { 
   Hotel, 
   Plane, 
@@ -49,146 +48,88 @@ const EnhancedItineraryDemo: React.FC = () => {
           </Badge>
         </div>
 
-        <Tabs defaultValue="bookings" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 bg-white/10">
-            <TabsTrigger value="bookings" className="text-white">Enhanced Bookings</TabsTrigger>
-            <TabsTrigger value="analytics" className="text-white">Business Analytics</TabsTrigger>
-          </TabsList>
+        {/* Itinerary Sections in Stacked Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          <ItineraryStackedSection
+            title="Hotels"
+            icon={Hotel}
+            items={mockHotels}
+            onCardClick={(index) => console.log('Hotel clicked:', index)}
+            renderCard={EnhancedHotelCardRenderer}
+            emptyMessage="No hotels added yet"
+          />
+          
+          <ItineraryStackedSection
+            title="Flights"
+            icon={Plane}
+            items={mockFlights}
+            onCardClick={(index) => console.log('Flight clicked:', index)}
+            renderCard={EnhancedFlightCardRenderer}
+            emptyMessage="No flights added yet"
+          />
+          
+          <ItineraryStackedSection
+            title="Activities"
+            icon={MapPin}
+            items={mockActivities}
+            onCardClick={(index) => console.log('Activity clicked:', index)}
+            renderCard={EnhancedActivityCardRenderer}
+            emptyMessage="No activities added yet"
+          />
+          
+          <ItineraryStackedSection
+            title="Reservations"
+            icon={Utensils}
+            items={mockReservations}
+            onCardClick={(index) => console.log('Reservation clicked:', index)}
+            renderCard={EnhancedReservationCardRenderer}
+            emptyMessage="No reservations added yet"
+          />
+        </div>
 
-          <TabsContent value="bookings" className="space-y-8">
-            {/* Hotels Section */}
-            <Card className="trip-card-past">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Hotel className="h-5 w-5" />
-                  Hotels ({mockHotels.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {mockHotels.map((hotel, index) => (
-                    <Card key={hotel.id} className="luxury-gradient border border-white/20">
-                      <CardContent className="p-6">
-                        {SwipeHotelRenderer(hotel, true)}
-                      </CardContent>
-                    </Card>
-                  ))}
+        {/* Financial Summary */}
+        <Card className="trip-card-past mt-8">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Trip Financial Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">
+                  ${(mockHotels.reduce((sum, h) => sum + h.cost, 0) + 
+                    mockFlights.reduce((sum, f) => sum + f.cost, 0) + 
+                    mockActivities.reduce((sum, a) => sum + a.cost, 0)).toLocaleString()}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Flights Section */}
-            <Card className="trip-card-past">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Plane className="h-5 w-5" />
-                  Flights ({mockFlights.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {mockFlights.map((flight, index) => (
-                    <Card key={flight.id} className="luxury-gradient border border-white/20">
-                      <CardContent className="p-6">
-                        {SwipeFlightRenderer(flight, true)}
-                      </CardContent>
-                    </Card>
-                  ))}
+                <p className="text-sm text-white/60">Total Trip Cost</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-2">
+                  ${((mockHotels.reduce((sum, h) => sum + h.cost, 0) + 
+                    mockFlights.reduce((sum, f) => sum + f.cost, 0) + 
+                    mockActivities.reduce((sum, a) => sum + a.cost, 0)) * 0.1).toFixed(0)}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Activities Section */}
-            <Card className="trip-card-past">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Activities ({mockActivities.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {mockActivities.map((activity, index) => (
-                    <Card key={activity.id} className="luxury-gradient border border-white/20">
-                      <CardContent className="p-6">
-                        {SwipeActivityRenderer(activity, true)}
-                      </CardContent>
-                    </Card>
-                  ))}
+                <p className="text-sm text-white/60">Commission Earned</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400 mb-2">
+                  {mockHotels.filter(h => h.booking_status === 'confirmed').length + 
+                   mockFlights.filter(f => f.booking_status === 'confirmed').length + 
+                   mockActivities.filter(a => a.booking_status === 'confirmed').length}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Reservations Section */}
-            <Card className="trip-card-past">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Utensils className="h-5 w-5" />
-                  Reservations ({mockReservations.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {mockReservations.map((reservation, index) => (
-                    <Card key={reservation.id} className="luxury-gradient border border-white/20">
-                      <CardContent className="p-6">
-                        {SwipeRestaurantRenderer(reservation, true)}
-                      </CardContent>
-                    </Card>
-                  ))}
+                <p className="text-sm text-white/60">Confirmed Bookings</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-400 mb-2">
+                  15
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Financial Summary */}
-            <Card className="trip-card-past">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Trip Financial Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-white mb-2">
-                      ${(mockHotels.reduce((sum, h) => sum + h.cost, 0) + 
-                        mockFlights.reduce((sum, f) => sum + f.cost, 0) + 
-                        mockActivities.reduce((sum, a) => sum + a.cost, 0)).toLocaleString()}
-                    </div>
-                    <p className="text-sm text-white/60">Total Trip Cost</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary mb-2">
-                      ${((mockHotels.reduce((sum, h) => sum + h.cost, 0) + 
-                        mockFlights.reduce((sum, f) => sum + f.cost, 0) + 
-                        mockActivities.reduce((sum, a) => sum + a.cost, 0)) * 0.1).toFixed(0)}
-                    </div>
-                    <p className="text-sm text-white/60">Commission Earned</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-400 mb-2">
-                      {mockHotels.filter(h => h.booking_status === 'confirmed').length + 
-                       mockFlights.filter(f => f.booking_status === 'confirmed').length + 
-                       mockActivities.filter(a => a.booking_status === 'confirmed').length}
-                    </div>
-                    <p className="text-sm text-white/60">Confirmed Bookings</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-400 mb-2">
-                      15
-                    </div>
-                    <p className="text-sm text-white/60">Travel Days</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <BusinessMetricsDashboard />
-          </TabsContent>
-        </Tabs>
+                <p className="text-sm text-white/60">Travel Days</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
