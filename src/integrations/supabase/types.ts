@@ -413,9 +413,11 @@ export type Database = {
           budget: number | null
           budget_rate: number | null
           created_at: string
+          expedia_data: Json | null
           flights: Json | null
           hotels: Json | null
           id: number
+          images: Json | null
           itin_date_end: string | null
           itin_date_start: string | null
           itin_desc: string | null
@@ -435,9 +437,11 @@ export type Database = {
           budget?: number | null
           budget_rate?: number | null
           created_at?: string
+          expedia_data?: Json | null
           flights?: Json | null
           hotels?: Json | null
           id?: number
+          images?: Json | null
           itin_date_end?: string | null
           itin_date_start?: string | null
           itin_desc?: string | null
@@ -457,9 +461,11 @@ export type Database = {
           budget?: number | null
           budget_rate?: number | null
           created_at?: string
+          expedia_data?: Json | null
           flights?: Json | null
           hotels?: Json | null
           id?: number
+          images?: Json | null
           itin_date_end?: string | null
           itin_date_start?: string | null
           itin_desc?: string | null

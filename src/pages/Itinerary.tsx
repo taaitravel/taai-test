@@ -4,7 +4,7 @@ import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
 import { ItineraryContent } from "@/components/itinerary/ItineraryContent";
 import { ItineraryBrowsers } from "@/components/itinerary/ItineraryBrowsers";
 import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingState";
-import { useItineraryData } from "@/hooks/useItineraryData";
+import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
 import { useBrowserState } from "@/hooks/useBrowserState";
 import { AddItemDialog, ItemType } from "@/components/itinerary/AddItemDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +22,7 @@ const Itinerary = () => {
     }
   }, [itineraryId, navigate]);
   
-  const { itineraryData, loading, budgetRefreshTrigger, refreshMapData } = useItineraryData(itineraryId);
+  const { itineraryData, loading, budgetRefreshTrigger, refreshMapData } = useAuthenticatedItineraryData(itineraryId);
   
   const {
     browserState,
