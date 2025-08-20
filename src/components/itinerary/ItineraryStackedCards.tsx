@@ -1,5 +1,11 @@
 import { Plane, MapPin, Calendar, Clock } from "lucide-react";
-import { ItineraryStackedSection, FlightCardRenderer, HotelCardRenderer, ActivityCardRenderer, ReservationCardRenderer } from "./ItineraryStackedSection";
+import { ItineraryStackedSection } from "./ItineraryStackedSection";
+import { 
+  EnhancedHotelCardRenderer,
+  EnhancedFlightCardRenderer,
+  EnhancedActivityCardRenderer,
+  EnhancedReservationCardRenderer
+} from "./EnhancedStackedCardRenderer";
 
 interface ItineraryData {
   flights: any[];
@@ -42,7 +48,7 @@ export const ItineraryStackedCards = ({
             icon={Plane}
             items={itineraryData.flights || []}
             onCardClick={onFlightClick}
-            renderCard={FlightCardRenderer}
+            renderCard={EnhancedFlightCardRenderer}
             emptyMessage="No flights booked"
             onAddClick={onAddFlight}
           />
@@ -51,7 +57,7 @@ export const ItineraryStackedCards = ({
             icon={MapPin}
             items={itineraryData.hotels || []}
             onCardClick={onHotelClick}
-            renderCard={HotelCardRenderer}
+            renderCard={EnhancedHotelCardRenderer}
             emptyMessage="No hotels booked"
             onAddClick={onAddHotel}
           />
@@ -64,7 +70,7 @@ export const ItineraryStackedCards = ({
             icon={Calendar}
             items={itineraryData.activities || []}
             onCardClick={onActivityClick}
-            renderCard={ActivityCardRenderer}
+            renderCard={EnhancedActivityCardRenderer}
             emptyMessage="No activities planned"
             onAddClick={onAddActivity}
           />
@@ -73,7 +79,7 @@ export const ItineraryStackedCards = ({
             icon={Clock}
             items={itineraryData.reservations || []}
             onCardClick={onReservationClick}
-            renderCard={ReservationCardRenderer}
+            renderCard={EnhancedReservationCardRenderer}
             emptyMessage="No reservations made"
             onAddClick={onAddReservation}
           />
@@ -89,7 +95,7 @@ export const ItineraryStackedCards = ({
             icon={Plane}
             items={itineraryData.flights || []}
             onCardClick={onFlightClick}
-            renderCard={FlightCardRenderer}
+            renderCard={EnhancedFlightCardRenderer}
             emptyMessage="No flights booked"
             onAddClick={onAddFlight}
           />
@@ -102,7 +108,7 @@ export const ItineraryStackedCards = ({
             icon={MapPin}
             items={itineraryData.hotels || []}
             onCardClick={onHotelClick}
-            renderCard={HotelCardRenderer}
+            renderCard={EnhancedHotelCardRenderer}
             emptyMessage="No hotels booked"
             onAddClick={onAddHotel}
           />
@@ -115,7 +121,7 @@ export const ItineraryStackedCards = ({
             icon={Calendar}
             items={itineraryData.activities || []}
             onCardClick={onActivityClick}
-            renderCard={ActivityCardRenderer}
+            renderCard={EnhancedActivityCardRenderer}
             emptyMessage="No activities planned"
             onAddClick={onAddActivity}
           />
@@ -128,7 +134,7 @@ export const ItineraryStackedCards = ({
             icon={Clock}
             items={itineraryData.reservations || []}
             onCardClick={onReservationClick}
-            renderCard={ReservationCardRenderer}
+            renderCard={EnhancedReservationCardRenderer}
             emptyMessage="No reservations made"
             onAddClick={onAddReservation}
           />
