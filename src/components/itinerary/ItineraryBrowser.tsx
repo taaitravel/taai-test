@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, ChevronLeft, ChevronRight, Star, Calendar, Users, Clock, MapPin } from "lucide-react";
+import { ImageGallery } from "@/components/ui/image-gallery";
+import { X, ChevronLeft, ChevronRight, Star, Calendar, Users, Clock, MapPin, Plane, Building2, Activity, UtensilsCrossed } from "lucide-react";
 
 interface ItineraryBrowserProps {
   isOpen: boolean;
@@ -35,11 +36,27 @@ export const ItineraryBrowser = ({
       case 'flights':
         return (
           <>
-            <div className="text-6xl mb-4 text-center">✈️</div>
-            <h2 className="text-2xl font-bold text-white mb-2 text-center">
-              {currentItem.airline} {currentItem.flight_number}
-            </h2>
-            <p className="text-white/70 text-center mb-4">
+            {/* Image Gallery */}
+            {currentItem.images && currentItem.images.length > 0 && (
+              <div className="mb-4">
+                <ImageGallery 
+                  images={currentItem.images} 
+                  alt={`${currentItem.airline} ${currentItem.flight_number}`}
+                  className="rounded-lg"
+                  aspectRatio="wide"
+                  showIndicators={true}
+                />
+              </div>
+            )}
+            
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Plane className="h-8 w-8 text-blue-400" />
+              <h2 className="text-2xl font-bold text-white text-center">
+                {currentItem.airline} {currentItem.flight_number}
+              </h2>
+            </div>
+            
+            <p className="text-white/70 text-center mb-4 text-lg">
               {currentItem.from} → {currentItem.to}
             </p>
             
@@ -54,22 +71,75 @@ export const ItineraryBrowser = ({
                   <p className="text-white">{new Date(currentItem.arrival).toLocaleString()}</p>
                 </div>
               </div>
+              
+              {/* Booking Details */}
+              {currentItem.booking_status && (
+                <div className="flex items-center text-white/70">
+                  <span className="text-sm">Status: </span>
+                  <Badge className={`ml-2 text-xs ${
+                    currentItem.booking_status === 'confirmed' 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : currentItem.booking_status === 'pending'
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {currentItem.booking_status}
+                  </Badge>
+                </div>
+              )}
+              
+              {currentItem.location && (
+                <div className="flex items-center text-white/70">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  <span className="text-sm">{currentItem.location}</span>
+                </div>
+              )}
+              
+              {currentItem.expedia_property_id && (
+                <div className="text-white/50 text-xs">
+                  Reference: {currentItem.expedia_property_id}
+                </div>
+              )}
             </div>
             
-            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-              ${currentItem.cost}
-            </Badge>
+            <div className="flex items-center justify-between">
+              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                ${currentItem.cost}
+              </Badge>
+              {currentItem.rating && (
+                <div className="flex items-center text-yellow-400">
+                  <Star className="h-4 w-4 fill-current mr-1" />
+                  <span className="text-sm">{currentItem.rating}</span>
+                </div>
+              )}
+            </div>
           </>
         );
         
       case 'hotels':
         return (
           <>
-            <div className="text-6xl mb-4 text-center">🏨</div>
-            <h2 className="text-2xl font-bold text-white mb-2 text-center">
-              {currentItem.name}
-            </h2>
-            <p className="text-white/70 text-center mb-4">
+            {/* Image Gallery */}
+            {currentItem.images && currentItem.images.length > 0 && (
+              <div className="mb-4">
+                <ImageGallery 
+                  images={currentItem.images} 
+                  alt={currentItem.name}
+                  className="rounded-lg"
+                  aspectRatio="wide"
+                  showIndicators={true}
+                />
+              </div>
+            )}
+            
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Building2 className="h-8 w-8 text-green-400" />
+              <h2 className="text-2xl font-bold text-white text-center">
+                {currentItem.name}
+              </h2>
+            </div>
+            
+            <p className="text-white/70 text-center mb-4 text-lg">
               {currentItem.city}
             </p>
             
@@ -84,30 +154,78 @@ export const ItineraryBrowser = ({
                   <p className="text-white">{new Date(currentItem.check_out).toLocaleDateString()}</p>
                 </div>
               </div>
+              
               <div className="flex items-center text-white/70">
                 <Clock className="h-4 w-4 mr-2" />
                 <span className="text-sm">{currentItem.nights} nights</span>
               </div>
+              
+              {/* Booking Details */}
+              {currentItem.booking_status && (
+                <div className="flex items-center text-white/70">
+                  <span className="text-sm">Status: </span>
+                  <Badge className={`ml-2 text-xs ${
+                    currentItem.booking_status === 'confirmed' 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : currentItem.booking_status === 'pending'
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {currentItem.booking_status}
+                  </Badge>
+                </div>
+              )}
+              
+              {currentItem.location && (
+                <div className="flex items-center text-white/70">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  <span className="text-sm">{currentItem.location}</span>
+                </div>
+              )}
+              
+              {currentItem.expedia_property_id && (
+                <div className="text-white/50 text-xs">
+                  Property ID: {currentItem.expedia_property_id}
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                ${currentItem.cost}
+              </Badge>
               <div className="flex items-center text-yellow-400">
-                <Star className="h-4 w-4 fill-current mr-2" />
+                <Star className="h-4 w-4 fill-current mr-1" />
                 <span className="text-sm">{currentItem.rating} stars</span>
               </div>
             </div>
-            
-            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-              ${currentItem.cost}
-            </Badge>
           </>
         );
         
       case 'activities':
         return (
           <>
-            <div className="text-6xl mb-4 text-center">🎯</div>
-            <h2 className="text-2xl font-bold text-white mb-2 text-center">
-              {currentItem.name}
-            </h2>
-            <p className="text-white/70 text-center mb-4">
+            {/* Image Gallery */}
+            {currentItem.images && currentItem.images.length > 0 && (
+              <div className="mb-4">
+                <ImageGallery 
+                  images={currentItem.images} 
+                  alt={currentItem.name}
+                  className="rounded-lg"
+                  aspectRatio="wide"
+                  showIndicators={true}
+                />
+              </div>
+            )}
+            
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Activity className="h-8 w-8 text-purple-400" />
+              <h2 className="text-2xl font-bold text-white text-center">
+                {currentItem.name}
+              </h2>
+            </div>
+            
+            <p className="text-white/70 text-center mb-4 text-lg">
               {currentItem.city}
             </p>
             
@@ -120,24 +238,71 @@ export const ItineraryBrowser = ({
                 <Clock className="h-4 w-4 mr-2" />
                 <span className="text-sm">{currentItem.duration}</span>
               </div>
+              
+              {/* Booking Details */}
+              {currentItem.booking_status && (
+                <div className="flex items-center text-white/70">
+                  <span className="text-sm">Status: </span>
+                  <Badge className={`ml-2 text-xs ${
+                    currentItem.booking_status === 'confirmed' 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : currentItem.booking_status === 'pending'
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {currentItem.booking_status}
+                  </Badge>
+                </div>
+              )}
+              
+              {currentItem.location && (
+                <div className="flex items-center text-white/70">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  <span className="text-sm">{currentItem.location}</span>
+                </div>
+              )}
             </div>
             
-            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-              ${currentItem.cost}
-            </Badge>
+            <div className="flex items-center justify-between">
+              <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                ${currentItem.cost}
+              </Badge>
+              {currentItem.rating && (
+                <div className="flex items-center text-yellow-400">
+                  <Star className="h-4 w-4 fill-current mr-1" />
+                  <span className="text-sm">{currentItem.rating}</span>
+                </div>
+              )}
+            </div>
           </>
         );
         
       case 'reservations':
         return (
           <>
-            <div className="text-6xl mb-4 text-center">
-              {currentItem.type === 'restaurant' ? '🍽️' : '📅'}
+            {/* Image Gallery */}
+            {currentItem.images && currentItem.images.length > 0 && (
+              <div className="mb-4">
+                <ImageGallery 
+                  images={currentItem.images} 
+                  alt={currentItem.name}
+                  className="rounded-lg"
+                  aspectRatio="wide"
+                  showIndicators={true}
+                />
+              </div>
+            )}
+            
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <UtensilsCrossed className={`h-8 w-8 ${
+                currentItem.type === 'restaurant' ? 'text-orange-400' : 'text-cyan-400'
+              }`} />
+              <h2 className="text-2xl font-bold text-white text-center">
+                {currentItem.name}
+              </h2>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2 text-center">
-              {currentItem.name}
-            </h2>
-            <p className="text-white/70 text-center mb-4">
+            
+            <p className="text-white/70 text-center mb-4 text-lg">
               {currentItem.city}
             </p>
             
@@ -154,20 +319,34 @@ export const ItineraryBrowser = ({
                   {currentItem.party_size} {currentItem.party_size === 1 ? 'person' : 'people'}
                 </span>
               </div>
-              {currentItem.type === 'restaurant' && (
-                <>
-                  <div className="flex items-center text-white/70">
-                    <span className="text-sm">🍴 Cuisine: Italian • Fine Dining</span>
-                  </div>
-                  <div className="flex items-center text-yellow-400">
-                    <Star className="h-4 w-4 fill-current mr-1" />
-                    <Star className="h-4 w-4 fill-current mr-1" />
-                    <Star className="h-4 w-4 fill-current mr-1" />
-                    <Star className="h-4 w-4 fill-current mr-1" />
-                    <Star className="h-4 w-4 mr-2" />
-                    <span className="text-sm text-white/70">4.2 • $$$ • 1,247 reviews</span>
-                  </div>
-                </>
+              
+              {currentItem.cuisine && (
+                <div className="flex items-center text-white/70">
+                  <span className="text-sm">🍴 Cuisine: {currentItem.cuisine}</span>
+                </div>
+              )}
+              
+              {/* Booking Details */}
+              {currentItem.booking_status && (
+                <div className="flex items-center text-white/70">
+                  <span className="text-sm">Status: </span>
+                  <Badge className={`ml-2 text-xs ${
+                    currentItem.booking_status === 'confirmed' 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : currentItem.booking_status === 'pending'
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {currentItem.booking_status}
+                  </Badge>
+                </div>
+              )}
+              
+              {currentItem.location && (
+                <div className="flex items-center text-white/70">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  <span className="text-sm">{currentItem.location}</span>
+                </div>
               )}
             </div>
             
