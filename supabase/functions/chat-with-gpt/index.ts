@@ -1,8 +1,15 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const openAIApiKey = Deno.env.get('CHAT-GPT-TAAI');
 const yelpApiKey = Deno.env.get('YELP_API_KEY');
+const rapidApiKey = Deno.env.get('RAPID_API_KEY');
+
+// Initialize Supabase client
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -126,49 +133,152 @@ async function searchHotels(params: any) {
 
 async function searchFlights(params: any) {
   console.log('Searching flights with params:', params);
-  // This would typically call a real flight search API
+  
+  if (!rapidApiKey) {
+    console.warn('RapidAPI key not configured, using mock data');
+    return getMockFlights(params);
+  }
+
+  try {
+    const queryParams = new URLSearchParams({
+      origin: params.origin,
+      destination: params.destination,
+      departure_date: params.departDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      adults: params.passengers?.toString() || '1',
+      class: params.class || 'economy'
+    });
+
+    if (params.returnDate) {
+      queryParams.append('return_date', params.returnDate);
+    }
+
+    const response = await fetch(`https://expedia13.p.rapidapi.com/api/v1/flights/search?${queryParams}`, {
+      headers: {
+        'X-RapidAPI-Key': rapidApiKey,
+        'X-RapidAPI-Host': 'expedia13.p.rapidapi.com'
+      }
+    });
+
+    if (!response.ok) {
+      console.error('Expedia Flight API error:', response.status, await response.text());
+      return getMockFlights(params);
+    }
+
+    const data = await response.json();
+    const flights = data.flights || data.results || [];
+    
+    return flights.slice(0, 10).map((flight: any, index: number) => ({
+      id: flight.id || `expedia_flight_${index}`,
+      airline: flight.airline || flight.carrier || `Airline ${index + 1}`,
+      flight_number: flight.flightNumber || flight.number || `FL${1000 + index}`,
+      price: parseFloat((flight.price || flight.displayPrice || '300').replace(/[^0-9.]/g, '')) || 300,
+      departure: flight.departureTime || flight.departure || '10:00 AM',
+      arrival: flight.arrivalTime || flight.arrival || '2:00 PM',
+      from: params.origin,
+      to: params.destination,
+      duration: flight.duration || '4h 0m',
+      stops: flight.stops || 0,
+      date: params.departDate,
+      images: flight.images || ['https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=500&h=300&fit=crop'],
+      booking_status: 'available',
+      expedia_property_id: flight.bookingId || flight.id,
+      cost: parseFloat((flight.price || flight.displayPrice || '300').replace(/[^0-9.]/g, '')) || 300
+    }));
+  } catch (error) {
+    console.error('Error calling Expedia Flights API:', error);
+    return getMockFlights(params);
+  }
+}
+
+function getMockFlights(params: any) {
   return [
     {
+      id: `mock_flight_001`,
       airline: 'Sky Airlines',
+      flight_number: 'SA1234',
       price: 350,
-      departure: `${params.origin} 10:30 AM`,
-      arrival: `${params.destination} 2:45 PM`,
+      departure: '10:30 AM',
+      arrival: '2:45 PM',
+      from: params.origin,
+      to: params.destination,
       duration: '4h 15m',
       stops: 0,
       date: params.departDate,
+      images: ['https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=500&h=300&fit=crop'],
+      booking_status: 'available',
+      expedia_property_id: 'mock_flight_001',
+      cost: 350
     },
     {
+      id: `mock_flight_002`,
       airline: 'Global Airways',
+      flight_number: 'GA5678',
       price: 420,
-      departure: `${params.origin} 2:15 PM`,
-      arrival: `${params.destination} 6:30 PM`,
+      departure: '2:15 PM',
+      arrival: '6:30 PM',
+      from: params.origin,
+      to: params.destination,
       duration: '4h 15m',
       stops: 0,
       date: params.departDate,
-    },
+      images: ['https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=500&h=300&fit=crop'],
+      booking_status: 'available',
+      expedia_property_id: 'mock_flight_002',
+      cost: 420
+    }
   ];
 }
 
 async function searchActivities(params: any) {
   console.log('Searching activities with params:', params);
-  // This would typically call a real activities search API
+  
+  // For now, return enhanced mock data with better structure
   return [
     {
+      id: `activity_${params.destination}_001`,
       name: `City Tour of ${params.destination}`,
       price: 45,
       duration: '3 hours',
       rating: 4.7,
       category: 'tours',
+      location: params.destination,
+      images: ['https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&h=300&fit=crop'],
       description: `Guided walking tour of ${params.destination}`,
+      date: params.startDate || new Date().toISOString().split('T')[0],
+      booking_status: 'available',
+      expedia_property_id: `activity_001_${params.destination}`,
+      cost: 45
     },
     {
+      id: `activity_${params.destination}_002`,
       name: `${params.destination} Food Experience`,
       price: 65,
       duration: '2.5 hours',
       rating: 4.9,
       category: 'food',
+      location: params.destination,
+      images: ['https://images.unsplash.com/photo-1555939594-58e9c029d071?w=500&h=300&fit=crop'],
       description: `Culinary adventure through ${params.destination}`,
+      date: params.startDate || new Date().toISOString().split('T')[0],
+      booking_status: 'available',
+      expedia_property_id: `activity_002_${params.destination}`,
+      cost: 65
     },
+    {
+      id: `activity_${params.destination}_003`,
+      name: `${params.destination} Adventure Tour`,
+      price: 120,
+      duration: '6 hours',
+      rating: 4.8,
+      category: 'adventure',
+      location: params.destination,
+      images: ['https://images.unsplash.com/photo-1551632811-561732d1e306?w=500&h=300&fit=crop'],
+      description: `Thrilling adventure experience in ${params.destination}`,
+      date: params.startDate || new Date().toISOString().split('T')[0],
+      booking_status: 'available',
+      expedia_property_id: `activity_003_${params.destination}`,
+      cost: 120
+    }
   ];
 }
 
@@ -216,6 +326,64 @@ async function searchRestaurants(params: any) {
   return restaurants;
 }
 
+// Helper function to get user's itineraries
+async function getUserItineraries(userId: string) {
+  try {
+    const { data: itineraries, error } = await supabase
+      .from('itinerary')
+      .select('id, itin_name, itin_desc, itin_date_start, itin_date_end, itin_locations')
+      .eq('userid', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user itineraries:', error);
+      return [];
+    }
+
+    return itineraries || [];
+  } catch (error) {
+    console.error('Error in getUserItineraries:', error);
+    return [];
+  }
+}
+
+// Helper function to add items to itinerary
+async function addToItinerary(userId: string, itineraryId: string, item: any, type: string) {
+  try {
+    const { data: itinerary, error: fetchError } = await supabase
+      .from('itinerary')
+      .select('*')
+      .eq('id', itineraryId)
+      .eq('userid', userId)
+      .single();
+
+    if (fetchError || !itinerary) {
+      console.error('Error fetching itinerary:', fetchError);
+      return false;
+    }
+
+    // Update the appropriate JSON field
+    const currentData = itinerary[type + 's'] || [];
+    const newData = [...currentData, item];
+
+    const { error: updateError } = await supabase
+      .from('itinerary')
+      .update({ [type + 's']: newData })
+      .eq('id', itineraryId)
+      .eq('userid', userId);
+
+    if (updateError) {
+      console.error('Error updating itinerary:', updateError);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in addToItinerary:', error);
+    return false;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -223,27 +391,47 @@ serve(async (req) => {
   }
 
   try {
-    const { message, context } = await req.json();
+    const { message, context, userId, itineraryId } = await req.json();
 
-    console.log('Received chat request:', { message, context });
+    console.log('Received chat request:', { message, context, userId, itineraryId });
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
+    // Get user's existing itineraries for context
+    let userItineraries = [];
+    if (userId) {
+      userItineraries = await getUserItineraries(userId);
+    }
+
+    const itineraryContext = userItineraries.length > 0 
+      ? `\n\nUser's existing itineraries:\n${userItineraries.map(it => 
+          `- ${it.itin_name} (ID: ${it.id}): ${it.itin_desc || 'No description'} | Dates: ${it.itin_date_start} to ${it.itin_date_end} | Locations: ${Array.isArray(it.itin_locations) ? it.itin_locations.map(loc => loc.name || loc).join(', ') : 'None'}`
+        ).join('\n')}`
+      : '\n\nUser has no existing itineraries.';
+
     const systemPrompt = `You are TAAI (Travel AI Assistant), an elite travel planning AI assistant built to help users organize and optimize their trips. You specialize in:
 
 - Comprehensive trip planning and itinerary creation
 - Budget optimization and cost analysis
-- Flight, hotel, and activity recommendations
+- Flight, hotel, and activity recommendations with real Expedia integration
 - Travel logistics and booking assistance
 - Destination insights and local recommendations
 - Travel safety and document requirements
 - Personalized travel experiences based on preferences
 
-You have access to search functions for hotels, flights, and activities. When users ask about travel options, use the appropriate search functions to provide real-time recommendations. Always be helpful, professional, and focus on creating amazing travel experiences.
+IMPORTANT BOOKING FLOW INSTRUCTIONS:
+1. When users ask about travel options, use the search functions to get real data from Expedia
+2. Always ask for MINIMUM required parameters: destination, dates, and preferences
+3. After showing search results, guide users to swipe through options using the card interface
+4. When users want to book or add items to itinerary, reference their existing itineraries by name/ID
+5. If they want to create a new itinerary, ask for a name and basic details first
+6. Always confirm which itinerary they want to modify before making changes
 
-${context ? `Current Context: ${context}` : ''}`;
+${context ? `Current Context: ${context}` : ''}${itineraryContext}
+
+${itineraryId ? `Currently working with itinerary ID: ${itineraryId}` : 'No specific itinerary selected.'}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

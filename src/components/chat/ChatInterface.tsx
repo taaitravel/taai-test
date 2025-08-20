@@ -10,6 +10,7 @@ import { SwipeHotelSelector } from '@/components/swipe/SwipeHotelSelector';
 import { SwipeFlightSelector } from '@/components/swipe/SwipeFlightSelector';
 import { SwipeActivitySelector } from '@/components/swipe/SwipeActivitySelector';
 import { SwipeRestaurantSelector } from '@/components/swipe/SwipeRestaurantSelector';
+import { ItinerarySelector } from '@/components/chat/ItinerarySelector';
 import { HotelSwipeItem, FlightSwipeItem, ActivitySwipeItem, RestaurantSwipeItem } from '@/components/swipe/types';
 
 interface Message {
@@ -46,7 +47,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [swipeActivities, setSwipeActivities] = useState<ActivitySwipeItem[]>([]);
   const [swipeRestaurants, setSwipeRestaurants] = useState<RestaurantSwipeItem[]>([]);
   const [showSwipeInterface, setShowSwipeInterface] = useState(false);
+  const [showItinerarySelector, setShowItinerarySelector] = useState(false);
   const [swipeType, setSwipeType] = useState<'hotel' | 'flight' | 'activity' | 'restaurant' | null>(null);
+  const [selectedSwipeItems, setSelectedSwipeItems] = useState<any[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -71,10 +74,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setIsLoading(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase.functions.invoke('chat-with-gpt', {
         body: {
           message: userMessage.content,
-          context: context
+          context: context,
+          userId: user?.id,
+          itineraryId: itineraryId
         }
       });
 
@@ -131,15 +139,47 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const handleBackToChat = () => {
     setShowSwipeInterface(false);
+    setShowItinerarySelector(false);
     setSwipeType(null);
+    setSelectedSwipeItems([]);
+  };
+
+  const handleSwipeComplete = (likedItems: any[], rejectedItems: any[]) => {
+    if (likedItems.length > 0) {
+      setSelectedSwipeItems(likedItems);
+      setShowSwipeInterface(false);
+      setShowItinerarySelector(true);
+    } else {
+      handleBackToChat();
+    }
+  };
+
+  const handleItinerarySelected = (itineraryId: string) => {
+    toast({
+      title: "Success",
+      description: `Items successfully added to your itinerary!`,
+    });
+    handleBackToChat();
+    if (onLocationAdded) {
+      onLocationAdded();
+    }
   };
 
   // For embedded mode, render directly without floating behavior
   if (embedded) {
     return (
       <div className="h-full flex flex-col bg-transparent">
+        {/* Itinerary Selector */}
+        {showItinerarySelector && swipeType && (
+          <ItinerarySelector
+            onItinerarySelected={handleItinerarySelected}
+            onBack={handleBackToChat}
+            itemType={swipeType}
+            selectedItems={selectedSwipeItems}
+          />
+        )}
         {/* Swipe Interface */}
-        {showSwipeInterface && swipeType && itineraryId ? (
+        {showSwipeInterface && swipeType && !showItinerarySelector ? (
           <div className="flex-1 p-4">
             {swipeType === 'hotel' && (
               <SwipeHotelSelector
@@ -147,9 +187,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 itineraryId={itineraryId}
                 onBack={handleBackToChat}
                 onLocationAdded={onLocationAdded}
-                onSwipeComplete={(liked, rejected) => {
-                  console.log('Hotel swipe complete:', { liked, rejected });
-                }}
+                onSwipeComplete={handleSwipeComplete}
               />
             )}
             {swipeType === 'flight' && (
@@ -158,9 +196,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 itineraryId={itineraryId}
                 onBack={handleBackToChat}
                 onLocationAdded={onLocationAdded}
-                onSwipeComplete={(liked, rejected) => {
-                  console.log('Flight swipe complete:', { liked, rejected });
-                }}
+                onSwipeComplete={handleSwipeComplete}
               />
             )}
             {swipeType === 'activity' && (
@@ -169,9 +205,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 itineraryId={itineraryId}
                 onBack={handleBackToChat}
                 onLocationAdded={onLocationAdded}
-                onSwipeComplete={(liked, rejected) => {
-                  console.log('Activity swipe complete:', { liked, rejected });
-                }}
+                onSwipeComplete={handleSwipeComplete}
               />
             )}
             {swipeType === 'restaurant' && (
@@ -180,9 +214,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 itineraryId={itineraryId}
                 onBack={handleBackToChat}
                 onLocationAdded={onLocationAdded}
-                onSwipeComplete={(liked, rejected) => {
-                  console.log('Restaurant swipe complete:', { liked, rejected });
-                }}
+                onSwipeComplete={handleSwipeComplete}
               />
             )}
           </div>
