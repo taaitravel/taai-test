@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
+import { useExpediaMapSync } from "@/hooks/useExpediaMapSync";
 
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
@@ -41,6 +42,7 @@ export const ItineraryContent = ({
   const destinations = itineraryData.itin_locations || [];
   const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
   const { updateItineraryWithEnhancedCities } = useEnhancedCityFormatting();
+  const { syncExpediaLocations, isUpdating } = useExpediaMapSync();
 
   // Local add modal state and handlers
   const [addOpen, setAddOpen] = useState(false);
@@ -55,17 +57,30 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
   const current = (itineraryData as any)[type] || [];
   const newArray = [...current, item];
 
-  // Update map locations only if the user selected a precise location with coordinates
+  // Update map locations using Expedia coordinates or user-selected location
   const currentMap = Array.isArray(itineraryData.itin_map_locations) ? (itineraryData.itin_map_locations as any[]) : [];
   let updatedMap: any[] = currentMap;
 
-  const loc = item?.location;
-  if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+  // Check for Expedia location data first, then fallback to user location
+  const expediaLoc = item?.expedia_data?.location || item?.location;
+  const lat = expediaLoc?.latitude || expediaLoc?.lat;
+  const lng = expediaLoc?.longitude || expediaLoc?.lng;
+  
+  if (lat && lng && typeof lat === 'number' && typeof lng === 'number') {
     const category = type === 'hotels' ? 'hotel' : type === 'activities' ? 'activity' : type === 'reservations' ? 'reservation' : undefined;
-    const label = loc.name || item.city || '';
-    const exists = currentMap.some((m: any) => (m?.lat === loc.lat && m?.lng === loc.lng) || (m?.city || '').toLowerCase() === (label || '').toLowerCase());
+    const label = item?.name || expediaLoc?.name || item.city || '';
+    const exists = currentMap.some((m: any) => 
+      (Math.abs(m?.lat - lat) < 0.001 && Math.abs(m?.lng - lng) < 0.001) || 
+      (m?.city || '').toLowerCase() === (label || '').toLowerCase()
+    );
     if (!exists && label) {
-      updatedMap = [...currentMap, { city: label, lat: loc.lat, lng: loc.lng, category }];
+      updatedMap = [...currentMap, { 
+        city: label, 
+        lat, 
+        lng, 
+        ...(category && { category }),
+        ...(item?.expedia_property_id && { expedia_property_id: item.expedia_property_id })
+      } as any];
     }
   }
 
@@ -193,16 +208,27 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
               />
               <Button onClick={handleAddDestination}>Add Destination</Button>
             </div>
-            {destinations.length > 0 && (
+            <div className="flex gap-2">
+              {destinations.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleEnhanceExistingCities}
+                  className="text-xs"
+                >
+                  Enhance City Formatting
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={handleEnhanceExistingCities}
+                onClick={() => syncExpediaLocations(itineraryData)}
+                disabled={isUpdating}
                 className="text-xs"
               >
-                Enhance City Formatting
+                {isUpdating ? 'Syncing...' : 'Sync Expedia Locations'}
               </Button>
-            )}
+            </div>
           </div>
         )}
       </div>
