@@ -31,323 +31,181 @@ const getStatusColor = (status?: string) => {
 
 // Hotel Card Renderer
 export const SwipeHotelRenderer = (hotel: any, isTop: boolean) => (
-  <>
-    {isTop && (
+  <div className="space-y-3">
+    {(hotel.images || hotel.image) && (
       <ImageGallery
         images={hotel.images || (hotel.image ? [hotel.image] : [])}
         alt={hotel.name}
-        className="mb-4"
-        overlayContent={
-          <div className="flex items-center justify-between w-full">
-            <Badge className="bg-black/50 text-white border-none">
-              ${hotel.price || hotel.cost}/night
-            </Badge>
-            {hotel.rating && (
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-white text-sm font-semibold">{hotel.rating}</span>
-              </div>
-            )}
-          </div>
-        }
+        aspectRatio="wide"
+        className="mb-3 rounded-lg overflow-hidden"
       />
     )}
     
-    <div className="space-y-3">
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="font-bold text-lg text-white">{hotel.name}</h3>
-          {hotel.booking_status && getStatusIcon(hotel.booking_status)}
-        </div>
-        <div className="flex items-center gap-1 text-white/70 text-sm">
-          <MapPin className="h-3 w-3" />
-          {hotel.location}
-        </div>
-        {hotel.booking_reference && (
-          <div className="text-white/50 text-xs mt-1">
-            Booking: {hotel.booking_reference}
-          </div>
-        )}
-      </div>
-      
-      {isTop && hotel.description && (
-        <p className="text-white/80 text-sm line-clamp-2">
-          {hotel.description}
-        </p>
-      )}
-      
-      {isTop && hotel.checkIn && hotel.checkOut && (
-        <div className="flex items-center gap-4 text-xs text-white/60">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            <span>{hotel.checkIn}</span>
-          </div>
-          <span>→</span>
-          <span>{hotel.checkOut}</span>
-        </div>
-      )}
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge className={`text-sm ${hotel.booking_status ? getStatusColor(hotel.booking_status) : 'bg-white/10 text-white/60 border-white/20'}`}>
-            ${hotel.price || hotel.cost}
-          </Badge>
-          {hotel.booking_status && (
-            <Badge variant="outline" className={`text-xs ${getStatusColor(hotel.booking_status)}`}>
-              {hotel.booking_status}
-            </Badge>
-          )}
-        </div>
-        {!isTop && hotel.rating && (
-          <div className="flex items-center gap-1">
-            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-            <span className="text-white/60 text-sm">{hotel.rating}</span>
-          </div>
-        )}
-      </div>
-      
-      {isTop && hotel.amenities && (
-        <div className="flex flex-wrap gap-1">
-          {hotel.amenities.slice(0, 3).map((amenity: string, index: number) => (
-            <Badge key={index} variant="outline" className="text-xs border-white/30 text-white/70">
-              {amenity}
-            </Badge>
-          ))}
-          {hotel.amenities.length > 3 && (
-            <Badge variant="outline" className="text-xs border-white/30 text-white/70">
-              +{hotel.amenities.length - 3}
-            </Badge>
-          )}
+    <div className="flex items-center justify-between">
+      <h3 className="font-bold text-lg text-white">{hotel.name}</h3>
+      {hotel.rating && (
+        <div className="flex items-center gap-1">
+          <Star className="h-3 w-3 text-yellow-400 fill-current" />
+          <span className="text-white/60 text-sm">{hotel.rating}</span>
         </div>
       )}
     </div>
-  </>
+    
+    <div className="flex items-center gap-1 text-white/70 text-sm">
+      <MapPin className="h-3 w-3" />
+      {hotel.location}
+    </div>
+    
+    <div className="flex items-center justify-between">
+      <Badge className="bg-white/10 text-white/60 border-white/20">
+        ${hotel.price || hotel.cost}
+      </Badge>
+      {hotel.nights && (
+        <span className="text-white/60 text-sm">{hotel.nights} nights</span>
+      )}
+    </div>
+  </div>
 );
 
 // Flight Card Renderer
 export const SwipeFlightRenderer = (flight: any, isTop: boolean) => (
-  <>
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Plane className="h-6 w-6 text-blue-400" />
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-lg text-white">
-              {flight.airline} {flight.flight_number}
-            </h3>
-            {flight.booking_status && getStatusIcon(flight.booking_status)}
-          </div>
-          <p className="text-white/70 text-sm">
-            {flight.from} → {flight.to}
-          </p>
-          {flight.booking_reference && (
-            <div className="text-white/50 text-xs">
-              Booking: {flight.booking_reference}
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {isTop && (
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-white/50">Departure</p>
-            <p className="text-white">{new Date(flight.departure).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-            <p className="text-white/70 text-xs">{new Date(flight.departure).toLocaleDateString()}</p>
-          </div>
-          <div>
-            <p className="text-white/50">Arrival</p>
-            <p className="text-white">{new Date(flight.arrival).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-            <p className="text-white/70 text-xs">{new Date(flight.arrival).toLocaleDateString()}</p>
-          </div>
-        </div>
-      )}
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge className={`text-sm ${flight.booking_status ? getStatusColor(flight.booking_status) : 'bg-blue-500/20 text-blue-300 border-blue-500/30'}`}>
-            ${flight.cost || flight.price}
-          </Badge>
-          {flight.booking_status && (
-            <Badge variant="outline" className={`text-xs ${getStatusColor(flight.booking_status)}`}>
-              {flight.booking_status}
-            </Badge>
-          )}
-        </div>
-        {flight.duration && (
-          <div className="flex items-center gap-1 text-white/60 text-sm">
-            <Clock className="h-3 w-3" />
-            {flight.duration}
-          </div>
-        )}
+  <div className="space-y-3">
+    <div className="flex items-center gap-2">
+      <Plane className="h-6 w-6 text-blue-400" />
+      <div className="flex-1">
+        <h3 className="font-bold text-lg text-white">
+          {flight.airline} {flight.flight_number}
+        </h3>
+        <p className="text-white/70 text-sm">
+          {flight.from} → {flight.to}
+        </p>
       </div>
     </div>
-  </>
+    
+    <div className="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <p className="text-white/50">Departure</p>
+        <p className="text-white">{new Date(flight.departure).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+        <p className="text-white/70 text-xs">{new Date(flight.departure).toLocaleDateString()}</p>
+      </div>
+      <div>
+        <p className="text-white/50">Arrival</p>
+        <p className="text-white">{new Date(flight.arrival).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+        <p className="text-white/70 text-xs">{new Date(flight.arrival).toLocaleDateString()}</p>
+      </div>
+    </div>
+    
+    <div className="flex items-center justify-between">
+      <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+        ${flight.cost}
+      </Badge>
+      {flight.duration && (
+        <div className="flex items-center gap-1 text-white/60 text-sm">
+          <Clock className="h-3 w-3" />
+          {flight.duration}
+        </div>
+      )}
+    </div>
+  </div>
 );
 
 // Activity Card Renderer
 export const SwipeActivityRenderer = (activity: any, isTop: boolean) => (
-  <>
-    {isTop && (
+  <div className="space-y-3">
+    {(activity.images || activity.image) && (
       <ImageGallery
         images={activity.images || (activity.image ? [activity.image] : [])}
         alt={activity.name}
         aspectRatio="wide"
-        className="mb-3"
-        overlayContent={
-          <div className="flex items-center justify-between w-full">
-            <Badge className="bg-black/50 text-white border-none">
-              ${activity.price || activity.cost}
-            </Badge>
-            {activity.rating && (
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-white text-sm font-semibold">{activity.rating}</span>
-              </div>
-            )}
-          </div>
-        }
+        className="mb-3 rounded-lg overflow-hidden"
       />
     )}
     
-    <div className="space-y-3">
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="font-bold text-lg text-white">{activity.name}</h3>
-          {activity.booking_status && getStatusIcon(activity.booking_status)}
-        </div>
-        <div className="flex items-center gap-1 text-white/70 text-sm">
-          <MapPin className="h-3 w-3" />
-          {activity.location || activity.city}
-        </div>
-        {activity.booking_reference && (
-          <div className="text-white/50 text-xs mt-1">
-            Booking: {activity.booking_reference}
-          </div>
-        )}
-      </div>
-      
-      {isTop && activity.description && (
-        <p className="text-white/80 text-sm line-clamp-2">
-          {activity.description}
-        </p>
-      )}
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge className={`text-sm ${activity.booking_status ? getStatusColor(activity.booking_status) : 'bg-green-500/20 text-green-300 border-green-500/30'}`}>
-            ${activity.price || activity.cost}
-          </Badge>
-          {activity.booking_status && (
-            <Badge variant="outline" className={`text-xs ${getStatusColor(activity.booking_status)}`}>
-              {activity.booking_status}
-            </Badge>
-          )}
-        </div>
-        {activity.duration && (
-          <div className="flex items-center gap-1 text-white/60 text-sm">
-            <Clock className="h-3 w-3" />
-            {activity.duration}
-          </div>
-        )}
-      </div>
-      
-      {activity.date && (
-        <div className="flex items-center gap-1 text-white/60 text-sm">
-          <Calendar className="h-3 w-3" />
-          {new Date(activity.date).toLocaleDateString()}
+    <div className="flex items-center justify-between">
+      <h3 className="font-bold text-lg text-white">{activity.name}</h3>
+      {activity.rating && (
+        <div className="flex items-center gap-1">
+          <Star className="h-3 w-3 text-yellow-400 fill-current" />
+          <span className="text-white/60 text-sm">{activity.rating}</span>
         </div>
       )}
     </div>
-  </>
+    
+    <div className="flex items-center gap-1 text-white/70 text-sm">
+      <MapPin className="h-3 w-3" />
+      {activity.location || activity.city}
+    </div>
+    
+    <div className="flex items-center justify-between">
+      <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
+        ${activity.price || activity.cost}
+      </Badge>
+      {activity.duration && (
+        <div className="flex items-center gap-1 text-white/60 text-sm">
+          <Clock className="h-3 w-3" />
+          {activity.duration}
+        </div>
+      )}
+    </div>
+    
+    {activity.date && (
+      <div className="flex items-center gap-1 text-white/60 text-sm">
+        <Calendar className="h-3 w-3" />
+        {new Date(activity.date).toLocaleDateString()}
+      </div>
+    )}
+  </div>
 );
 
 // Restaurant Card Renderer
 export const SwipeRestaurantRenderer = (restaurant: any, isTop: boolean) => (
-  <>
-    {isTop && (
+  <div className="space-y-3">
+    {(restaurant.images || restaurant.image) && (
       <ImageGallery
         images={restaurant.images || (restaurant.image ? [restaurant.image] : [])}
         alt={restaurant.name}
         aspectRatio="wide"
-        className="mb-3"
-        overlayContent={
-          <div className="flex items-center justify-between w-full">
-            {restaurant.price_range && (
-              <Badge className="bg-black/50 text-white border-none">
-                {restaurant.price_range}
-              </Badge>
-            )}
-            {restaurant.rating && (
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-white text-sm font-semibold">{restaurant.rating}</span>
-              </div>
-            )}
-          </div>
-        }
+        className="mb-3 rounded-lg overflow-hidden"
       />
     )}
     
-    <div className="space-y-3">
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="font-bold text-lg text-white">{restaurant.name}</h3>
-          {restaurant.booking_status && getStatusIcon(restaurant.booking_status)}
-        </div>
-        <div className="flex items-center gap-1 text-white/70 text-sm">
-          <MapPin className="h-3 w-3" />
-          {restaurant.location || restaurant.city}
-        </div>
-        {restaurant.booking_reference && (
-          <div className="text-white/50 text-xs mt-1">
-            Booking: {restaurant.booking_reference}
-          </div>
-        )}
-      </div>
-      
-      {isTop && restaurant.description && (
-        <p className="text-white/80 text-sm line-clamp-2">
-          {restaurant.description}
-        </p>
-      )}
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Utensils className="h-4 w-4 text-orange-400" />
-          <span className="text-white/70 text-sm">{restaurant.cuisine || restaurant.type || 'Restaurant'}</span>
-          {restaurant.booking_status && (
-            <Badge variant="outline" className={`text-xs ${getStatusColor(restaurant.booking_status)}`}>
-              {restaurant.booking_status}
-            </Badge>
-          )}
-        </div>
-        {restaurant.rating && !isTop && (
-          <div className="flex items-center gap-1">
-            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-            <span className="text-white/60 text-sm">{restaurant.rating}</span>
-          </div>
-        )}
-      </div>
-      
-      {restaurant.priceRange && (
-        <Badge className="text-sm bg-orange-500/20 text-orange-300 border-orange-500/30">
-          {restaurant.priceRange}
-        </Badge>
-      )}
-      
-      <div className="flex items-center justify-between text-white/60 text-sm">
+    <div className="flex items-center justify-between">
+      <h3 className="font-bold text-lg text-white">{restaurant.name}</h3>
+      {restaurant.rating && (
         <div className="flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          {restaurant.date && new Date(restaurant.date).toLocaleDateString()} • {restaurant.time}
+          <Star className="h-3 w-3 text-yellow-400 fill-current" />
+          <span className="text-white/60 text-sm">{restaurant.rating}</span>
         </div>
-        {restaurant.party_size && (
-          <div className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            {restaurant.party_size} people
-          </div>
-        )}
-      </div>
+      )}
     </div>
-  </>
+    
+    <div className="flex items-center gap-1 text-white/70 text-sm">
+      <MapPin className="h-3 w-3" />
+      {restaurant.location || restaurant.city}
+    </div>
+    
+    <div className="flex items-center gap-2">
+      <Utensils className="h-4 w-4 text-orange-400" />
+      <span className="text-white/70 text-sm">{restaurant.cuisine || restaurant.type || 'Restaurant'}</span>
+    </div>
+    
+    {restaurant.priceRange && (
+      <Badge className="text-sm bg-orange-500/20 text-orange-300 border-orange-500/30">
+        {restaurant.priceRange}
+      </Badge>
+    )}
+    
+    <div className="flex items-center justify-between text-white/60 text-sm">
+      <div className="flex items-center gap-1">
+        <Calendar className="h-3 w-3" />
+        {restaurant.date && new Date(restaurant.date).toLocaleDateString()} • {restaurant.time}
+      </div>
+      {restaurant.party_size && (
+        <div className="flex items-center gap-1">
+          <Users className="h-3 w-3" />
+          {restaurant.party_size} people
+        </div>
+      )}
+    </div>
+  </div>
 );
