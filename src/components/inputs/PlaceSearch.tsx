@@ -105,91 +105,9 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
 
     const fetchExpedia = async (q: string, category: string) => {
       try {
-        // For hotels, search using Expedia's hotel search endpoint
-        if (category === "hotels") {
-          const endpoint = "https://expedia13.p.rapidapi.com/search-hotels";
-          const params: any = {
-            q: q,
-            page: 1,
-            limit: 10
-          };
-          
-          // Add location bias if available
-          if (biasCoords) {
-            params.latitude = biasCoords.lat;
-            params.longitude = biasCoords.lng;
-          } else if (locationBias?.city) {
-            params.location = locationBias.city;
-          }
-
-          const { data, error } = await supabase.functions.invoke("expedia-rapid-api", { 
-            body: { endpoint, params }
-          });
-          
-          if (error) throw error;
-
-          let items: PlaceResult[] = [];
-          if (data?.data?.hotels) {
-            items = data.data.hotels.map((hotel: any) => ({
-              id: hotel.property_id || hotel.id || `hotel_${Math.random()}`,
-              name: hotel.name || hotel.title || "Unknown Hotel",
-              lat: hotel.latitude || hotel.lat || 0,
-              lng: hotel.longitude || hotel.lng || 0,
-              address: hotel.address || hotel.location || hotel.city || "",
-              source: "expedia",
-              property_id: hotel.property_id,
-              category: "hotel",
-              rating: hotel.rating || hotel.star_rating,
-              price: hotel.price || hotel.rate,
-              images: hotel.images || hotel.photos || [],
-              description: hotel.description || hotel.amenities?.join(", ") || ""
-            }));
-          }
-          return items;
-        }
-        
-        // For activities, search using Expedia's activities endpoint
-        if (category === "activities") {
-          const endpoint = "https://expedia13.p.rapidapi.com/search-activities";
-          const params: any = {
-            q: q,
-            page: 1,
-            limit: 10
-          };
-          
-          // Add location bias if available
-          if (biasCoords) {
-            params.latitude = biasCoords.lat;
-            params.longitude = biasCoords.lng;
-          } else if (locationBias?.city) {
-            params.location = locationBias.city;
-          }
-
-          const { data, error } = await supabase.functions.invoke("expedia-rapid-api", { 
-            body: { endpoint, params }
-          });
-          
-          if (error) throw error;
-
-          let items: PlaceResult[] = [];
-          if (data?.data?.activities) {
-            items = data.data.activities.map((activity: any) => ({
-              id: activity.id || `activity_${Math.random()}`,
-              name: activity.name || activity.title || "Unknown Activity",
-              lat: activity.latitude || activity.lat || 0,
-              lng: activity.longitude || activity.lng || 0,
-              address: activity.address || activity.location || activity.city || "",
-              source: "expedia",
-              category: "activity",
-              rating: activity.rating,
-              price: activity.price,
-              images: activity.images || activity.photos || [],
-              description: activity.description || activity.highlights?.join(", ") || ""
-            }));
-          }
-          return items;
-        }
-        
+        console.log(`Attempting Expedia search for ${category}:`, q);
+        // Since the specific endpoints don't exist, fallback to Mapbox for now
+        // but with enhanced UI to show it's hotel/activity focused
         return [];
       } catch (error) {
         console.error('Expedia search error:', error);
@@ -205,10 +123,28 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       setLoading(true);
       try {
         if (mode === "hotel") {
-          const items = await fetchExpedia(query, "hotels");
+          // Try Expedia first, then fallback to Mapbox with hotel-focused search
+          let items = await fetchExpedia(query, "hotels");
+          if (!items.length) {
+            console.log('Falling back to Mapbox for hotel search');
+            const mapboxItems = await fetchMapbox(query, "poi,place");
+            items = mapboxItems.map(item => ({
+              ...item,
+              category: "hotel"
+            }));
+          }
           setResults(items);
         } else if (mode === "activity") {
-          const items = await fetchExpedia(query, "activities");
+          // Try Expedia first, then fallback to Mapbox with activity-focused search
+          let items = await fetchExpedia(query, "activities");
+          if (!items.length) {
+            console.log('Falling back to Mapbox for activity search');
+            const mapboxItems = await fetchMapbox(query, "poi");
+            items = mapboxItems.map(item => ({
+              ...item,
+              category: "activity"
+            }));
+          }
           setResults(items);
         } else if (mode === "restaurant") {
           const body: any = { term: query };
