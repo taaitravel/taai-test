@@ -138,24 +138,48 @@ if (type === 'hotels') {
         if (k in item && item[k] !== '') item[k] = Number(item[k]);
       });
 
-      // If a location has been chosen, ensure city is set for backward compatibility
-      if (item.location && item.location.name) {
-        item.city = item.city || item.location.name;
-        item.location = item.location.name; // Store location as string for database
+      // If a location has been chosen, ensure city is set and preserve Expedia data
+      if (item.location) {
+        if (typeof item.location === 'object') {
+          // Store city name for backward compatibility
+          item.city = item.city || item.location.name;
+          
+          // Preserve Expedia-specific fields for hotels and activities
+          if (item.location.source === 'expedia') {
+            if (item.location.property_id) {
+              item.expedia_property_id = item.location.property_id;
+            }
+            if (item.location.rating) {
+              item.rating = item.location.rating;
+            }
+            if (item.location.price) {
+              item.price = item.location.price;
+            }
+            if (item.location.images && item.location.images.length > 0) {
+              item.images = item.location.images;
+            }
+            if (item.location.description) {
+              item.description = item.location.description;
+            }
+            item.booking_status = 'pending';
+          }
+          
+          // Store location as string for database compatibility
+          item.location = item.location.name;
+        }
       }
 
-await onSubmit(type, (() => {
-  const item = { ...form };
-  if (type === 'hotels') {
-    const start = form.check_in ? new Date(form.check_in) : null;
-    const end = form.check_out ? new Date(form.check_out) : null;
-    const nights = start && end ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-    const perNight = Number(item.cost || 0);
-    item.nights = nights;
-    item.cost = perNight * Math.max(nights, 0);
-  }
-  return item;
-})());
+      // For hotels, calculate total cost and nights
+      if (type === 'hotels') {
+        const start = item.check_in ? new Date(item.check_in) : null;
+        const end = item.check_out ? new Date(item.check_out) : null;
+        const nights = start && end ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+        const perNight = Number(item.cost || 0);
+        item.nights = nights;
+        item.cost = perNight * Math.max(nights, 0);
+      }
+
+      await onSubmit(type, item);
       onClose();
     } finally {
       setLoading(false);
@@ -213,7 +237,7 @@ await onSubmit(type, (() => {
               {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
             <div className="sm:col-span-2">
-              <PlaceSearch id="hotel-location" label="Location" placeholder="Search hotel or area" mode="poi" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
+              <PlaceSearch id="hotel-location" label="Hotel Search" placeholder="Search hotels by name or location" mode="hotel" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
               {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
 <div>
@@ -249,7 +273,7 @@ await onSubmit(type, (() => {
               {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
             <div className="sm:col-span-2">
-              <PlaceSearch id="activity-location" label="Location or city" placeholder="Search a place or city" mode="poi" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
+              <PlaceSearch id="activity-location" label="Activity Search" placeholder="Search activities and attractions" mode="activity" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
               {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
             </div>
             <div>

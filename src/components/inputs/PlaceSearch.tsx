@@ -104,56 +104,97 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
     };
 
     const fetchExpedia = async (q: string, category: string) => {
-      const body: any = { 
-        query: q,
-        category: category
-      };
-      
-      // Add location bias if available
-      if (biasCoords) {
-        body.latitude = biasCoords.lat;
-        body.longitude = biasCoords.lng;
-      } else if (locationBias?.city) {
-        body.location = locationBias.city;
+      try {
+        // For hotels, search using Expedia's hotel search endpoint
+        if (category === "hotels") {
+          const endpoint = "https://expedia13.p.rapidapi.com/search-hotels";
+          const params: any = {
+            q: q,
+            page: 1,
+            limit: 10
+          };
+          
+          // Add location bias if available
+          if (biasCoords) {
+            params.latitude = biasCoords.lat;
+            params.longitude = biasCoords.lng;
+          } else if (locationBias?.city) {
+            params.location = locationBias.city;
+          }
+
+          const { data, error } = await supabase.functions.invoke("expedia-rapid-api", { 
+            body: { endpoint, params }
+          });
+          
+          if (error) throw error;
+
+          let items: PlaceResult[] = [];
+          if (data?.data?.hotels) {
+            items = data.data.hotels.map((hotel: any) => ({
+              id: hotel.property_id || hotel.id || `hotel_${Math.random()}`,
+              name: hotel.name || hotel.title || "Unknown Hotel",
+              lat: hotel.latitude || hotel.lat || 0,
+              lng: hotel.longitude || hotel.lng || 0,
+              address: hotel.address || hotel.location || hotel.city || "",
+              source: "expedia",
+              property_id: hotel.property_id,
+              category: "hotel",
+              rating: hotel.rating || hotel.star_rating,
+              price: hotel.price || hotel.rate,
+              images: hotel.images || hotel.photos || [],
+              description: hotel.description || hotel.amenities?.join(", ") || ""
+            }));
+          }
+          return items;
+        }
+        
+        // For activities, search using Expedia's activities endpoint
+        if (category === "activities") {
+          const endpoint = "https://expedia13.p.rapidapi.com/search-activities";
+          const params: any = {
+            q: q,
+            page: 1,
+            limit: 10
+          };
+          
+          // Add location bias if available
+          if (biasCoords) {
+            params.latitude = biasCoords.lat;
+            params.longitude = biasCoords.lng;
+          } else if (locationBias?.city) {
+            params.location = locationBias.city;
+          }
+
+          const { data, error } = await supabase.functions.invoke("expedia-rapid-api", { 
+            body: { endpoint, params }
+          });
+          
+          if (error) throw error;
+
+          let items: PlaceResult[] = [];
+          if (data?.data?.activities) {
+            items = data.data.activities.map((activity: any) => ({
+              id: activity.id || `activity_${Math.random()}`,
+              name: activity.name || activity.title || "Unknown Activity",
+              lat: activity.latitude || activity.lat || 0,
+              lng: activity.longitude || activity.lng || 0,
+              address: activity.address || activity.location || activity.city || "",
+              source: "expedia",
+              category: "activity",
+              rating: activity.rating,
+              price: activity.price,
+              images: activity.images || activity.photos || [],
+              description: activity.description || activity.highlights?.join(", ") || ""
+            }));
+          }
+          return items;
+        }
+        
+        return [];
+      } catch (error) {
+        console.error('Expedia search error:', error);
+        return [];
       }
-
-      const { data, error } = await supabase.functions.invoke("expedia-rapid-api", { body });
-      if (error) throw error;
-
-      let items: PlaceResult[] = [];
-      
-      if (category === "hotels" && data?.hotels) {
-        items = data.hotels.map((hotel: any) => ({
-          id: hotel.property_id || hotel.id,
-          name: hotel.name,
-          lat: hotel.latitude || hotel.lat,
-          lng: hotel.longitude || hotel.lng,
-          address: hotel.address || hotel.location,
-          source: "expedia",
-          property_id: hotel.property_id,
-          category: "hotel",
-          rating: hotel.rating,
-          price: hotel.price,
-          images: hotel.images || [],
-          description: hotel.description
-        }));
-      } else if (category === "activities" && data?.activities) {
-        items = data.activities.map((activity: any) => ({
-          id: activity.id,
-          name: activity.name,
-          lat: activity.latitude || activity.lat,
-          lng: activity.longitude || activity.lng,
-          address: activity.address || activity.location,
-          source: "expedia",
-          category: "activity",
-          rating: activity.rating,
-          price: activity.price,
-          images: activity.images || [],
-          description: activity.description
-        }));
-      }
-
-      return items;
     };
 
     const fetchResults = async () => {
@@ -241,11 +282,23 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <div className="text-sm font-medium">{r.name}</div>
+                  <div className="text-sm font-medium flex items-center gap-2">
+                    {r.source === "expedia" && r.category === "hotel" && "🏨"}
+                    {r.source === "expedia" && r.category === "activity" && "🎯"}
+                    {r.source === "yelp" && "🍽️"}
+                    {r.source === "mapbox" && "📍"}
+                    {r.name}
+                  </div>
                   {r.address && <div className="text-xs opacity-70">{r.address}</div>}
                   {r.rating && (
                     <div className="text-xs text-primary">
-                      ★ {r.rating} {r.price && `• ${r.price}`}
+                      ★ {typeof r.rating === 'number' ? r.rating.toFixed(1) : r.rating} 
+                      {r.price && `• ${r.price}`}
+                    </div>
+                  )}
+                  {r.description && (
+                    <div className="text-xs opacity-60 truncate max-w-xs">
+                      {r.description}
                     </div>
                   )}
                 </div>
