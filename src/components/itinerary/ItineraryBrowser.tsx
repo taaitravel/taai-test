@@ -140,7 +140,7 @@ export const ItineraryBrowser = ({
             </div>
             
             <p className="text-white/70 text-center mb-4 text-lg">
-              {currentItem.city}
+              {currentItem.address || `${currentItem.city}${currentItem.country ? `, ${currentItem.country}` : ''}`}
             </p>
             
             <div className="space-y-3 mb-6">
@@ -226,7 +226,7 @@ export const ItineraryBrowser = ({
             </div>
             
             <p className="text-white/70 text-center mb-4 text-lg">
-              {currentItem.city}
+              {currentItem.address || `${currentItem.city}${currentItem.country ? `, ${currentItem.country}` : ''}`}
             </p>
             
             <div className="space-y-3 mb-6">
@@ -303,7 +303,7 @@ export const ItineraryBrowser = ({
             </div>
             
             <p className="text-white/70 text-center mb-4 text-lg">
-              {currentItem.city}
+              {currentItem.address || `${currentItem.city}${currentItem.country ? `, ${currentItem.country}` : ''}`}
             </p>
             
             <div className="space-y-3 mb-6">
