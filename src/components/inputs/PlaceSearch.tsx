@@ -9,8 +9,15 @@ export interface PlaceResult {
   lat: number;
   lng: number;
   address?: string;
-  source: "mapbox" | "yelp";
+  source: "mapbox" | "yelp" | "expedia";
   url?: string;
+  // Expedia-specific fields
+  property_id?: string;
+  category?: string;
+  rating?: number;
+  price?: string;
+  images?: string[];
+  description?: string;
 }
 
 interface PlaceSearchProps {
@@ -18,7 +25,7 @@ interface PlaceSearchProps {
   label: string;
   placeholder?: string;
   // mode determines which provider to use
-  mode: "city" | "poi" | "restaurant";
+  mode: "city" | "poi" | "restaurant" | "hotel" | "activity" | "flight";
   defaultQuery?: string;
   onSelect: (place: PlaceResult) => void;
   locationBias?: { city?: string; lat?: number; lng?: number };
@@ -96,6 +103,59 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       return items;
     };
 
+    const fetchExpedia = async (q: string, category: string) => {
+      const body: any = { 
+        query: q,
+        category: category
+      };
+      
+      // Add location bias if available
+      if (biasCoords) {
+        body.latitude = biasCoords.lat;
+        body.longitude = biasCoords.lng;
+      } else if (locationBias?.city) {
+        body.location = locationBias.city;
+      }
+
+      const { data, error } = await supabase.functions.invoke("expedia-rapid-api", { body });
+      if (error) throw error;
+
+      let items: PlaceResult[] = [];
+      
+      if (category === "hotels" && data?.hotels) {
+        items = data.hotels.map((hotel: any) => ({
+          id: hotel.property_id || hotel.id,
+          name: hotel.name,
+          lat: hotel.latitude || hotel.lat,
+          lng: hotel.longitude || hotel.lng,
+          address: hotel.address || hotel.location,
+          source: "expedia",
+          property_id: hotel.property_id,
+          category: "hotel",
+          rating: hotel.rating,
+          price: hotel.price,
+          images: hotel.images || [],
+          description: hotel.description
+        }));
+      } else if (category === "activities" && data?.activities) {
+        items = data.activities.map((activity: any) => ({
+          id: activity.id,
+          name: activity.name,
+          lat: activity.latitude || activity.lat,
+          lng: activity.longitude || activity.lng,
+          address: activity.address || activity.location,
+          source: "expedia",
+          category: "activity",
+          rating: activity.rating,
+          price: activity.price,
+          images: activity.images || [],
+          description: activity.description
+        }));
+      }
+
+      return items;
+    };
+
     const fetchResults = async () => {
       if (!query || query.trim().length < 2) {
         setResults([]);
@@ -103,7 +163,13 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       }
       setLoading(true);
       try {
-        if (mode === "restaurant") {
+        if (mode === "hotel") {
+          const items = await fetchExpedia(query, "hotels");
+          setResults(items);
+        } else if (mode === "activity") {
+          const items = await fetchExpedia(query, "activities");
+          setResults(items);
+        } else if (mode === "restaurant") {
           const body: any = { term: query };
           if (biasCoords) {
             body.latitude = biasCoords.lat;
@@ -173,9 +239,20 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
               }}
               className="block w-full text-left px-3 py-2 hover:bg-accent/30"
             >
-              <div className="text-sm font-medium">{r.name}</div>
-              {r.address && <div className="text-xs opacity-70">{r.address}</div>}
-              <div className="text-[10px] opacity-60">{r.source === "yelp" ? "Yelp" : "Map"}</div>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="text-sm font-medium">{r.name}</div>
+                  {r.address && <div className="text-xs opacity-70">{r.address}</div>}
+                  {r.rating && (
+                    <div className="text-xs text-primary">
+                      ★ {r.rating} {r.price && `• ${r.price}`}
+                    </div>
+                  )}
+                </div>
+                <div className="text-[10px] opacity-60 ml-2">
+                  {r.source === "yelp" ? "Yelp" : r.source === "expedia" ? "Expedia" : "Map"}
+                </div>
+              </div>
             </button>
           ))}
           {!loading && results.length === 0 && (
