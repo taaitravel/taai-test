@@ -2,10 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Plus, Menu, X } from "lucide-react";
+import { Plus, Menu, X, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { UserProfileDropdown } from "./UserProfileDropdown";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileNavigationProps {
   travelerLevel?: string;
@@ -29,6 +31,7 @@ export const MobileNavigation = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { signOut, userProfile } = useAuth();
 
   const menuItems = [
     { label: "Dashboard", path: "/dashboard" },
@@ -36,6 +39,15 @@ export const MobileNavigation = ({
     { label: "Create Manual Trip", path: "/create-manual-itinerary" },
     { label: "Profile", path: "/profile-setup" },
   ];
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   const handleMenuItemClick = (path: string) => {
     navigate(path);
@@ -91,11 +103,19 @@ export const MobileNavigation = ({
                       ))}
                     </div>
                     
-                    {/* Footer with traveler level */}
-                    <div className="p-6 border-t border-white/10">
+                    {/* Footer with traveler level and sign out */}
+                    <div className="p-6 border-t border-white/10 space-y-4">
                       <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
                         {travelerLevel}
                       </Badge>
+                      <Button
+                        onClick={handleSignOut}
+                        variant="ghost"
+                        className="w-full text-white hover:bg-white/10 justify-start"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
+                      </Button>
                     </div>
                   </div>
                 </DrawerContent>
@@ -153,16 +173,7 @@ export const MobileNavigation = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
-                {showProfileButton && (
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/10 p-2 rounded-full"
-                    onClick={() => navigate('/profile-setup')}
-                  >
-                    <User className="h-5 w-5" />
-                  </Button>
-                )}
+                {showProfileButton && <UserProfileDropdown />}
                 {customActions}
               </>
             ) : (

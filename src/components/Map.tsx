@@ -123,6 +123,12 @@ const Map = ({ locations = [] }: MapProps) => {
         setError(null);
       });
 
+      map.current.on('idle', () => {
+        console.log('🗺️ Map: Map is idle and ready');
+        setLoading(false);
+        setError(null);
+      });
+
       map.current.on('error', (e) => {
         console.error('🗺️ Map: Map error:', e);
         setError('Map failed to load');
