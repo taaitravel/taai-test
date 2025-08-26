@@ -117,23 +117,40 @@ const Map = ({ locations = [] }: MapProps) => {
 
       console.log('🗺️ Map: Map instance created');
 
+      // Set a timeout to force loading to false if map doesn't load
+      const loadTimeout = setTimeout(() => {
+        console.log('🗺️ Map: Load timeout reached, setting loading to false');
+        setLoading(false);
+      }, 5000);
+
       map.current.on('load', () => {
         console.log('🗺️ Map: Map loaded successfully');
+        clearTimeout(loadTimeout);
         setLoading(false);
         setError(null);
       });
 
       map.current.on('idle', () => {
         console.log('🗺️ Map: Map is idle and ready');
+        clearTimeout(loadTimeout);
         setLoading(false);
         setError(null);
       });
 
       map.current.on('error', (e) => {
         console.error('🗺️ Map: Map error:', e);
+        clearTimeout(loadTimeout);
         setError('Map failed to load');
         setLoading(false);
       });
+
+      // Also check if map is already loaded (sometimes events don't fire)
+      if (map.current.loaded()) {
+        console.log('🗺️ Map: Map already loaded');
+        clearTimeout(loadTimeout);
+        setLoading(false);
+        setError(null);
+      }
 
     } catch (err: any) {
       console.error('🗺️ Map: Error initializing map:', err);
