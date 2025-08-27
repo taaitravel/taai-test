@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ItineraryData } from "@/types/itinerary";
 import { ItineraryInfoHeader } from "./ItineraryInfoHeader";
 import { TripOverviewSection } from "./TripOverviewSection";
-import { ItineraryGlobalMapSection } from "./ItineraryGlobalMapSection";
+import { Map } from "@/components/Map";
 
 import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
@@ -178,10 +178,13 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           attendees={itineraryData.attendees}
         />
         <div className="lg:col-span-2">
-          <ItineraryGlobalMapSection 
-            destinations={destinations}
-            mapLocations={itineraryData.itin_map_locations || []}
-          />
+          <div className="border border-border rounded-xl overflow-hidden bg-background shadow-sm">
+            <div className="aspect-video h-80">
+              <Map locations={itineraryData.itin_map_locations?.filter((loc: any) => 
+                loc.category === 'destination' || !loc.category
+              ) || []} />
+            </div>
+          </div>
         </div>
         {isUpcoming && (
           <div className="mt-4 space-y-2">
