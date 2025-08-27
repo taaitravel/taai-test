@@ -3,7 +3,7 @@ import { ItineraryData } from "@/types/itinerary";
 import { ItineraryInfoHeader } from "./ItineraryInfoHeader";
 import { TripOverviewSection } from "./TripOverviewSection";
 import { ItineraryGlobalMapSection } from "./ItineraryGlobalMapSection";
-import { ItineraryDetailedMapSection } from "./ItineraryDetailedMapSection";
+
 import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItinerarySidebar } from "./ItinerarySidebar";
@@ -12,7 +12,7 @@ import { AddItemDialog, ItemType } from "./AddItemDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 import { useExpediaMapSync } from "@/hooks/useExpediaMapSync";
 
@@ -177,26 +177,12 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           description={itineraryData.itin_desc}
           attendees={itineraryData.attendees}
         />
-        <Tabs defaultValue="global" className="lg:col-span-2">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="global">Global View</TabsTrigger>
-            <TabsTrigger value="detailed">Detailed View</TabsTrigger>
-          </TabsList>
-          <TabsContent value="global" className="mt-4">
-            <ItineraryGlobalMapSection 
-              destinations={destinations}
-              mapLocations={itineraryData.itin_map_locations || []}
-            />
-          </TabsContent>
-          <TabsContent value="detailed" className="mt-4">
-            <ItineraryDetailedMapSection 
-              mapLocations={itineraryData.itin_map_locations || []}
-              hotels={itineraryData.hotels || []}
-              activities={itineraryData.activities || []}
-              reservations={itineraryData.reservations || []}
-            />
-          </TabsContent>
-        </Tabs>
+        <div className="lg:col-span-2">
+          <ItineraryGlobalMapSection 
+            destinations={destinations}
+            mapLocations={itineraryData.itin_map_locations || []}
+          />
+        </div>
         {isUpcoming && (
           <div className="mt-4 space-y-2">
             <div className="flex items-center gap-2">
