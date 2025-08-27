@@ -1,96 +1,84 @@
-import { ItineraryBrowser } from "./ItineraryBrowser";
-import { ItineraryData, BrowserState } from "@/types/itinerary";
+import React, { memo } from "react";
+import { Plane, Building2, Activity, UtensilsCrossed } from "lucide-react";
+import { OptimizedItinerarySection } from './OptimizedItinerarySection';
+import { ItineraryData } from "@/types/itinerary";
 
 interface ItineraryBrowsersProps {
   itineraryData: ItineraryData;
-  browserState: BrowserState;
-  onCloseFlightBrowser: () => void;
-  onCloseHotelBrowser: () => void;
-  onCloseActivityBrowser: () => void;
-  onCloseReservationBrowser: () => void;
-  onFlightIndexChange: (index: number) => void;
-  onHotelIndexChange: (index: number) => void;
-  onActivityIndexChange: (index: number) => void;
-  onReservationIndexChange: (index: number) => void;
-  onEditFlight?: (index: number) => void;
-  onEditHotel?: (index: number) => void;
-  onEditActivity?: (index: number) => void;
-  onEditReservation?: (index: number) => void;
-  onDeleteFlight?: (index: number) => void;
-  onDeleteHotel?: (index: number) => void;
-  onDeleteActivity?: (index: number) => void;
-  onDeleteReservation?: (index: number) => void;
+  onEditItem?: (type: string, index: number) => void;
+  onDeleteItem?: (type: string, index: number) => void;
+  onAddItem?: (type: string) => void;
 }
 
-export const ItineraryBrowsers = ({
-  itineraryData,
-  browserState,
-  onCloseFlightBrowser,
-  onCloseHotelBrowser,
-  onCloseActivityBrowser,
-  onCloseReservationBrowser,
-  onFlightIndexChange,
-  onHotelIndexChange,
-  onActivityIndexChange,
-  onReservationIndexChange,
-  onEditFlight,
-  onEditHotel,
-  onEditActivity,
-  onEditReservation,
-  onDeleteFlight,
-  onDeleteHotel,
-  onDeleteActivity,
-  onDeleteReservation,
+const ItineraryBrowsers = memo(({ 
+  itineraryData, 
+  onEditItem, 
+  onDeleteItem, 
+  onAddItem 
 }: ItineraryBrowsersProps) => {
+  if (!itineraryData) return null;
+
+  const handleEdit = (type: string) => (index: number) => {
+    onEditItem?.(type, index);
+  };
+
+  const handleDelete = (type: string) => (index: number) => {
+    onDeleteItem?.(type, index);
+  };
+
+  const handleAdd = (type: string) => () => {
+    onAddItem?.(type);
+  };
+
   return (
-    <>
-      <ItineraryBrowser
-        isOpen={browserState.flightBrowserOpen}
-        onClose={onCloseFlightBrowser}
-        items={itineraryData.flights || []}
-        currentIndex={browserState.currentFlightIndex}
-        onIndexChange={onFlightIndexChange}
+    <div className="space-y-6">
+      <OptimizedItinerarySection
         title="Flights"
-        type="flights"
-        onEdit={onEditFlight}
-        onDelete={onDeleteFlight}
+        items={itineraryData.flights || []}
+        type="flight"
+        onAdd={handleAdd('flights')}
+        onEdit={handleEdit('flights')}
+        onDelete={handleDelete('flights')}
+        emptyMessage="No flights booked yet"
+        icon={<Plane className="h-5 w-5 text-white" />}
       />
 
-      <ItineraryBrowser
-        isOpen={browserState.hotelBrowserOpen}
-        onClose={onCloseHotelBrowser}
-        items={itineraryData.hotels || []}
-        currentIndex={browserState.currentHotelIndex}
-        onIndexChange={onHotelIndexChange}
+      <OptimizedItinerarySection
         title="Hotels"
-        type="hotels"
-        onEdit={onEditHotel}
-        onDelete={onDeleteHotel}
+        items={itineraryData.hotels || []}
+        type="hotel"
+        onAdd={handleAdd('hotels')}
+        onEdit={handleEdit('hotels')}
+        onDelete={handleDelete('hotels')}
+        emptyMessage="No hotels booked yet"
+        icon={<Building2 className="h-5 w-5 text-white" />}
       />
 
-      <ItineraryBrowser
-        isOpen={browserState.activityBrowserOpen}
-        onClose={onCloseActivityBrowser}
-        items={itineraryData.activities || []}
-        currentIndex={browserState.currentActivityIndex}
-        onIndexChange={onActivityIndexChange}
+      <OptimizedItinerarySection
         title="Activities"
-        type="activities"
-        onEdit={onEditActivity}
-        onDelete={onDeleteActivity}
+        items={itineraryData.activities || []}
+        type="activity"
+        onAdd={handleAdd('activities')}
+        onEdit={handleEdit('activities')}
+        onDelete={handleDelete('activities')}
+        emptyMessage="No activities planned yet"
+        icon={<Activity className="h-5 w-5 text-white" />}
       />
 
-      <ItineraryBrowser
-        isOpen={browserState.reservationBrowserOpen}
-        onClose={onCloseReservationBrowser}
-        items={itineraryData.reservations || []}
-        currentIndex={browserState.currentReservationIndex}
-        onIndexChange={onReservationIndexChange}
+      <OptimizedItinerarySection
         title="Reservations"
-        type="reservations"
-        onEdit={onEditReservation}
-        onDelete={onDeleteReservation}
+        items={itineraryData.reservations || []}
+        type="reservation"
+        onAdd={handleAdd('reservations')}
+        onEdit={handleEdit('reservations')}
+        onDelete={handleDelete('reservations')}
+        emptyMessage="No reservations made yet"
+        icon={<UtensilsCrossed className="h-5 w-5 text-white" />}
       />
-    </>
+    </div>
   );
-};
+});
+
+ItineraryBrowsers.displayName = 'ItineraryBrowsers';
+
+export { ItineraryBrowsers };

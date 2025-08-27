@@ -5,7 +5,9 @@ import { Plus } from 'lucide-react';
 import { OptimizedItineraryCard } from './OptimizedItineraryCard';
 
 interface SectionItem {
-  name: string;
+  name?: string;
+  airline?: string;
+  flight_number?: string;
   location?: string;
   address?: string;
   city?: string;
@@ -13,7 +15,7 @@ interface SectionItem {
   images?: string[];
   rating?: number;
   cost?: number;
-  price?: string;
+  price?: string | number;
   booking_status?: string;
   [key: string]: any;
 }

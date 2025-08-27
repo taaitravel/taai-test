@@ -6,7 +6,9 @@ import { ImageGallery } from '@/components/ui/image-gallery';
 import { MapPin, Calendar, Clock, Star, Users, Plane, Utensils } from 'lucide-react';
 
 interface BaseItem {
-  name: string;
+  name?: string;
+  airline?: string;
+  flight_number?: string;
   location?: string;
   address?: string;
   city?: string;
@@ -14,7 +16,7 @@ interface BaseItem {
   images?: string[];
   rating?: number;
   cost?: number;
-  price?: string;
+  price?: string | number;
   booking_status?: string;
 }
 
@@ -71,6 +73,14 @@ const getLocationDisplay = (item: ItineraryItem) => {
   if (item.address) return item.address;
   const parts = [item.city, item.country].filter(Boolean);
   return parts.length > 0 ? parts.join(', ') : item.location || 'Location not specified';
+};
+
+const getItemName = (item: ItineraryItem) => {
+  if (item.name) return item.name;
+  if (item.type === 'flight' && item.airline && item.flight_number) {
+    return `${item.airline} ${item.flight_number}`;
+  }
+  return 'Unnamed Item';
 };
 
 const OptimizedItineraryCard = memo(({ item, onEdit, onDelete }: OptimizedItineraryCardProps) => {
@@ -162,13 +172,16 @@ const OptimizedItineraryCard = memo(({ item, onEdit, onDelete }: OptimizedItiner
         {/* Header with images */}
         {item.images && item.images.length > 0 && (
           <div className="mb-4">
-            <ImageGallery images={item.images} />
+            <ImageGallery 
+              images={item.images} 
+              alt={`${item.name} images`}
+            />
           </div>
         )}
         
         {/* Title and Status */}
         <div className="flex items-start justify-between mb-4">
-          <h3 className="text-xl font-semibold text-white">{item.name}</h3>
+          <h3 className="text-xl font-semibold text-white">{getItemName(item)}</h3>
           {item.booking_status && (
             <Badge className={getStatusColor(item.booking_status)}>
               {item.booking_status}

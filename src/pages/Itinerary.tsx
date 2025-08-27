@@ -58,8 +58,16 @@ const Itinerary = () => {
   const handleEditSubmit = async (type: ItemType, item: any) => {
     if (!itineraryData) return;
     const current = ((itineraryData as any)[type] || []) as any[];
-    const updated = [...current];
-    updated[editIndex] = item;
+    let updated;
+    
+    if (editIndex === -1) {
+      // Adding new item
+      updated = [...current, item];
+    } else {
+      // Editing existing item
+      updated = [...current];
+      updated[editIndex] = item;
+    }
 
     // Append geocoded location to itin_map_locations for Mapbox, when provided
     let newMapLocations = ([...(itineraryData.itin_map_locations || [])] as any[]);
@@ -80,11 +88,12 @@ const Itinerary = () => {
     refreshMapData();
   };
 
-  const handleDelete = async (type: ItemType, index: number) => {
+  const handleDelete = async (type: string, index: number) => {
     if (!itineraryData) return;
-    const current = ((itineraryData as any)[type] || []) as any[];
+    const itemType = type as ItemType;
+    const current = ((itineraryData as any)[itemType] || []) as any[];
     const updated = current.filter((_, i) => i !== index);
-    await supabase.from('itinerary').update({ [type]: updated }).eq('id', itineraryData.id);
+    await supabase.from('itinerary').update({ [itemType]: updated }).eq('id', itineraryData.id);
     refreshMapData();
   };
 
@@ -112,23 +121,15 @@ const Itinerary = () => {
 
       <ItineraryBrowsers
         itineraryData={itineraryData}
-        browserState={browserState}
-        onCloseFlightBrowser={closeFlightBrowser}
-        onCloseHotelBrowser={closeHotelBrowser}
-        onCloseActivityBrowser={closeActivityBrowser}
-        onCloseReservationBrowser={closeReservationBrowser}
-        onFlightIndexChange={setCurrentFlightIndex}
-        onHotelIndexChange={setCurrentHotelIndex}
-        onActivityIndexChange={setCurrentActivityIndex}
-        onReservationIndexChange={setCurrentReservationIndex}
-        onEditFlight={(i) => openEdit('flights', i)}
-        onEditHotel={(i) => openEdit('hotels', i)}
-        onEditActivity={(i) => openEdit('activities', i)}
-        onEditReservation={(i) => openEdit('reservations', i)}
-        onDeleteFlight={(i) => handleDelete('flights', i)}
-        onDeleteHotel={(i) => handleDelete('hotels', i)}
-        onDeleteActivity={(i) => handleDelete('activities', i)}
-        onDeleteReservation={(i) => handleDelete('reservations', i)}
+        onEditItem={(type, index) => openEdit(type as ItemType, index)}
+        onDeleteItem={(type, index) => handleDelete(type, index)}
+        onAddItem={(type) => {
+          // Open add item dialog for the specific type
+          setEditType(type as ItemType);
+          setEditIndex(-1); // -1 indicates adding new item
+          setInitialItem(null);
+          setEditOpen(true);
+        }}
       />
 
       {/* Edit Item Dialog */}
