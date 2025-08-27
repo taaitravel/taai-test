@@ -2,7 +2,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
 import { ItineraryContent } from "@/components/itinerary/ItineraryContent";
-import { ItineraryBrowsers } from "@/components/itinerary/ItineraryBrowsers";
+
 import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingState";
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
 import { useBrowserState } from "@/hooks/useBrowserState";
@@ -119,18 +119,6 @@ const Itinerary = () => {
         refreshMapData={refreshMapData}
       />
 
-      <ItineraryBrowsers
-        itineraryData={itineraryData}
-        onEditItem={(type, index) => openEdit(type as ItemType, index)}
-        onDeleteItem={(type, index) => handleDelete(type, index)}
-        onAddItem={(type) => {
-          // Open add item dialog for the specific type
-          setEditType(type as ItemType);
-          setEditIndex(-1); // -1 indicates adding new item
-          setInitialItem(null);
-          setEditOpen(true);
-        }}
-      />
 
       {/* Edit Item Dialog */}
       <AddItemDialog
