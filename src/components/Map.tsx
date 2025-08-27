@@ -2,18 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
-
 interface MapLocation {
   city: string;
   lat: number;
   lng: number;
   category?: 'flight' | 'hotel' | 'activity' | 'reservation' | 'destination';
 }
-
 interface MapProps {
   locations?: MapLocation[];
 }
-
 const getCategoryColor = (category?: string) => {
   switch (category) {
     case 'flight':
@@ -30,7 +27,6 @@ const getCategoryColor = (category?: string) => {
       return 'hsl(var(--primary))';
   }
 };
-
 const getHoverColor = (category?: string) => {
   switch (category) {
     case 'flight':
@@ -47,14 +43,14 @@ const getHoverColor = (category?: string) => {
       return 'hsl(var(--primary) / 0.8)';
   }
 };
-
-const Map = ({ locations = [] }: MapProps) => {
+const Map = ({
+  locations = []
+}: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
   console.log('🗺️ Map component rendered with locations:', locations.length);
   console.log('🗺️ Map locations details:', locations);
 
@@ -63,11 +59,12 @@ const Map = ({ locations = [] }: MapProps) => {
     const fetchMapboxToken = async () => {
       try {
         console.log('🗺️ Map: Attempting to get Mapbox token...');
-        
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('get-mapbox-token');
         console.log('🗺️ Map: Token response data:', data);
         console.log('🗺️ Map: Token response error:', error);
-        
         if (error) {
           console.error('🗺️ Map: Token error:', error);
           setError('Unable to load map. Please check configuration.');
@@ -78,14 +75,12 @@ const Map = ({ locations = [] }: MapProps) => {
         // The token might be directly in data or nested in data.token
         const mapboxToken = data?.token || data;
         console.log('🗺️ Map: Extracted token:', mapboxToken ? 'Token received' : 'No token');
-        
         if (!mapboxToken || typeof mapboxToken !== 'string') {
           console.error('🗺️ Map: Invalid token received:', typeof mapboxToken);
           setError('Invalid Mapbox token received.');
           setLoading(false);
           return;
         }
-        
         console.log('🗺️ Map: Token received successfully, length:', mapboxToken.length);
         setMapboxToken(mapboxToken);
       } catch (err: any) {
@@ -94,26 +89,22 @@ const Map = ({ locations = [] }: MapProps) => {
         setLoading(false);
       }
     };
-
     fetchMapboxToken();
   }, []);
 
   // Initialize map when token is available
   useEffect(() => {
     if (!mapboxToken || !mapContainer.current || map.current) return;
-
     console.log('🗺️ Map: Initializing map with token');
-    
     try {
       mapboxgl.accessToken = mapboxToken;
-      
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [0, 20],
         zoom: 2,
         projection: 'mercator' as any,
-        antialias: true,
+        antialias: true
       });
 
       // Add subtle styling when map loads
@@ -128,7 +119,6 @@ const Map = ({ locations = [] }: MapProps) => {
           }
         });
       });
-
       console.log('🗺️ Map: Map instance created');
 
       // Set a timeout to force loading to false if map doesn't load
@@ -136,22 +126,19 @@ const Map = ({ locations = [] }: MapProps) => {
         console.log('🗺️ Map: Load timeout reached, setting loading to false');
         setLoading(false);
       }, 5000);
-
       map.current.on('load', () => {
         console.log('🗺️ Map: Map loaded successfully');
         clearTimeout(loadTimeout);
         setLoading(false);
         setError(null);
       });
-
       map.current.on('idle', () => {
         console.log('🗺️ Map: Map is idle and ready');
         clearTimeout(loadTimeout);
         setLoading(false);
         setError(null);
       });
-
-      map.current.on('error', (e) => {
+      map.current.on('error', e => {
         console.error('🗺️ Map: Map error:', e);
         clearTimeout(loadTimeout);
         setError('Map failed to load');
@@ -165,13 +152,11 @@ const Map = ({ locations = [] }: MapProps) => {
         setLoading(false);
         setError(null);
       }
-
     } catch (err: any) {
       console.error('🗺️ Map: Error initializing map:', err);
       setError('Failed to initialize map: ' + err.message);
       setLoading(false);
     }
-
     return () => {
       if (map.current) {
         console.log('🗺️ Map: Cleaning up map');
@@ -187,33 +172,25 @@ const Map = ({ locations = [] }: MapProps) => {
       console.log('🗺️ Map: Not ready for markers - map:', !!map.current, 'locations:', locations.length, 'loading:', loading);
       return;
     }
-
     console.log('🗺️ Map: Adding markers for locations:', locations);
 
     // Clear existing markers
     const existingMarkers = document.querySelectorAll('.mapboxgl-marker');
     existingMarkers.forEach(marker => marker.remove());
-
     const bounds = new mapboxgl.LngLatBounds();
     let validLocations = 0;
-
     locations.forEach((location, index) => {
       console.log(`🗺️ Map: Processing location ${index}:`, location);
-      
-      if (!location.lat || !location.lng || 
-          location.lat < -90 || location.lat > 90 || 
-          location.lng < -180 || location.lng > 180) {
+      if (!location.lat || !location.lng || location.lat < -90 || location.lat > 90 || location.lng < -180 || location.lng > 180) {
         console.warn('🗺️ Map: Invalid coordinates for location:', location);
         return;
       }
-
       validLocations++;
       bounds.extend([location.lng, location.lat]);
 
       // Create marker element
       const el = document.createElement('div');
       el.className = 'custom-marker';
-      
       const categoryColor = getCategoryColor(location.category);
       el.style.cssText = `
         width: 24px;
@@ -227,7 +204,7 @@ const Map = ({ locations = [] }: MapProps) => {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
       `;
-      
+
       // Add inner glow effect
       const innerEl = document.createElement('div');
       innerEl.style.cssText = `
@@ -250,7 +227,6 @@ const Map = ({ locations = [] }: MapProps) => {
                              0 4px 8px hsl(var(--foreground) / 0.15)`;
         el.style.zIndex = '1000';
       });
-
       el.addEventListener('mouseleave', () => {
         el.style.transform = 'scale(1)';
         el.style.background = categoryColor;
@@ -260,7 +236,7 @@ const Map = ({ locations = [] }: MapProps) => {
       });
 
       // Create popup
-      const popup = new mapboxgl.Popup({ 
+      const popup = new mapboxgl.Popup({
         offset: 30,
         closeButton: false,
         className: 'custom-popup'
@@ -283,17 +259,12 @@ const Map = ({ locations = [] }: MapProps) => {
 
       // Add marker to map
       try {
-        new mapboxgl.Marker(el)
-          .setLngLat([location.lng, location.lat])
-          .setPopup(popup)
-          .addTo(map.current!);
-        
+        new mapboxgl.Marker(el).setLngLat([location.lng, location.lat]).setPopup(popup).addTo(map.current!);
         console.log(`🗺️ Map: Added marker for ${location.city} at [${location.lng}, ${location.lat}]`);
       } catch (markerErr) {
         console.error(`🗺️ Map: Error adding marker for ${location.city}:`, markerErr);
       }
     });
-
     console.log(`🗺️ Map: Added ${validLocations} valid markers out of ${locations.length} locations`);
 
     // Fit map to markers or center on single location
@@ -308,9 +279,9 @@ const Map = ({ locations = [] }: MapProps) => {
           }
         } else {
           console.log('🗺️ Map: Fitting to bounds for multiple locations');
-          map.current?.fitBounds(bounds, { 
+          map.current?.fitBounds(bounds, {
             padding: 50,
-            maxZoom: 15 
+            maxZoom: 15
           });
         }
       } catch (err) {
@@ -320,44 +291,25 @@ const Map = ({ locations = [] }: MapProps) => {
       console.warn('🗺️ Map: No valid locations to display');
     }
   }, [locations, loading]);
-
   console.log('🗺️ Map: Current state - loading:', loading, 'error:', error, 'token:', !!mapboxToken);
-
   if (error) {
     console.error('🗺️ Map: Rendering error state:', error);
-    return (
-      <div className="h-full flex items-center justify-center bg-background border border-border rounded-xl">
+    return <div className="h-full flex items-center justify-center bg-background border border-border rounded-xl">
         <div className="text-center p-8">
           <p className="text-lg font-medium mb-2 text-foreground">Unable to load map</p>
           <p className="text-sm text-muted-foreground">{error}</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (loading) {
     console.log('🗺️ Map: Rendering loading state');
-    return (
-      <div className="h-full flex items-center justify-center bg-background border border-border rounded-xl">
-        <div className="text-center p-8">
-          <div className="animate-pulse mb-4">
-            <div className="w-12 h-12 bg-primary/20 rounded-full mx-auto"></div>
-          </div>
-          <p className="text-lg font-medium mb-2 text-foreground">Loading map...</p>
-          <p className="text-sm text-muted-foreground">Initializing Mapbox</p>
-        </div>
-      </div>
-    );
+    return;
   }
-
   console.log('🗺️ Map: Rendering map container');
-  return (
-    <div className="h-full w-full relative rounded-xl overflow-hidden border border-border bg-background shadow-lg">
+  return <div className="h-full w-full relative rounded-xl overflow-hidden border border-border bg-background shadow-lg">
       <div ref={mapContainer} className="absolute inset-0" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-background/5" />
-    </div>
-  );
+    </div>;
 };
-
 export { Map };
 export default Map;
