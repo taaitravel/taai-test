@@ -28,6 +28,37 @@ export const useItineraryGeocodes = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const geocodeWithRetry = async (query: string, maxRetries = 3): Promise<ItineraryMapLocation | undefined> => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const { data, error } = await supabase.functions.invoke('search-cities', {
+          body: { query },
+        });
+        
+        if (!error && Array.isArray(data?.locations) && data.locations.length > 0) {
+          const best = data.locations[0];
+          return {
+            city: best.fullName || best.city || query,
+            lat: best.lat,
+            lng: best.lng,
+          } as ItineraryMapLocation;
+        }
+        
+        if (error) throw new Error(error.message || 'Geocoding failed');
+      } catch (e) {
+        console.warn(`useItineraryGeocodes: geocoding attempt ${attempt}/${maxRetries} failed for "${query}":`, e);
+        
+        if (attempt === maxRetries) {
+          console.error(`useItineraryGeocodes: all ${maxRetries} attempts failed for "${query}"`);
+        } else {
+          // Wait before retry with exponential backoff
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+      }
+    }
+    return undefined;
+  };
+
   const fetchGeocodes = useCallback(async () => {
     try {
       if (!itineraryId && itineraryId !== 0) {
@@ -57,8 +88,20 @@ export const useItineraryGeocodes = (
         ? ((data as any)!.itin_map_locations as any[])
         : [];
       const savedMapLocations: ItineraryMapLocation[] = savedMapLocationsRaw
-        .map((m: any) => ({ city: m.city, lat: Number(m.lat), lng: Number(m.lng) }))
-        .filter((m) => !!m.city && !Number.isNaN(m.lat) && !Number.isNaN(m.lng));
+        .map((m: any) => ({ 
+          city: m.city || 'Unknown', 
+          lat: Number(m.lat), 
+          lng: Number(m.lng) 
+        }))
+        .filter((m) => 
+          m.city && 
+          typeof m.lat === 'number' && 
+          typeof m.lng === 'number' &&
+          !Number.isNaN(m.lat) && 
+          !Number.isNaN(m.lng) &&
+          m.lat >= -90 && m.lat <= 90 &&
+          m.lng >= -180 && m.lng <= 180
+        );
 
       // If we already have saved map coordinates, use them
       if (savedMapLocations.length > 0) {
@@ -83,27 +126,16 @@ export const useItineraryGeocodes = (
         return;
       }
 
-      // Geocode all destinations concurrently via Edge Function
-      const geocodePromises = unique.map(async (query) => {
-        try {
-          const { data, error } = await supabase.functions.invoke('search-cities', {
-            body: { query },
-          });
-          if (!error && Array.isArray(data?.locations) && data.locations.length > 0) {
-            const best = data.locations[0];
-            return {
-              city: best.fullName || best.city || query,
-              lat: best.lat,
-              lng: best.lng,
-            } as ItineraryMapLocation;
-          }
-        } catch (e) {
-          console.warn('useItineraryGeocodes: error geocoding', query, e);
-        }
-        return undefined;
-      });
-
+      // Geocode all destinations with retry logic
+      const geocodePromises = unique.map(query => geocodeWithRetry(query));
       const results = (await Promise.all(geocodePromises)).filter(Boolean) as ItineraryMapLocation[];
+      
+      if (results.length === 0 && unique.length > 0) {
+        setError('Unable to locate any of the destinations. Please check the city names.');
+      } else if (results.length < unique.length) {
+        console.warn(`Only ${results.length} out of ${unique.length} destinations could be located`);
+      }
+      
       setLocations(results);
     } catch (e: any) {
       console.error('useItineraryGeocodes error', e);

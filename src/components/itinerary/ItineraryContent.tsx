@@ -179,7 +179,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
         />
         <div className="lg:col-span-2">
           <div className="border border-border rounded-xl overflow-hidden bg-background shadow-sm">
-            <div className="aspect-video h-80">
+            <div className="w-full h-80 min-h-[320px]">
               <Map locations={itineraryData.itin_map_locations?.filter((loc: any) => 
                 loc.category === 'destination' || !loc.category
               ) || []} />
