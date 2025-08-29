@@ -270,7 +270,7 @@ const Subscription = () => {
               {individualTiers.map((tier) => (
                 <Card 
                   key={tier.id} 
-                  className={`relative p-6 bg-card/50 backdrop-blur-sm border-border/50 ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
+                  className={`relative p-6 bg-gradient-to-br from-primary/20 to-secondary/20 border-primary/20 backdrop-blur-sm ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
                 >
                   {tier.isPopular && (
                     <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
@@ -326,7 +326,7 @@ const Subscription = () => {
               {corporateTiers.map((tier) => (
                 <Card 
                   key={tier.id} 
-                  className={`relative p-6 bg-card/50 backdrop-blur-sm border-border/50 ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
+                  className={`relative p-6 bg-gradient-to-br from-secondary/20 to-accent/20 border-secondary/20 backdrop-blur-sm ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
                 >
                   {tier.isPopular && (
                     <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
