@@ -231,24 +231,27 @@ const Subscription = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#171821]">
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Choose Your Travel Plan</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <Badge className="mb-6 bg-white/20 text-white hover:bg-white/30 border-white/30" variant="secondary">
+            Choose Your Plan
+          </Badge>
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">Choose Your Travel Plan</h1>
+          <p className="text-lg text-white/80 max-w-2xl mx-auto">
             Unlock the full potential of your travel planning with our subscription tiers
           </p>
           
           {user && currentSubscription && (
             <div className="mt-6">
-              <Badge variant="secondary" className="text-sm">
+              <Badge variant="secondary" className="text-sm bg-white/20 text-white border-white/30">
                 Current Plan: {allTiers.find(t => t.id === currentSubscription.subscription_tier)?.name}
               </Badge>
               {currentSubscription.subscribed && (
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="ml-4"
+                  className="ml-4 bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
                   onClick={handleManageSubscription}
                   disabled={loading}
                 >
@@ -260,9 +263,9 @@ const Subscription = () => {
         </div>
 
         <Tabs defaultValue="individual" className="max-w-7xl mx-auto">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="individual">Individual Plans</TabsTrigger>
-            <TabsTrigger value="corporate">Corporate Plans</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-8 bg-[#171821]/60 border-white/20">
+            <TabsTrigger value="individual" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">Individual Plans</TabsTrigger>
+            <TabsTrigger value="corporate" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">Corporate Plans</TabsTrigger>
           </TabsList>
           
           <TabsContent value="individual">
@@ -270,27 +273,29 @@ const Subscription = () => {
               {individualTiers.map((tier) => (
                 <Card 
                   key={tier.id} 
-                  className={`relative p-6 bg-gradient-to-br from-primary/20 to-secondary/20 border-primary/20 backdrop-blur-sm flex flex-col h-full ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
+                  className={`relative p-6 bg-[#171821]/80 border-white/30 backdrop-blur-sm hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 flex flex-col h-full ${isCurrentTier(tier.id) ? 'ring-2 ring-white shadow-lg shadow-white/30' : ''} ${tier.isPopular ? 'border-white/50' : ''}`}
                 >
                   {tier.isPopular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 gold-gradient text-[#171821]">
                       Most Popular
                     </Badge>
                   )}
                   
                   {isCurrentTier(tier.id) && (
-                    <Badge variant="secondary" className="absolute -top-3 right-4">
+                    <Badge variant="secondary" className="absolute -top-3 right-4 bg-white/20 text-white border-white/30">
                       Current Plan
                     </Badge>
                   )}
 
                   <div className="text-center mb-6">
-                    <div className="flex justify-center mb-4 text-primary">
-                      {tier.icon}
+                    <div className="flex justify-center mb-4">
+                      <div className="w-16 h-16 gold-gradient rounded-full flex items-center justify-center shadow-lg">
+                        {tier.icon && React.cloneElement(tier.icon, { className: "h-8 w-8 text-[#171821]" })}
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{tier.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-4">{tier.description}</p>
-                    <div className="text-3xl font-bold text-foreground">
+                    <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
+                    <p className="text-white/70 text-sm mb-4">{tier.description}</p>
+                    <div className="text-3xl font-bold text-white">
                       {tier.priceText}
                     </div>
                   </div>
@@ -298,17 +303,16 @@ const Subscription = () => {
                   <ul className="space-y-3 mb-6 flex-grow">
                     {tier.features.map((feature, index) => (
                       <li key={index} className="flex items-start text-sm">
-                        <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-muted-foreground">{feature}</span>
+                        <Check className="h-4 w-4 text-white mr-2 mt-0.5 flex-shrink-0" />
+                        <span className="text-white/70">{feature}</span>
                       </li>
                     ))}
                   </ul>
 
                   <div className="mt-auto">
-
                   <Button
-                    className="w-full"
-                    variant={isCurrentTier(tier.id) ? "secondary" : tier.isPopular ? "default" : "outline"}
+                    className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
+                    variant={isCurrentTier(tier.id) ? "secondary" : "default"}
                     onClick={() => handleSubscribe(tier.id)}
                     disabled={loading || isCurrentTier(tier.id) || (!tier.isPaid && isCurrentTier(tier.id))}
                   >
@@ -329,27 +333,29 @@ const Subscription = () => {
               {corporateTiers.map((tier) => (
                 <Card 
                   key={tier.id} 
-                  className={`relative p-6 bg-gradient-to-br from-secondary/20 to-accent/20 border-secondary/20 backdrop-blur-sm flex flex-col h-full ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
+                  className={`relative p-6 bg-[#171821]/80 border-white/30 backdrop-blur-sm hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 flex flex-col h-full ${isCurrentTier(tier.id) ? 'ring-2 ring-white shadow-lg shadow-white/30' : ''} ${tier.isPopular ? 'border-white/50' : ''}`}
                 >
                   {tier.isPopular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 gold-gradient text-[#171821]">
                       Most Popular
                     </Badge>
                   )}
                   
                   {isCurrentTier(tier.id) && (
-                    <Badge variant="secondary" className="absolute -top-3 right-4">
+                    <Badge variant="secondary" className="absolute -top-3 right-4 bg-white/20 text-white border-white/30">
                       Current Plan
                     </Badge>
                   )}
 
                   <div className="text-center mb-6">
-                    <div className="flex justify-center mb-4 text-primary">
-                      {tier.icon}
+                    <div className="flex justify-center mb-4">
+                      <div className="w-16 h-16 gold-gradient rounded-full flex items-center justify-center shadow-lg">
+                        {tier.icon && React.cloneElement(tier.icon, { className: "h-8 w-8 text-[#171821]" })}
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{tier.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-4">{tier.description}</p>
-                    <div className="text-3xl font-bold text-foreground">
+                    <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
+                    <p className="text-white/70 text-sm mb-4">{tier.description}</p>
+                    <div className="text-3xl font-bold text-white">
                       {tier.priceText}
                     </div>
                   </div>
@@ -357,17 +363,16 @@ const Subscription = () => {
                   <ul className="space-y-3 mb-6 flex-grow">
                     {tier.features.map((feature, index) => (
                       <li key={index} className="flex items-start text-sm">
-                        <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-muted-foreground">{feature}</span>
+                        <Check className="h-4 w-4 text-white mr-2 mt-0.5 flex-shrink-0" />
+                        <span className="text-white/70">{feature}</span>
                       </li>
                     ))}
                   </ul>
 
                   <div className="mt-auto">
-
                   <Button
-                    className="w-full"
-                    variant={isCurrentTier(tier.id) ? "secondary" : tier.isPopular ? "default" : "outline"}
+                    className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
+                    variant={isCurrentTier(tier.id) ? "secondary" : "default"}
                     onClick={() => handleSubscribe(tier.id)}
                     disabled={loading || isCurrentTier(tier.id)}
                   >
@@ -385,24 +390,24 @@ const Subscription = () => {
 
         {user && currentSubscription && (
           <div className="mt-12 max-w-2xl mx-auto">
-            <Card className="p-6">
-              <h3 className="text-xl font-bold text-foreground mb-4">Your Current Usage</h3>
+            <Card className="p-6 bg-[#171821]/60 border-white/30">
+              <h3 className="text-xl font-bold text-white mb-4">Your Current Usage</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-primary">{currentSubscription.credits_remaining}</div>
-                  <div className="text-sm text-muted-foreground">Credits Remaining</div>
+                  <div className="text-2xl font-bold text-white">{currentSubscription.credits_remaining}</div>
+                  <div className="text-sm text-white/70">Credits Remaining</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-primary">
+                  <div className="text-2xl font-bold text-white">
                     {currentSubscription.max_itineraries === -1 ? '∞' : currentSubscription.max_itineraries}
                   </div>
-                  <div className="text-sm text-muted-foreground">Max Itineraries</div>
+                  <div className="text-sm text-white/70">Max Itineraries</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-primary">
+                  <div className="text-2xl font-bold text-white">
                     {currentSubscription.max_shared_friends === -1 ? '∞' : currentSubscription.max_shared_friends}
                   </div>
-                  <div className="text-sm text-muted-foreground">Sharing Limit</div>
+                  <div className="text-sm text-white/70">Sharing Limit</div>
                 </div>
               </div>
             </Card>
