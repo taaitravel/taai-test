@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, Star, Users, Building, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,7 +24,7 @@ const Subscription = () => {
   const [checkingSubscription, setCheckingSubscription] = useState(true);
   const [currentSubscription, setCurrentSubscription] = useState<SubscriptionData | null>(null);
 
-  const tiers = [
+  const individualTiers = [
     {
       id: 'traveler',
       name: 'Traveler',
@@ -74,7 +75,10 @@ const Subscription = () => {
       ],
       isPaid: true,
       isPopular: false
-    },
+    }
+  ];
+
+  const corporateTiers = [
     {
       id: 'corporate_traveler',
       name: 'Corporate Traveler Account',
@@ -91,7 +95,7 @@ const Subscription = () => {
         'Expense tracking'
       ],
       isPaid: true,
-      isPopular: false
+      isPopular: true
     },
     {
       id: 'corporate_traveler_plus',
@@ -212,6 +216,8 @@ const Subscription = () => {
     return targetIndex !== currentIndex;
   };
 
+  const allTiers = [...individualTiers, ...corporateTiers];
+
   const isCurrentTier = (tierId: string) => {
     return currentSubscription?.subscription_tier === tierId;
   };
@@ -236,7 +242,7 @@ const Subscription = () => {
           {user && currentSubscription && (
             <div className="mt-6">
               <Badge variant="secondary" className="text-sm">
-                Current Plan: {tiers.find(t => t.id === currentSubscription.subscription_tier)?.name}
+                Current Plan: {allTiers.find(t => t.id === currentSubscription.subscription_tier)?.name}
               </Badge>
               {currentSubscription.subscribed && (
                 <Button 
@@ -253,59 +259,123 @@ const Subscription = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
-          {tiers.map((tier) => (
-            <Card 
-              key={tier.id} 
-              className={`relative p-6 ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
-            >
-              {tier.isPopular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
-                  Most Popular
-                </Badge>
-              )}
-              
-              {isCurrentTier(tier.id) && (
-                <Badge variant="secondary" className="absolute -top-3 right-4">
-                  Current Plan
-                </Badge>
-              )}
+        <Tabs defaultValue="individual" className="max-w-7xl mx-auto">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="individual">Individual Plans</TabsTrigger>
+            <TabsTrigger value="corporate">Corporate Plans</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="individual">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {individualTiers.map((tier) => (
+                <Card 
+                  key={tier.id} 
+                  className={`relative p-6 bg-card/50 backdrop-blur-sm border-border/50 ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
+                >
+                  {tier.isPopular && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
+                      Most Popular
+                    </Badge>
+                  )}
+                  
+                  {isCurrentTier(tier.id) && (
+                    <Badge variant="secondary" className="absolute -top-3 right-4">
+                      Current Plan
+                    </Badge>
+                  )}
 
-              <div className="text-center mb-6">
-                <div className="flex justify-center mb-4 text-primary">
-                  {tier.icon}
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">{tier.name}</h3>
-                <p className="text-muted-foreground text-sm mb-4">{tier.description}</p>
-                <div className="text-3xl font-bold text-foreground">
-                  {tier.priceText}
-                </div>
-              </div>
+                  <div className="text-center mb-6">
+                    <div className="flex justify-center mb-4 text-primary">
+                      {tier.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{tier.name}</h3>
+                    <p className="text-muted-foreground text-sm mb-4">{tier.description}</p>
+                    <div className="text-3xl font-bold text-foreground">
+                      {tier.priceText}
+                    </div>
+                  </div>
 
-              <ul className="space-y-3 mb-6">
-                {tier.features.map((feature, index) => (
-                  <li key={index} className="flex items-start text-sm">
-                    <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+                  <ul className="space-y-3 mb-6">
+                    {tier.features.map((feature, index) => (
+                      <li key={index} className="flex items-start text-sm">
+                        <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-              <Button
-                className="w-full"
-                variant={isCurrentTier(tier.id) ? "secondary" : tier.isPopular ? "default" : "outline"}
-                onClick={() => handleSubscribe(tier.id)}
-                disabled={loading || isCurrentTier(tier.id) || (!tier.isPaid && isCurrentTier(tier.id))}
-              >
-                {loading ? 'Processing...' : 
-                 isCurrentTier(tier.id) ? 'Current Plan' :
-                 !tier.isPaid ? 'Free Plan' :
-                 canUpgrade(tier.id) ? `Subscribe to ${tier.name}` : 'Subscribe'
-                }
-              </Button>
-            </Card>
-          ))}
-        </div>
+                  <Button
+                    className="w-full"
+                    variant={isCurrentTier(tier.id) ? "secondary" : tier.isPopular ? "default" : "outline"}
+                    onClick={() => handleSubscribe(tier.id)}
+                    disabled={loading || isCurrentTier(tier.id) || (!tier.isPaid && isCurrentTier(tier.id))}
+                  >
+                    {loading ? 'Processing...' : 
+                     isCurrentTier(tier.id) ? 'Current Plan' :
+                     !tier.isPaid ? 'Free Plan' :
+                     canUpgrade(tier.id) ? `Subscribe to ${tier.name}` : 'Subscribe'
+                    }
+                  </Button>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="corporate">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {corporateTiers.map((tier) => (
+                <Card 
+                  key={tier.id} 
+                  className={`relative p-6 bg-card/50 backdrop-blur-sm border-border/50 ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
+                >
+                  {tier.isPopular && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
+                      Most Popular
+                    </Badge>
+                  )}
+                  
+                  {isCurrentTier(tier.id) && (
+                    <Badge variant="secondary" className="absolute -top-3 right-4">
+                      Current Plan
+                    </Badge>
+                  )}
+
+                  <div className="text-center mb-6">
+                    <div className="flex justify-center mb-4 text-primary">
+                      {tier.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{tier.name}</h3>
+                    <p className="text-muted-foreground text-sm mb-4">{tier.description}</p>
+                    <div className="text-3xl font-bold text-foreground">
+                      {tier.priceText}
+                    </div>
+                  </div>
+
+                  <ul className="space-y-3 mb-6">
+                    {tier.features.map((feature, index) => (
+                      <li key={index} className="flex items-start text-sm">
+                        <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    className="w-full"
+                    variant={isCurrentTier(tier.id) ? "secondary" : tier.isPopular ? "default" : "outline"}
+                    onClick={() => handleSubscribe(tier.id)}
+                    disabled={loading || isCurrentTier(tier.id)}
+                  >
+                    {loading ? 'Processing...' : 
+                     isCurrentTier(tier.id) ? 'Current Plan' :
+                     canUpgrade(tier.id) ? `Subscribe to ${tier.name}` : 'Subscribe'
+                    }
+                  </Button>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {user && currentSubscription && (
           <div className="mt-12 max-w-2xl mx-auto">
