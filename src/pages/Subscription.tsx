@@ -270,7 +270,7 @@ const Subscription = () => {
               {individualTiers.map((tier) => (
                 <Card 
                   key={tier.id} 
-                  className={`relative p-6 bg-gradient-to-br from-primary/20 to-secondary/20 border-primary/20 backdrop-blur-sm ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
+                  className={`relative p-6 bg-gradient-to-br from-primary/20 to-secondary/20 border-primary/20 backdrop-blur-sm flex flex-col h-full ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
                 >
                   {tier.isPopular && (
                     <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
@@ -295,7 +295,7 @@ const Subscription = () => {
                     </div>
                   </div>
 
-                  <ul className="space-y-3 mb-6">
+                  <ul className="space-y-3 mb-6 flex-grow">
                     {tier.features.map((feature, index) => (
                       <li key={index} className="flex items-start text-sm">
                         <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
@@ -303,6 +303,8 @@ const Subscription = () => {
                       </li>
                     ))}
                   </ul>
+
+                  <div className="mt-auto">
 
                   <Button
                     className="w-full"
@@ -316,6 +318,7 @@ const Subscription = () => {
                      canUpgrade(tier.id) ? `Subscribe to ${tier.name}` : 'Subscribe'
                     }
                   </Button>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -326,7 +329,7 @@ const Subscription = () => {
               {corporateTiers.map((tier) => (
                 <Card 
                   key={tier.id} 
-                  className={`relative p-6 bg-gradient-to-br from-secondary/20 to-accent/20 border-secondary/20 backdrop-blur-sm ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
+                  className={`relative p-6 bg-gradient-to-br from-secondary/20 to-accent/20 border-secondary/20 backdrop-blur-sm flex flex-col h-full ${isCurrentTier(tier.id) ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary' : ''}`}
                 >
                   {tier.isPopular && (
                     <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
@@ -351,7 +354,7 @@ const Subscription = () => {
                     </div>
                   </div>
 
-                  <ul className="space-y-3 mb-6">
+                  <ul className="space-y-3 mb-6 flex-grow">
                     {tier.features.map((feature, index) => (
                       <li key={index} className="flex items-start text-sm">
                         <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
@@ -359,6 +362,8 @@ const Subscription = () => {
                       </li>
                     ))}
                   </ul>
+
+                  <div className="mt-auto">
 
                   <Button
                     className="w-full"
@@ -371,6 +376,7 @@ const Subscription = () => {
                      canUpgrade(tier.id) ? `Subscribe to ${tier.name}` : 'Subscribe'
                     }
                   </Button>
+                  </div>
                 </Card>
               ))}
             </div>
