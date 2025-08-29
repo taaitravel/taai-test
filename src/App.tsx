@@ -19,6 +19,8 @@ import Itinerary from "./pages/Itinerary";
 import EditItinerary from "./pages/EditItinerary";
 import WhatWeDo from "./pages/WhatWeDo";
 import Contact from "./pages/Contact";
+import Subscription from "./pages/Subscription";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import NotFound from "./pages/NotFound";
 import AdminRoles from "./pages/AdminRoles";
 
@@ -71,6 +73,8 @@ const App = () => (
             } />
             <Route path="/what-we-do" element={<WhatWeDo />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/subscription" element={<Subscription />} />
+            <Route path="/subscription-success" element={<SubscriptionSuccess />} />
             <Route path="/admin/roles" element={
               <ProtectedRoute>
                 <AdminRoles />

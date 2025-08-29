@@ -518,6 +518,56 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          payment_date: string | null
+          payment_status: string | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          subscriber_id: string | null
+          subscription_tier: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          payment_date?: string | null
+          payment_status?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          subscriber_id?: string | null
+          subscription_tier: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          payment_date?: string | null
+          payment_status?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          subscriber_id?: string | null
+          subscription_tier?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           created_at: string
@@ -553,6 +603,75 @@ export type Database = {
           status?: string | null
           total_price?: number
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          credits_remaining: number | null
+          email: string
+          id: string
+          max_itineraries: number | null
+          max_shared_friends: number | null
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits_remaining?: number | null
+          email: string
+          id?: string
+          max_itineraries?: number | null
+          max_shared_friends?: number | null
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits_remaining?: number | null
+          email?: string
+          id?: string
+          max_itineraries?: number | null
+          max_shared_friends?: number | null
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      usage_tracking: {
+        Row: {
+          created_at: string
+          credits_used: number | null
+          id: string
+          usage_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number | null
+          id?: string
+          usage_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number | null
+          id?: string
+          usage_type?: string
           user_id?: string | null
         }
         Relationships: []
