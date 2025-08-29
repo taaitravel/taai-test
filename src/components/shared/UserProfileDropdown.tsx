@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, Settings, LogOut, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +56,13 @@ export const UserProfileDropdown = () => {
           </p>
         </div>
         <DropdownMenuSeparator className="bg-white/20" />
+        <DropdownMenuItem 
+          onClick={() => navigate("/subscription")}
+          className="cursor-pointer hover:bg-white/10 focus:bg-white/10 transition-colors"
+        >
+          <CreditCard className="h-4 w-4 mr-2" />
+          Subscription
+        </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={handleEditProfile}
           className="cursor-pointer hover:bg-white/10 focus:bg-white/10 transition-colors"

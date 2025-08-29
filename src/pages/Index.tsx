@@ -36,12 +36,14 @@ const Index = () => {
         { label: "Dashboard", path: "/dashboard" },
         { label: "Create AI Trip", path: "/create-itinerary" },
         { label: "Create Manual Trip", path: "/create-manual-itinerary" },
+        { label: "Subscription", path: "/subscription" },
         { label: "Profile", path: "/profile-setup" },
         { label: "Contact Us", path: "/contact" }
       ];
     } else {
       return [
         { label: "What We Do", path: "/what-we-do" },
+        { label: "Subscription", path: "/subscription" },
         { label: "Contact Us", path: "/contact" },
         { label: "Sign In", path: "/login" }
       ];
@@ -157,6 +159,13 @@ const Index = () => {
                       <Button 
                         variant="ghost" 
                         className="text-white hover:text-white hover:bg-white/10"
+                        onClick={() => isRouterReady && navigate('/subscription')}
+                      >
+                        Subscription
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="text-white hover:text-white hover:bg-white/10"
                         onClick={() => isRouterReady && navigate('/contact')}
                       >
                         Contact Us
@@ -172,6 +181,13 @@ const Index = () => {
                   )}
                   {user && (
                     <>
+                      <Button 
+                        variant="ghost" 
+                        className="text-white hover:text-white hover:bg-white/10"
+                        onClick={() => isRouterReady && navigate('/subscription')}
+                      >
+                        Subscription
+                      </Button>
                       <Button 
                         variant="ghost" 
                         className="text-white hover:text-white hover:bg-white/10"

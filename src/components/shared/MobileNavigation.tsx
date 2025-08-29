@@ -37,6 +37,7 @@ export const MobileNavigation = ({
     { label: "Dashboard", path: "/dashboard" },
     { label: "Create AI Trip", path: "/create-itinerary" },
     { label: "Create Manual Trip", path: "/create-manual-itinerary" },
+    { label: "Subscription", path: "/subscription" },
     { label: "Profile", path: "/profile-setup" },
   ];
 
