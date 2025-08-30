@@ -53,12 +53,12 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Define pricing tiers
+    // Define pricing tiers with tax-inclusive pricing
     const tiers = {
-      taai_traveler: { price: 799, name: "taaiTraveler" },
-      taai_traveler_plus: { price: 1999, name: "taaiTraveler+" },
-      corporate_traveler: { price: 4999, name: "Corporate Traveler Account" },
-      corporate_traveler_plus: { price: 9999, name: "Corporate Traveler Account+" }
+      taai_traveler: { price: 799, name: "taaiTraveler", description: "Personal travel planning" },
+      taai_traveler_plus: { price: 1999, name: "taaiTraveler+", description: "Enhanced personal travel features" },
+      corporate_traveler: { price: 4999, name: "Corporate Traveler Account", description: "Business travel management" },
+      corporate_traveler_plus: { price: 9999, name: "Corporate Traveler Account+", description: "Enterprise travel solutions" }
     };
 
     const selectedTier = tiers[tier as keyof typeof tiers];
@@ -78,9 +78,13 @@ serve(async (req) => {
         {
           price_data: {
             currency: "usd",
-            product_data: { name: selectedTier.name },
+            product_data: { 
+              name: selectedTier.name,
+              description: selectedTier.description 
+            },
             unit_amount: selectedTier.price,
             recurring: { interval: "month" },
+            tax_behavior: "exclusive", // Tax will be calculated on top
           },
           quantity: 1,
         },
@@ -88,6 +92,12 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/subscription`,
+      automatic_tax: {
+        enabled: true, // Enable automatic tax calculation
+      },
+      customer_update: {
+        address: "auto", // Collect address for tax calculation
+      },
       metadata: {
         tier: tier,
         user_id: user?.id || 'guest'

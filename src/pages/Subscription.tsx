@@ -17,6 +17,19 @@ interface SubscriptionData {
   max_shared_friends: number;
 }
 
+interface TierData {
+  id: string;
+  name: string;
+  price: number;
+  priceText: string;
+  taxNote?: string;
+  description: string;
+  icon: React.ReactElement;
+  features: string[];
+  isPaid: boolean;
+  isPopular: boolean;
+}
+
 const Subscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -46,6 +59,7 @@ const Subscription = () => {
       name: 'taaiTraveler',
       price: 7.99,
       priceText: '$7.99/mo',
+      taxNote: '+ applicable taxes',
       description: 'For regular travelers',
       icon: <Star className="h-6 w-6" />,
       features: [
@@ -63,6 +77,7 @@ const Subscription = () => {
       name: 'taaiTraveler+',
       price: 19.99,
       priceText: '$19.99/mo',
+      taxNote: '+ applicable taxes',
       description: 'For travel enthusiasts',
       icon: <Crown className="h-6 w-6" />,
       features: [
@@ -84,6 +99,7 @@ const Subscription = () => {
       name: 'Corporate Traveler Account',
       price: 49.99,
       priceText: '$49.99/mo',
+      taxNote: '+ applicable taxes',
       description: 'For business teams',
       icon: <Building className="h-6 w-6" />,
       features: [
@@ -102,6 +118,7 @@ const Subscription = () => {
       name: 'Corporate Traveler Account+',
       price: 99.99,
       priceText: '$99.99/mo',
+      taxNote: '+ applicable taxes',
       description: 'For large enterprises',
       icon: <Building className="h-6 w-6" />,
       features: [
@@ -298,6 +315,11 @@ const Subscription = () => {
                     <div className="text-3xl font-bold text-white">
                       {tier.priceText}
                     </div>
+                    {tier.taxNote && (
+                      <div className="text-sm text-white/60 mt-1">
+                        {tier.taxNote}
+                      </div>
+                    )}
                   </div>
 
                   <ul className="space-y-3 mb-6 flex-grow">
@@ -358,6 +380,11 @@ const Subscription = () => {
                     <div className="text-3xl font-bold text-white">
                       {tier.priceText}
                     </div>
+                    {tier.taxNote && (
+                      <div className="text-sm text-white/60 mt-1">
+                        {tier.taxNote}
+                      </div>
+                    )}
                   </div>
 
                   <ul className="space-y-3 mb-6 flex-grow">
