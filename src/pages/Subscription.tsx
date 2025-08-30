@@ -182,8 +182,18 @@ const Subscription = () => {
 
       if (error) throw error;
 
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
+      if (data?.url) {
+        // Open Stripe checkout in a new tab for better transactionality
+        console.log('Opening Stripe checkout in new tab:', data.url);
+        window.open(data.url, '_blank');
+        
+        toast({
+          title: "Redirecting to Stripe",
+          description: "Opening secure checkout in a new tab...",
+        });
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (error) {
       console.error('Error creating checkout:', error);
       toast({
