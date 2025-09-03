@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Star, Users, Building, Crown } from 'lucide-react';
+import { Check, Star, Users, Building, Crown, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -33,9 +34,9 @@ interface TierData {
 const Subscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { subscriptionData, loading: checkingSubscription, createCheckout, openCustomerPortal } = useSubscription();
   const [loading, setLoading] = useState(false);
-  const [checkingSubscription, setCheckingSubscription] = useState(true);
-  const [currentSubscription, setCurrentSubscription] = useState<SubscriptionData | null>(null);
 
   const individualTiers = [
     {
@@ -95,8 +96,8 @@ const Subscription = () => {
 
   const corporateTiers = [
     {
-      id: 'corporate_traveler',
-      name: 'Corporate Traveler Account',
+      id: 'corp_taai_traveler_plus',
+      name: 'Corp. taaiTraveler+',
       price: 49.99,
       priceText: '$49.99/mo',
       taxNote: '+ applicable taxes',
@@ -114,91 +115,64 @@ const Subscription = () => {
       isPopular: true
     },
     {
-      id: 'corporate_traveler_plus',
-      name: 'Corporate Traveler Account+',
-      price: 99.99,
-      priceText: '$99.99/mo',
-      taxNote: '+ applicable taxes',
+      id: 'taai_enterprise_plus',
+      name: 'taaiEnterprise+',
+      price: null,
+      priceText: 'Contact Us',
+      taxNote: 'Custom pricing available',
       description: 'For large enterprises',
-      icon: <Building className="h-6 w-6" />,
+      icon: <Crown className="h-6 w-6" />,
       features: [
-        '500 credits per month',
+        'Unlimited credits per month',
         'Unlimited itineraries',
         'Unlimited team sharing',
         'Enterprise support',
         'Custom integrations',
-        'Advanced reporting'
+        'Advanced reporting',
+        'Dedicated account manager',
+        'SLA guarantees'
       ],
-      isPaid: true,
-      isPopular: false
+      isPaid: false,
+      isPopular: false,
+      isInquiryOnly: true
     }
   ];
 
-  const checkSubscription = async () => {
-    if (!user) {
-      setCheckingSubscription(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-      setCurrentSubscription(data);
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to check subscription status",
-        variant: "destructive",
-      });
-    } finally {
-      setCheckingSubscription(false);
-    }
-  };
-
-  useEffect(() => {
-    checkSubscription();
-  }, [user]);
 
   const handleSubscribe = async (tierId: string) => {
     if (tierId === 'traveler') return; // Free tier, no checkout needed
+    
+    // Handle enterprise inquiry
+    if (tierId === 'taai_enterprise_plus') {
+      navigate('/contact', { 
+        state: { 
+          prefilledData: {
+            subject: 'taaiEnterprise+ Account Inquiry',
+            message: 'I am interested in learning more about the taaiEnterprise+ account for my organization. Please provide more details about pricing and features.'
+          }
+        }
+      });
+      return;
+    }
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          tier: tierId,
-          isAuthenticated: !!user
-        },
-        headers: user ? {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        } : {},
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
+      const checkoutUrl = await createCheckout(tierId);
+      if (checkoutUrl) {
         // Open Stripe checkout in a new tab for better transactionality
-        console.log('Opening Stripe checkout in new tab:', data.url);
-        window.open(data.url, '_blank');
+        console.log('Opening Stripe checkout in new tab:', checkoutUrl);
+        window.open(checkoutUrl, '_blank');
         
         toast({
           title: "Redirecting to Stripe",
           description: "Opening secure checkout in a new tab...",
         });
-      } else {
-        throw new Error('No checkout URL received');
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
       toast({
         title: "Error",
-        description: "Failed to start checkout process",
+        description: "Failed to start checkout process. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -211,33 +185,23 @@ const Subscription = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      // Open customer portal in a new tab
-      window.open(data.url, '_blank');
+      const portalUrl = await openCustomerPortal();
+      if (portalUrl) {
+        // Open customer portal in a new tab
+        window.open(portalUrl, '_blank');
+      }
     } catch (error) {
       console.error('Error opening customer portal:', error);
-      toast({
-        title: "Error",
-        description: "Failed to open subscription management",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
   };
 
   const canUpgrade = (tierId: string) => {
-    if (!currentSubscription) return true;
+    if (!subscriptionData) return true;
     
-    const tierOrder = ['traveler', 'taai_traveler', 'taai_traveler_plus', 'corporate_traveler', 'corporate_traveler_plus'];
-    const currentIndex = tierOrder.indexOf(currentSubscription.subscription_tier);
+    const tierOrder = ['traveler', 'taai_traveler', 'taai_traveler_plus', 'corp_taai_traveler_plus', 'taai_enterprise_plus'];
+    const currentIndex = tierOrder.indexOf(subscriptionData.subscription_tier);
     const targetIndex = tierOrder.indexOf(tierId);
     
     return targetIndex !== currentIndex;
@@ -246,7 +210,7 @@ const Subscription = () => {
   const allTiers = [...individualTiers, ...corporateTiers];
 
   const isCurrentTier = (tierId: string) => {
-    return currentSubscription?.subscription_tier === tierId;
+    return subscriptionData?.subscription_tier === tierId;
   };
 
   if (checkingSubscription) {
@@ -269,12 +233,12 @@ const Subscription = () => {
             Unlock the full potential of your travel planning with our subscription tiers
           </p>
           
-          {user && currentSubscription && (
+          {user && subscriptionData && (
             <div className="mt-6">
               <Badge variant="secondary" className="text-sm bg-white/20 text-white border-white/30">
-                Current Plan: {allTiers.find(t => t.id === currentSubscription.subscription_tier)?.name}
+                Current Plan: {allTiers.find(t => t.id === subscriptionData.subscription_tier)?.name}
               </Badge>
-              {currentSubscription.subscribed && (
+              {subscriptionData.subscribed && (
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -346,12 +310,12 @@ const Subscription = () => {
                     className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
                     variant={isCurrentTier(tier.id) ? "secondary" : "default"}
                     onClick={() => handleSubscribe(tier.id)}
-                    disabled={loading || isCurrentTier(tier.id) || (!tier.isPaid && isCurrentTier(tier.id))}
+                    disabled={loading || isCurrentTier(tier.id)}
                   >
                     {loading ? 'Processing...' : 
                      isCurrentTier(tier.id) ? 'Current Plan' :
                      !tier.isPaid ? 'Free Plan' :
-                     canUpgrade(tier.id) ? `Subscribe to ${tier.name}` : 'Subscribe'
+                     `Subscribe to ${tier.name}`
                     }
                   </Button>
                   </div>
@@ -406,17 +370,27 @@ const Subscription = () => {
                     ))}
                   </ul>
 
-                  <div className="mt-auto">
+                   <div className="mt-auto">
                   <Button
-                    className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
+                    className={`w-full ${
+                      tier.isInquiryOnly ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' :
+                      tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 
+                      'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'
+                    } transition-all duration-300`}
                     variant={isCurrentTier(tier.id) ? "secondary" : "default"}
                     onClick={() => handleSubscribe(tier.id)}
                     disabled={loading || isCurrentTier(tier.id)}
                   >
-                    {loading ? 'Processing...' : 
-                     isCurrentTier(tier.id) ? 'Current Plan' :
-                     canUpgrade(tier.id) ? `Subscribe to ${tier.name}` : 'Subscribe'
-                    }
+                    {tier.isInquiryOnly ? (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Contact Us
+                      </div>
+                    ) : (
+                      loading ? 'Processing...' : 
+                      isCurrentTier(tier.id) ? 'Current Plan' :
+                      `Subscribe to ${tier.name}`
+                    )}
                   </Button>
                   </div>
                 </Card>
@@ -425,24 +399,24 @@ const Subscription = () => {
           </TabsContent>
         </Tabs>
 
-        {user && currentSubscription && (
+        {user && subscriptionData && (
           <div className="mt-12 max-w-2xl mx-auto">
             <Card className="p-6 bg-[#171821]/60 border-white/30">
               <h3 className="text-xl font-bold text-white mb-4">Your Current Usage</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-white">{currentSubscription.credits_remaining}</div>
+                  <div className="text-2xl font-bold text-white">{subscriptionData.credits_remaining}</div>
                   <div className="text-sm text-white/70">Credits Remaining</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-white">
-                    {currentSubscription.max_itineraries === -1 ? '∞' : currentSubscription.max_itineraries}
+                    {subscriptionData.max_itineraries === -1 ? '∞' : subscriptionData.max_itineraries}
                   </div>
                   <div className="text-sm text-white/70">Max Itineraries</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-white">
-                    {currentSubscription.max_shared_friends === -1 ? '∞' : currentSubscription.max_shared_friends}
+                    {subscriptionData.max_shared_friends === -1 ? '∞' : subscriptionData.max_shared_friends}
                   </div>
                   <div className="text-sm text-white/70">Sharing Limit</div>
                 </div>
