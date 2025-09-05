@@ -5,9 +5,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Star, Users, Building, Crown, Mail } from 'lucide-react';
+import { Check, Star, Users, Building, Crown, Mail, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { getAnnualSavings, type BillingFrequency } from '@/lib/stripeConfig';
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -21,14 +22,19 @@ interface SubscriptionData {
 interface TierData {
   id: string;
   name: string;
-  price: number;
-  priceText: string;
+  monthlyPrice: number;
+  annualPrice?: number;
+  priceText: {
+    monthly: string;
+    annual?: string;
+  };
   taxNote?: string;
   description: string;
   icon: React.ReactElement;
   features: string[];
   isPaid: boolean;
   isPopular: boolean;
+  isInquiryOnly?: boolean;
 }
 
 const Subscription = () => {
@@ -37,13 +43,14 @@ const Subscription = () => {
   const navigate = useNavigate();
   const { subscriptionData, loading: checkingSubscription, createCheckout, openCustomerPortal } = useSubscription();
   const [loading, setLoading] = useState(false);
+  const [billingFrequency, setBillingFrequency] = useState<BillingFrequency>('monthly');
 
-  const individualTiers = [
+  const individualTiers: TierData[] = [
     {
       id: 'traveler',
       name: 'Traveler',
-      price: 0,
-      priceText: 'Free',
+      monthlyPrice: 0,
+      priceText: { monthly: 'Free' },
       description: 'Perfect for casual travelers',
       icon: <Users className="h-6 w-6" />,
       features: [
@@ -58,8 +65,12 @@ const Subscription = () => {
     {
       id: 'taai_traveler',
       name: 'taaiTraveler',
-      price: 7.99,
-      priceText: '$7.99/mo',
+      monthlyPrice: 7.99,
+      annualPrice: 79.99,
+      priceText: { 
+        monthly: '$7.99/mo',
+        annual: '$79.99/yr'
+      },
       taxNote: '+ applicable taxes',
       description: 'For regular travelers',
       icon: <Star className="h-6 w-6" />,
@@ -76,8 +87,12 @@ const Subscription = () => {
     {
       id: 'taai_traveler_plus',
       name: 'taaiTraveler+',
-      price: 19.99,
-      priceText: '$19.99/mo',
+      monthlyPrice: 19.00,
+      annualPrice: 199.00,
+      priceText: { 
+        monthly: '$19.00/mo',
+        annual: '$199.00/yr'
+      },
       taxNote: '+ applicable taxes',
       description: 'For travel enthusiasts',
       icon: <Crown className="h-6 w-6" />,
@@ -94,12 +109,16 @@ const Subscription = () => {
     }
   ];
 
-  const corporateTiers = [
+  const corporateTiers: TierData[] = [
     {
       id: 'corp_taai_traveler_plus',
       name: 'Corp. taaiTraveler+',
-      price: 49.99,
-      priceText: '$49.99/mo',
+      monthlyPrice: 99.00,
+      annualPrice: 999.00,
+      priceText: { 
+        monthly: '$99.00/mo',
+        annual: '$999.00/yr'
+      },
       taxNote: '+ applicable taxes',
       description: 'For business teams',
       icon: <Building className="h-6 w-6" />,
@@ -117,8 +136,8 @@ const Subscription = () => {
     {
       id: 'taai_enterprise_plus',
       name: 'taaiEnterprise+',
-      price: null,
-      priceText: 'Contact Us',
+      monthlyPrice: 0,
+      priceText: { monthly: 'Contact Us' },
       taxNote: 'Custom pricing available',
       description: 'For large enterprises',
       icon: <Crown className="h-6 w-6" />,
@@ -157,7 +176,7 @@ const Subscription = () => {
 
     setLoading(true);
     try {
-      const checkoutUrl = await createCheckout(tierId);
+      const checkoutUrl = await createCheckout(tierId, billingFrequency);
       if (checkoutUrl) {
         // Open Stripe checkout in a new tab for better transactionality
         console.log('Opening Stripe checkout in new tab:', checkoutUrl);
@@ -233,6 +252,33 @@ const Subscription = () => {
             Unlock the full potential of your travel planning with our subscription tiers
           </p>
           
+          {/* Billing Frequency Toggle */}
+          <div className="mt-8 flex items-center justify-center gap-4">
+            <span className={`text-sm ${billingFrequency === 'monthly' ? 'text-white' : 'text-white/60'}`}>
+              Monthly
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setBillingFrequency(billingFrequency === 'monthly' ? 'annual' : 'monthly')}
+              className="p-1 h-auto bg-transparent hover:bg-transparent"
+            >
+              {billingFrequency === 'monthly' ? (
+                <ToggleLeft className="h-8 w-8 text-white/60 hover:text-white transition-colors" />
+              ) : (
+                <ToggleRight className="h-8 w-8 text-white hover:text-white/80 transition-colors" />
+              )}
+            </Button>
+            <span className={`text-sm ${billingFrequency === 'annual' ? 'text-white' : 'text-white/60'}`}>
+              Annual
+            </span>
+            {billingFrequency === 'annual' && (
+              <Badge className="ml-2 bg-green-500/20 text-green-300 border-green-500/30">
+                Save up to 17%
+              </Badge>
+            )}
+          </div>
+          
           {user && subscriptionData && (
             <div className="mt-6">
               <Badge variant="secondary" className="text-sm bg-white/20 text-white border-white/30">
@@ -287,8 +333,13 @@ const Subscription = () => {
                     <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
                     <p className="text-white/70 text-sm mb-4">{tier.description}</p>
                     <div className="text-3xl font-bold text-white">
-                      {tier.priceText}
+                      {tier.priceText[billingFrequency] || tier.priceText.monthly}
                     </div>
+                    {tier.annualPrice && billingFrequency === 'annual' && tier.id !== 'traveler' && (
+                      <div className="text-sm text-green-300 mt-1">
+                        Save {getAnnualSavings(tier.id as any)}% annually
+                      </div>
+                    )}
                     {tier.taxNote && (
                       <div className="text-sm text-white/60 mt-1">
                         {tier.taxNote}
@@ -352,8 +403,13 @@ const Subscription = () => {
                     <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
                     <p className="text-white/70 text-sm mb-4">{tier.description}</p>
                     <div className="text-3xl font-bold text-white">
-                      {tier.priceText}
+                      {tier.priceText[billingFrequency] || tier.priceText.monthly}
                     </div>
+                    {tier.annualPrice && billingFrequency === 'annual' && tier.id !== 'taai_enterprise_plus' && (
+                      <div className="text-sm text-green-300 mt-1">
+                        Save {getAnnualSavings(tier.id as any)}% annually
+                      </div>
+                    )}
                     {tier.taxNote && (
                       <div className="text-sm text-white/60 mt-1">
                         {tier.taxNote}

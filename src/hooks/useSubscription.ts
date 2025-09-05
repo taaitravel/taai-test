@@ -41,11 +41,12 @@ export function useSubscription() {
     }
   };
 
-  const createCheckout = async (tier: string) => {
+  const createCheckout = async (tier: string, billing: string = 'monthly') => {
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           tier: tier,
+          billing: billing,
           isAuthenticated: !!user
         },
         headers: user ? {

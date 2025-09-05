@@ -31,7 +31,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { tier, isAuthenticated } = await req.json();
+    const { tier, billing = 'monthly', isAuthenticated } = await req.json();
     logStep("Request parsed", { tier, isAuthenticated });
 
     let user = null;
@@ -53,16 +53,27 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Define pricing tiers with tax-inclusive pricing
-    const tiers = {
-      taai_traveler: { price: 799, name: "taaiTraveler", description: "Personal travel planning" },
-      taai_traveler_plus: { price: 1999, name: "taaiTraveler+", description: "Enhanced personal travel features" },
-      corporate_traveler: { price: 4999, name: "Corporate Traveler Account", description: "Business travel management" },
-      corporate_traveler_plus: { price: 9999, name: "Corporate Traveler Account+", description: "Enterprise travel solutions" }
+    // Define actual Stripe Price IDs from catalog
+    const priceIds = {
+      taai_traveler: {
+        monthly: "price_1QnqYlP0pUOcQcULV8VsVVfP", // $7.99/month
+        annual: "price_1QnqZKP0pUOcQcULqtXgYPXk"   // $79.99/year
+      },
+      taai_traveler_plus: {
+        monthly: "price_1QnqZlP0pUOcQcULOdKfTKhG", // $19.00/month
+        annual: "price_1Qnqa9P0pUOcQcULM3XfNf3L"   // $199.00/year
+      },
+      corp_taai_traveler_plus: {
+        monthly: "price_1QnqaXP0pUOcQcUL8VNhQmxD", // $99.00/month
+        annual: "price_1QnqauP0pUOcQcULRtWxNQzY"   // $999.00/year
+      }
     };
 
-    const selectedTier = tiers[tier as keyof typeof tiers];
-    if (!selectedTier) throw new Error("Invalid tier selected");
+    const tierPriceIds = priceIds[tier as keyof typeof priceIds];
+    if (!tierPriceIds) throw new Error("Invalid tier selected");
+    
+    const priceId = tierPriceIds[billing as keyof typeof tierPriceIds];
+    if (!priceId) throw new Error("Invalid billing frequency selected");
 
     // Check if customer exists
     const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
@@ -76,16 +87,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : userEmail,
       line_items: [
         {
-          price_data: {
-            currency: "usd",
-            product_data: { 
-              name: selectedTier.name,
-              description: selectedTier.description 
-            },
-            unit_amount: selectedTier.price,
-            recurring: { interval: "month" },
-            tax_behavior: "exclusive", // Tax will be calculated on top
-          },
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -100,6 +102,7 @@ serve(async (req) => {
       },
       metadata: {
         tier: tier,
+        billing: billing,
         user_id: user?.id || 'guest'
       }
     });
@@ -111,8 +114,8 @@ serve(async (req) => {
       await supabaseClient.from("payments").insert({
         user_id: user.id,
         stripe_session_id: session.id,
-        amount: selectedTier.price,
         subscription_tier: tier,
+        billing_frequency: billing,
         payment_status: 'pending'
       });
       logStep("Payment record created");
