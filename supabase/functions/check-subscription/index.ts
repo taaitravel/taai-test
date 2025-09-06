@@ -90,47 +90,65 @@ serve(async (req) => {
       const subscription = subscriptions.data[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       
-      // Determine tier based on price
+      // Get the actual price from Stripe
       const priceId = subscription.items.data[0].price.id;
       const price = await stripe.prices.retrieve(priceId);
       const amount = price.unit_amount || 0;
       
-      // Monthly prices
-      if (amount === 799) {
-        subscriptionTier = "taai_traveler";
-        creditsRemaining = 50;
-        maxItineraries = 25;
-        maxSharedFriends = 20;
-      } else if (amount === 1900) {
-        subscriptionTier = "taai_traveler_plus";
-        creditsRemaining = 100;
-        maxItineraries = 50;
-        maxSharedFriends = -1; // unlimited
-      } else if (amount === 9900) {
-        subscriptionTier = "corp_taai_traveler_plus";
-        creditsRemaining = 200;
-        maxItineraries = 100;
-        maxSharedFriends = 50;
+      logStep("Found subscription with price", { priceId, amount, interval: price.recurring?.interval });
+      
+      // Map price IDs to tiers (using your actual Stripe price IDs)
+      const priceIdToTier: Record<string, any> = {
+        // Monthly prices
+        'price_1QnqYlP0pUOcQcULV8VsVVfP': {
+          tier: "taai_traveler",
+          credits: 50,
+          maxItineraries: 25,
+          maxSharedFriends: 20
+        },
+        'price_1QnqZlP0pUOcQcULOdKfTKhG': {
+          tier: "taai_traveler_plus", 
+          credits: 100,
+          maxItineraries: 50,
+          maxSharedFriends: -1
+        },
+        'price_1QnqaXP0pUOcQcUL8VNhQmxD': {
+          tier: "corp_taai_traveler_plus",
+          credits: 200,
+          maxItineraries: 100,
+          maxSharedFriends: 50
+        },
+        // Annual prices  
+        'price_1QnqZKP0pUOcQcULqtXgYPXk': {
+          tier: "taai_traveler",
+          credits: 50,
+          maxItineraries: 25,
+          maxSharedFriends: 20
+        },
+        'price_1Qnqa9P0pUOcQcULM3XfNf3L': {
+          tier: "taai_traveler_plus",
+          credits: 100, 
+          maxItineraries: 50,
+          maxSharedFriends: -1
+        },
+        'price_1QnqauP0pUOcQcULRtWxNQzY': {
+          tier: "corp_taai_traveler_plus",
+          credits: 200,
+          maxItineraries: 100,
+          maxSharedFriends: 50
+        }
+      };
+      
+      const tierInfo = priceIdToTier[priceId];
+      if (tierInfo) {
+        subscriptionTier = tierInfo.tier;
+        creditsRemaining = tierInfo.credits;
+        maxItineraries = tierInfo.maxItineraries;
+        maxSharedFriends = tierInfo.maxSharedFriends;
+        logStep("Mapped to tier", { subscriptionTier, creditsRemaining, maxItineraries, maxSharedFriends });
+      } else {
+        logStep("Unknown price ID, defaulting to traveler tier", { priceId });
       }
-      // Annual prices
-      else if (amount === 7999) {
-        subscriptionTier = "taai_traveler";
-        creditsRemaining = 50;
-        maxItineraries = 25;
-        maxSharedFriends = 20;
-      } else if (amount === 19900) {
-        subscriptionTier = "taai_traveler_plus";
-        creditsRemaining = 100;
-        maxItineraries = 50;
-        maxSharedFriends = -1; // unlimited
-      } else if (amount === 99900) {
-        subscriptionTier = "corp_taai_traveler_plus";
-        creditsRemaining = 200;
-        maxItineraries = 100;
-        maxSharedFriends = 50;
-      }
-
-      logStep("Active subscription found", { subscriptionTier, amount });
     }
 
     await supabaseClient.from("subscribers").upsert({
