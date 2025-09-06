@@ -44,10 +44,10 @@ export const individualTiers: TierData[] = [
     id: 'taai_traveler_plus' as TierType,
     name: 'taaiTraveler+',
     monthlyPrice: 19.00,
-    annualPrice: 199.00,
+    annualPrice: 192.00,
     priceText: { 
       monthly: '$19.00/mo',
-      annual: '$199.00/yr'
+      annual: '$192.00/yr'
     },
     taxNote: '+ applicable taxes',
     description: 'For travel enthusiasts',
