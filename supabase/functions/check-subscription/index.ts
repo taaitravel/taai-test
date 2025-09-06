@@ -100,21 +100,16 @@ serve(async (req) => {
         creditsRemaining = 50;
         maxItineraries = 25;
         maxSharedFriends = 20;
-      } else if (amount === 1999) {
+      } else if (amount === 1900) {
         subscriptionTier = "taai_traveler_plus";
         creditsRemaining = 100;
         maxItineraries = 50;
         maxSharedFriends = -1; // unlimited
-      } else if (amount === 4999) {
-        subscriptionTier = "corporate_traveler";
+      } else if (amount === 9900) {
+        subscriptionTier = "corp_taai_traveler_plus";
         creditsRemaining = 200;
         maxItineraries = 100;
         maxSharedFriends = 50;
-      } else if (amount === 9999) {
-        subscriptionTier = "corporate_traveler_plus";
-        creditsRemaining = 500;
-        maxItineraries = -1; // unlimited
-        maxSharedFriends = -1; // unlimited
       }
 
       logStep("Active subscription found", { subscriptionTier, amount });
