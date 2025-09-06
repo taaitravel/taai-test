@@ -9,7 +9,6 @@ import { Check, Star, Users, Building, Crown, Mail, ToggleLeft, ToggleRight } fr
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { getAnnualSavings, type BillingFrequency } from '@/lib/stripeConfig';
-import { EmergencyStripeCheckout } from '@/components/EmergencyStripeCheckout';
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -358,16 +357,20 @@ const Subscription = () => {
                   </ul>
 
                   <div className="mt-auto">
-                    {/* Emergency Direct Stripe Checkout */}
-                    <EmergencyStripeCheckout
-                      tier={tier.id}
-                      tierName={tier.name}
-                      monthlyPrice={tier.monthlyPrice}
-                      annualPrice={tier.annualPrice}
-                      billingFrequency={billingFrequency}
-                      loading={loading}
-                      className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
-                    />
+                    {tier.isPaid ? (
+                      <Button
+                        className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
+                        variant={tier.isPopular ? "default" : "outline"}
+                        onClick={() => handleSubscribe(tier.id)}
+                        disabled={loading || isCurrentTier(tier.id)}
+                      >
+                        {loading ? 'Processing...' : isCurrentTier(tier.id) ? 'Current Plan' : canUpgrade(tier.id) ? 'Subscribe' : 'Change Plan'}
+                      </Button>
+                    ) : (
+                      <Button variant="secondary" disabled className="w-full">
+                        Free Plan
+                      </Button>
+                    )}
                   </div>
                 </Card>
               ))}
@@ -438,17 +441,16 @@ const Subscription = () => {
                           Contact Us
                         </div>
                       </Button>
-                    ) : (
-                      <EmergencyStripeCheckout
-                        tier={tier.id}
-                        tierName={tier.name}
-                        monthlyPrice={tier.monthlyPrice}
-                        annualPrice={tier.annualPrice}
-                        billingFrequency={billingFrequency}
-                        loading={loading}
+                     ) : (
+                      <Button
                         className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
-                      />
-                    )}
+                        variant={tier.isPopular ? "default" : "outline"}
+                        onClick={() => handleSubscribe(tier.id)}
+                        disabled={loading || isCurrentTier(tier.id)}
+                      >
+                        {loading ? 'Processing...' : isCurrentTier(tier.id) ? 'Current Plan' : canUpgrade(tier.id) ? 'Subscribe' : 'Change Plan'}
+                      </Button>
+                     )}
                    </div>
                 </Card>
               ))}
