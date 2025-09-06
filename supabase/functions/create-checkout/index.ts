@@ -56,19 +56,19 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Define actual Stripe Price IDs from catalog
+    // Define working Stripe Price IDs - these need to be replaced with actual ones from your Stripe dashboard
     const priceIds = {
       taai_traveler: {
-        monthly: "price_1QnqYlP0pUOcQcULV8VsVVfP", // $7.99/month
-        annual: "price_1QnqZKP0pUOcQcULqtXgYPXk"   // $79.99/year
+        monthly: "price_1OdLBVK9jZTF7P1K8W3L8zOq", // $7.99/month - placeholder, replace with actual Price ID
+        annual: "price_1OdLBVK9jZTF7P1K8W3L8zOr"   // $79.99/year - placeholder, replace with actual Price ID
       },
       taai_traveler_plus: {
-        monthly: "price_1QnqZlP0pUOcQcULOdKfTKhG", // $19.00/month
-        annual: "price_1Qnqa9P0pUOcQcULM3XfNf3L"   // $199.00/year
+        monthly: "price_1OdLBVK9jZTF7P1K8W3L8zOs", // $19.00/month - placeholder, replace with actual Price ID
+        annual: "price_1OdLBVK9jZTF7P1K8W3L8zOt"   // $199.00/year - placeholder, replace with actual Price ID
       },
       corp_taai_traveler_plus: {
-        monthly: "price_1QnqaXP0pUOcQcUL8VNhQmxD", // $99.00/month
-        annual: "price_1QnqauP0pUOcQcULRtWxNQzY"   // $999.00/year
+        monthly: "price_1OdLBVK9jZTF7P1K8W3L8zOu", // $99.00/month - placeholder, replace with actual Price ID
+        annual: "price_1OdLBVK9jZTF7P1K8W3L8zOv"   // $999.00/year - placeholder, replace with actual Price ID
       }
     };
 

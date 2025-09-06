@@ -367,8 +367,12 @@ const Subscription = () => {
                         {loading ? 'Processing...' : isCurrentTier(tier.id) ? 'Current Plan' : canUpgrade(tier.id) ? 'Subscribe' : 'Change Plan'}
                       </Button>
                     ) : (
-                      <Button variant="secondary" disabled className="w-full">
-                        Free Plan
+                      <Button 
+                        variant="secondary" 
+                        disabled 
+                        className="w-full bg-white/10 text-white/70 border-white/20 cursor-not-allowed"
+                      >
+                        {isCurrentTier(tier.id) ? 'Current Plan' : 'Free Plan'}
                       </Button>
                     )}
                   </div>
