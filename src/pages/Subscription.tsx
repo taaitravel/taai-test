@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Star, Users, Building, Crown, Mail, ToggleLeft, ToggleRight } from 'lucide-react';
+import { ToggleLeft, ToggleRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { getAnnualSavings, type BillingFrequency } from '@/lib/stripeConfig';
+import { type BillingFrequency } from '@/lib/stripeConfig';
+import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
+import { individualTiers, corporateTiers } from '@/components/subscription/TierDefinitions';
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -19,169 +20,20 @@ interface SubscriptionData {
   max_shared_friends: number;
 }
 
-interface TierData {
-  id: string;
-  name: string;
-  monthlyPrice: number;
-  annualPrice?: number;
-  priceText: {
-    monthly: string;
-    annual?: string;
-  };
-  taxNote?: string;
-  description: string;
-  icon: React.ReactElement;
-  features: string[];
-  isPaid: boolean;
-  isPopular: boolean;
-  isInquiryOnly?: boolean;
-}
-
 const Subscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const { subscriptionData, loading: checkingSubscription, createCheckout, openCustomerPortal } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [billingFrequency, setBillingFrequency] = useState<BillingFrequency>('monthly');
 
-  const individualTiers: TierData[] = [
-    {
-      id: 'traveler',
-      name: 'Traveler',
-      monthlyPrice: 0,
-      priceText: { monthly: 'Free' },
-      description: 'Perfect for casual travelers',
-      icon: <Users className="h-6 w-6" />,
-      features: [
-        '5 credits for AI/API calls',
-        'Up to 3 itineraries',
-        'Share with up to 10 friends',
-        'Basic support'
-      ],
-      isPaid: false,
-      isPopular: false
-    },
-    {
-      id: 'taai_traveler',
-      name: 'taaiTraveler',
-      monthlyPrice: 7.99,
-      annualPrice: 79.99,
-      priceText: { 
-        monthly: '$7.99/mo',
-        annual: '$79.99/yr'
-      },
-      taxNote: '+ applicable taxes',
-      description: 'For regular travelers',
-      icon: <Star className="h-6 w-6" />,
-      features: [
-        '50 credits per month',
-        'Up to 25 itineraries',
-        'Share with up to 20 friends',
-        'Priority support',
-        'Advanced trip planning'
-      ],
-      isPaid: true,
-      isPopular: true
-    },
-    {
-      id: 'taai_traveler_plus',
-      name: 'taaiTraveler+',
-      monthlyPrice: 19.00,
-      annualPrice: 199.00,
-      priceText: { 
-        monthly: '$19.00/mo',
-        annual: '$199.00/yr'
-      },
-      taxNote: '+ applicable taxes',
-      description: 'For travel enthusiasts',
-      icon: <Crown className="h-6 w-6" />,
-      features: [
-        '100 credits per month',
-        'Up to 50 itineraries',
-        'Unlimited friend sharing',
-        'Premium support',
-        'Advanced analytics',
-        'Custom itinerary templates'
-      ],
-      isPaid: true,
-      isPopular: false
-    }
-  ];
-
-  const corporateTiers: TierData[] = [
-    {
-      id: 'corp_taai_traveler_plus',
-      name: 'Corp. taaiTraveler+',
-      monthlyPrice: 99.00,
-      annualPrice: 999.00,
-      priceText: { 
-        monthly: '$99.00/mo',
-        annual: '$999.00/yr'
-      },
-      taxNote: '+ applicable taxes',
-      description: 'For business teams',
-      icon: <Building className="h-6 w-6" />,
-      features: [
-        '200 credits per month',
-        'Up to 100 itineraries',
-        'Share with up to 50 team members',
-        'Business support',
-        'Team management tools',
-        'Expense tracking'
-      ],
-      isPaid: true,
-      isPopular: true
-    },
-    {
-      id: 'taai_enterprise_plus',
-      name: 'taaiEnterprise+',
-      monthlyPrice: 0,
-      priceText: { monthly: 'Contact Us' },
-      taxNote: 'Custom pricing available',
-      description: 'For large enterprises',
-      icon: <Crown className="h-6 w-6" />,
-      features: [
-        'Unlimited credits per month',
-        'Unlimited itineraries',
-        'Unlimited team sharing',
-        'Enterprise support',
-        'Custom integrations',
-        'Advanced reporting',
-        'Dedicated account manager',
-        'SLA guarantees'
-      ],
-      isPaid: false,
-      isPopular: false,
-      isInquiryOnly: true
-    }
-  ];
-
 
   const handleSubscribe = async (tierId: string) => {
-    if (tierId === 'traveler') return; // Free tier, no checkout needed
-    
-    // Handle enterprise inquiry
-    if (tierId === 'taai_enterprise_plus') {
-      navigate('/contact', { 
-        state: { 
-          prefilledData: {
-            subject: 'taaiEnterprise+ Account Inquiry',
-            message: 'I am interested in learning more about the taaiEnterprise+ account for my organization. Please provide more details about pricing and features.'
-          }
-        }
-      });
-      return;
-    }
-
     setLoading(true);
     try {
       const checkoutUrl = await createCheckout(tierId, billingFrequency);
       if (checkoutUrl) {
-        // Open Stripe checkout in a new tab for better transactionality
-        console.log('Opening Stripe checkout in new tab:', checkoutUrl);
         window.open(checkoutUrl, '_blank');
-        
         toast({
           title: "Redirecting to Stripe",
           description: "Opening secure checkout in a new tab...",
@@ -214,16 +66,6 @@ const Subscription = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const canUpgrade = (tierId: string) => {
-    if (!subscriptionData) return true;
-    
-    const tierOrder = ['traveler', 'taai_traveler', 'taai_traveler_plus', 'corp_taai_traveler_plus', 'taai_enterprise_plus'];
-    const currentIndex = tierOrder.indexOf(subscriptionData.subscription_tier);
-    const targetIndex = tierOrder.indexOf(tierId);
-    
-    return targetIndex !== currentIndex;
   };
 
   const allTiers = [...individualTiers, ...corporateTiers];
@@ -308,75 +150,14 @@ const Subscription = () => {
           <TabsContent value="individual">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {individualTiers.map((tier) => (
-                <Card 
-                  key={tier.id} 
-                  className={`relative p-6 bg-[#171821]/80 border-white/30 backdrop-blur-sm hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 flex flex-col h-full ${isCurrentTier(tier.id) ? 'ring-2 ring-white shadow-lg shadow-white/30' : ''} ${tier.isPopular ? 'border-white/50' : ''}`}
-                >
-                  {tier.isPopular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 gold-gradient text-[#171821]">
-                      Most Popular
-                    </Badge>
-                  )}
-                  
-                  {isCurrentTier(tier.id) && (
-                    <Badge variant="secondary" className="absolute -top-3 right-4 bg-white/20 text-white border-white/30">
-                      Current Plan
-                    </Badge>
-                  )}
-
-                  <div className="text-center mb-6">
-                    <div className="flex justify-center mb-4">
-                      <div className="w-16 h-16 gold-gradient rounded-full flex items-center justify-center shadow-lg">
-                        {tier.icon && React.cloneElement(tier.icon, { className: "h-8 w-8 text-[#171821]" })}
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
-                    <p className="text-white/70 text-sm mb-4">{tier.description}</p>
-                    <div className="text-3xl font-bold text-white">
-                      {tier.priceText[billingFrequency] || tier.priceText.monthly}
-                    </div>
-                    {tier.annualPrice && billingFrequency === 'annual' && tier.id !== 'traveler' && (
-                      <div className="text-sm text-green-300 mt-1">
-                        Save {getAnnualSavings(tier.id as any)}% annually
-                      </div>
-                    )}
-                    {tier.taxNote && (
-                      <div className="text-sm text-white/60 mt-1">
-                        {tier.taxNote}
-                      </div>
-                    )}
-                  </div>
-
-                  <ul className="space-y-3 mb-6 flex-grow">
-                    {tier.features.map((feature, index) => (
-                      <li key={index} className="flex items-start text-sm">
-                        <Check className="h-4 w-4 text-white mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-white/70">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="mt-auto">
-                    {tier.isPaid ? (
-                      <Button
-                        className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
-                        variant={tier.isPopular ? "default" : "outline"}
-                        onClick={() => handleSubscribe(tier.id)}
-                        disabled={loading || isCurrentTier(tier.id)}
-                      >
-                        {loading ? 'Processing...' : isCurrentTier(tier.id) ? 'Current Plan' : canUpgrade(tier.id) ? 'Subscribe' : 'Change Plan'}
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="secondary" 
-                        disabled 
-                        className="w-full bg-white/10 text-white/70 border-white/20 cursor-not-allowed"
-                      >
-                        {isCurrentTier(tier.id) ? 'Current Plan' : 'Free Plan'}
-                      </Button>
-                    )}
-                  </div>
-                </Card>
+                <SubscriptionCard
+                  key={tier.id}
+                  tier={tier}
+                  billingFrequency={billingFrequency}
+                  isCurrentTier={isCurrentTier(tier.id)}
+                  loading={loading}
+                  onSubscribe={handleSubscribe}
+                />
               ))}
             </div>
           </TabsContent>
@@ -384,79 +165,14 @@ const Subscription = () => {
           <TabsContent value="corporate">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {corporateTiers.map((tier) => (
-                <Card 
-                  key={tier.id} 
-                  className={`relative p-6 bg-[#171821]/80 border-white/30 backdrop-blur-sm hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 flex flex-col h-full ${isCurrentTier(tier.id) ? 'ring-2 ring-white shadow-lg shadow-white/30' : ''} ${tier.isPopular ? 'border-white/50' : ''}`}
-                >
-                  {tier.isPopular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 gold-gradient text-[#171821]">
-                      Most Popular
-                    </Badge>
-                  )}
-                  
-                  {isCurrentTier(tier.id) && (
-                    <Badge variant="secondary" className="absolute -top-3 right-4 bg-white/20 text-white border-white/30">
-                      Current Plan
-                    </Badge>
-                  )}
-
-                  <div className="text-center mb-6">
-                    <div className="flex justify-center mb-4">
-                      <div className="w-16 h-16 gold-gradient rounded-full flex items-center justify-center shadow-lg">
-                        {tier.icon && React.cloneElement(tier.icon, { className: "h-8 w-8 text-[#171821]" })}
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
-                    <p className="text-white/70 text-sm mb-4">{tier.description}</p>
-                    <div className="text-3xl font-bold text-white">
-                      {tier.priceText[billingFrequency] || tier.priceText.monthly}
-                    </div>
-                    {tier.annualPrice && billingFrequency === 'annual' && tier.id !== 'taai_enterprise_plus' && (
-                      <div className="text-sm text-green-300 mt-1">
-                        Save {getAnnualSavings(tier.id as any)}% annually
-                      </div>
-                    )}
-                    {tier.taxNote && (
-                      <div className="text-sm text-white/60 mt-1">
-                        {tier.taxNote}
-                      </div>
-                    )}
-                  </div>
-
-                  <ul className="space-y-3 mb-6 flex-grow">
-                    {tier.features.map((feature, index) => (
-                      <li key={index} className="flex items-start text-sm">
-                        <Check className="h-4 w-4 text-white mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-white/70">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                   <div className="mt-auto">
-                    {tier.isInquiryOnly ? (
-                      <Button
-                        className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white transition-all duration-300"
-                        variant="default"
-                        onClick={() => handleSubscribe(tier.id)}
-                        disabled={loading}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          Contact Us
-                        </div>
-                      </Button>
-                     ) : (
-                      <Button
-                        className={`w-full ${tier.isPopular ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold' : 'bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white'} transition-all duration-300`}
-                        variant={tier.isPopular ? "default" : "outline"}
-                        onClick={() => handleSubscribe(tier.id)}
-                        disabled={loading || isCurrentTier(tier.id)}
-                      >
-                        {loading ? 'Processing...' : isCurrentTier(tier.id) ? 'Current Plan' : canUpgrade(tier.id) ? 'Subscribe' : 'Change Plan'}
-                      </Button>
-                     )}
-                   </div>
-                </Card>
+                <SubscriptionCard
+                  key={tier.id}
+                  tier={tier}
+                  billingFrequency={billingFrequency}
+                  isCurrentTier={isCurrentTier(tier.id)}
+                  loading={loading}
+                  onSubscribe={handleSubscribe}
+                />
               ))}
             </div>
           </TabsContent>
