@@ -25,49 +25,29 @@ export const EmergencyStripeCheckout: React.FC<EmergencyStripeCheckoutProps> = (
   const { toast } = useToast();
 
   const handleEmergencyCheckout = () => {
-    // Create a direct link to your Stripe customer portal or payment link
-    // Replace with your actual Stripe payment links
-    const stripePaymentLinks: { [key: string]: { [key: string]: string } } = {
-      taai_traveler: {
-        monthly: "https://buy.stripe.com/test_28o6qu7Bz1i4aBy9AA", // Replace with actual link
-        annual: "https://buy.stripe.com/test_bIY9iy8FD5ygeCK000"   // Replace with actual link
-      },
-      taai_traveler_plus: {
-        monthly: "https://buy.stripe.com/test_14k9iy8FD6Ck0g8cMN", // Replace with actual link
-        annual: "https://buy.stripe.com/test_aEU8yu6xrbYE8lu8wz"   // Replace with actual link
-      },
-      corp_taai_traveler_plus: {
-        monthly: "https://buy.stripe.com/test_28o3eu5tp2m8fSY9AD", // Replace with actual link
-        annual: "https://buy.stripe.com/test_7sI4gy9JH3q8cJGdQT"   // Replace with actual link
-      }
-    };
-
-    const tierLinks = stripePaymentLinks[tier];
-    if (!tierLinks) {
+    // Skip free tier
+    if (tier === 'traveler') {
       toast({
-        title: "Contact Required",
-        description: "Please contact us directly for this subscription tier.",
-        variant: "destructive"
+        title: "Free Plan",
+        description: "This is a free plan - no payment required!",
       });
       return;
     }
 
-    const paymentLink = tierLinks[billingFrequency];
-    if (!paymentLink) {
-      toast({
-        title: "Billing Option Unavailable",
-        description: "This billing frequency is not available. Please try monthly billing.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Open Stripe payment link in new tab
-    window.open(paymentLink, '_blank');
+    // Since Stripe functions are having issues, open generic Stripe pricing page
+    // You'll need to replace this with your actual Stripe-hosted pricing page URL
+    const stripeHostedPricingUrl = "https://billing.stripe.com/p/login/test_9AQ28w8Iy8Yr5ZSeUU"; // Replace with your actual hosted pricing page
+    
+    // Alternatively, for immediate testing, you can create Payment Links in your Stripe Dashboard:
+    // 1. Go to Stripe Dashboard > Payment Links
+    // 2. Create a payment link for each product
+    // 3. Replace the URL above with your payment link
+    
+    window.open(stripeHostedPricingUrl, '_blank');
     
     toast({
-      title: "Redirecting to Stripe",
-      description: "Opening secure checkout in a new tab...",
+      title: "Opening Stripe Checkout",
+      description: "Redirecting to secure payment page...",
     });
   };
 
