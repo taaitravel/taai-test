@@ -56,19 +56,27 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Define working Stripe Price IDs - these need to be replaced with actual ones from your Stripe dashboard
+    // Get current prices from Stripe
+    const stripePricesResponse = await stripe.prices.list({ 
+      active: true, 
+      limit: 100 
+    });
+    
+    logStep("Fetched Stripe prices", { count: stripePricesResponse.data.length });
+
+    // Map our tier names to Stripe Price IDs from your stripeConfig
     const priceIds = {
       taai_traveler: {
-        monthly: "price_1OdLBVK9jZTF7P1K8W3L8zOq", // $7.99/month - placeholder, replace with actual Price ID
-        annual: "price_1OdLBVK9jZTF7P1K8W3L8zOr"   // $79.99/year - placeholder, replace with actual Price ID
+        monthly: "price_1QnqYlP0pUOcQcULV8VsVVfP", // $7.99/month
+        annual: "price_1QnqZKP0pUOcQcULqtXgYPXk"   // $79.99/year
       },
       taai_traveler_plus: {
-        monthly: "price_1OdLBVK9jZTF7P1K8W3L8zOs", // $19.00/month - placeholder, replace with actual Price ID
-        annual: "price_1OdLBVK9jZTF7P1K8W3L8zOt"   // $199.00/year - placeholder, replace with actual Price ID
+        monthly: "price_1QnqZlP0pUOcQcULOdKfTKhG", // $19.00/month
+        annual: "price_1Qnqa9P0pUOcQcULM3XfNf3L"   // $192.00/year
       },
       corp_taai_traveler_plus: {
-        monthly: "price_1OdLBVK9jZTF7P1K8W3L8zOu", // $99.00/month - placeholder, replace with actual Price ID
-        annual: "price_1OdLBVK9jZTF7P1K8W3L8zOv"   // $999.00/year - placeholder, replace with actual Price ID
+        monthly: "price_1QnqaXP0pUOcQcUL8VNhQmxD", // $99.00/month
+        annual: "price_1QnqauP0pUOcQcULRtWxNQzY"   // $999.00/year
       }
     };
 
@@ -77,6 +85,19 @@ serve(async (req) => {
     
     const priceId = tierPriceIds[billing as keyof typeof tierPriceIds];
     if (!priceId) throw new Error("Invalid billing frequency selected");
+
+    // Verify the price exists in Stripe
+    try {
+      const priceDetails = await stripe.prices.retrieve(priceId);
+      logStep("Using Stripe price", { 
+        priceId, 
+        amount: priceDetails.unit_amount, 
+        interval: priceDetails.recurring?.interval 
+      });
+    } catch (priceError) {
+      logStep("Price verification failed", { priceId, error: priceError });
+      throw new Error(`Invalid price ID: ${priceId}`);
+    }
 
     // Check if customer exists
     const customers = await stripe.customers.list({ email: userEmail, limit: 1 });

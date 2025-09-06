@@ -6,6 +6,7 @@ import { Check, Mail } from 'lucide-react';
 import { TierData, BillingFrequency, getAnnualSavings, getStripeCheckoutUrl } from '@/lib/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useStripePricing } from '@/hooks/useStripePricing';
 interface SubscriptionCardProps {
   tier: TierData;
   billingFrequency: BillingFrequency;
@@ -24,6 +25,15 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
     toast
   } = useToast();
   const navigate = useNavigate();
+  const { getPrice } = useStripePricing();
+
+  // Get dynamic prices from Stripe
+  const currentMonthlyPrice = getPrice(tier.id, 'monthly');
+  const currentAnnualPrice = getPrice(tier.id, 'annual');
+
+  // Calculate savings with dynamic pricing
+  const dynamicSavings = getAnnualSavings(tier.id, currentMonthlyPrice, currentAnnualPrice);
+
   const handleSubscribeClick = () => {
     if (tier.id === 'traveler') return; // Free tier
 
@@ -52,6 +62,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       onSubscribe(tier.id);
     }
   };
+  
   const canUpgrade = !isCurrentTier;
   return <Card className={`relative p-6 bg-[#171821]/80 border-white/30 backdrop-blur-sm hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 flex flex-col h-full ${isCurrentTier ? 'ring-2 ring-white shadow-lg shadow-white/30' : ''} ${tier.isPopular ? 'border-white/50' : ''}`}>
       {tier.isPopular && <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 gold-gradient text-[#171821]">
@@ -73,10 +84,10 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
         <p className="text-white/70 text-sm mb-4">{tier.description}</p>
         <div className="text-3xl font-bold text-white">
-          {tier.priceText[billingFrequency] || tier.priceText.monthly}
+          {billingFrequency === 'monthly' ? `$${currentMonthlyPrice.toFixed(2)}/mo` : `$${currentAnnualPrice.toFixed(2)}/yr`}
         </div>
         {tier.annualPrice && billingFrequency === 'annual' && tier.id !== 'traveler' && tier.id !== 'taai_enterprise_plus' && <div className="text-sm text-green-300 mt-1">
-            Save {getAnnualSavings(tier.id)}% annually
+            Save {dynamicSavings}% annually
           </div>}
         {tier.taxNote && <div className="text-sm text-white/60 mt-1">
             {tier.taxNote}

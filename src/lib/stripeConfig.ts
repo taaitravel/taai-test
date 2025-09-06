@@ -45,25 +45,26 @@ export const getStripeCheckoutUrl = (tier: TierType, billing: BillingFrequency =
   return checkoutUrls[priceId] || '';
 };
 
-// Calculate annual savings percentage
-export const getAnnualSavings = (tier: TierType): number => {
+// Calculate annual savings percentage using dynamic pricing
+export const getAnnualSavings = (tier: TierType, monthlyPrice?: number, annualPrice?: number): number => {
   if (tier === 'traveler' || tier === 'taai_enterprise_plus') return 0;
   
+  // Use provided prices or fallback to hardcoded values
   const monthlyPrices = {
-    taai_traveler: 7.99,
-    taai_traveler_plus: 19.00,
-    corp_taai_traveler_plus: 99.00
+    taai_traveler: monthlyPrice || 7.99,
+    taai_traveler_plus: monthlyPrice || 19.00,
+    corp_taai_traveler_plus: monthlyPrice || 99.00
   };
   
   const annualPrices = {
-    taai_traveler: 79.99,
-    taai_traveler_plus: 192.00,
-    corp_taai_traveler_plus: 999.00
+    taai_traveler: annualPrice || 79.99,
+    taai_traveler_plus: annualPrice || 192.00,
+    corp_taai_traveler_plus: annualPrice || 999.00
   };
   
   const monthlyTotal = monthlyPrices[tier] * 12;
-  const annualPrice = annualPrices[tier];
-  const savings = ((monthlyTotal - annualPrice) / monthlyTotal) * 100;
+  const yearlyPrice = annualPrices[tier];
+  const savings = ((monthlyTotal - yearlyPrice) / monthlyTotal) * 100;
   
   return Math.round(savings);
 };
