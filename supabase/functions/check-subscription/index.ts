@@ -95,6 +95,7 @@ serve(async (req) => {
       const price = await stripe.prices.retrieve(priceId);
       const amount = price.unit_amount || 0;
       
+      // Monthly prices
       if (amount === 799) {
         subscriptionTier = "taai_traveler";
         creditsRemaining = 50;
@@ -106,6 +107,23 @@ serve(async (req) => {
         maxItineraries = 50;
         maxSharedFriends = -1; // unlimited
       } else if (amount === 9900) {
+        subscriptionTier = "corp_taai_traveler_plus";
+        creditsRemaining = 200;
+        maxItineraries = 100;
+        maxSharedFriends = 50;
+      }
+      // Annual prices
+      else if (amount === 7999) {
+        subscriptionTier = "taai_traveler";
+        creditsRemaining = 50;
+        maxItineraries = 25;
+        maxSharedFriends = 20;
+      } else if (amount === 19900) {
+        subscriptionTier = "taai_traveler_plus";
+        creditsRemaining = 100;
+        maxItineraries = 50;
+        maxSharedFriends = -1; // unlimited
+      } else if (amount === 99900) {
         subscriptionTier = "corp_taai_traveler_plus";
         creditsRemaining = 200;
         maxItineraries = 100;
