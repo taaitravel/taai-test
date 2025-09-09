@@ -35,7 +35,7 @@ serve(async (req) => {
     );
 
     const { tier, billing = 'monthly', isAuthenticated } = await req.json();
-    logStep("Request parsed", { tier, isAuthenticated });
+    logStep("Request parsed", { tier, billing, isAuthenticated });
 
     let user = null;
     let userEmail = "guest@example.com";
@@ -56,7 +56,7 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Get current prices from Stripe to ensure they exist
+    // Get current prices from Stripe
     const stripePricesResponse = await stripe.prices.list({ 
       active: true, 
       limit: 100 
@@ -64,53 +64,73 @@ serve(async (req) => {
     
     logStep("Fetched Stripe prices", { count: stripePricesResponse.data.length });
 
-    // Create a mapping of product names to price IDs
-    const priceMapping: Record<string, { monthly?: string; annual?: string }> = {};
+    // Get products to better understand naming
+    const products = await stripe.products.list({ active: true, limit: 100 });
+    logStep("Fetched Stripe products", { count: products.data.length });
+    
+    // Create a mapping of tier names to price IDs by scanning all products
+    const priceMapping: Record<string, { monthly?: string; annual?: string }> = {
+      taai_traveler: {},
+      taai_traveler_plus: {},
+      corp_taai_traveler_plus: {}
+    };
     
     for (const price of stripePricesResponse.data) {
-      if (!price.product || typeof price.product !== 'object') continue;
+      if (!price.product || typeof price.product !== 'string') continue;
       
-      const product = price.product as any;
-      const productName = product.name?.toLowerCase();
+      // Find the product details
+      const product = products.data.find(p => p.id === price.product);
+      if (!product) continue;
+      
+      const productName = product.name?.toLowerCase() || '';
       const interval = price.recurring?.interval;
       
       logStep("Processing price", { 
         priceId: price.id, 
-        productName, 
+        productName: product.name, 
         interval, 
         amount: price.unit_amount 
       });
 
-      // Map product names to our tier system
-      if (productName?.includes('traveler+') || productName?.includes('traveler plus')) {
-        if (!priceMapping.taai_traveler_plus) priceMapping.taai_traveler_plus = {};
-        if (interval === 'month') priceMapping.taai_traveler_plus.monthly = price.id;
-        if (interval === 'year') priceMapping.taai_traveler_plus.annual = price.id;
-      }
-      else if (productName?.includes('corp') && productName?.includes('traveler')) {
-        if (!priceMapping.corp_taai_traveler_plus) priceMapping.corp_taai_traveler_plus = {};
+      // Map product names to our tier system with more flexible matching
+      if (productName.includes('corp') && productName.includes('traveler')) {
         if (interval === 'month') priceMapping.corp_taai_traveler_plus.monthly = price.id;
         if (interval === 'year') priceMapping.corp_taai_traveler_plus.annual = price.id;
+        logStep("Mapped corporate tier", { tier: 'corp_taai_traveler_plus', interval, priceId: price.id });
       }
-      else if (productName?.includes('traveler') && !productName?.includes('plus')) {
-        if (!priceMapping.taai_traveler) priceMapping.taai_traveler = {};
+      else if (productName.includes('traveler+') || productName.includes('traveler plus')) {
+        if (interval === 'month') priceMapping.taai_traveler_plus.monthly = price.id;
+        if (interval === 'year') priceMapping.taai_traveler_plus.annual = price.id;
+        logStep("Mapped traveler+ tier", { tier: 'taai_traveler_plus', interval, priceId: price.id });
+      }
+      else if (productName.includes('traveler') && !productName.includes('plus') && !productName.includes('+')) {
         if (interval === 'month') priceMapping.taai_traveler.monthly = price.id;
         if (interval === 'year') priceMapping.taai_traveler.annual = price.id;
+        logStep("Mapped traveler tier", { tier: 'taai_traveler', interval, priceId: price.id });
       }
     }
 
-    logStep("Price mapping created", priceMapping);
+    logStep("Final price mapping", priceMapping);
 
-    // Get the correct price ID
+    // Get the correct price ID for the requested tier
     const tierPriceIds = priceMapping[tier as keyof typeof priceMapping];
-    if (!tierPriceIds) {
-      logStep("Invalid tier - no price mapping found", { tier, availableTiers: Object.keys(priceMapping) });
-      throw new Error(`Invalid tier selected: ${tier}. Available tiers: ${Object.keys(priceMapping).join(', ')}`);
+    if (!tierPriceIds || Object.keys(tierPriceIds).length === 0) {
+      logStep("Invalid tier - no price mapping found", { 
+        tier, 
+        availableTiers: Object.keys(priceMapping).filter(k => Object.keys(priceMapping[k]).length > 0),
+        fullMapping: priceMapping
+      });
+      throw new Error(`Invalid tier selected: ${tier}. Available tiers: ${Object.keys(priceMapping).filter(k => Object.keys(priceMapping[k]).length > 0).join(', ')}`);
     }
     
     const priceId = tierPriceIds[billing as keyof typeof tierPriceIds];
     if (!priceId) {
-      logStep("Invalid billing frequency", { tier, billing, availableFrequencies: Object.keys(tierPriceIds) });
+      logStep("Invalid billing frequency", { 
+        tier, 
+        billing, 
+        availableFrequencies: Object.keys(tierPriceIds),
+        tierPriceIds 
+      });
       throw new Error(`Invalid billing frequency ${billing} for tier ${tier}. Available: ${Object.keys(tierPriceIds).join(', ')}`);
     }
 
@@ -121,6 +141,9 @@ serve(async (req) => {
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+      logStep("Found existing customer", { customerId });
+    } else {
+      logStep("No existing customer found, will create during checkout");
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -148,18 +171,23 @@ serve(async (req) => {
       }
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created successfully", { sessionId: session.id, url: session.url });
 
-    // Record payment attempt
+    // Record payment attempt - only for authenticated users
     if (user) {
-      await supabaseClient.from("payments").insert({
-        user_id: user.id,
-        stripe_session_id: session.id,
-        subscription_tier: tier,
-        billing_frequency: billing,
-        payment_status: 'pending'
-      });
-      logStep("Payment record created");
+      try {
+        await supabaseClient.from("payments").insert({
+          user_id: user.id,
+          stripe_session_id: session.id,
+          subscription_tier: tier,
+          amount: 0, // Will be updated after payment completion
+          payment_status: 'pending'
+        });
+        logStep("Payment record created");
+      } catch (dbError) {
+        logStep("Database insert failed but continuing", { error: dbError });
+        // Don't fail the checkout if DB insert fails
+      }
     }
 
     return new Response(JSON.stringify({ url: session.url }), {
@@ -168,7 +196,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
+    logStep("ERROR in create-checkout", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
