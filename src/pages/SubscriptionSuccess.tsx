@@ -62,63 +62,72 @@ const SubscriptionSuccess = () => {
     );
   }
 
+  const isPremiumTier = subscriptionData?.subscription_tier === 'taaiTraveler+' || 
+                        subscriptionData?.subscription_tier === 'Corp. taaiTraveler+';
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="relative max-w-lg w-full">
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 gold-gradient-flowing rounded-2xl opacity-20 blur-xl"></div>
+        {/* Conditional animated background gradient - only for premium tiers */}
+        {isPremiumTier && (
+          <div className="absolute inset-0 gold-gradient-flowing rounded-2xl opacity-20 blur-xl"></div>
+        )}
         
-        <Card className="relative luxury-gradient border border-primary/20 backdrop-blur-sm shadow-2xl p-8 text-center rounded-2xl">
-          {/* Success Icon with gradient animation */}
+        <Card className={`relative ${isPremiumTier ? 'luxury-gradient border-primary/20 backdrop-blur-sm shadow-2xl' : 'bg-card border-border shadow-lg'} p-8 text-center rounded-2xl`}>
+          {/* Success Icon with conditional gradient animation */}
           <div className="flex justify-center mb-8">
             <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg animate-pulse"></div>
-              <div className="relative gold-gradient p-4 rounded-full">
-                <CheckCircle className="h-12 w-12 text-card" />
+              {isPremiumTier && (
+                <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg animate-pulse"></div>
+              )}
+              <div className={`relative ${isPremiumTier ? 'gold-gradient' : 'bg-primary'} p-4 rounded-full`}>
+                <CheckCircle className={`h-12 w-12 ${isPremiumTier ? 'text-card' : 'text-primary-foreground'}`} />
               </div>
             </div>
           </div>
           
           {/* Main Title */}
-          <h1 className="text-3xl font-bold luxury-text-gradient mb-3">
-            Welcome to Premium!
+          <h1 className={`text-3xl font-bold mb-3 ${isPremiumTier ? 'luxury-text-gradient' : 'text-foreground'}`}>
+            {isPremiumTier ? 'Welcome to Premium!' : 'Subscription Activated!'}
           </h1>
           
-          <h2 className="text-xl text-primary mb-6 font-medium">
-            Your subscription is now active
+          <h2 className={`text-xl mb-6 font-medium ${isPremiumTier ? 'text-primary' : 'text-muted-foreground'}`}>
+            {isPremiumTier ? 'Your premium subscription is now active' : 'Your subscription is now active'}
           </h2>
           
-          <p className="text-foreground/80 mb-8 leading-relaxed">
-            Thank you for joining our premium community. Your payment has been processed successfully and you now have access to all premium features.
+          <p className={`mb-8 leading-relaxed ${isPremiumTier ? 'text-foreground/80' : 'text-muted-foreground'}`}>
+            Thank you for {isPremiumTier ? 'joining our premium community' : 'subscribing'}! Your payment has been processed successfully{isPremiumTier ? ' and you now have access to all premium features' : ''}.
           </p>
 
           {subscriptionData && (
             <div className="relative mb-8">
-              <div className="absolute inset-0 bg-primary/5 rounded-xl blur-sm"></div>
-              <div className="relative bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/10">
-                <h3 className="text-lg font-semibold text-primary mb-4">Your Plan Details</h3>
+              {isPremiumTier && (
+                <div className="absolute inset-0 bg-primary/5 rounded-xl blur-sm"></div>
+              )}
+              <div className={`relative ${isPremiumTier ? 'bg-card/50 backdrop-blur-sm border-primary/10' : 'bg-muted border-border'} p-6 rounded-xl border`}>
+                <h3 className={`text-lg font-semibold mb-4 ${isPremiumTier ? 'text-primary' : 'text-foreground'}`}>Your Plan Details</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="text-center p-3 bg-primary/5 rounded-lg">
-                    <div className="text-xs text-foreground/60 uppercase tracking-wider mb-1">Plan</div>
-                    <div className="font-semibold text-primary text-base">
+                  <div className={`text-center p-3 rounded-lg ${isPremiumTier ? 'bg-primary/5' : 'bg-background'}`}>
+                    <div className={`text-xs uppercase tracking-wider mb-1 ${isPremiumTier ? 'text-foreground/60' : 'text-muted-foreground'}`}>Plan</div>
+                    <div className={`font-semibold text-base ${isPremiumTier ? 'text-primary' : 'text-foreground'}`}>
                       {subscriptionData.subscription_tier}
                     </div>
                   </div>
-                  <div className="text-center p-3 bg-primary/5 rounded-lg">
-                    <div className="text-xs text-foreground/60 uppercase tracking-wider mb-1">Credits</div>
-                    <div className="font-semibold text-primary text-base">
+                  <div className={`text-center p-3 rounded-lg ${isPremiumTier ? 'bg-primary/5' : 'bg-background'}`}>
+                    <div className={`text-xs uppercase tracking-wider mb-1 ${isPremiumTier ? 'text-foreground/60' : 'text-muted-foreground'}`}>Credits</div>
+                    <div className={`font-semibold text-base ${isPremiumTier ? 'text-primary' : 'text-foreground'}`}>
                       {subscriptionData.credits_remaining}
                     </div>
                   </div>
-                  <div className="text-center p-3 bg-primary/5 rounded-lg">
-                    <div className="text-xs text-foreground/60 uppercase tracking-wider mb-1">Itineraries</div>
-                    <div className="font-semibold text-primary text-base">
+                  <div className={`text-center p-3 rounded-lg ${isPremiumTier ? 'bg-primary/5' : 'bg-background'}`}>
+                    <div className={`text-xs uppercase tracking-wider mb-1 ${isPremiumTier ? 'text-foreground/60' : 'text-muted-foreground'}`}>Itineraries</div>
+                    <div className={`font-semibold text-base ${isPremiumTier ? 'text-primary' : 'text-foreground'}`}>
                       {subscriptionData.max_itineraries === -1 ? '∞' : subscriptionData.max_itineraries}
                     </div>
                   </div>
-                  <div className="text-center p-3 bg-primary/5 rounded-lg">
-                    <div className="text-xs text-foreground/60 uppercase tracking-wider mb-1">Sharing</div>
-                    <div className="font-semibold text-primary text-base">
+                  <div className={`text-center p-3 rounded-lg ${isPremiumTier ? 'bg-primary/5' : 'bg-background'}`}>
+                    <div className={`text-xs uppercase tracking-wider mb-1 ${isPremiumTier ? 'text-foreground/60' : 'text-muted-foreground'}`}>Sharing</div>
+                    <div className={`font-semibold text-base ${isPremiumTier ? 'text-primary' : 'text-foreground'}`}>
                       {subscriptionData.max_shared_friends === -1 ? '∞' : subscriptionData.max_shared_friends}
                     </div>
                   </div>
@@ -129,18 +138,26 @@ const SubscriptionSuccess = () => {
 
           <div className="space-y-4">
             <Button 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-300" 
+              className={`w-full py-3 text-base font-medium transition-all duration-300 ${
+                isPremiumTier 
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl' 
+                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+              }`}
               onClick={() => navigate('/dashboard')}
             >
-              Start Planning Your Next Adventure
+              {isPremiumTier ? 'Start Planning Your Next Adventure' : 'Go to Dashboard'}
             </Button>
             
             <Button 
               variant="outline" 
-              className="w-full border-primary/30 text-primary hover:bg-primary/10 py-3 text-base"
+              className={`w-full py-3 text-base ${
+                isPremiumTier 
+                  ? 'border-primary/30 text-primary hover:bg-primary/10' 
+                  : 'border-border text-foreground hover:bg-accent'
+              }`}
               onClick={() => navigate('/subscription')}
             >
-              Manage Subscription
+              {isPremiumTier ? 'Manage Subscription' : 'View Subscription Details'}
             </Button>
           </div>
         </Card>
