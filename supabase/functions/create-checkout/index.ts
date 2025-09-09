@@ -56,7 +56,7 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Get current prices from Stripe
+    // Get current prices from Stripe to ensure they exist
     const stripePricesResponse = await stripe.prices.list({ 
       active: true, 
       limit: 100 
@@ -64,40 +64,57 @@ serve(async (req) => {
     
     logStep("Fetched Stripe prices", { count: stripePricesResponse.data.length });
 
-    // Map our tier names to Stripe Price IDs from your stripeConfig
-    const priceIds = {
-      taai_traveler: {
-        monthly: "price_1QnqYlP0pUOcQcULV8VsVVfP", // $7.99/month
-        annual: "price_1QnqZKP0pUOcQcULqtXgYPXk"   // $79.99/year
-      },
-      taai_traveler_plus: {
-        monthly: "price_1QnqZlP0pUOcQcULOdKfTKhG", // $19.00/month
-        annual: "price_1Qnqa9P0pUOcQcULM3XfNf3L"   // $192.00/year
-      },
-      corp_taai_traveler_plus: {
-        monthly: "price_1QnqaXP0pUOcQcUL8VNhQmxD", // $99.00/month
-        annual: "price_1QnqauP0pUOcQcULRtWxNQzY"   // $999.00/year
-      }
-    };
+    // Create a mapping of product names to price IDs
+    const priceMapping: Record<string, { monthly?: string; annual?: string }> = {};
+    
+    for (const price of stripePricesResponse.data) {
+      if (!price.product || typeof price.product !== 'object') continue;
+      
+      const product = price.product as any;
+      const productName = product.name?.toLowerCase();
+      const interval = price.recurring?.interval;
+      
+      logStep("Processing price", { 
+        priceId: price.id, 
+        productName, 
+        interval, 
+        amount: price.unit_amount 
+      });
 
-    const tierPriceIds = priceIds[tier as keyof typeof priceIds];
-    if (!tierPriceIds) throw new Error("Invalid tier selected");
+      // Map product names to our tier system
+      if (productName?.includes('traveler+') || productName?.includes('traveler plus')) {
+        if (!priceMapping.taai_traveler_plus) priceMapping.taai_traveler_plus = {};
+        if (interval === 'month') priceMapping.taai_traveler_plus.monthly = price.id;
+        if (interval === 'year') priceMapping.taai_traveler_plus.annual = price.id;
+      }
+      else if (productName?.includes('corp') && productName?.includes('traveler')) {
+        if (!priceMapping.corp_taai_traveler_plus) priceMapping.corp_taai_traveler_plus = {};
+        if (interval === 'month') priceMapping.corp_taai_traveler_plus.monthly = price.id;
+        if (interval === 'year') priceMapping.corp_taai_traveler_plus.annual = price.id;
+      }
+      else if (productName?.includes('traveler') && !productName?.includes('plus')) {
+        if (!priceMapping.taai_traveler) priceMapping.taai_traveler = {};
+        if (interval === 'month') priceMapping.taai_traveler.monthly = price.id;
+        if (interval === 'year') priceMapping.taai_traveler.annual = price.id;
+      }
+    }
+
+    logStep("Price mapping created", priceMapping);
+
+    // Get the correct price ID
+    const tierPriceIds = priceMapping[tier as keyof typeof priceMapping];
+    if (!tierPriceIds) {
+      logStep("Invalid tier - no price mapping found", { tier, availableTiers: Object.keys(priceMapping) });
+      throw new Error(`Invalid tier selected: ${tier}. Available tiers: ${Object.keys(priceMapping).join(', ')}`);
+    }
     
     const priceId = tierPriceIds[billing as keyof typeof tierPriceIds];
-    if (!priceId) throw new Error("Invalid billing frequency selected");
-
-    // Verify the price exists in Stripe
-    try {
-      const priceDetails = await stripe.prices.retrieve(priceId);
-      logStep("Using Stripe price", { 
-        priceId, 
-        amount: priceDetails.unit_amount, 
-        interval: priceDetails.recurring?.interval 
-      });
-    } catch (priceError) {
-      logStep("Price verification failed", { priceId, error: priceError });
-      throw new Error(`Invalid price ID: ${priceId}`);
+    if (!priceId) {
+      logStep("Invalid billing frequency", { tier, billing, availableFrequencies: Object.keys(tierPriceIds) });
+      throw new Error(`Invalid billing frequency ${billing} for tier ${tier}. Available: ${Object.keys(tierPriceIds).join(', ')}`);
     }
+
+    logStep("Using dynamic price ID", { tier, billing, priceId });
 
     // Check if customer exists
     const customers = await stripe.customers.list({ email: userEmail, limit: 1 });

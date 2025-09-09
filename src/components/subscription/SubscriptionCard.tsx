@@ -34,7 +34,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   // Calculate savings with dynamic pricing
   const dynamicSavings = getAnnualSavings(tier.id, currentMonthlyPrice, currentAnnualPrice);
 
-  const handleSubscribeClick = () => {
+  const handleSubscribeClick = async () => {
     if (tier.id === 'traveler') return; // Free tier
 
     // Handle enterprise inquiry
@@ -50,17 +50,8 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       return;
     }
 
-    // Use external Stripe checkout URL
-    const checkoutUrl = getStripeCheckoutUrl(tier.id, billingFrequency);
-    if (checkoutUrl) {
-      window.open(checkoutUrl, '_blank');
-      toast({
-        title: "Redirecting to Stripe",
-        description: "Opening secure checkout in a new tab..."
-      });
-    } else {
-      onSubscribe(tier.id);
-    }
+    // Call the edge function instead of using external URLs
+    onSubscribe(tier.id);
   };
   
   const canUpgrade = !isCurrentTier;
