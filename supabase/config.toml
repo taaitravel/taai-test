@@ -36,5 +36,8 @@ verify_jwt = false
 [functions.manage-user-roles]
 verify_jwt = true
 
+[functions.booking-com-api]
+verify_jwt = true
+
 [functions.get-stripe-prices]
 verify_jwt = false
