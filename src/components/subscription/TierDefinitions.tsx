@@ -32,7 +32,7 @@ export const individualTiers: TierData[] = [
     icon: <Star className="h-6 w-6" />,
     features: [
       '50 credits per month',
-      'Up to 25 itineraries',
+      'Up to 20 itineraries',
       'Share with up to 20 friends',
       'Priority support',
       'Advanced trip planning'
@@ -54,7 +54,7 @@ export const individualTiers: TierData[] = [
     icon: <Crown className="h-6 w-6" />,
     features: [
       '100 credits per month',
-      'Up to 50 itineraries',
+      'Unlimited itineraries',
       'Unlimited friend sharing',
       'Premium support',
       'Advanced analytics',

@@ -103,13 +103,13 @@ serve(async (req) => {
         'price_1QnqYlP0pUOcQcULV8VsVVfP': {
           tier: "taai_traveler",
           credits: 50,
-          maxItineraries: 25,
+          maxItineraries: 20,
           maxSharedFriends: 20
         },
         'price_1QnqZlP0pUOcQcULOdKfTKhG': {
           tier: "taai_traveler_plus", 
           credits: 100,
-          maxItineraries: 50,
+          maxItineraries: -1,
           maxSharedFriends: -1
         },
         'price_1QnqaXP0pUOcQcUL8VNhQmxD': {
@@ -122,13 +122,13 @@ serve(async (req) => {
         'price_1QnqZKP0pUOcQcULqtXgYPXk': {
           tier: "taai_traveler",
           credits: 50,
-          maxItineraries: 25,
+          maxItineraries: 20,
           maxSharedFriends: 20
         },
         'price_1Qnqa9P0pUOcQcULM3XfNf3L': {
           tier: "taai_traveler_plus",
           credits: 100, 
-          maxItineraries: 50,
+          maxItineraries: -1,
           maxSharedFriends: -1
         },
         'price_1QnqauP0pUOcQcULRtWxNQzY': {
