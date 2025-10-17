@@ -607,6 +607,36 @@ export type Database = {
         }
         Relationships: []
       }
+      search_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          results_count: number | null
+          search_date: string | null
+          search_params: Json
+          search_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          results_count?: number | null
+          search_date?: string | null
+          search_params: Json
+          search_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          results_count?: number | null
+          search_date?: string | null
+          search_params?: Json
+          search_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
