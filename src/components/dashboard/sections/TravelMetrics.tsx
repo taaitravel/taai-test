@@ -1,8 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChartContainer } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Calendar, Map, BarChart3 } from "lucide-react";
+import { Map, BarChart3 } from "lucide-react";
 import { CountriesMap } from "@/components/CountriesMap";
 import { FlightProgressIndicator } from "../FlightProgressIndicator";
 
@@ -20,28 +18,24 @@ interface TravelMetricsProps {
 }
 
 export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }: TravelMetricsProps) => {
-  const monthlyFlights = [
-    { month: 'Jul', flights: 5 },
-    { month: 'Aug', flights: 2 },
-    { month: 'Sep', flights: 1 },
-    { month: 'Oct', flights: 1 },
-    { month: 'Nov', flights: 3 },
-    { month: 'Dec', flights: 2 }
-  ];
+  // Rank trips by spending amount (highest to lowest)
+  const rankedTrips = (activeItineraries || [])
+    .filter(itinerary => itinerary.spending && Number(itinerary.spending) > 0)
+    .map(itinerary => ({
+      name: itinerary.title || itinerary.itin_name || 'Unnamed Trip',
+      spending: Number(itinerary.spending) || 0,
+      date: itinerary.start_date || itinerary.itin_date_start,
+    }))
+    .sort((a, b) => b.spending - a.spending)
+    .slice(0, 5); // Top 5 most expensive trips
 
-  const spendingData = [
-    { name: 'Flights', value: 18000, color: 'hsl(351, 85%, 75%)' },
-    { name: 'Hotels', value: 15000, color: 'hsl(15, 80%, 70%)' },
-    { name: 'Food', value: 7000, color: 'hsl(25, 75%, 65%)' },
-    { name: 'Activities', value: 5000, color: 'hsl(45, 42%, 35%)' }
-  ];
-
-  const chartConfig = {
-    flights: {
-      label: "Flights",
-      color: "hsl(var(--primary))",
-    }
-};
+  const formatMonthYear = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${month}/${year}`;
+  };
 
 
 return (
@@ -93,47 +87,38 @@ return (
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Spending Chart */}
+        {/* Top Spending Trips */}
         <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-medium text-white/70 mb-1">Total Spent</p>
+                <p className="text-sm font-medium text-white/70 mb-1">Lifetime Total Spent</p>
                 <p className="text-2xl font-bold text-white">${userStats.totalSpent.toLocaleString()}</p>
               </div>
               <BarChart3 className="h-6 w-6 text-white/70" />
             </div>
-            <div className="h-[150px]">
-              <ChartContainer config={chartConfig} className="h-full w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={spendingData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={30}
-                      outerRadius={55}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {spendingData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              {spendingData.map((item, index) => (
-                <div key={index} className="flex items-center space-x-2">
+            <div className="space-y-2">
+              {rankedTrips.length > 0 ? (
+                rankedTrips.map((trip, index) => (
                   <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-xs text-white/80 font-medium">{item.name}</span>
+                    key={index} 
+                    className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <span className="text-xs font-bold text-white/50 w-4">#{index + 1}</span>
+                      <span className="text-sm text-white/90 truncate">{trip.name}</span>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-xs text-white/60">{formatMonthYear(trip.date)}</span>
+                      <span className="text-sm font-bold text-white">${trip.spending.toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-white/50 text-sm">
+                  No trip spending data yet
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>

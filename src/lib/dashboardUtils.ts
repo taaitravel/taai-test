@@ -44,11 +44,17 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
     }
   });
 
+  // Calculate actual total spending from all itineraries
+  const totalSpent = activeItineraries.reduce((sum, itinerary) => {
+    const spending = Number(itinerary.spending) || 0;
+    return sum + spending;
+  }, 0);
+
   return {
     totalTrips: activeItineraries.length,
     countriesVisited: visitedCountries.length,
     citiesVisited: uniqueCities.size,
-    totalSpent: 45000,
+    totalSpent,
     flightsThisYear: Number(flightsThisYear),
     visitedCountries
   };
