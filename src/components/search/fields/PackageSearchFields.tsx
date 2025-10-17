@@ -1,10 +1,10 @@
 import { DateRangePicker } from '../DateRangePicker';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ArrowLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PlaceSearch } from '@/components/inputs/PlaceSearch';
 
 interface PackageSearchFieldsProps {
   origin: string;
@@ -67,15 +67,14 @@ export const PackageSearchFields = ({
 
       {/* From/To with Swap */}
       <div className="grid md:grid-cols-[1fr_auto_1fr] gap-3 items-end">
-        <div>
-          <label className="text-sm font-medium text-white mb-2 block">From *</label>
-          <Input
-            placeholder="Departure city"
-            value={origin}
-            onChange={(e) => onOriginChange(e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
-        </div>
+        <PlaceSearch
+          id="package-origin"
+          label="From *"
+          placeholder="Departure city"
+          mode="city"
+          defaultQuery={origin}
+          onSelect={(place) => onOriginChange(place.name)}
+        />
 
         <Button
           type="button"
@@ -87,15 +86,14 @@ export const PackageSearchFields = ({
           <ArrowLeftRight className="h-5 w-5 text-white/60" />
         </Button>
 
-        <div>
-          <label className="text-sm font-medium text-white mb-2 block">To *</label>
-          <Input
-            placeholder="Destination city"
-            value={destination}
-            onChange={(e) => onDestinationChange(e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
-        </div>
+        <PlaceSearch
+          id="package-destination"
+          label="To *"
+          placeholder="Destination city"
+          mode="city"
+          defaultQuery={destination}
+          onSelect={(place) => onDestinationChange(place.name)}
+        />
       </div>
 
       {/* Dates */}

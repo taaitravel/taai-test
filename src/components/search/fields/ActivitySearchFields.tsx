@@ -1,4 +1,3 @@
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { PlaceSearch } from '@/components/inputs/PlaceSearch';
 
 interface ActivitySearchFieldsProps {
   destination: string;
@@ -31,15 +31,14 @@ export const ActivitySearchFields = ({
   return (
     <div className="space-y-4">
       {/* Destination */}
-      <div>
-        <label className="text-sm font-medium text-white mb-2 block">Destination *</label>
-        <Input
-          placeholder="City or region"
-          value={destination}
-          onChange={(e) => onDestinationChange(e.target.value)}
-          className="bg-white/10 border-white/20 text-white"
-        />
-      </div>
+      <PlaceSearch
+        id="activity-destination"
+        label="Destination *"
+        placeholder="City or region"
+        mode="activity"
+        defaultQuery={destination}
+        onSelect={(place) => onDestinationChange(place.name)}
+      />
 
       {/* Date */}
       <div>

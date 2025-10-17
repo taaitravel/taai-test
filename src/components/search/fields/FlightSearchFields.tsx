@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import { DateRangePicker } from '../DateRangePicker';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Plane, ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PlaceSearch } from '@/components/inputs/PlaceSearch';
 
 interface FlightSearchFieldsProps {
   origin: string;
@@ -66,15 +65,14 @@ export const FlightSearchFields = ({
 
       {/* From/To with Swap */}
       <div className="grid md:grid-cols-[1fr_auto_1fr] gap-3 items-end">
-        <div>
-          <label className="text-sm font-medium text-white mb-2 block">From *</label>
-          <Input
-            placeholder="City or airport"
-            value={origin}
-            onChange={(e) => onOriginChange(e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
-        </div>
+        <PlaceSearch
+          id="flight-origin"
+          label="From *"
+          placeholder="City or airport"
+          mode="city"
+          defaultQuery={origin}
+          onSelect={(place) => onOriginChange(place.name)}
+        />
 
         <Button
           type="button"
@@ -86,15 +84,14 @@ export const FlightSearchFields = ({
           <ArrowLeftRight className="h-5 w-5 text-white/60" />
         </Button>
 
-        <div>
-          <label className="text-sm font-medium text-white mb-2 block">To *</label>
-          <Input
-            placeholder="City or airport"
-            value={destination}
-            onChange={(e) => onDestinationChange(e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
-        </div>
+        <PlaceSearch
+          id="flight-destination"
+          label="To *"
+          placeholder="City or airport"
+          mode="city"
+          defaultQuery={destination}
+          onSelect={(place) => onDestinationChange(place.name)}
+        />
       </div>
 
       {/* Dates */}

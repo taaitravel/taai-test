@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { DateRangePicker } from '../DateRangePicker';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { PlaceSearch } from '@/components/inputs/PlaceSearch';
 
 interface CarSearchFieldsProps {
   pickupLocation: string;
@@ -54,18 +54,17 @@ export const CarSearchFields = ({
   return (
     <div className="space-y-4">
       {/* Pick-up Location */}
-      <div>
-        <label className="text-sm font-medium text-white mb-2 block">Pick-up Location *</label>
-        <Input
-          placeholder="City or airport"
-          value={pickupLocation}
-          onChange={(e) => {
-            onPickupLocationChange(e.target.value);
-            if (sameLocation) onDropoffLocationChange(e.target.value);
-          }}
-          className="bg-white/10 border-white/20 text-white"
-        />
-      </div>
+      <PlaceSearch
+        id="car-pickup"
+        label="Pick-up Location *"
+        placeholder="City or airport"
+        mode="city"
+        defaultQuery={pickupLocation}
+        onSelect={(place) => {
+          onPickupLocationChange(place.name);
+          if (sameLocation) onDropoffLocationChange(place.name);
+        }}
+      />
 
       {/* Same Location Checkbox */}
       <div className="flex items-center space-x-2">
@@ -81,15 +80,14 @@ export const CarSearchFields = ({
 
       {/* Drop-off Location */}
       {!sameLocation && (
-        <div>
-          <label className="text-sm font-medium text-white mb-2 block">Drop-off Location *</label>
-          <Input
-            placeholder="City or airport"
-            value={dropoffLocation}
-            onChange={(e) => onDropoffLocationChange(e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
-        </div>
+        <PlaceSearch
+          id="car-dropoff"
+          label="Drop-off Location *"
+          placeholder="City or airport"
+          mode="city"
+          defaultQuery={dropoffLocation}
+          onSelect={(place) => onDropoffLocationChange(place.name)}
+        />
       )}
 
       {/* Dates */}

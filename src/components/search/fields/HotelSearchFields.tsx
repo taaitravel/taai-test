@@ -1,6 +1,6 @@
 import { DateRangePicker } from '../DateRangePicker';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PlaceSearch } from '@/components/inputs/PlaceSearch';
 
 interface HotelSearchFieldsProps {
   destination: string;
@@ -34,15 +34,14 @@ export const HotelSearchFields = ({
   return (
     <div className="space-y-4">
       {/* Destination */}
-      <div>
-        <label className="text-sm font-medium text-white mb-2 block">Destination *</label>
-        <Input
-          placeholder="City, hotel, or landmark"
-          value={destination}
-          onChange={(e) => onDestinationChange(e.target.value)}
-          className="bg-white/10 border-white/20 text-white"
-        />
-      </div>
+      <PlaceSearch
+        id="hotel-destination"
+        label="Destination *"
+        placeholder="City, hotel, or landmark"
+        mode="hotel"
+        defaultQuery={destination}
+        onSelect={(place) => onDestinationChange(place.name)}
+      />
 
       {/* Dates */}
       <DateRangePicker
