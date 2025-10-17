@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MobileNavigation } from '@/components/shared/MobileNavigation';
-import { ComprehensiveSearchForm } from '@/components/search/ComprehensiveSearchForm';
+import { AdaptiveSearchForm, SearchType } from '@/components/search/AdaptiveSearchForm';
 import { CardSwiper } from '@/components/search/CardSwiper';
 import { HotelSearchCard } from '@/components/search/cards/HotelSearchCard';
 import { FlightSearchCard } from '@/components/search/cards/FlightSearchCard';
@@ -12,29 +12,22 @@ import { useSearchOrchestrator } from '@/hooks/useSearchOrchestrator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Hotel, Plane, Activity, Package, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 
 const Search = () => {
   const [searchParams, setSearchParams] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showItineraryModal, setShowItineraryModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('hotels');
-  const { results, loading, executeSearch } = useSearchOrchestrator();
+  const { results, loading, searchType, executeSearch } = useSearchOrchestrator();
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleSearch = async (params: any) => {
-    setSearchParams(params);
-    await executeSearch(params);
-
-    // Auto-select first available tab with results
-    if (results.hotels.length > 0) setActiveTab('hotels');
-    else if (results.flights.length > 0) setActiveTab('flights');
-    else if (results.activities.length > 0) setActiveTab('activities');
-    else if (results.packages.length > 0) setActiveTab('packages');
+  const handleSearch = async (type: SearchType, params: any) => {
+    setSearchParams({ ...params, searchType: type });
+    await executeSearch(type, params);
   };
 
   const handleAddToItinerary = (item: any) => {
@@ -48,11 +41,17 @@ const Search = () => {
     try {
       const { error } = await supabase.from('wishlist').insert({
         user_id: user.id,
-        item_type: activeTab.slice(0, -1), // Remove 's' from end
+        item_type: searchType || 'hotel',
         item_data: item,
       });
 
       if (error) throw error;
+
+      toast({
+        title: 'Added to Wishlist!',
+        description: 'Item saved for later',
+        variant: 'default',
+      });
     } catch (error) {
       console.error('Error adding to wishlist:', error);
     }
@@ -99,7 +98,7 @@ const Search = () => {
       let updateField = '';
       let newArray: any[] = [];
 
-      if (activeTab === 'hotels') {
+      if (searchType === 'hotels') {
         updateField = 'hotels';
         const existingHotels = Array.isArray(itin.hotels) ? itin.hotels : [];
         newArray = [...existingHotels, {
@@ -108,14 +107,14 @@ const Search = () => {
           check_out: searchParams.checkout,
           booking_state: 'planned',
         }];
-      } else if (activeTab === 'flights') {
+      } else if (searchType === 'flights') {
         updateField = 'flights';
         const existingFlights = Array.isArray(itin.flights) ? itin.flights : [];
         newArray = [...existingFlights, {
           ...selectedItem,
           booking_state: 'planned',
         }];
-      } else if (activeTab === 'activities') {
+      } else if (searchType === 'activities') {
         updateField = 'activities';
         const existingActivities = Array.isArray(itin.activities) ? itin.activities : [];
         newArray = [...existingActivities, {
@@ -123,7 +122,7 @@ const Search = () => {
           date: searchParams.checkin,
           booking_state: 'planned',
         }];
-      } else if (activeTab === 'packages') {
+      } else if (searchType === 'packages') {
         // Add all package components
         const existingHotels = Array.isArray(itin.hotels) ? itin.hotels : [];
         const existingFlights = Array.isArray(itin.flights) ? itin.flights : [];
@@ -174,14 +173,16 @@ const Search = () => {
     }
   };
 
-  const renderCard = (type: string) => (item: any, onExpand: () => void) => {
-    switch (type) {
+  const renderCard = (item: any, onExpand: () => void) => {
+    switch (searchType) {
       case 'hotels':
         return <HotelSearchCard hotel={item} onExpand={onExpand} />;
       case 'flights':
         return <FlightSearchCard flight={item} onExpand={onExpand} />;
       case 'activities':
         return <ActivitySearchCard activity={item} onExpand={onExpand} />;
+      case 'cars':
+        return <CarSearchCard car={item} onExpand={onExpand} />;
       case 'packages':
         return <PackageSearchCard package={item} onExpand={onExpand} />;
       default:
@@ -189,7 +190,35 @@ const Search = () => {
     }
   };
 
-  const hasResults = results.hotels.length + results.flights.length + results.activities.length + results.packages.length > 0;
+  const getSearchSummary = () => {
+    if (!searchParams || !searchType) return null;
+
+    const typeLabels: Record<SearchType, string> = {
+      flights: 'Flights',
+      hotels: 'Hotels',
+      cars: 'Rental Cars',
+      activities: 'Activities',
+      packages: 'Package Deals',
+    };
+
+    let summary = `${typeLabels[searchType]}`;
+    
+    if (searchParams.destination) {
+      summary += ` in ${searchParams.destination}`;
+    }
+    
+    if (searchParams.checkin && searchParams.checkout) {
+      summary += ` • ${format(new Date(searchParams.checkin), 'MMM dd')} - ${format(new Date(searchParams.checkout), 'MMM dd')}`;
+    } else if (searchParams.checkin) {
+      summary += ` • ${format(new Date(searchParams.checkin), 'MMM dd')}`;
+    }
+    
+    if (searchParams.adults) {
+      summary += ` • ${searchParams.adults} adult${searchParams.adults > 1 ? 's' : ''}`;
+    }
+
+    return summary;
+  };
 
   return (
     <div className="min-h-screen bg-[#171821]">
@@ -218,7 +247,7 @@ const Search = () => {
 
           {/* Search Form */}
           <div className="bg-[#171821]/95 backdrop-blur-md border border-white/30 rounded-lg shadow-2xl shadow-white/20 mb-8">
-            <ComprehensiveSearchForm onSearch={handleSearch} />
+            <AdaptiveSearchForm onSearch={handleSearch} />
           </div>
 
           {/* Loading State */}
@@ -231,93 +260,27 @@ const Search = () => {
           )}
 
           {/* Results */}
-          {!loading && hasResults && (
+          {!loading && results.length > 0 && (
             <div className="bg-[#171821]/95 backdrop-blur-md border border-white/30 rounded-lg shadow-2xl shadow-white/20 p-6">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-4 bg-white/5 mb-6">
-                  <TabsTrigger
-                    value="hotels"
-                    className="flex items-center gap-2"
-                    disabled={results.hotels.length === 0}
-                  >
-                    <Hotel className="h-4 w-4" />
-                    <span className="hidden sm:inline">Hotels</span>
-                    <span className="text-xs">({results.hotels.length})</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="flights"
-                    className="flex items-center gap-2"
-                    disabled={results.flights.length === 0}
-                  >
-                    <Plane className="h-4 w-4" />
-                    <span className="hidden sm:inline">Flights</span>
-                    <span className="text-xs">({results.flights.length})</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="activities"
-                    className="flex items-center gap-2"
-                    disabled={results.activities.length === 0}
-                  >
-                    <Activity className="h-4 w-4" />
-                    <span className="hidden sm:inline">Activities</span>
-                    <span className="text-xs">({results.activities.length})</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="packages"
-                    className="flex items-center gap-2"
-                    disabled={results.packages.length === 0}
-                  >
-                    <Package className="h-4 w-4" />
-                    <span className="hidden sm:inline">Packages</span>
-                    <span className="text-xs">({results.packages.length})</span>
-                  </TabsTrigger>
-                </TabsList>
+              {/* Search Summary */}
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-white mb-2">{getSearchSummary()}</h2>
+                <p className="text-white/60">{results.length} result{results.length !== 1 ? 's' : ''} found</p>
+              </div>
 
-                <TabsContent value="hotels">
-                  <CardSwiper
-                    results={results.hotels}
-                    renderCard={renderCard('hotels')}
-                    onAddToItinerary={handleAddToItinerary}
-                    onAddToWishlist={handleAddToWishlist}
-                    searchType="hotels"
-                  />
-                </TabsContent>
-
-                <TabsContent value="flights">
-                  <CardSwiper
-                    results={results.flights}
-                    renderCard={renderCard('flights')}
-                    onAddToItinerary={handleAddToItinerary}
-                    onAddToWishlist={handleAddToWishlist}
-                    searchType="flights"
-                  />
-                </TabsContent>
-
-                <TabsContent value="activities">
-                  <CardSwiper
-                    results={results.activities}
-                    renderCard={renderCard('activities')}
-                    onAddToItinerary={handleAddToItinerary}
-                    onAddToWishlist={handleAddToWishlist}
-                    searchType="activities"
-                  />
-                </TabsContent>
-
-                <TabsContent value="packages">
-                  <CardSwiper
-                    results={results.packages}
-                    renderCard={renderCard('packages')}
-                    onAddToItinerary={handleAddToItinerary}
-                    onAddToWishlist={handleAddToWishlist}
-                    searchType="packages"
-                  />
-                </TabsContent>
-              </Tabs>
+              {/* Card Swiper */}
+              <CardSwiper
+                results={results}
+                renderCard={renderCard}
+                onAddToItinerary={handleAddToItinerary}
+                onAddToWishlist={handleAddToWishlist}
+                searchType={searchType || 'hotels'}
+              />
             </div>
           )}
 
           {/* No Results */}
-          {!loading && searchParams && !hasResults && (
+          {!loading && searchParams && results.length === 0 && (
             <div className="text-center py-20">
               <p className="text-white/70 text-lg mb-4">No results found</p>
               <p className="text-white/50">Try adjusting your search criteria</p>

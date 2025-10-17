@@ -2,116 +2,170 @@ import { useState } from 'react';
 import { useExpediaAPI } from './useExpediaAPI';
 import { useToast } from '@/hooks/use-toast';
 
+export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages';
+
 export const useSearchOrchestrator = () => {
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<any>({
-    hotels: [],
-    flights: [],
-    activities: [],
-    cars: [],
-    packages: [],
-  });
+  const [results, setResults] = useState<any[]>([]);
+  const [searchType, setSearchType] = useState<SearchType | null>(null);
+
   const { searchHotels, searchFlights, searchActivities } = useExpediaAPI();
   const { toast } = useToast();
 
-  const executeSearch = async (params: any) => {
+  const executeSearch = async (type: SearchType, params: any) => {
     setLoading(true);
-    setResults({ hotels: [], flights: [], activities: [], cars: [], packages: [] });
-
-    const searchPromises = [];
+    setResults([]);
+    setSearchType(type);
 
     try {
-      // Search based on selected types
-      if (params.searchTypes.hotels) {
-        searchPromises.push(
-          searchHotels({
+      let searchResults: any[] = [];
+
+      switch (type) {
+        case 'hotels': {
+          const { data, error } = await searchHotels({
             destination: params.destination,
             checkin: params.checkin,
             checkout: params.checkout,
-            adults: params.adults,
-            rooms: params.rooms,
-          }).then(({ data, error }) => ({
-            type: 'hotels',
-            data: error ? [] : data?.hotels || [],
-            error,
-          }))
-        );
-      }
+            adults: params.adults || 2,
+            rooms: params.rooms || 1,
+          });
 
-      if (params.searchTypes.flights) {
-        searchPromises.push(
-          searchFlights({
+          if (error) {
+            toast({
+              title: 'Hotel Search Failed',
+              description: error,
+              variant: 'destructive',
+            });
+          }
+
+          searchResults = data?.hotels || [];
+          break;
+        }
+
+        case 'flights': {
+          const { data, error } = await searchFlights({
             origin: params.origin,
             destination: params.destination,
             departure_date: params.checkin,
             return_date: params.checkout,
-            adults: params.adults,
-          }).then(({ data, error }) => ({
-            type: 'flights',
-            data: error ? [] : data?.flights || [],
-            error,
-          }))
-        );
-      }
+            adults: params.adults || 1,
+          });
 
-      if (params.searchTypes.activities) {
-        searchPromises.push(
-          searchActivities({
+          if (error) {
+            toast({
+              title: 'Flight Search Failed',
+              description: error,
+              variant: 'destructive',
+            });
+          }
+
+          searchResults = data?.flights || [];
+          break;
+        }
+
+        case 'activities': {
+          const { data, error } = await searchActivities({
             destination: params.destination,
             date: params.checkin,
-          }).then(({ data, error }) => ({
-            type: 'activities',
-            data: error ? [] : data?.activities || [],
-            error,
-          }))
-        );
-      }
+          });
 
-      // Wait for all searches to complete
-      const responses = await Promise.all(searchPromises);
+          if (error) {
+            toast({
+              title: 'Activity Search Failed',
+              description: error,
+              variant: 'destructive',
+            });
+          }
 
-      // Process results
-      const newResults: any = { hotels: [], flights: [], activities: [], cars: [], packages: [] };
-      responses.forEach(response => {
-        if (!response.error && response.data) {
-          newResults[response.type] = response.data;
+          searchResults = data?.activities || [];
+          break;
         }
-      });
 
-      // Create packages if both flights and hotels exist
-      if (newResults.hotels.length > 0 && newResults.flights.length > 0) {
-        newResults.packages = newResults.hotels.slice(0, 5).map((hotel: any, idx: number) => ({
-          id: `package-${idx}`,
-          hotel,
-          flight: newResults.flights[idx % newResults.flights.length],
-          car: {
-            name: 'Toyota Camry',
-            price: 45,
-            type: 'Sedan',
-          },
-        }));
+        case 'cars': {
+          // Mock car results for now
+          searchResults = [
+            {
+              id: 'car-1',
+              name: 'Economy Car',
+              company: 'Enterprise',
+              type: 'Economy',
+              price: 45,
+              image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400',
+            },
+            {
+              id: 'car-2',
+              name: 'SUV',
+              company: 'Hertz',
+              type: 'SUV',
+              price: 85,
+              image: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400',
+            },
+          ];
+          break;
+        }
+
+        case 'packages': {
+          // Search hotels and flights in parallel for packages
+          const [hotelResponse, flightResponse] = await Promise.all([
+            searchHotels({
+              destination: params.destination,
+              checkin: params.checkin,
+              checkout: params.checkout,
+              adults: params.adults || 2,
+              rooms: params.rooms || 1,
+            }),
+            searchFlights({
+              origin: params.origin,
+              destination: params.destination,
+              departure_date: params.checkin,
+              return_date: params.checkout,
+              adults: params.adults || 1,
+            }),
+          ]);
+
+          const hotels = hotelResponse.data?.hotels || [];
+          const flights = flightResponse.data?.flights || [];
+
+          searchResults = hotels.slice(0, 5).map((hotel: any, idx: number) => ({
+            id: `package-${idx}`,
+            hotel,
+            flight: flights[idx % flights.length],
+            car: params.includeCar ? {
+              type: 'Economy',
+              price: Math.floor(Math.random() * 100) + 50,
+              company: 'Enterprise',
+            } : null,
+            totalPrice:
+              (hotel.price || 0) +
+              (flights[idx % flights.length]?.price || 0) +
+              (params.includeCar ? Math.floor(Math.random() * 100) + 50 : 0),
+          }));
+
+          if (hotelResponse.error || flightResponse.error) {
+            toast({
+              title: 'Package Search Failed',
+              description: hotelResponse.error || flightResponse.error,
+              variant: 'destructive',
+            });
+          }
+          break;
+        }
       }
 
-      setResults(newResults);
+      setResults(searchResults);
 
-      const totalResults =
-        newResults.hotels.length +
-        newResults.flights.length +
-        newResults.activities.length +
-        newResults.packages.length;
-
-      if (totalResults === 0) {
+      if (searchResults.length === 0) {
         toast({
           title: 'No results found',
           description: 'Try adjusting your search criteria.',
           variant: 'destructive',
         });
       }
-    } catch (err: any) {
-      console.error('Search orchestration error:', err);
+    } catch (error) {
+      console.error('Search error:', error);
       toast({
         title: 'Search Failed',
-        description: err.message || 'Failed to search. Please try again.',
+        description: 'An error occurred while searching. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -119,5 +173,5 @@ export const useSearchOrchestrator = () => {
     }
   };
 
-  return { results, loading, executeSearch };
+  return { results, loading, searchType, executeSearch };
 };
