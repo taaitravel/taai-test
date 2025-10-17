@@ -264,11 +264,11 @@ const EditItinerary = () => {
           </CardContent>
         </Card>
 
-        {/* Locations */}
+        {/* Transportation */}
         <Card className="group hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 border-white/30 hover:border-white/40">
           <CardHeader>
             <CardTitle className="text-white flex justify-between items-center">
-              Locations
+              Transportation
               <Button 
                 onClick={addLocation} 
                 size="sm" 
