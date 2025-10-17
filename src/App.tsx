@@ -23,6 +23,7 @@ import Subscription from "./pages/Subscription";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import NotFound from "./pages/NotFound";
 import AdminRoles from "./pages/AdminRoles";
+import ManualSearch from "./pages/ManualSearch";
 
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -78,6 +79,11 @@ const App = () => (
             <Route path="/admin/roles" element={
               <ProtectedRoute>
                 <AdminRoles />
+              </ProtectedRoute>
+            } />
+            <Route path="/manual-search" element={
+              <ProtectedRoute>
+                <ManualSearch />
               </ProtectedRoute>
             } />
           
