@@ -176,11 +176,16 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in check-subscription", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    // Log detailed error server-side only
+    console.error('Subscription check error:', error);
+    logStep("ERROR in check-subscription", { message: error instanceof Error ? error.message : String(error) });
+    
+    // Return safe, generic error to client
+    return new Response(
+      JSON.stringify({ 
+        error: 'Unable to check subscription status. Please try again or contact support.' 
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
   }
 });

@@ -10,6 +10,32 @@ import { Mail, MapPin, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Input validation schema
+const contactSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, "Name is required")
+    .max(100, "Name must be less than 100 characters"),
+  email: z.string()
+    .trim()
+    .email("Invalid email address")
+    .max(255, "Email must be less than 255 characters"),
+  companyName: z.string()
+    .trim()
+    .max(100, "Company name must be less than 100 characters")
+    .optional(),
+  inquiryType: z.enum(["individual", "corporate"]),
+  subject: z.string()
+    .trim()
+    .min(1, "Subject is required")
+    .max(200, "Subject must be less than 200 characters"),
+  message: z.string()
+    .trim()
+    .min(10, "Message must be at least 10 characters")
+    .max(2000, "Message must be less than 2000 characters")
+});
 
 const Contact = () => {
   const navigate = useNavigate();
@@ -22,25 +48,34 @@ const Contact = () => {
     subject: "",
     message: ""
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error for this field when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrors({});
 
     try {
+      // Validate input data
+      const validatedData = contactSchema.parse(formData);
+
       const { error } = await supabase
         .from('contact_inquiries')
         .insert({
-          name: formData.name,
-          email: formData.email,
-          company_name: formData.companyName || null,
-          inquiry_type: formData.inquiryType,
-          subject: formData.subject,
-          message: formData.message
+          name: validatedData.name,
+          email: validatedData.email,
+          company_name: validatedData.companyName || null,
+          inquiry_type: validatedData.inquiryType,
+          subject: validatedData.subject,
+          message: validatedData.message
         });
 
       if (error) throw error;
@@ -57,8 +92,20 @@ const Contact = () => {
         message: ""
       });
     } catch (error) {
-      console.error('Error submitting contact form:', error);
-      toast.error("Failed to send message. Please try again.");
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast.error("Please check the form for errors");
+      } else {
+        console.error('Error submitting contact form:', error);
+        toast.error("Failed to send message. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -155,9 +202,11 @@ const Contact = () => {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     required
+                    maxLength={100}
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     placeholder="Enter your full name"
                   />
+                  {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
                 </div>
 
                 {/* Email */}
@@ -169,9 +218,11 @@ const Contact = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     required
+                    maxLength={255}
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     placeholder="Enter your email address"
                   />
+                  {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
                 </div>
 
                 {/* Company Name (conditional) */}
@@ -183,9 +234,11 @@ const Contact = () => {
                       type="text"
                       value={formData.companyName}
                       onChange={(e) => handleInputChange('companyName', e.target.value)}
+                      maxLength={100}
                       className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                       placeholder="Enter your company name"
                     />
+                    {errors.companyName && <p className="text-red-400 text-sm">{errors.companyName}</p>}
                   </div>
                 )}
 
@@ -198,9 +251,11 @@ const Contact = () => {
                     value={formData.subject}
                     onChange={(e) => handleInputChange('subject', e.target.value)}
                     required
+                    maxLength={200}
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     placeholder="What can we help you with?"
                   />
+                  {errors.subject && <p className="text-red-400 text-sm">{errors.subject}</p>}
                 </div>
 
                 {/* Message */}
@@ -211,10 +266,12 @@ const Contact = () => {
                     value={formData.message}
                     onChange={(e) => handleInputChange('message', e.target.value)}
                     required
+                    maxLength={2000}
                     rows={6}
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/50 resize-none"
-                    placeholder="Tell us more about your inquiry..."
+                    placeholder="Tell us more about your inquiry... (10-2000 characters)"
                   />
+                  {errors.message && <p className="text-red-400 text-sm">{errors.message}</p>}
                 </div>
 
                 <Button 

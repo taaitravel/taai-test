@@ -225,7 +225,7 @@ export type Database = {
           saved_at: string
           type: string
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -237,7 +237,7 @@ export type Database = {
           saved_at?: string
           type: string
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -249,7 +249,7 @@ export type Database = {
           saved_at?: string
           type?: string
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -530,7 +530,7 @@ export type Database = {
           stripe_session_id: string | null
           subscriber_id: string | null
           subscription_tier: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           amount: number
@@ -543,7 +543,7 @@ export type Database = {
           stripe_session_id?: string | null
           subscriber_id?: string | null
           subscription_tier: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           amount?: number
@@ -556,7 +556,7 @@ export type Database = {
           stripe_session_id?: string | null
           subscriber_id?: string | null
           subscription_tier?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -579,7 +579,7 @@ export type Database = {
           status: string | null
           total_price: number
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -591,7 +591,7 @@ export type Database = {
           status?: string | null
           total_price: number
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -603,7 +603,7 @@ export type Database = {
           status?: string | null
           total_price?: number
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
