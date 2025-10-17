@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Plane, Hotel, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface QuickAddToCartProps {
   itineraryId?: string;
@@ -18,6 +19,7 @@ export const QuickAddToCart: React.FC<QuickAddToCartProps> = ({ itineraryId, onI
   const [price, setPrice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const addToCart = async () => {
     if (!externalRef.trim() || !price.trim()) {
@@ -39,12 +41,21 @@ export const QuickAddToCart: React.FC<QuickAddToCartProps> = ({ itineraryId, onI
       return;
     }
 
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to add items to cart.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase
         .from('cart_items')
-        .insert({
-          itinerary_id: itineraryId,
+        .insert([{
+          user_id: user.id,
           type,
           external_ref: externalRef,
           price: priceNumber,
@@ -53,8 +64,8 @@ export const QuickAddToCart: React.FC<QuickAddToCartProps> = ({ itineraryId, onI
             name: externalRef,
             price: priceNumber,
             added_via: 'manual',
-          },
-        });
+          } as any,
+        }]);
 
       if (error) throw error;
 

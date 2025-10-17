@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ShoppingCart, Trash2, Calendar, DollarSign, Plane, Hotel, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CartItem {
   id: string;
@@ -28,6 +29,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   const [quoteName, setQuoteName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchCartItems();
@@ -91,15 +93,24 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // Quote expires in 7 days
 
+      if (!user?.id) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to save quotes.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('quotes')
-        .insert({
-          itinerary_id: itineraryId,
+        .insert([{
+          user_id: user.id,
           quote_name: quoteName,
           total_price: totalPrice,
-          items: cartItems,
+          items: cartItems as any,
           expires_at: expiresAt.toISOString(),
-        });
+        }]);
 
       if (error) throw error;
 
@@ -122,6 +133,15 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   };
 
   const bookFullTrip = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to book trips.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const totalAmount = cartItems.reduce((sum, item) => sum + item.price, 0);
@@ -129,16 +149,16 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
       const { error } = await supabase
         .from('bookings')
-        .insert({
-          itinerary_id: itineraryId,
+        .insert([{
+          user_id: user.id,
           booking_ref: bookingRef,
           total_amount: totalAmount,
           booking_details: {
             items: cartItems,
             booking_type: 'full_trip',
             booking_date: new Date().toISOString(),
-          },
-        });
+          } as any,
+        }]);
 
       if (error) throw error;
 
@@ -163,22 +183,31 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   };
 
   const bookIndividualItem = async (item: CartItem) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to book items.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const bookingRef = `TAAI-${Date.now()}-${item.type}`;
 
       const { error } = await supabase
         .from('bookings')
-        .insert({
-          itinerary_id: itineraryId,
+        .insert([{
+          user_id: user.id,
           booking_ref: bookingRef,
           total_amount: item.price,
           booking_details: {
             items: [item],
             booking_type: 'individual_item',
             booking_date: new Date().toISOString(),
-          },
-        });
+          } as any,
+        }]);
 
       if (error) throw error;
 
