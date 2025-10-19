@@ -1,10 +1,26 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+// Input validation schema
+const searchSchema = z.object({
+  type: z.enum(['flights', 'hotels', 'activities']),
+  origin: z.string().min(2).max(100).optional(),
+  destination: z.string().min(2).max(100),
+  checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD'),
+  checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD'),
+  guests: z.number().min(1).max(20),
+  budget: z.number().min(0).max(1000000).optional()
+});
 
 interface SearchRequest {
   type: 'flights' | 'hotels' | 'activities';
@@ -23,7 +39,46 @@ serve(async (req) => {
   }
 
   try {
-    const { type, origin, destination, checkIn, checkOut, guests, budget }: SearchRequest = await req.json();
+    // Authenticate user
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+    const authHeader = req.headers.get('Authorization');
+    
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      console.error('Authentication failed:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('User authenticated:', user.id);
+
+    // Validate input
+    const rawData = await req.json();
+    let validatedData: SearchRequest;
+    
+    try {
+      validatedData = searchSchema.parse(rawData);
+    } catch (validationError) {
+      console.error('Validation error:', validationError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { type, origin, destination, checkIn, checkOut, guests, budget } = validatedData;
 
     console.log(`Searching for ${type}:`, { origin, destination, checkIn, checkOut, guests, budget });
 
@@ -49,10 +104,13 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in search-travel-options function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: 'Unable to process search request. Please try again.' }), 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
 

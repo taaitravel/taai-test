@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,6 +11,14 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const rapidApiKey = Deno.env.get('RAPID_API_KEY');
+
+// Input validation schema
+const expediaRequestSchema = z.object({
+  endpoint: z.string().url().max(500),
+  method: z.enum(['GET', 'POST', 'PUT', 'DELETE']).default('GET'),
+  params: z.record(z.string()).optional().default({}),
+  body: z.any().optional()
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -24,7 +33,13 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(
@@ -43,20 +58,27 @@ serve(async (req) => {
 
     if (!rapidApiKey) {
       console.error('RAPID_API_KEY not configured');
-      return new Response(JSON.stringify({ error: 'API key not configured' }), {
+      return new Response(JSON.stringify({ error: 'Service configuration error' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const { endpoint, method = 'GET', params = {}, body = null } = await req.json();
+    // Validate input
+    const rawData = await req.json();
+    let validatedData;
     
-    if (!endpoint) {
-      return new Response(JSON.stringify({ error: 'Endpoint is required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    try {
+      validatedData = expediaRequestSchema.parse(rawData);
+    } catch (validationError) {
+      console.error('Validation error:', validationError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const { endpoint, method, params, body } = validatedData;
 
     console.log('Making RapidAPI request to:', endpoint);
     console.log('Parameters:', params);
@@ -86,14 +108,13 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error('Error response:', errorText);
       
-      return new Response(JSON.stringify({ 
-        error: 'External API request failed',
-        status: response.status,
-        details: errorText 
-      }), {
-        status: response.status,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: 'External API request failed' }), 
+        {
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const data = await response.json();
@@ -105,11 +126,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in expedia-rapid-api function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message || 'Internal server error' 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: 'Unable to process API request. Please try again.' }), 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });

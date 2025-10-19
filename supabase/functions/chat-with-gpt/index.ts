@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const openAIApiKey = Deno.env.get('CHAT-GPT-TAAI');
 const yelpApiKey = Deno.env.get('YELP_API_KEY');
@@ -384,6 +385,14 @@ async function addToItinerary(userId: string, itineraryId: string, item: any, ty
   }
 }
 
+// Input validation schema
+const chatSchema = z.object({
+  message: z.string().min(1).max(5000),
+  context: z.string().max(2000).optional(),
+  userId: z.string().uuid().optional(),
+  itineraryId: z.string().uuid().optional()
+});
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -391,7 +400,44 @@ serve(async (req) => {
   }
 
   try {
-    const { message, context, userId, itineraryId } = await req.json();
+    // Authenticate user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      console.error('Authentication failed:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('User authenticated:', user.id);
+
+    // Validate and parse input
+    const rawData = await req.json();
+    let validatedData;
+    
+    try {
+      validatedData = chatSchema.parse(rawData);
+    } catch (validationError) {
+      console.error('Validation error:', validationError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { message, context, userId, itineraryId } = validatedData;
 
     console.log('Received chat request:', { message, context, userId, itineraryId });
 
@@ -541,9 +587,12 @@ ${itineraryId ? `Currently working with itinerary ID: ${itineraryId}` : 'No spec
     });
   } catch (error) {
     console.error('Error in chat-with-gpt function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: 'Unable to process chat request. Please try again.' }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });

@@ -7,6 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Send, 
   Bot, 
@@ -277,40 +278,32 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
     setIsTyping(true);
     try {
       // Search for flights first
-      const flightResponse = await fetch('https://dhbvweazpqnviqwgpurv.supabase.co/functions/v1/search-travel-options', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data: flightData, error: flightError } = await supabase.functions.invoke('search-travel-options', {
+        body: {
           type: 'flights',
           origin: 'New York', // Default or get from user
           destination,
           checkIn: itineraryData.dateStart,
           checkOut: itineraryData.dateEnd,
           guests: selectedGuests
-        })
+        }
       });
       
-      const flightData = await flightResponse.json();
+      if (flightError) throw flightError;
       
       // Search for hotels
-      const hotelResponse = await fetch('https://dhbvweazpqnviqwgpurv.supabase.co/functions/v1/search-travel-options', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data: hotelData, error: hotelError } = await supabase.functions.invoke('search-travel-options', {
+        body: {
           type: 'hotels',
           destination,
           checkIn: itineraryData.dateStart,
           checkOut: itineraryData.dateEnd,
           guests: selectedGuests,
           budget: itineraryData.budget
-        })
+        }
       });
       
-      const hotelData = await hotelResponse.json();
+      if (hotelError) throw hotelError;
       
       setIsTyping(false);
       
