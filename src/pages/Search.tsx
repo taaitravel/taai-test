@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { MobileNavigation } from '@/components/shared/MobileNavigation';
 import { AdaptiveSearchForm, SearchType } from '@/components/search/AdaptiveSearchForm';
-import { CardSwiper } from '@/components/search/CardSwiper';
 import { HotelSearchCard } from '@/components/search/cards/HotelSearchCard';
 import { FlightSearchCard } from '@/components/search/cards/FlightSearchCard';
 import { ActivitySearchCard } from '@/components/search/cards/ActivitySearchCard';
@@ -12,6 +11,7 @@ import { useSearchOrchestrator } from '@/hooks/useSearchOrchestrator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -173,22 +173,6 @@ const Search = () => {
     }
   };
 
-  const renderCard = (item: any, onExpand: () => void) => {
-    switch (searchType) {
-      case 'hotels':
-        return <HotelSearchCard hotel={item} onExpand={onExpand} />;
-      case 'flights':
-        return <FlightSearchCard flight={item} onExpand={onExpand} />;
-      case 'activities':
-        return <ActivitySearchCard activity={item} onExpand={onExpand} />;
-      case 'cars':
-        return <CarSearchCard car={item} onExpand={onExpand} />;
-      case 'packages':
-        return <PackageSearchCard package={item} onExpand={onExpand} />;
-      default:
-        return null;
-    }
-  };
 
   const getSearchSummary = () => {
     if (!searchParams || !searchType) return null;
@@ -259,23 +243,53 @@ const Search = () => {
             </div>
           )}
 
-          {/* Results */}
+          {/* Results Subsection */}
           {!loading && results.length > 0 && (
-            <div className="bg-[#171821]/95 backdrop-blur-md border border-white/30 rounded-lg shadow-2xl shadow-white/20 p-6">
+            <div className="space-y-6">
               {/* Search Summary */}
-              <div className="mb-6">
+              <div className="bg-[#171821]/95 backdrop-blur-md border border-white/30 rounded-lg shadow-2xl shadow-white/20 p-6">
                 <h2 className="text-2xl font-bold text-white mb-2">{getSearchSummary()}</h2>
                 <p className="text-white/60">{results.length} result{results.length !== 1 ? 's' : ''} found</p>
               </div>
 
-              {/* Card Swiper */}
-              <CardSwiper
-                results={results}
-                renderCard={renderCard}
-                onAddToItinerary={handleAddToItinerary}
-                onAddToWishlist={handleAddToWishlist}
-                searchType={searchType || 'hotels'}
-              />
+              {/* Results Grid */}
+              <div className="bg-[#171821]/95 backdrop-blur-md border border-white/30 rounded-lg shadow-2xl shadow-white/20 p-6">
+                <h3 className="text-xl font-semibold text-white mb-4">Available Options</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {results.map((item: any, index: number) => (
+                    <div key={index} className="relative group">
+                      {/* Card Content */}
+                      <div className="h-full">
+                        {searchType === 'hotels' && <HotelSearchCard hotel={item} onExpand={() => {}} />}
+                        {searchType === 'flights' && <FlightSearchCard flight={item} onExpand={() => {}} />}
+                        {searchType === 'activities' && <ActivitySearchCard activity={item} onExpand={() => {}} />}
+                        {searchType === 'cars' && <CarSearchCard car={item} onExpand={() => {}} />}
+                        {searchType === 'packages' && <PackageSearchCard package={item} onExpand={() => {}} />}
+                      </div>
+
+                      {/* Action Buttons Overlay */}
+                      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleAddToWishlist(item)}
+                          className="bg-white/90 hover:bg-white text-black shadow-lg"
+                        >
+                          ♥ Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddToItinerary(item)}
+                          className="bg-primary hover:bg-primary/90 text-white shadow-lg"
+                        >
+                          + Add
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
