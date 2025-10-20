@@ -54,7 +54,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener
+    // Check for existing session FIRST
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setSession(null);
+          setUser(null);
+          setUserProfile(null);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Initial session check:', !!session);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setUserProfile(null);
+          setLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state listener AFTER initial check
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
@@ -73,39 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setUserProfile(null);
         }
-        
-        setLoading(false);
       }
     );
-
-    // Check for existing session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          setLoading(false);
-          return;
-        }
-
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
 
     initializeAuth();
 
