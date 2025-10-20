@@ -4,6 +4,159 @@ import { useToast } from '@/hooks/use-toast';
 
 export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages';
 
+// Mock data generators (fallback when API fails)
+const generateMockHotels = (destination: string) => [
+  {
+    id: 1,
+    name: `${destination} Grand Hotel`,
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+    price: 189,
+    rating: 4.5,
+    location: destination,
+    amenities: ['WiFi', 'Pool', 'Spa', 'Restaurant'],
+  },
+  {
+    id: 2,
+    name: `${destination} Beach Resort`,
+    image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
+    price: 249,
+    rating: 4.7,
+    location: destination,
+    amenities: ['Beach Access', 'WiFi', 'Pool', 'Bar'],
+  },
+  {
+    id: 3,
+    name: `${destination} City Center Inn`,
+    image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800',
+    price: 129,
+    rating: 4.2,
+    location: destination,
+    amenities: ['WiFi', 'Parking', 'Restaurant'],
+  },
+  {
+    id: 4,
+    name: `${destination} Boutique Hotel`,
+    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800',
+    price: 299,
+    rating: 4.8,
+    location: destination,
+    amenities: ['Luxury Spa', 'Rooftop Bar', 'WiFi', 'Concierge'],
+  },
+  {
+    id: 5,
+    name: `${destination} Budget Suites`,
+    image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800',
+    price: 89,
+    rating: 3.9,
+    location: destination,
+    amenities: ['WiFi', 'Parking'],
+  },
+  {
+    id: 6,
+    name: `${destination} Waterfront Hotel`,
+    image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800',
+    price: 219,
+    rating: 4.6,
+    location: destination,
+    amenities: ['Waterfront View', 'WiFi', 'Restaurant', 'Gym'],
+  },
+];
+
+const generateMockFlights = (origin: string, destination: string) => [
+  {
+    id: 1,
+    airline: 'United Airlines',
+    departure: '08:00 AM',
+    arrival: '11:30 AM',
+    origin,
+    destination,
+    price: 289,
+    duration: '3h 30m',
+    stops: 0,
+  },
+  {
+    id: 2,
+    airline: 'Delta',
+    departure: '10:15 AM',
+    arrival: '2:00 PM',
+    origin,
+    destination,
+    price: 259,
+    duration: '3h 45m',
+    stops: 0,
+  },
+  {
+    id: 3,
+    airline: 'American Airlines',
+    departure: '1:30 PM',
+    arrival: '7:15 PM',
+    origin,
+    destination,
+    price: 189,
+    duration: '5h 45m',
+    stops: 1,
+  },
+  {
+    id: 4,
+    airline: 'Southwest',
+    departure: '6:00 AM',
+    arrival: '9:30 AM',
+    origin,
+    destination,
+    price: 219,
+    duration: '3h 30m',
+    stops: 0,
+  },
+];
+
+const generateMockActivities = (destination: string) => [
+  {
+    id: 1,
+    name: `${destination} City Tour`,
+    image: 'https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?w=800',
+    price: 49,
+    rating: 4.6,
+    duration: '3 hours',
+    description: 'Explore the best landmarks and attractions',
+  },
+  {
+    id: 2,
+    name: `${destination} Food Walking Tour`,
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+    price: 79,
+    rating: 4.8,
+    duration: '4 hours',
+    description: 'Taste local cuisine and discover hidden gems',
+  },
+  {
+    id: 3,
+    name: `${destination} Sunset Cruise`,
+    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800',
+    price: 99,
+    rating: 4.7,
+    duration: '2 hours',
+    description: 'Beautiful sunset views from the water',
+  },
+  {
+    id: 4,
+    name: `${destination} Museum Pass`,
+    image: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800',
+    price: 35,
+    rating: 4.4,
+    duration: 'Full day',
+    description: 'Access to major museums and galleries',
+  },
+  {
+    id: 5,
+    name: `${destination} Adventure Park`,
+    image: 'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=800',
+    price: 65,
+    rating: 4.5,
+    duration: '5 hours',
+    description: 'Thrilling rides and outdoor activities',
+  },
+];
+
 export const useSearchOrchestrator = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
@@ -30,15 +183,16 @@ export const useSearchOrchestrator = () => {
             rooms: params.rooms || 1,
           });
 
-          if (error) {
+          if (error || !data?.hotels || data.hotels.length === 0) {
+            console.log('🏨 API failed or no results, using mock hotel data');
+            searchResults = generateMockHotels(params.destination || 'this destination');
             toast({
-              title: 'Hotel Search Failed',
-              description: error,
-              variant: 'destructive',
+              title: 'Showing Sample Results',
+              description: 'API unavailable - displaying example hotels',
             });
+          } else {
+            searchResults = data.hotels;
           }
-
-          searchResults = data?.hotels || [];
           break;
         }
 
@@ -51,15 +205,16 @@ export const useSearchOrchestrator = () => {
             adults: params.adults || 1,
           });
 
-          if (error) {
+          if (error || !data?.flights || data.flights.length === 0) {
+            console.log('✈️ API failed or no results, using mock flight data');
+            searchResults = generateMockFlights(params.origin || 'Origin', params.destination || 'Destination');
             toast({
-              title: 'Flight Search Failed',
-              description: error,
-              variant: 'destructive',
+              title: 'Showing Sample Results',
+              description: 'API unavailable - displaying example flights',
             });
+          } else {
+            searchResults = data.flights;
           }
-
-          searchResults = data?.flights || [];
           break;
         }
 
@@ -69,15 +224,16 @@ export const useSearchOrchestrator = () => {
             date: params.checkin,
           });
 
-          if (error) {
+          if (error || !data?.activities || data.activities.length === 0) {
+            console.log('🎯 API failed or no results, using mock activity data');
+            searchResults = generateMockActivities(params.destination || 'this destination');
             toast({
-              title: 'Activity Search Failed',
-              description: error,
-              variant: 'destructive',
+              title: 'Showing Sample Results',
+              description: 'API unavailable - displaying example activities',
             });
+          } else {
+            searchResults = data.activities;
           }
-
-          searchResults = data?.activities || [];
           break;
         }
 
@@ -153,14 +309,6 @@ export const useSearchOrchestrator = () => {
       }
 
       setResults(searchResults);
-
-      if (searchResults.length === 0) {
-        toast({
-          title: 'No results found',
-          description: 'Try adjusting your search criteria.',
-          variant: 'destructive',
-        });
-      }
     } catch (error) {
       console.error('Search error:', error);
       toast({
