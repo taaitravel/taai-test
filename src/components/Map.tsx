@@ -224,7 +224,7 @@ const Map = ({
         height: 12px;
         border-radius: 50%;
         background: #ffce87;
-        border: 2px solid #ffce87;
+        border: 2px solid #171821;
         box-shadow: 0 0 10px ${categoryColor}99;
         cursor: pointer;
         transition: all 0.3s ease;
