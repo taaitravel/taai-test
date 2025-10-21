@@ -41,12 +41,14 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
           return;
         }
 
-        // Initialize map
+        // Initialize map with TAAI custom style
         mapboxgl.accessToken = mapboxToken;
         
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
-          style: 'mapbox://styles/mapbox/dark-v11',
+          // TAAI custom style - update this with your actual style ID from Mapbox Studio
+          // Format: mapbox://styles/taai/YOUR_STYLE_ID
+          style: 'mapbox://styles/taai/clpvqp9yw00xx01rbhzj9c7gg',
           projection: 'mercator',
           center: [0, 0],
           zoom: 2,
