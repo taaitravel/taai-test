@@ -23,7 +23,7 @@ const getCategoryColor = (category?: string) => {
     case 'reservation':
       return 'hsl(30, 95%, 65%)'; // Bright orange
     case 'destination':
-      return 'hsl(350, 90%, 65%)'; // Bright red/pink
+      return '#ff849c'; // Soft pink/coral
     default:
       return 'hsl(220, 90%, 65%)'; // Bright blue
   }
@@ -39,7 +39,7 @@ const getHoverColor = (category?: string) => {
     case 'reservation':
       return 'hsl(30, 100%, 75%)';
     case 'destination':
-      return 'hsl(350, 100%, 75%)';
+      return '#ffaec0'; // Lighter pink for hover
     default:
       return 'hsl(220, 100%, 75%)';
   }
