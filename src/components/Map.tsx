@@ -224,7 +224,7 @@ const Map = ({
         height: 12px;
         border-radius: 50%;
         background: #ffce87;
-        border: 2px solid #171821;
+        border: 2px solid #ffce87;
         box-shadow: 0 0 10px ${categoryColor}99;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -249,14 +249,16 @@ const Map = ({
       // Enhanced hover effects
       el.addEventListener('mouseenter', () => {
         el.style.transform = 'scale(1.3)';
-        el.style.background = getHoverColor(location.category);
-        el.style.boxShadow = `0 0 15px ${getHoverColor(location.category)}cc`;
+        el.style.background = '#ffce87';
+        el.style.border = '2px solid #ffce87';
+        el.style.boxShadow = `0 0 15px #ffce87cc`;
         el.style.zIndex = '1000';
       });
 
       el.addEventListener('mouseleave', () => {
         el.style.transform = 'scale(1)';
-        el.style.background = categoryColor;
+        el.style.background = '#ffce87';
+        el.style.border = '2px solid #ffce87';
         el.style.boxShadow = `0 0 10px ${categoryColor}99`;
         el.style.zIndex = '1';
       });
