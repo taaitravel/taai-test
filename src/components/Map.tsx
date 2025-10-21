@@ -227,8 +227,7 @@ const Map = ({
         border: 2px solid #ffce87;
         box-shadow: 0 0 10px ${categoryColor}99;
         cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         z-index: 1;
       `;
 
@@ -236,10 +235,10 @@ const Map = ({
       const innerEl = document.createElement('div');
       innerEl.style.cssText = `
         position: absolute;
-        top: 1px;
-        left: 1px;
-        right: 1px;
-        bottom: 1px;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         border-radius: 50%;
         background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 60%);
         pointer-events: none;
