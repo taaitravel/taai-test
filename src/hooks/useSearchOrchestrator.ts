@@ -62,52 +62,68 @@ const generateMockHotels = (destination: string) => [
   },
 ];
 
-const generateMockFlights = (origin: string, destination: string) => [
-  {
-    id: 1,
-    airline: 'United Airlines',
-    departure: '08:00 AM',
-    arrival: '11:30 AM',
-    origin,
-    destination,
-    price: 289,
-    duration: '3h 30m',
-    stops: 0,
-  },
-  {
-    id: 2,
-    airline: 'Delta',
-    departure: '10:15 AM',
-    arrival: '2:00 PM',
-    origin,
-    destination,
-    price: 259,
-    duration: '3h 45m',
-    stops: 0,
-  },
-  {
-    id: 3,
-    airline: 'American Airlines',
-    departure: '1:30 PM',
-    arrival: '7:15 PM',
-    origin,
-    destination,
-    price: 189,
-    duration: '5h 45m',
-    stops: 1,
-  },
-  {
-    id: 4,
-    airline: 'Southwest',
-    departure: '6:00 AM',
-    arrival: '9:30 AM',
-    origin,
-    destination,
-    price: 219,
-    duration: '3h 30m',
-    stops: 0,
-  },
-];
+const generateMockFlights = (origin: string, destination: string, searchParams?: any) => {
+  const baseDate = searchParams?.checkin ? new Date(searchParams.checkin) : new Date();
+  
+  return [
+    {
+      id: 1,
+      airline: 'United Airlines',
+      flight_number: 'UA 1247',
+      departure: new Date(baseDate.setHours(8, 0, 0, 0)).toISOString(),
+      arrival: new Date(baseDate.setHours(11, 30, 0, 0)).toISOString(),
+      from: origin,
+      to: destination,
+      price: 289,
+      duration: '3h 30m',
+      stops: 0,
+      class: 'Economy',
+      aircraft: 'Boeing 737',
+    },
+    {
+      id: 2,
+      airline: 'Delta',
+      flight_number: 'DL 523',
+      departure: new Date(baseDate.setHours(10, 15, 0, 0)).toISOString(),
+      arrival: new Date(baseDate.setHours(14, 0, 0, 0)).toISOString(),
+      from: origin,
+      to: destination,
+      price: 259,
+      duration: '3h 45m',
+      stops: 0,
+      class: 'Economy',
+      aircraft: 'Airbus A320',
+    },
+    {
+      id: 3,
+      airline: 'American Airlines',
+      flight_number: 'AA 892',
+      departure: new Date(baseDate.setHours(13, 30, 0, 0)).toISOString(),
+      arrival: new Date(baseDate.setHours(19, 15, 0, 0)).toISOString(),
+      from: origin,
+      to: destination,
+      price: 189,
+      duration: '5h 45m',
+      stops: 1,
+      class: 'Economy',
+      aircraft: 'Boeing 787',
+    },
+    {
+      id: 4,
+      airline: 'Southwest',
+      flight_number: 'WN 1456',
+      departure: new Date(baseDate.setHours(6, 0, 0, 0)).toISOString(),
+      arrival: new Date(baseDate.setHours(9, 30, 0, 0)).toISOString(),
+      from: origin,
+      to: destination,
+      price: 219,
+      duration: '3h 30m',
+      stops: 0,
+      class: 'Economy',
+      aircraft: 'Boeing 737',
+    },
+  ];
+};
 
 const generateMockActivities = (destination: string) => [
   {
@@ -207,7 +223,7 @@ export const useSearchOrchestrator = () => {
 
           if (error || !data?.flights || data.flights.length === 0) {
             console.log('✈️ API failed or no results, using mock flight data');
-            searchResults = generateMockFlights(params.origin || 'Origin', params.destination || 'Destination');
+            searchResults = generateMockFlights(params.origin || 'Origin', params.destination || 'Destination', params);
             toast({
               title: 'Showing Sample Results',
               description: 'API unavailable - displaying example flights',
