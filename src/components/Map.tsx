@@ -96,12 +96,18 @@ const Map = ({
 
   // Initialize map when token is available
   useEffect(() => {
-    if (!mapboxToken || !mapContainer.current || map.current) return;
+    if (!mapboxToken || !mapContainer.current || map.current) {
+      console.log('🗺️ Map: Skipping init - token:', !!mapboxToken, 'container:', !!mapContainer.current, 'existing map:', !!map.current);
+      return;
+    }
     
     console.log('🗺️ Map: Initializing map with token');
+    setLoading(true);
+    
     try {
       mapboxgl.accessToken = mapboxToken;
-      map.current = new mapboxgl.Map({
+      
+      const newMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center: [0, 20],
@@ -111,25 +117,34 @@ const Map = ({
         attributionControl: false
       });
 
+      map.current = newMap;
+
       // Add navigation controls
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
       const loadTimeout = setTimeout(() => {
-        console.log('🗺️ Map: Load timeout reached');
+        console.log('🗺️ Map: Load timeout reached - forcing ready state');
         setLoading(false);
-      }, 10000);
+      }, 5000);
 
       const handleMapReady = () => {
-        console.log('🗺️ Map: Map is ready');
+        console.log('🗺️ Map: Map is ready!');
         clearTimeout(loadTimeout);
         setLoading(false);
         setError(null);
       };
 
-      map.current.on('load', handleMapReady);
-      map.current.on('idle', handleMapReady);
+      newMap.once('load', () => {
+        console.log('🗺️ Map: Load event fired');
+        handleMapReady();
+      });
       
-      map.current.on('error', (e) => {
+      newMap.once('idle', () => {
+        console.log('🗺️ Map: Idle event fired');
+        handleMapReady();
+      });
+      
+      newMap.on('error', (e) => {
         console.error('🗺️ Map: Map error:', e);
         clearTimeout(loadTimeout);
         setError('Map failed to load properly');
@@ -138,9 +153,7 @@ const Map = ({
 
       // Handle resize
       const resizeObserver = new ResizeObserver(() => {
-        if (map.current) {
-          map.current.resize();
-        }
+        map.current?.resize();
       });
 
       if (mapContainer.current) {

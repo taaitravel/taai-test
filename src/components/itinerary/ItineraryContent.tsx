@@ -178,12 +178,10 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           attendees={itineraryData.attendees}
         />
         <div className="lg:col-span-2">
-          <div className="border border-border rounded-xl overflow-hidden bg-background shadow-sm">
-            <div className="w-full h-80 min-h-[320px]">
-              <Map locations={itineraryData.itin_map_locations?.filter((loc: any) => 
-                loc.category === 'destination' || !loc.category
-              ) || []} />
-            </div>
+          <div className="border border-border rounded-xl overflow-hidden bg-background shadow-sm h-80">
+            <Map locations={itineraryData.itin_map_locations?.filter((loc: any) => 
+              loc.category === 'destination' || !loc.category
+            ) || []} />
           </div>
         </div>
         {isUpcoming && (
