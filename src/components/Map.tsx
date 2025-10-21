@@ -15,33 +15,33 @@ interface MapProps {
 const getCategoryColor = (category?: string) => {
   switch (category) {
     case 'flight':
-      return 'hsl(var(--primary))';
+      return 'hsl(220, 90%, 65%)'; // Bright blue
     case 'hotel':
-      return 'hsl(var(--accent))';
+      return 'hsl(280, 85%, 70%)'; // Bright purple
     case 'activity':
-      return 'hsl(var(--secondary))';
+      return 'hsl(160, 80%, 55%)'; // Bright teal
     case 'reservation':
-      return 'hsl(var(--chart-1))';
+      return 'hsl(30, 95%, 65%)'; // Bright orange
     case 'destination':
-      return 'hsl(var(--chart-2))';
+      return 'hsl(350, 90%, 65%)'; // Bright red/pink
     default:
-      return 'hsl(var(--primary))';
+      return 'hsl(220, 90%, 65%)'; // Bright blue
   }
 };
 const getHoverColor = (category?: string) => {
   switch (category) {
     case 'flight':
-      return 'hsl(var(--primary) / 0.8)';
+      return 'hsl(220, 100%, 75%)';
     case 'hotel':
-      return 'hsl(var(--accent) / 0.8)';
+      return 'hsl(280, 95%, 80%)';
     case 'activity':
-      return 'hsl(var(--secondary) / 0.8)';
+      return 'hsl(160, 90%, 65%)';
     case 'reservation':
-      return 'hsl(var(--chart-1) / 0.8)';
+      return 'hsl(30, 100%, 75%)';
     case 'destination':
-      return 'hsl(var(--chart-2) / 0.8)';
+      return 'hsl(350, 100%, 75%)';
     default:
-      return 'hsl(var(--primary) / 0.8)';
+      return 'hsl(220, 100%, 75%)';
   }
 };
 const Map = ({
@@ -220,13 +220,13 @@ const Map = ({
       const categoryColor = getCategoryColor(location.category);
       
       el.style.cssText = `
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         background: ${categoryColor};
-        border: 3px solid hsl(var(--background));
-        box-shadow: 0 4px 16px hsl(var(--foreground) / 0.2), 
-                    0 2px 6px hsl(var(--foreground) / 0.1);
+        border: 3px solid white;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
+                    0 0 0 2px rgba(255, 255, 255, 0.3);
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         position: relative;
@@ -249,18 +249,18 @@ const Map = ({
 
       // Enhanced hover effects
       el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.4)';
+        el.style.transform = 'scale(1.5)';
         el.style.background = getHoverColor(location.category);
-        el.style.boxShadow = `0 8px 24px hsl(var(--foreground) / 0.3), 
-                             0 4px 12px hsl(var(--foreground) / 0.2)`;
+        el.style.boxShadow = `0 8px 30px rgba(0, 0, 0, 0.6), 
+                             0 0 0 3px rgba(255, 255, 255, 0.5)`;
         el.style.zIndex = '1000';
       });
 
       el.addEventListener('mouseleave', () => {
         el.style.transform = 'scale(1)';
         el.style.background = categoryColor;
-        el.style.boxShadow = `0 4px 16px hsl(var(--foreground) / 0.2), 
-                             0 2px 6px hsl(var(--foreground) / 0.1)`;
+        el.style.boxShadow = `0 4px 20px rgba(0, 0, 0, 0.5), 
+                             0 0 0 2px rgba(255, 255, 255, 0.3)`;
         el.style.zIndex = '1';
       });
 
@@ -371,16 +371,16 @@ const Map = ({
       
       {/* Map Legend */}
       {locations.length > 0 && (
-        <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-md border border-border rounded-lg p-3 shadow-lg">
-          <div className="text-xs font-semibold text-foreground mb-2">Locations</div>
-          <div className="space-y-1">
+        <div className="absolute top-4 left-4 bg-slate-900/95 backdrop-blur-md border-2 border-white/20 rounded-lg p-4 shadow-2xl">
+          <div className="text-sm font-bold text-white mb-3 tracking-wide">LOCATIONS</div>
+          <div className="space-y-2">
             {Array.from(new Set(locations.map(l => l.category).filter(Boolean))).map(category => (
-              <div key={category} className="flex items-center gap-2 text-xs">
+              <div key={category} className="flex items-center gap-3 text-sm">
                 <div 
-                  className="w-3 h-3 rounded-full border border-background" 
+                  className="w-4 h-4 rounded-full border-2 border-white shadow-lg" 
                   style={{ background: getCategoryColor(category) }}
                 />
-                <span className="text-muted-foreground capitalize">{category}</span>
+                <span className="text-white font-medium capitalize tracking-wide">{category}</span>
               </div>
             ))}
           </div>
