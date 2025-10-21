@@ -109,9 +109,7 @@ const Map = ({
       
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
-        // TAAI custom style - update this with your actual style ID from Mapbox Studio
-        // Format: mapbox://styles/taai/YOUR_STYLE_ID
-        style: 'mapbox://styles/taai/clpvqp9yw00xx01rbhzj9c7gg',
+        style: 'mapbox://styles/taai/cme4vu58w01r701s29jan9lw9',
         center: [0, 20],
         zoom: 2,
         projection: 'mercator' as any,

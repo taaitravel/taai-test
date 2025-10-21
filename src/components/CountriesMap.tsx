@@ -46,9 +46,7 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
         
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
-          // TAAI custom style - update this with your actual style ID from Mapbox Studio
-          // Format: mapbox://styles/taai/YOUR_STYLE_ID
-          style: 'mapbox://styles/taai/clpvqp9yw00xx01rbhzj9c7gg',
+          style: 'mapbox://styles/taai/cme4vu58w01r701s29jan9lw9',
           projection: 'mercator',
           center: [0, 0],
           zoom: 2,
