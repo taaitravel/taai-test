@@ -366,7 +366,6 @@ const Map = ({
   return (
     <div className="h-full w-full relative rounded-xl overflow-hidden border border-border bg-background shadow-lg">
       <div ref={mapContainer} className="absolute inset-0" />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-background/5 rounded-xl" />
     </div>
   );
 };
