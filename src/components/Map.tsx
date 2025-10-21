@@ -220,15 +220,14 @@ const Map = ({
       const categoryColor = getCategoryColor(location.category);
       
       el.style.cssText = `
-        width: 32px;
-        height: 32px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
         background: ${categoryColor};
-        border: 3px solid white;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
-                    0 0 0 2px rgba(255, 255, 255, 0.3);
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 10px ${categoryColor}99;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: all 0.3s ease;
         position: relative;
         z-index: 1;
       `;
@@ -237,30 +236,28 @@ const Map = ({
       const innerEl = document.createElement('div');
       innerEl.style.cssText = `
         position: absolute;
-        top: 3px;
-        left: 3px;
-        right: 3px;
-        bottom: 3px;
+        top: 1px;
+        left: 1px;
+        right: 1px;
+        bottom: 1px;
         border-radius: 50%;
-        background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 60%);
+        background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 60%);
         pointer-events: none;
       `;
       el.appendChild(innerEl);
 
       // Enhanced hover effects
       el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.5)';
+        el.style.transform = 'scale(1.3)';
         el.style.background = getHoverColor(location.category);
-        el.style.boxShadow = `0 8px 30px rgba(0, 0, 0, 0.6), 
-                             0 0 0 3px rgba(255, 255, 255, 0.5)`;
+        el.style.boxShadow = `0 0 15px ${getHoverColor(location.category)}cc`;
         el.style.zIndex = '1000';
       });
 
       el.addEventListener('mouseleave', () => {
         el.style.transform = 'scale(1)';
         el.style.background = categoryColor;
-        el.style.boxShadow = `0 4px 20px rgba(0, 0, 0, 0.5), 
-                             0 0 0 2px rgba(255, 255, 255, 0.3)`;
+        el.style.boxShadow = `0 0 10px ${categoryColor}99`;
         el.style.zIndex = '1';
       });
 
