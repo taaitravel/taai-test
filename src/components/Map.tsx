@@ -367,24 +367,6 @@ const Map = ({
     <div className="h-full w-full relative rounded-xl overflow-hidden border border-border bg-background shadow-lg">
       <div ref={mapContainer} className="absolute inset-0" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-background/5 rounded-xl" />
-      
-      {/* Map Legend */}
-      {locations.length > 0 && (
-        <div className="absolute top-4 left-4 bg-slate-900/95 backdrop-blur-md border-2 border-white/20 rounded-lg p-4 shadow-2xl">
-          <div className="text-sm font-bold text-white mb-3 tracking-wide">LOCATIONS</div>
-          <div className="space-y-2">
-            {Array.from(new Set(locations.map(l => l.category).filter(Boolean))).map(category => (
-              <div key={category} className="flex items-center gap-3 text-sm">
-                <div 
-                  className="w-4 h-4 rounded-full border-2 border-white shadow-lg" 
-                  style={{ background: getCategoryColor(category) }}
-                />
-                <span className="text-white font-medium capitalize tracking-wide">{category}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
