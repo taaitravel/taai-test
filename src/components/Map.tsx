@@ -363,16 +363,6 @@ const Map = ({
     );
   }
 
-  if (loading) {
-    return (
-      <div className="h-full w-full flex items-center justify-center bg-muted/30 border border-border rounded-xl">
-        <div className="text-center p-8">
-          <div className="w-12 h-12 mx-auto mb-4 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-muted-foreground">Loading map...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-full w-full relative rounded-xl overflow-hidden border border-border bg-background shadow-lg">
