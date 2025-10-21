@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Users, UserPlus } from "lucide-react";
+import { MapPin, Users, UserPlus, X } from "lucide-react";
 
 interface Attendee {
   id: number;
@@ -18,6 +18,8 @@ interface TripOverviewSectionProps {
   destinations: string[];
   description?: string;
   attendees?: Attendee[];
+  onRemoveDestination?: (destination: string) => void;
+  isUpcoming?: boolean;
 }
 
 export const TripOverviewSection = ({ 
@@ -26,7 +28,9 @@ export const TripOverviewSection = ({
   peopleCount, 
   destinations, 
   description,
-  attendees 
+  attendees,
+  onRemoveDestination,
+  isUpcoming = false
 }: TripOverviewSectionProps) => {
   return (
     <div className="space-y-4">
@@ -53,8 +57,17 @@ export const TripOverviewSection = ({
             <span className="text-white/70 text-sm">Destinations:</span>
             <div className="flex flex-wrap gap-2 mt-2">
               {destinations.map((destination, index) => (
-                <Badge key={index} className="bg-white/20 text-white border-white/30 text-xs">
-                  {destination}
+                <Badge key={index} className="bg-white/20 text-white border-white/30 text-xs flex items-center gap-1 pr-1">
+                  <span>{destination}</span>
+                  {isUpcoming && onRemoveDestination && (
+                    <button
+                      onClick={() => onRemoveDestination(destination)}
+                      className="ml-1 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                      aria-label={`Remove ${destination}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
                 </Badge>
               ))}
             </div>

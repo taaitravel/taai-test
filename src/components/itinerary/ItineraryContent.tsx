@@ -96,6 +96,27 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
   // Destination adding (upcoming trips only)
   const [newDest, setNewDest] = useState("");
   const isUpcoming = new Date(itineraryData.itin_date_start).getTime() > Date.now();
+  
+  const handleRemoveDestination = async (destinationToRemove: string) => {
+    try {
+      const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
+      const updatedNames = currentNames.filter(dest => dest !== destinationToRemove);
+      
+      // Also remove from map locations
+      const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
+      const updatedMap = currentMap.filter((loc: any) => loc.city !== destinationToRemove);
+      
+      await supabase
+        .from('itinerary')
+        .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
+        .eq('id', itineraryData.id);
+      
+      refreshMapData?.();
+    } catch (e) {
+      console.warn('Failed to remove destination', e);
+    }
+  };
+  
   const handleAddDestination = async () => {
     const raw = newDest.trim();
     if (!raw) return;
@@ -176,6 +197,8 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           destinations={destinations}
           description={itineraryData.itin_desc}
           attendees={itineraryData.attendees}
+          onRemoveDestination={handleRemoveDestination}
+          isUpcoming={isUpcoming}
         />
         <div className="lg:col-span-2">
           <div className="border border-border rounded-xl overflow-hidden bg-background shadow-sm h-[390px]">
