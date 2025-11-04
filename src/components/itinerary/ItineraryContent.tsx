@@ -5,6 +5,7 @@ import { TripOverviewSection } from "./TripOverviewSection";
 import { Map } from "@/components/Map";
 
 import { ItineraryStackedCards } from "./ItineraryStackedCards";
+import { AttendeesSection } from "./AttendeesSection";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItinerarySidebar } from "./ItinerarySidebar";
 import { AddItemDialog, ItemType } from "./AddItemDialog";
@@ -196,7 +197,6 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           peopleCount={peopleCount}
           destinations={destinations}
           description={itineraryData.itin_desc}
-          attendees={itineraryData.attendees}
           onRemoveDestination={handleRemoveDestination}
           isUpcoming={isUpcoming}
         />
@@ -255,6 +255,9 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
         onAddActivity={() => openAdd('activities')}
         onAddReservation={() => openAdd('reservations')}
       />
+
+      {/* Attendees Section - Full Width */}
+      <AttendeesSection attendees={itineraryData.attendees} />
 
       {/* Essential Metrics & Daily Schedule */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -1,15 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MapPin, Users, UserPlus, X } from "lucide-react";
-
-interface Attendee {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string;
-  status: string;
-}
+import { MapPin, X } from "lucide-react";
 
 interface TripOverviewSectionProps {
   duration: number;
@@ -17,7 +8,6 @@ interface TripOverviewSectionProps {
   peopleCount: number;
   destinations: string[];
   description?: string;
-  attendees?: Attendee[];
   onRemoveDestination?: (destination: string) => void;
   isUpcoming?: boolean;
 }
@@ -28,7 +18,6 @@ export const TripOverviewSection = ({
   peopleCount, 
   destinations, 
   description,
-  attendees,
   onRemoveDestination,
   isUpcoming = false
 }: TripOverviewSectionProps) => {
@@ -78,45 +67,6 @@ export const TripOverviewSection = ({
               <p className="text-white mt-1 text-xs">{description}</p>
             </div>
           )}
-
-          {/* Attendees */}
-          <div className="border-t border-white/20 pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-white" />
-                <span className="text-white/70 text-sm">Attendees</span>
-              </div>
-              <Button 
-                size="sm" 
-                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold text-xs px-2 py-1 h-7"
-                onClick={() => console.log('Invite more people')}
-              >
-                <UserPlus className="h-3 w-3 mr-1" />
-                Invite
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {attendees && attendees.slice(0, 2).map((attendee) => (
-                <div key={attendee.id} className="flex items-center space-x-2 p-2 bg-white/10 rounded-lg border border-white/20">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-sm">
-                    {attendee.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-white truncate">{attendee.name}</p>
-                    <p className="text-xs text-white/60 truncate">{attendee.email}</p>
-                  </div>
-                  <Badge className={`text-xs px-2 py-0.5 ${attendee.status === 'confirmed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-white/20 text-white border-white/30'}`}>
-                    {attendee.status}
-                  </Badge>
-                </div>
-              ))}
-              {attendees && attendees.length > 2 && (
-                <div className="text-center pt-1">
-                  <span className="text-xs text-white/60">+{attendees.length - 2} more</span>
-                </div>
-              )}
-            </div>
-          </div>
         </CardContent>
       </Card>
   );
