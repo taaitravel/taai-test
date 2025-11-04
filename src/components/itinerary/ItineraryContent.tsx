@@ -9,6 +9,7 @@ import { AttendeesSection } from "./AttendeesSection";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItinerarySidebar } from "./ItinerarySidebar";
 import { AddItemDialog, ItemType } from "./AddItemDialog";
+import { AddDestinationDialog } from "./AddDestinationDialog";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ export const ItineraryContent = ({
   // Local add modal state and handlers
   const [addOpen, setAddOpen] = useState(false);
   const [addType, setAddType] = useState<ItemType | null>(null);
+  const [addDestinationOpen, setAddDestinationOpen] = useState(false);
 
   const openAdd = (type: ItemType) => {
     setAddType(type);
@@ -95,7 +97,6 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
 };
 
   // Destination adding (upcoming trips only)
-  const [newDest, setNewDest] = useState("");
   const isUpcoming = new Date(itineraryData.itin_date_start).getTime() > Date.now();
   
   const handleRemoveDestination = async (destinationToRemove: string) => {
@@ -118,55 +119,30 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
     }
   };
   
-  const handleAddDestination = async () => {
-    const raw = newDest.trim();
-    if (!raw) return;
-
-    // Use enhanced city formatting for proper display
+  const handleAddDestination = async (cityName: string, lat: number, lng: number) => {
     try {
-      const { data, error } = await supabase.functions.invoke('enhance-city-formatting', { 
-        body: { queries: [raw] } 
-      });
-      
-      if (!error && data?.results?.length > 0) {
-        const enhanced = data.results[0];
-        const formattedName = enhanced.formattedName;
-        const newMapLoc = { 
-          city: formattedName, 
-          lat: enhanced.lat, 
-          lng: enhanced.lng,
-          category: 'destination'
-        };
+      const newMapLoc = { 
+        city: cityName, 
+        lat, 
+        lng,
+        category: 'destination'
+      };
 
-        // Update readable list with formatted name
-        const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
-        const updatedNames = Array.from(new Set([...currentNames, formattedName]));
+      // Update readable list
+      const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
+      const updatedNames = Array.from(new Set([...currentNames, cityName]));
 
-        // Update map coords
-        const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
-        const exists = currentMap.some((m) => m.city?.toLowerCase() === formattedName.toLowerCase());
-        const updatedMap = exists ? currentMap : [...currentMap, newMapLoc];
+      // Update map coords
+      const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
+      const exists = currentMap.some((m) => m.city?.toLowerCase() === cityName.toLowerCase());
+      const updatedMap = exists ? currentMap : [...currentMap, newMapLoc];
 
-        await supabase
-          .from('itinerary')
-          .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
-          .eq('id', itineraryData.id);
+      await supabase
+        .from('itinerary')
+        .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
+        .eq('id', itineraryData.id);
 
-        setNewDest("");
-        refreshMapData?.();
-      } else {
-        // Fallback to basic approach
-        const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
-        const updatedNames = Array.from(new Set([...currentNames, raw]));
-        
-        await supabase
-          .from('itinerary')
-          .update({ itin_locations: updatedNames })
-          .eq('id', itineraryData.id);
-        
-        setNewDest("");
-        refreshMapData?.();
-      }
+      refreshMapData?.();
     } catch (e) {
       console.warn('Failed to add destination', e);
     }
@@ -198,6 +174,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           destinations={destinations}
           description={itineraryData.itin_desc}
           onRemoveDestination={handleRemoveDestination}
+          onAddDestination={() => setAddDestinationOpen(true)}
           isUpcoming={isUpcoming}
         />
         <div className="lg:col-span-2">
@@ -207,40 +184,6 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
             ) || []} />
           </div>
         </div>
-        {isUpcoming && (
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Add destination city"
-                value={newDest}
-                onChange={(e) => setNewDest(e.target.value)}
-                className="max-w-xs bg-white/90 border-gray-200 text-gray-900 placeholder:text-gray-500"
-              />
-              <Button onClick={handleAddDestination}>Add Destination</Button>
-            </div>
-            <div className="flex gap-2">
-              {destinations.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleEnhanceExistingCities}
-                  className="text-xs"
-                >
-                  Enhance City Formatting
-                </Button>
-              )}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => syncExpediaLocations(itineraryData)}
-                disabled={isUpdating}
-                className="text-xs"
-              >
-                {isUpdating ? 'Syncing...' : 'Sync Expedia Locations'}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Stacked Cards Section */}
@@ -291,6 +234,13 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
         onSubmit={handleAddSubmit}
         defaultCity={destinations[0] || ''}
         suggestions={{ cities: destinations }}
+      />
+
+      {/* Add Destination Dialog */}
+      <AddDestinationDialog
+        open={addDestinationOpen}
+        onClose={() => setAddDestinationOpen(false)}
+        onAdd={handleAddDestination}
       />
     </div>
   );

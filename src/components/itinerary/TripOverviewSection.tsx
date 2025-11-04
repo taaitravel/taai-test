@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, X, Plus } from "lucide-react";
 
 interface TripOverviewSectionProps {
   duration: number;
@@ -9,6 +10,7 @@ interface TripOverviewSectionProps {
   destinations: string[];
   description?: string;
   onRemoveDestination?: (destination: string) => void;
+  onAddDestination?: () => void;
   isUpcoming?: boolean;
 }
 
@@ -19,15 +21,27 @@ export const TripOverviewSection = ({
   destinations, 
   description,
   onRemoveDestination,
+  onAddDestination,
   isUpcoming = false
 }: TripOverviewSectionProps) => {
   return (
-    <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+      <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
         <CardHeader>
-          <CardTitle className="text-white flex items-center space-x-2">
-            <MapPin className="h-5 w-5 text-white" />
-            <span>Trip Overview</span>
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white flex items-center space-x-2">
+              <MapPin className="h-5 w-5 text-white" />
+              <span>Trip Overview</span>
+            </CardTitle>
+            {isUpcoming && onAddDestination && (
+              <Button
+                size="sm"
+                onClick={onAddDestination}
+                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold h-8 w-8 p-0"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-3 text-sm">
