@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plane, Hotel, Car, Activity, Package, Search } from 'lucide-react';
@@ -73,8 +74,8 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
           tripType,
           origin: flightOrigin,
           destination: flightDestination,
-          checkin: departDate,
-          checkout: tripType === 'roundtrip' ? returnDate : undefined,
+          checkin: departDate ? format(departDate, 'yyyy-MM-dd') : undefined,
+          checkout: tripType === 'roundtrip' && returnDate ? format(returnDate, 'yyyy-MM-dd') : undefined,
           adults: flightAdults,
           children: flightChildren,
           flightClass,
@@ -84,8 +85,8 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
       case 'hotels':
         params = {
           destination: hotelDestination,
-          checkin: checkinDate,
-          checkout: checkoutDate,
+          checkin: checkinDate ? format(checkinDate, 'yyyy-MM-dd') : undefined,
+          checkout: checkoutDate ? format(checkoutDate, 'yyyy-MM-dd') : undefined,
           adults: hotelAdults,
           children: hotelChildren,
           rooms,
@@ -96,8 +97,8 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
         params = {
           pickupLocation,
           dropoffLocation,
-          checkin: pickupDate,
-          checkout: dropoffDate,
+          checkin: pickupDate ? format(pickupDate, 'yyyy-MM-dd') : undefined,
+          checkout: dropoffDate ? format(dropoffDate, 'yyyy-MM-dd') : undefined,
           pickupTime,
           dropoffTime,
           driverAge,
@@ -108,7 +109,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
       case 'activities':
         params = {
           destination: activityDestination,
-          checkin: activityDate,
+          checkin: activityDate ? format(activityDate, 'yyyy-MM-dd') : undefined,
           participants,
           category,
         };
@@ -118,8 +119,8 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
         params = {
           origin: packageOrigin,
           destination: packageDestination,
-          checkin: packageDepartDate,
-          checkout: packageReturnDate,
+          checkin: packageDepartDate ? format(packageDepartDate, 'yyyy-MM-dd') : undefined,
+          checkout: packageReturnDate ? format(packageReturnDate, 'yyyy-MM-dd') : undefined,
           adults: packageAdults,
           children: packageChildren,
           rooms: packageRooms,
