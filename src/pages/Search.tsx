@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { MobileNavigation } from '@/components/shared/MobileNavigation';
 import { AdaptiveSearchForm, SearchType } from '@/components/search/AdaptiveSearchForm';
 import { HotelSearchCard } from '@/components/search/cards/HotelSearchCard';
@@ -7,23 +7,82 @@ import { ActivitySearchCard } from '@/components/search/cards/ActivitySearchCard
 import { CarSearchCard } from '@/components/search/cards/CarSearchCard';
 import { PackageSearchCard } from '@/components/search/cards/PackageSearchCard';
 import { ItineraryMatcherModal } from '@/components/search/ItineraryMatcherModal';
+import { HotelFilters, HotelFilterState } from '@/components/search/HotelFilters';
 import { useSearchOrchestrator } from '@/hooks/useSearchOrchestrator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, SlidersHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const Search = () => {
   const [searchParams, setSearchParams] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showItineraryModal, setShowItineraryModal] = useState(false);
+  const [hotelFilters, setHotelFilters] = useState<HotelFilterState>({
+    priceRange: [0, 1000],
+    starRatings: [],
+    amenities: [],
+    guestRating: 0,
+  });
   const { results, loading, searchType, executeSearch } = useSearchOrchestrator();
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Apply filters to hotel results
+  const filteredResults = useMemo(() => {
+    if (searchType !== 'hotels') return results;
+
+    return results.filter((hotel: any) => {
+      // Price filter
+      const price = hotel.min_total_price || hotel.price || 0;
+      if (price < hotelFilters.priceRange[0] || price > hotelFilters.priceRange[1]) {
+        return false;
+      }
+
+      // Star rating filter
+      if (hotelFilters.starRatings.length > 0) {
+        const hotelRating = hotel.class || hotel.rating || 0;
+        if (!hotelFilters.starRatings.includes(Math.round(hotelRating))) {
+          return false;
+        }
+      }
+
+      // Guest rating filter
+      if (hotelFilters.guestRating > 0) {
+        const guestRating = hotel.review_score || hotel.guestRating || 0;
+        if (guestRating < hotelFilters.guestRating) {
+          return false;
+        }
+      }
+
+      // Amenities filter
+      if (hotelFilters.amenities.length > 0) {
+        const hotelAmenities = hotel.amenities || hotel.hotel_facilities || [];
+        const hasAllAmenities = hotelFilters.amenities.every(amenity => 
+          hotelAmenities.some((a: string) => 
+            a.toLowerCase().includes(amenity.toLowerCase())
+          )
+        );
+        if (!hasAllAmenities) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [results, searchType, hotelFilters]);
+
+  // Calculate max price from results
+  const maxPrice = useMemo(() => {
+    if (searchType !== 'hotels' || results.length === 0) return 1000;
+    const prices = results.map((h: any) => h.min_total_price || h.price || 0);
+    return Math.max(...prices, 1000);
+  }, [results, searchType]);
 
   const handleSearch = async (type: SearchType, params: any) => {
     setSearchParams({ ...params, searchType: type });
@@ -246,18 +305,57 @@ const Search = () => {
           {/* Results Subsection */}
           {!loading && results.length > 0 && (
             <div className="space-y-6">
-              {/* Search Summary */}
+              {/* Search Summary with Filters */}
               <div className="bg-[#171821]/95 backdrop-blur-md border border-white/30 rounded-lg shadow-2xl shadow-white/20 p-6">
-                <h2 className="text-2xl font-bold text-white mb-2">{getSearchSummary()}</h2>
-                <p className="text-white/60">{results.length} result{results.length !== 1 ? 's' : ''} found</p>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-2xl font-bold text-white">{getSearchSummary()}</h2>
+                  
+                  {/* Filter Button for Hotels */}
+                  {searchType === 'hotels' && (
+                    <Sheet>
+                      <SheetTrigger asChild>
+                        <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20 text-white">
+                          <SlidersHorizontal className="h-4 w-4 mr-2" />
+                          Filters
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent className="bg-[#171821] border-white/20 overflow-y-auto">
+                        <SheetHeader>
+                          <SheetTitle className="text-white">Filter Hotels</SheetTitle>
+                        </SheetHeader>
+                        <div className="mt-6">
+                          <HotelFilters
+                            filters={hotelFilters}
+                            onFiltersChange={setHotelFilters}
+                            maxPrice={maxPrice}
+                          />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  )}
+                </div>
+                <p className="text-white/60">
+                  {filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''} found
+                  {searchType === 'hotels' && filteredResults.length !== results.length && (
+                    <span className="ml-2 text-primary">
+                      (filtered from {results.length})
+                    </span>
+                  )}
+                </p>
               </div>
 
               {/* Results Grid */}
               <div className="bg-[#171821]/95 backdrop-blur-md border border-white/30 rounded-lg shadow-2xl shadow-white/20 p-6">
                 <h3 className="text-xl font-semibold text-white mb-4">Available Options</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {results.map((item: any, index: number) => (
+                {filteredResults.length === 0 && searchType === 'hotels' ? (
+                  <div className="text-center py-12">
+                    <p className="text-white/60 text-lg mb-2">No hotels match your filters</p>
+                    <p className="text-white/40 text-sm">Try adjusting your filter criteria</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredResults.map((item: any, index: number) => (
                     <div key={index} className="relative group">
                       {/* Card Content */}
                       <div className="h-full">
@@ -288,7 +386,8 @@ const Search = () => {
                       </div>
                     </div>
                   ))}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
