@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useExpediaAPI } from './useExpediaAPI';
+import { useBookingAPI } from './useBookingAPI';
 import { useToast } from '@/hooks/use-toast';
 
 export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages';
@@ -9,7 +9,7 @@ export const useSearchOrchestrator = () => {
   const [results, setResults] = useState<any[]>([]);
   const [searchType, setSearchType] = useState<SearchType | null>(null);
 
-  const { searchHotels, searchFlights, searchActivities } = useExpediaAPI();
+  const { searchHotels, searchDestinations } = useBookingAPI();
   const { toast } = useToast();
 
   const executeSearch = async (type: SearchType, params: any) => {
@@ -22,14 +22,35 @@ export const useSearchOrchestrator = () => {
       let searchResults: any[] = [];
 
       switch (type) {
-        case 'hotels': {
-          console.log('🏨 Searching real hotels via Expedia API...');
+      case 'hotels': {
+          console.log('🏨 Searching real hotels via Booking.com API...');
+          
+          // First, get destination ID from destination name
+          const { data: destData, error: destError } = await searchDestinations(params.destination);
+          
+          if (destError || !destData?.data?.[0]) {
+            console.error('🏨 Destination search error:', destError);
+            toast({
+              title: 'Destination Not Found',
+              description: 'Could not find the destination. Please try a different location.',
+              variant: 'default',
+            });
+            searchResults = [];
+            break;
+          }
+          
+          const destId = destData.data[0].dest_id;
+          const searchType = destData.data[0].dest_type;
+          
+          console.log('🏨 Found destination:', { destId, searchType });
+          
           const { data, error } = await searchHotels({
-            destination: params.destination,
-            checkin: params.checkin,
-            checkout: params.checkout,
+            dest_id: destId,
+            search_type: searchType,
+            arrival_date: params.checkin,
+            departure_date: params.checkout,
             adults: params.adults || 2,
-            rooms: params.rooms || 1,
+            room_qty: params.rooms || 1,
           });
 
           if (error) {
@@ -37,7 +58,7 @@ export const useSearchOrchestrator = () => {
             throw new Error(`Hotel search failed: ${error}`);
           }
 
-          if (!data?.hotels || data.hotels.length === 0) {
+          if (!data?.data?.hotels || data.data.hotels.length === 0) {
             console.log('🏨 No hotels found for search criteria');
             toast({
               title: 'No Hotels Found',
@@ -46,66 +67,31 @@ export const useSearchOrchestrator = () => {
             });
             searchResults = [];
           } else {
-            console.log('✅ Found', data.hotels.length, 'real hotels');
-            searchResults = data.hotels;
+            console.log('✅ Found', data.data.hotels.length, 'real hotels');
+            searchResults = data.data.hotels;
           }
           break;
         }
 
-        case 'flights': {
-          console.log('✈️ Searching real flights via Expedia API...');
-          const { data, error } = await searchFlights({
-            origin: params.origin,
-            destination: params.destination,
-            departure_date: params.checkin,
-            return_date: params.checkout,
-            adults: params.adults || 1,
+      case 'flights': {
+          console.log('✈️ Flight search not yet implemented');
+          toast({
+            title: 'Coming Soon',
+            description: 'Flight search will be available soon.',
+            variant: 'default',
           });
-
-          if (error) {
-            console.error('✈️ Flight search API error:', error);
-            throw new Error(`Flight search failed: ${error}`);
-          }
-
-          if (!data?.flights || data.flights.length === 0) {
-            console.log('✈️ No flights found for search criteria');
-            toast({
-              title: 'No Flights Found',
-              description: 'Try adjusting your dates or airports.',
-              variant: 'default',
-            });
-            searchResults = [];
-          } else {
-            console.log('✅ Found', data.flights.length, 'real flights');
-            searchResults = data.flights;
-          }
+          searchResults = [];
           break;
         }
 
-        case 'activities': {
-          console.log('🎯 Searching real activities via Expedia API...');
-          const { data, error } = await searchActivities({
-            destination: params.destination,
-            date: params.checkin,
+      case 'activities': {
+          console.log('🎯 Activity search not yet implemented');
+          toast({
+            title: 'Coming Soon',
+            description: 'Activity search will be available soon.',
+            variant: 'default',
           });
-
-          if (error) {
-            console.error('🎯 Activity search API error:', error);
-            throw new Error(`Activity search failed: ${error}`);
-          }
-
-          if (!data?.activities || data.activities.length === 0) {
-            console.log('🎯 No activities found for search criteria');
-            toast({
-              title: 'No Activities Found',
-              description: 'Try a different location.',
-              variant: 'default',
-            });
-            searchResults = [];
-          } else {
-            console.log('✅ Found', data.activities.length, 'real activities');
-            searchResults = data.activities;
-          }
+          searchResults = [];
           break;
         }
 
@@ -120,50 +106,14 @@ export const useSearchOrchestrator = () => {
           break;
         }
 
-        case 'packages': {
-          console.log('📦 Searching real packages (hotels + flights)...');
-          const [hotelResponse, flightResponse] = await Promise.all([
-            searchHotels({
-              destination: params.destination,
-              checkin: params.checkin,
-              checkout: params.checkout,
-              adults: params.adults || 2,
-              rooms: params.rooms || 1,
-            }),
-            searchFlights({
-              origin: params.origin,
-              destination: params.destination,
-              departure_date: params.checkin,
-              return_date: params.checkout,
-              adults: params.adults || 1,
-            }),
-          ]);
-
-          if (hotelResponse.error || flightResponse.error) {
-            console.error('📦 Package search error');
-            throw new Error('Package search failed: ' + (hotelResponse.error || flightResponse.error));
-          }
-
-          const hotels = hotelResponse.data?.hotels || [];
-          const flights = flightResponse.data?.flights || [];
-
-          if (hotels.length === 0 || flights.length === 0) {
-            console.log('📦 Incomplete package data');
-            toast({
-              title: 'Limited Availability',
-              description: hotels.length === 0 ? 'No hotels available' : 'No flights available',
-              variant: 'default',
-            });
-            searchResults = [];
-          } else {
-            searchResults = hotels.slice(0, 5).map((hotel: any, idx: number) => ({
-              id: `package-${idx}`,
-              hotel,
-              flight: flights[idx % flights.length],
-              totalPrice: (hotel.price || 0) + (flights[idx % flights.length]?.price || 0),
-            }));
-            console.log('✅ Created', searchResults.length, 'real packages');
-          }
+      case 'packages': {
+          console.log('📦 Package search not yet implemented');
+          toast({
+            title: 'Coming Soon',
+            description: 'Package search will be available soon.',
+            variant: 'default',
+          });
+          searchResults = [];
           break;
         }
       }
