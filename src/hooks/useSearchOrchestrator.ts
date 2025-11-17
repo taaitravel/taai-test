@@ -68,7 +68,29 @@ export const useSearchOrchestrator = () => {
             searchResults = [];
           } else {
             console.log('✅ Found', data.data.hotels.length, 'real hotels');
-            searchResults = data.data.hotels;
+            
+            // Transform Booking.com response to expected format
+            searchResults = data.data.hotels.map((hotel: any) => ({
+              id: hotel.hotel_id,
+              name: hotel.property?.name || hotel.accessibilityLabel?.split('.')[0] || 'Unknown Hotel',
+              images: hotel.property?.photoUrls || [],
+              rating: hotel.property?.reviewScore || hotel.property?.accuratePropertyClass || 0,
+              class: hotel.property?.propertyClass || 0,
+              review_score: hotel.property?.reviewScore || 0,
+              review_count: hotel.property?.reviewCount || 0,
+              price: hotel.property?.priceBreakdown?.grossPrice?.value || 0,
+              min_total_price: hotel.property?.priceBreakdown?.grossPrice?.value || 0,
+              currency: hotel.property?.priceBreakdown?.grossPrice?.currency || 'USD',
+              location: hotel.property?.ufi ? `${hotel.property.latitude}, ${hotel.property.longitude}` : 'Location not available',
+              latitude: hotel.property?.latitude,
+              longitude: hotel.property?.longitude,
+              description: hotel.accessibilityLabel || '',
+              amenities: [],
+              hotel_facilities: [],
+              checkin: hotel.property?.checkin,
+              checkout: hotel.property?.checkout,
+              _original: hotel
+            }));
           }
           break;
         }
