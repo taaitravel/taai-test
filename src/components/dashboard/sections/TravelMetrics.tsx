@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Map, BarChart3 } from "lucide-react";
 import { CountriesMap } from "@/components/CountriesMap";
 import { FlightProgressIndicator } from "../FlightProgressIndicator";
-
 interface TravelMetricsProps {
   userStats: {
     totalTrips: number;
@@ -16,18 +15,17 @@ interface TravelMetricsProps {
   visitedCountries: string[];
   activeItineraries?: any[];
 }
-
-export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }: TravelMetricsProps) => {
+export const TravelMetrics = ({
+  userStats,
+  visitedCountries,
+  activeItineraries
+}: TravelMetricsProps) => {
   // Rank trips by spending amount (highest to lowest)
-  const rankedTrips = (activeItineraries || [])
-    .filter(itinerary => itinerary.spending && Number(itinerary.spending) > 0)
-    .map(itinerary => ({
-      name: itinerary.title || itinerary.itin_name || 'Unnamed Trip',
-      spending: Number(itinerary.spending) || 0,
-      date: itinerary.start_date || itinerary.itin_date_start,
-    }))
-    .sort((a, b) => b.spending - a.spending)
-    .slice(0, 5); // Top 5 most expensive trips
+  const rankedTrips = (activeItineraries || []).filter(itinerary => itinerary.spending && Number(itinerary.spending) > 0).map(itinerary => ({
+    name: itinerary.title || itinerary.itin_name || 'Unnamed Trip',
+    spending: Number(itinerary.spending) || 0,
+    date: itinerary.start_date || itinerary.itin_date_start
+  })).sort((a, b) => b.spending - a.spending).slice(0, 5); // Top 5 most expensive trips
 
   const formatMonthYear = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -36,16 +34,10 @@ export const TravelMetrics = ({ userStats, visitedCountries, activeItineraries }
     const year = String(date.getFullYear()).slice(-2);
     return `${month}/${year}`;
   };
-
-
-return (
-    <Card className="border-white/30 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md p-5">
+  return <Card className="border-white/30 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md p-5">
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-xl font-bold text-white">Travel Metrics</h2>
-        <Button 
-          size="sm"
-          className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-        >
+        <Button size="sm" className="gold-gradient hover:opacity-90 text-[#171821] font-semibold">
           View Metrics
         </Button>
       </div>
@@ -61,10 +53,7 @@ return (
               </div>
             </div>
             <div className="flex justify-center">
-              <FlightProgressIndicator 
-                currentFlights={Number(userStats.flightsThisYear)} 
-                currentLevel={userStats.travelerLevel}
-              />
+              <FlightProgressIndicator currentFlights={Number(userStats.flightsThisYear)} currentLevel={userStats.travelerLevel} />
             </div>
           </CardContent>
         </Card>
@@ -75,7 +64,7 @@ return (
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-sm font-medium text-white/70 mb-1">Countries Visited</p>
-                <p className="text-2xl font-bold text-white">{visitedCountries.length}</p>
+                <p className="font-bold text-white text-4xl">{visitedCountries.length}</p>
               </div>
               <Map className="h-6 w-6 text-white/70" />
             </div>
@@ -93,17 +82,12 @@ return (
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-sm font-medium text-white/70 mb-1">Lifetime Total Spent</p>
-                <p className="text-2xl font-bold text-white">${userStats.totalSpent.toLocaleString()}</p>
+                <p className="text-white font-sans font-bold text-4xl">${userStats.totalSpent.toLocaleString()}</p>
               </div>
               <BarChart3 className="h-6 w-6 text-white/70" />
             </div>
             <div className="space-y-2">
-              {rankedTrips.length > 0 ? (
-                rankedTrips.map((trip, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-                  >
+              {rankedTrips.length > 0 ? rankedTrips.map((trip, index) => <div key={index} className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span className="text-xs font-bold text-white/50 w-4">#{index + 1}</span>
                       <span className="text-sm text-white/90 truncate">{trip.name}</span>
@@ -112,13 +96,9 @@ return (
                       <span className="text-xs text-white/60">{formatMonthYear(trip.date)}</span>
                       <span className="text-sm font-bold text-white">${trip.spending.toLocaleString()}</span>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-white/50 text-sm">
+                  </div>) : <div className="text-center py-8 text-white/50 text-sm">
                   No trip spending data yet
-                </div>
-              )}
+                </div>}
             </div>
           </CardContent>
         </Card>
@@ -127,17 +107,17 @@ return (
         <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm hidden md:block">
           <CardContent className="p-3">
             <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 rounded-2xl">
                 <span className="text-sm text-white/70">Total Trips</span>
-                <span className="text-lg font-bold text-white">{userStats.totalTrips}</span>
+                <span className="font-bold text-white text-2xl">{userStats.totalTrips}</span>
               </div>
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <span className="text-sm text-white/70">Cities Visited</span>
-                <span className="text-lg font-bold text-white">{userStats.citiesVisited}</span>
+                <span className="text-white font-bold text-2xl">{userStats.citiesVisited}</span>
               </div>
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <span className="text-sm text-white/70">Flights YTD</span>
-                <span className="text-lg font-bold text-white">{Number(userStats.flightsThisYear)}</span>
+                <span className="font-bold text-white text-2xl">{Number(userStats.flightsThisYear)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/70">Traveler Level</span>
@@ -149,6 +129,5 @@ return (
           </CardContent>
         </Card>
       </div>
-    </Card>
-  );
+    </Card>;
 };
