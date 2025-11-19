@@ -17,21 +17,42 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return Math.round(R * c);
 };
 
-// Reverse geocode coordinates to city name
+// Reverse geocode coordinates to city name using Mapbox
 const getCityName = async (lat: number, lon: number): Promise<string> => {
   try {
-    const { data, error } = await supabase.functions.invoke('enhance-city-formatting', {
-      body: { locations: [{ latitude: lat, longitude: lon }] }
-    });
+    // Get Mapbox token
+    const { data: tokenData, error: tokenError } = await supabase.functions.invoke('get-mapbox-token');
     
-    if (error || !data?.locations?.[0]) {
-      return 'Location';
+    if (tokenError || !tokenData?.token) {
+      console.warn('Failed to get Mapbox token');
+      return `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
     }
     
-    return data.locations[0].city || data.locations[0].name || 'Location';
+    // Reverse geocode: coordinates to place name
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?access_token=${tokenData.token}&types=place,region&limit=1`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.warn('Mapbox reverse geocoding failed');
+      return `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+    }
+    
+    const data = await response.json();
+    const feature = data.features?.[0];
+    
+    if (!feature) {
+      return `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+    }
+    
+    const city = feature.text || '';
+    const context = feature.context || [];
+    const countryContext = context.find((c: any) => c.id?.startsWith('country.'));
+    const country = countryContext?.text || '';
+    
+    return country ? `${city}, ${country}` : city;
   } catch (err) {
-    console.error('Geocoding error:', err);
-    return 'Location';
+    console.error('Error getting city name:', err);
+    return `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
   }
 };
 
