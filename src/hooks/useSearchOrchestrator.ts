@@ -109,6 +109,18 @@ export const useSearchOrchestrator = () => {
 
           if (error) {
             console.error('🏨 Hotel search API error:', error);
+            
+            // Check for quota exceeded error
+            if (error.includes('QUOTA_EXCEEDED') || error.includes('429') || error.includes('exceeded the MONTHLY quota')) {
+              toast({
+                title: 'API Quota Exceeded',
+                description: 'The hotel search API has reached its limit. Please try again later or contact support.',
+                variant: 'destructive',
+              });
+              searchResults = [];
+              break;
+            }
+            
             throw new Error(`Hotel search failed: ${error}`);
           }
 

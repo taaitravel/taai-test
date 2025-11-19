@@ -76,6 +76,21 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text()
       console.error('🏨 Booking.com API error:', response.status, errorText)
+      
+      // Handle rate limit / quota exceeded errors
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'QUOTA_EXCEEDED',
+            message: 'The Booking.com API quota has been exceeded. Please try again later or contact support to upgrade your plan.'
+          }),
+          { 
+            status: 429, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+      
       throw new Error(`API request failed: ${response.status} ${errorText}`)
     }
 
