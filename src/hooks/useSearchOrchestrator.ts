@@ -80,8 +80,32 @@ export const useSearchOrchestrator = () => {
           // First, get destination ID from destination name
           const { data: destData, error: destError } = await searchDestinations(params.destination);
           
-          if (destError || !destData?.data?.[0]) {
+          console.log('🏨 Destination API Response:', { 
+            destData, 
+            destError,
+            fullResponse: JSON.stringify(destData, null, 2)
+          });
+          
+          // Handle different response structures
+          if (destError) {
             console.error('🏨 Destination search error:', destError);
+            toast({
+              title: 'Destination Search Failed',
+              description: `Error: ${destError}`,
+              variant: 'destructive',
+            });
+            searchResults = [];
+            break;
+          }
+
+          // Try different possible response structures
+          let destinations = destData?.data || destData?.destinations || destData;
+          if (!Array.isArray(destinations)) {
+            destinations = [destinations];
+          }
+
+          if (!destinations || destinations.length === 0 || !destinations[0]) {
+            console.error('🏨 No destinations found in response:', destData);
             toast({
               title: 'Destination Not Found',
               description: 'Could not find the destination. Please try a different location.',
@@ -91,12 +115,13 @@ export const useSearchOrchestrator = () => {
             break;
           }
           
-          const destId = destData.data[0].dest_id;
-          const destType = destData.data[0].dest_type;
-          const searchLat = destData.data[0].latitude;
-          const searchLon = destData.data[0].longitude;
+          const destination = destinations[0];
+          const destId = destination.dest_id || destination.id;
+          const destType = destination.dest_type || destination.type || 'city';
+          const searchLat = destination.latitude || destination.lat;
+          const searchLon = destination.longitude || destination.lon || destination.lng;
           
-          console.log('🏨 Found destination:', { destId, destType, searchLat, searchLon });
+          console.log('🏨 Found destination:', { destId, destType, searchLat, searchLon, fullDestination: destination });
           
           const { data, error } = await searchHotels({
             dest_id: destId,
