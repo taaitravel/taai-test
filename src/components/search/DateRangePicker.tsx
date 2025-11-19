@@ -52,15 +52,15 @@ export const DateRangePicker = ({
               <Button
                 variant="outline"
                 className={cn(
-                  'flex-1 justify-start text-left font-normal bg-white/5 border-white/10 h-auto py-1.5 px-2.5 hover:bg-white/10',
+                  'flex-1 justify-start text-left font-normal bg-white/5 border-white/10 h-auto py-1.5 px-2 hover:bg-white/10',
                   !startDate && 'text-white/50'
                 )}
                 onClick={() => setSelectingEnd(false)}
               >
-                <CalendarIcon className="mr-1.5 h-3 w-3 flex-shrink-0" />
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] text-white/50 uppercase tracking-wide">{startLabel}</span>
-                  <span className="text-xs">{startDate ? format(startDate, 'MMM dd') : 'Select'}</span>
+                <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
+                <div className="flex items-center gap-2 w-full">
+                  <span className="text-xs text-white/50 w-[25%]">{startLabel}</span>
+                  <span className="text-sm w-[75%]">{startDate ? format(startDate, 'MMM dd') : 'Select'}</span>
                 </div>
               </Button>
             </PopoverTrigger>
@@ -83,7 +83,7 @@ export const DateRangePicker = ({
           <Button
             variant="outline"
             className={cn(
-              'flex-1 justify-start text-left font-normal bg-white/5 border-white/10 h-auto py-1.5 px-2.5 hover:bg-white/10',
+              'flex-1 justify-start text-left font-normal bg-white/5 border-white/10 h-auto py-1.5 px-2 hover:bg-white/10',
               !endDate && 'text-white/50'
             )}
             onClick={() => {
@@ -91,10 +91,10 @@ export const DateRangePicker = ({
               setIsOpen(true);
             }}
           >
-            <CalendarIcon className="mr-1.5 h-3 w-3 flex-shrink-0" />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[9px] text-white/50 uppercase tracking-wide">{endLabel}</span>
-              <span className="text-xs">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
+            <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
+            <div className="flex items-center gap-2 w-full">
+              <span className="text-xs text-white/50 w-[25%]">{endLabel}</span>
+              <span className="text-sm w-[75%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
             </div>
           </Button>
         </div>
