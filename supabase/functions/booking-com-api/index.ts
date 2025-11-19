@@ -82,10 +82,11 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             error: 'QUOTA_EXCEEDED',
-            message: 'The Booking.com API quota has been exceeded. Please try again later or contact support to upgrade your plan.'
+            message: 'The Booking.com API quota has been exceeded. Please try again later or contact support to upgrade your plan.',
+            statusCode: 429
           }),
           { 
-            status: 429, 
+            status: 200, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         )

@@ -39,26 +39,36 @@ export const useBookingAPI = () => {
         }
       });
 
-      // Check if this is a quota exceeded error (can be in data or error)
-      const isQuotaError = 
-        (data?.error === 'QUOTA_EXCEEDED') || 
-        (error?.message?.includes('QUOTA_EXCEEDED')) ||
-        (error?.message?.includes('429'));
-
       if (error) {
         console.error('🏨 Booking.com API error:', error);
-        
-        // Don't show toast for quota errors - let the caller handle it
-        if (!isQuotaError) {
+        toast({
+          title: "API Error",
+          description: error.message || "Failed to call Booking.com API",
+          variant: "destructive",
+        });
+        return { data: null, error: error.message, loading: false };
+      }
+
+      // Handle API-level errors sent back with 2xx status (like QUOTA_EXCEEDED)
+      if (data && (data as any).error) {
+        const apiError = (data as any).error as string;
+        const apiMessage = (data as any).message as string | undefined;
+
+        if (apiError === 'QUOTA_EXCEEDED') {
           toast({
-            title: "API Error",
-            description: error.message || "Failed to call Booking.com API",
-            variant: "destructive",
+            title: 'API Quota Exceeded',
+            description: apiMessage || 'The hotel search API has reached its limit. Please try again later or contact support.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'API Error',
+            description: apiMessage || apiError || 'Failed to call Booking.com API',
+            variant: 'destructive',
           });
         }
-        
-        // Return the error message (quota errors will be handled by caller)
-        return { data: null, error: data?.error || error.message, loading: false };
+
+        return { data: null, error: apiError, loading: false };
       }
 
       console.log('🏨 Booking.com API success:', data);
