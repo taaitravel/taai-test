@@ -162,43 +162,43 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6">
+    <form onSubmit={handleSubmit} className="p-4">
       <Tabs value={searchType} onValueChange={(v) => setSearchType(v as SearchType)}>
-        <TabsList className="grid grid-cols-5 bg-[#1a1b26]/80 border border-white/10 mb-6 h-auto">
+        <TabsList className="grid grid-cols-5 bg-[#1a1c2e] border border-white/10 mb-4 h-auto p-1">
           <TabsTrigger 
             value="flights" 
-            className="flex flex-col md:flex-row items-center gap-2 py-3 text-white/70 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-gradient-to-b data-[state=active]:from-primary/20 data-[state=active]:to-primary/10 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
           >
-            <Plane className="h-5 w-5" />
-            <span className="text-xs md:text-sm">Flights</span>
+            <Plane className="h-4 w-4" />
+            <span>Flights</span>
           </TabsTrigger>
           <TabsTrigger 
             value="hotels"
-            className="flex flex-col md:flex-row items-center gap-2 py-3 text-white/70 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-gradient-to-b data-[state=active]:from-primary/20 data-[state=active]:to-primary/10 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
           >
-            <Hotel className="h-5 w-5" />
-            <span className="text-xs md:text-sm">Hotels</span>
+            <Hotel className="h-4 w-4" />
+            <span>Hotels</span>
           </TabsTrigger>
           <TabsTrigger 
             value="cars"
-            className="flex flex-col md:flex-row items-center gap-2 py-3 text-white/70 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-gradient-to-b data-[state=active]:from-primary/20 data-[state=active]:to-primary/10 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
           >
-            <Car className="h-5 w-5" />
-            <span className="text-xs md:text-sm">Cars</span>
+            <Car className="h-4 w-4" />
+            <span>Cars</span>
           </TabsTrigger>
           <TabsTrigger 
             value="activities"
-            className="flex flex-col md:flex-row items-center gap-2 py-3 text-white/70 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-gradient-to-b data-[state=active]:from-primary/20 data-[state=active]:to-primary/10 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
           >
-            <Activity className="h-5 w-5" />
-            <span className="text-xs md:text-sm">Activities</span>
+            <Activity className="h-4 w-4" />
+            <span>Activities</span>
           </TabsTrigger>
           <TabsTrigger 
             value="packages"
-            className="flex flex-col md:flex-row items-center gap-2 py-3 text-white/70 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-gradient-to-b data-[state=active]:from-primary/20 data-[state=active]:to-primary/10 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
           >
-            <Package className="h-5 w-5" />
-            <span className="text-xs md:text-sm">Packages</span>
+            <Package className="h-4 w-4" />
+            <span>Packages</span>
           </TabsTrigger>
         </TabsList>
 
@@ -301,7 +301,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
       {/* Search Button */}
       <Button
         type="submit"
-        className="w-full mt-6 h-12 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+        className="w-full mt-4 h-11 gold-gradient hover:opacity-90 text-white font-semibold"
         disabled={!isFormValid()}
       >
         <Search className="mr-2 h-5 w-5" />

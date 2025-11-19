@@ -16,36 +16,36 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-3 pointer-events-auto bg-[#1a1c2e] rounded-lg", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
+        caption: "flex justify-center pt-1 relative items-center text-white",
         caption_label: "text-sm font-medium",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          "h-7 w-7 bg-white/5 border-white/10 p-0 text-white/70 hover:bg-white/10 hover:text-white"
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
-          "text-white/70 rounded-md w-9 font-normal text-[0.8rem]",
+          "text-white/50 rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-gradient-to-r [&:has([aria-selected].day-outside)]:from-[hsl(351,85%,75%)] [&:has([aria-selected].day-outside)]:via-[hsl(15,80%,70%)] [&:has([aria-selected].day-outside)]:to-[hsl(25,75%,65%)] [&:has([aria-selected])]:bg-gradient-to-r [&:has([aria-selected])]:from-[hsl(351,85%,75%)] [&:has([aria-selected])]:via-[hsl(15,80%,70%)] [&:has([aria-selected])]:to-[hsl(25,75%,65%)] first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected])]:bg-gradient-to-r [&:has([aria-selected])]:from-[hsl(351,85%,75%)] [&:has([aria-selected])]:via-[hsl(15,80%,70%)] [&:has([aria-selected])]:to-[hsl(25,75%,65%)] first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-white/60 hover:bg-white/10 hover:text-white"
+          "h-9 w-9 p-0 font-normal text-white/50 hover:bg-white/10 hover:text-white transition-colors"
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-white text-black hover:bg-white hover:text-black focus:bg-white focus:text-black font-semibold",
-        day_today: "bg-white/20 text-white font-medium",
+          "!bg-gradient-to-r !from-[hsl(351,85%,75%)] !via-[hsl(15,80%,70%)] !to-[hsl(25,75%,65%)] text-white hover:opacity-90 focus:opacity-90 font-semibold",
+        day_today: "bg-white/10 text-white font-medium border border-white/20",
         day_outside:
-          "day-outside text-white/30 opacity-50 aria-selected:bg-gradient-to-r aria-selected:from-[hsl(351,85%,75%)] aria-selected:via-[hsl(15,80%,70%)] aria-selected:to-[hsl(25,75%,65%)] aria-selected:text-white aria-selected:opacity-100",
-        day_disabled: "text-white/20 opacity-30",
+          "day-outside text-white/20 opacity-40",
+        day_disabled: "text-white/10 opacity-20 cursor-not-allowed",
         day_range_middle:
           "aria-selected:bg-gradient-to-r aria-selected:from-[hsl(351,85%,75%)] aria-selected:via-[hsl(15,80%,70%)] aria-selected:to-[hsl(25,75%,65%)] aria-selected:text-white",
         day_hidden: "invisible",

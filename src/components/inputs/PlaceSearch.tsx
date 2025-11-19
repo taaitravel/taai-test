@@ -190,7 +190,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
 
   return (
     <div ref={containerRef} className="relative">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-xs font-medium text-white/70 mb-1.5 block">{label}</Label>
       <Input
         id={id}
         placeholder={placeholder}
@@ -200,10 +200,10 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        className="bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary"
+        className="bg-white/5 text-white border-white/10 focus-visible:ring-2 focus-visible:ring-primary/50 h-9 text-sm placeholder:text-white/40"
       />
       {open && (results.length > 0 || loading) && (
-        <div className={dropdownBase}>
+        <div className={`${dropdownBase} bg-[#1a1c2e] border-white/10`}>
           {loading && <div className="px-3 py-2 text-sm opacity-70">Searching…</div>}
           {!loading && results.map((r) => (
             <button
