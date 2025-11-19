@@ -59,8 +59,8 @@ export const DateRangePicker = ({
               >
                 <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
                 <div className="flex items-center gap-2 w-full">
-                  <span className="text-xs text-white/50 w-[25%]">{startLabel}</span>
-                  <span className="text-sm w-[75%]">{startDate ? format(startDate, 'MMM dd') : 'Select'}</span>
+                  <span className="text-xs text-white/50 w-[15%]">{startLabel}</span>
+                  <span className="text-sm w-[85%]">{startDate ? format(startDate, 'MMM dd') : 'Select'}</span>
                 </div>
               </Button>
             </PopoverTrigger>
@@ -93,8 +93,8 @@ export const DateRangePicker = ({
           >
             <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
             <div className="flex items-center gap-2 w-full">
-              <span className="text-xs text-white/50 w-[25%]">{endLabel}</span>
-              <span className="text-sm w-[75%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
+              <span className="text-xs text-white/50 w-[15%]">{endLabel}</span>
+              <span className="text-sm w-[85%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
             </div>
           </Button>
         </div>
