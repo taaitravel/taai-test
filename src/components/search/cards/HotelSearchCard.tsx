@@ -32,10 +32,10 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
       <div className="p-4 flex-1 flex flex-col justify-between bg-gradient-to-br from-card/50 to-card/30 backdrop-blur-sm border border-white/10 rounded-b-lg">
         <div>
           <div className="text-2xl mb-2 opacity-60">🏨</div>
-          <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2">
+          <h4 className="font-bold text-white text-base mb-1 line-clamp-2">
             {hotel.name}
           </h4>
-          <p className="text-white/50 text-sm mb-2 flex items-center gap-1">
+          <p className="text-white/60 text-sm mb-2 flex items-center gap-1">
             <MapPin className="h-3 w-3" />
             {location}
           </p>
