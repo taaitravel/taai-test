@@ -93,7 +93,7 @@ export const SearchResultsMap = ({ results }: SearchResultsMapProps) => {
     return () => {
       markers.forEach(marker => marker.remove());
     };
-  }, [results, map.current]);
+  }, [results]);
 
   if (loading) {
     return (
