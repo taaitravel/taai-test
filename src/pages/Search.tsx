@@ -1,11 +1,8 @@
 import { useState, useMemo } from 'react';
 import { MobileNavigation } from '@/components/shared/MobileNavigation';
 import { AdaptiveSearchForm, SearchType } from '@/components/search/AdaptiveSearchForm';
-import { HotelSearchCard } from '@/components/search/cards/HotelSearchCard';
-import { FlightSearchCard } from '@/components/search/cards/FlightSearchCard';
-import { ActivitySearchCard } from '@/components/search/cards/ActivitySearchCard';
-import { CarSearchCard } from '@/components/search/cards/CarSearchCard';
-import { PackageSearchCard } from '@/components/search/cards/PackageSearchCard';
+import { SearchResultsGrid } from '@/components/search/SearchResultsGrid';
+import { SearchResultsMap } from '@/components/search/SearchResultsMap';
 import { ItineraryMatcherModal } from '@/components/search/ItineraryMatcherModal';
 import { HotelFilters, HotelFilterState } from '@/components/search/HotelFilters';
 import { useSearchOrchestrator } from '@/hooks/useSearchOrchestrator';
@@ -13,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Loader2, SlidersHorizontal } from 'lucide-react';
+import { Loader2, SlidersHorizontal, LayoutGrid, Map } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -22,6 +19,7 @@ const Search = () => {
   const [searchParams, setSearchParams] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showItineraryModal, setShowItineraryModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [hotelFilters, setHotelFilters] = useState<HotelFilterState>({
     priceRange: [0, 1000],
     starRatings: [],
@@ -344,49 +342,43 @@ const Search = () => {
                 </p>
               </div>
 
-              {/* Results Grid */}
+              {/* View Toggle (for hotels and activities) */}
+              {(searchType === 'hotels' || searchType === 'activities') && (
+                <div className="flex gap-2 justify-center">
+                  <Button 
+                    onClick={() => setViewMode('grid')} 
+                    variant={viewMode === 'grid' ? 'default' : 'outline'}
+                    className={viewMode === 'grid' ? 'bg-primary text-white' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}
+                  >
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    Grid View
+                  </Button>
+                  <Button 
+                    onClick={() => setViewMode('map')} 
+                    variant={viewMode === 'map' ? 'default' : 'outline'}
+                    className={viewMode === 'map' ? 'bg-primary text-white' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}
+                  >
+                    <Map className="h-4 w-4 mr-2" />
+                    Map View
+                  </Button>
+                </div>
+              )}
+
+              {/* Results Display */}
               <div className="bg-[#171821]/95 backdrop-blur-md border border-white/30 rounded-lg shadow-2xl shadow-white/20 p-6">
-                <h3 className="text-xl font-semibold text-white mb-4">Available Options</h3>
-                
                 {filteredResults.length === 0 && searchType === 'hotels' ? (
                   <div className="text-center py-12">
                     <p className="text-white/60 text-lg mb-2">No hotels match your filters</p>
                     <p className="text-white/40 text-sm">Try adjusting your filter criteria</p>
                   </div>
+                ) : viewMode === 'map' && (searchType === 'hotels' || searchType === 'activities') ? (
+                  <SearchResultsMap results={filteredResults} />
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredResults.map((item: any, index: number) => (
-                    <div key={index} className="relative group">
-                      {/* Card Content */}
-                      <div className="h-full">
-                        {searchType === 'hotels' && <HotelSearchCard hotel={item} onExpand={() => {}} />}
-                        {searchType === 'flights' && <FlightSearchCard flight={item} onExpand={() => {}} />}
-                        {searchType === 'activities' && <ActivitySearchCard activity={item} onExpand={() => {}} />}
-                        {searchType === 'cars' && <CarSearchCard car={item} onExpand={() => {}} />}
-                        {searchType === 'packages' && <PackageSearchCard package={item} onExpand={() => {}} />}
-                      </div>
-
-                      {/* Action Buttons Overlay */}
-                      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => handleAddToWishlist(item)}
-                          className="bg-white/90 hover:bg-white text-black shadow-lg"
-                        >
-                          ♥ Save
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleAddToItinerary(item)}
-                          className="bg-primary hover:bg-primary/90 text-white shadow-lg"
-                        >
-                          + Add
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  </div>
+                  <SearchResultsGrid 
+                    results={filteredResults} 
+                    searchType={searchType} 
+                    searchParams={searchParams}
+                  />
                 )}
               </div>
             </div>
