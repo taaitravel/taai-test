@@ -1,8 +1,39 @@
 import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages';
+
+// Calculate distance between two coordinates using Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 3959; // Earth's radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return Math.round(R * c);
+};
+
+// Reverse geocode coordinates to city name
+const getCityName = async (lat: number, lon: number): Promise<string> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('enhance-city-formatting', {
+      body: { locations: [{ latitude: lat, longitude: lon }] }
+    });
+    
+    if (error || !data?.locations?.[0]) {
+      return 'Location';
+    }
+    
+    return data.locations[0].city || data.locations[0].name || 'Location';
+  } catch (err) {
+    console.error('Geocoding error:', err);
+    return 'Location';
+  }
+};
 
 export const useSearchOrchestrator = () => {
   const [loading, setLoading] = useState(false);
@@ -40,13 +71,15 @@ export const useSearchOrchestrator = () => {
           }
           
           const destId = destData.data[0].dest_id;
-          const searchType = destData.data[0].dest_type;
+          const destType = destData.data[0].dest_type;
+          const searchLat = destData.data[0].latitude;
+          const searchLon = destData.data[0].longitude;
           
-          console.log('🏨 Found destination:', { destId, searchType });
+          console.log('🏨 Found destination:', { destId, destType, searchLat, searchLon });
           
           const { data, error } = await searchHotels({
             dest_id: destId,
-            search_type: searchType,
+            search_type: destType,
             arrival_date: params.checkin,
             departure_date: params.checkout,
             adults: params.adults || 2,
@@ -69,28 +102,62 @@ export const useSearchOrchestrator = () => {
           } else {
             console.log('✅ Found', data.data.hotels.length, 'real hotels');
             
-            // Transform Booking.com response to expected format
-            searchResults = data.data.hotels.map((hotel: any) => ({
-              id: hotel.hotel_id,
-              name: hotel.property?.name || hotel.accessibilityLabel?.split('.')[0] || 'Unknown Hotel',
-              images: hotel.property?.photoUrls || [],
-              rating: hotel.property?.reviewScore || hotel.property?.accuratePropertyClass || 0,
-              class: hotel.property?.propertyClass || 0,
-              review_score: hotel.property?.reviewScore || 0,
-              review_count: hotel.property?.reviewCount || 0,
-              price: Math.round((hotel.property?.priceBreakdown?.grossPrice?.value || 0) * 100) / 100,
-              min_total_price: Math.round((hotel.property?.priceBreakdown?.grossPrice?.value || 0) * 100) / 100,
-              currency: hotel.property?.priceBreakdown?.grossPrice?.currency || 'USD',
-              location: hotel.property?.ufi ? `${hotel.property.latitude}, ${hotel.property.longitude}` : 'Location not available',
-              latitude: hotel.property?.latitude,
-              longitude: hotel.property?.longitude,
-              description: hotel.accessibilityLabel || '',
-              amenities: [],
-              hotel_facilities: [],
-              checkin: hotel.property?.checkin,
-              checkout: hotel.property?.checkout,
-              _original: hotel
-            }));
+            // Calculate nights from checkin/checkout dates
+            const checkinDate = new Date(params.checkin);
+            const checkoutDate = new Date(params.checkout);
+            const nights = Math.ceil((checkoutDate.getTime() - checkinDate.getTime()) / (1000 * 60 * 60 * 24));
+            
+            // Transform Booking.com response to expected format with geocoding
+            const hotelsWithLocation = await Promise.all(
+              data.data.hotels.map(async (hotel: any) => {
+                const totalPrice = Math.round((hotel.property?.priceBreakdown?.grossPrice?.value || 0) * 100) / 100;
+                const pricePerNight = Math.round((totalPrice / nights) * 100) / 100;
+                
+                const hotelLat = hotel.property?.latitude;
+                const hotelLon = hotel.property?.longitude;
+                
+                // Get city name and distance
+                let cityName = 'Location';
+                let distanceFromSearch = 0;
+                
+                if (hotelLat && hotelLon) {
+                  cityName = await getCityName(hotelLat, hotelLon);
+                  if (searchLat && searchLon) {
+                    distanceFromSearch = calculateDistance(searchLat, searchLon, hotelLat, hotelLon);
+                  }
+                }
+                
+                return {
+                  id: hotel.hotel_id,
+                  name: hotel.property?.name || hotel.accessibilityLabel?.split('.')[0] || 'Unknown Hotel',
+                  images: hotel.property?.photoUrls || [],
+                  rating: hotel.property?.reviewScore || hotel.property?.accuratePropertyClass || 0,
+                  class: hotel.property?.propertyClass || 0,
+                  review_score: hotel.property?.reviewScore || 0,
+                  review_count: hotel.property?.reviewCount || 0,
+                  pricePerNight: pricePerNight,
+                  totalPrice: totalPrice,
+                  price: pricePerNight,
+                  min_total_price: totalPrice,
+                  nights: nights,
+                  currency: hotel.property?.priceBreakdown?.grossPrice?.currency || 'USD',
+                  location: `${cityName}, ${distanceFromSearch} mi`,
+                  cityName: cityName,
+                  distanceFromSearch: distanceFromSearch,
+                  latitude: hotelLat,
+                  longitude: hotelLon,
+                  description: hotel.accessibilityLabel || '',
+                  amenities: [],
+                  hotel_facilities: [],
+                  checkin: hotel.property?.checkin,
+                  checkout: hotel.property?.checkout,
+                  bookingUrl: hotel.property?.url || `https://www.booking.com/hotel/us/${hotel.hotel_id}.html`,
+                  _original: hotel
+                };
+              })
+            );
+            
+            searchResults = hotelsWithLocation;
           }
           break;
         }
