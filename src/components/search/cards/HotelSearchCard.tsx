@@ -29,7 +29,7 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
       )}
 
       {/* Card Content - Matching Itinerary Card Style */}
-      <div className="p-4 flex-1 flex flex-col justify-between bg-gradient-to-br from-card/50 to-card/30 backdrop-blur-sm border border-white/10 rounded-b-lg">
+      <div className="p-4 flex-1 flex flex-col justify-between bg-[#1a1c2e] border border-white/10 rounded-b-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
         <div>
           <div className="text-2xl mb-2 opacity-60">🏨</div>
           <h4 className="font-bold text-white text-base mb-1 line-clamp-2">

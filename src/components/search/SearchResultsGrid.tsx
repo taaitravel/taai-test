@@ -22,7 +22,7 @@ export const SearchResultsGrid = ({ results, searchType, searchParams }: SearchR
   return (
     <div className="space-y-6">
       {/* Grid layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {visibleResults.map((result, idx) => (
           <div key={result.id || idx} className="animate-fade-in">
             {searchType === 'hotels' && (
