@@ -57,19 +57,43 @@ const Itinerary = () => {
 
   const handleEditSubmit = async (type: ItemType, item: any) => {
     if (!itineraryData) return;
+    
+    // Check if editing a cart item
+    if (initialItem?.from_cart && initialItem?.cart_id) {
+      // Update cart_items record
+      const updateData: any = {
+        price: parseFloat(item.cost || item.price || 0),
+        item_data: {
+          ...item,
+          cost: parseFloat(item.cost || item.price || 0),
+          price: parseFloat(item.cost || item.price || 0),
+        },
+        updated_at: new Date().toISOString()
+      };
+      
+      const { error } = await supabase
+        .from('cart_items')
+        .update(updateData)
+        .eq('id', initialItem.cart_id);
+      
+      if (!error) {
+        setEditOpen(false);
+        refreshMapData();
+      }
+      return;
+    }
+    
+    // Legacy JSON editing
     const current = ((itineraryData as any)[type] || []) as any[];
     let updated;
     
     if (editIndex === -1) {
-      // Adding new item
       updated = [...current, item];
     } else {
-      // Editing existing item
       updated = [...current];
       updated[editIndex] = item;
     }
 
-    // Append geocoded location to itin_map_locations for Mapbox, when provided
     let newMapLocations = ([...(itineraryData.itin_map_locations || [])] as any[]);
     const loc = (item as any).location;
     if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
@@ -88,13 +112,47 @@ const Itinerary = () => {
     refreshMapData();
   };
 
+  const handleEdit = async (type: ItemType, index: number) => {
+    if (!itineraryData) return;
+    const items = ((itineraryData as any)[type] || []) as any[];
+    const item = items[index];
+    
+    // Check if this is a cart item
+    if (item?.from_cart && item?.cart_id) {
+      // For cart items, we'll edit the cart_items record
+      setEditType(type);
+      setEditIndex(index);
+      setInitialItem(item);
+      setEditOpen(true);
+    } else {
+      // For legacy JSON items
+      openEdit(type, index);
+    }
+  };
+
   const handleDelete = async (type: string, index: number) => {
     if (!itineraryData) return;
     const itemType = type as ItemType;
-    const current = ((itineraryData as any)[itemType] || []) as any[];
-    const updated = current.filter((_, i) => i !== index);
-    await supabase.from('itinerary').update({ [itemType]: updated }).eq('id', itineraryData.id);
-    refreshMapData();
+    const items = ((itineraryData as any)[itemType] || []) as any[];
+    const item = items[index];
+    
+    // Check if this is a cart item
+    if (item?.from_cart && item?.cart_id) {
+      // Delete from cart_items table
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('id', item.cart_id);
+      
+      if (!error) {
+        refreshMapData();
+      }
+    } else {
+      // Delete from legacy JSON array
+      const updated = items.filter((_, i) => i !== index);
+      await supabase.from('itinerary').update({ [itemType]: updated }).eq('id', itineraryData.id);
+      refreshMapData();
+    }
   };
 
   if (loading) {
@@ -116,6 +174,8 @@ const Itinerary = () => {
         onHotelClick={openHotelBrowser}
         onActivityClick={openActivityBrowser}
         onReservationClick={openReservationBrowser}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
         refreshMapData={refreshMapData}
       />
 

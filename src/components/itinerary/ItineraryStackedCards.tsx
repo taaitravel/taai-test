@@ -1,4 +1,4 @@
-import { Plane, MapPin, Calendar, Clock } from "lucide-react";
+import { Plane, Building, Calendar, Utensils } from "lucide-react";
 import { ItineraryStackedSection } from "./ItineraryStackedSection";
 import { 
   EnhancedHotelCardRenderer,
@@ -7,15 +7,11 @@ import {
   EnhancedReservationCardRenderer
 } from "./EnhancedStackedCardRenderer";
 
-interface ItineraryData {
+interface ItineraryStackedCardsProps {
   flights: any[];
   hotels: any[];
   activities: any[];
   reservations: any[];
-}
-
-interface ItineraryStackedCardsProps {
-  itineraryData: ItineraryData;
   onFlightClick: (index: number) => void;
   onHotelClick: (index: number) => void;
   onActivityClick: (index: number) => void;
@@ -24,10 +20,15 @@ interface ItineraryStackedCardsProps {
   onAddHotel?: () => void;
   onAddActivity?: () => void;
   onAddReservation?: () => void;
+  onEdit?: (type: any, index: number) => void;
+  onDelete?: (type: string, index: number) => void;
 }
 
 export const ItineraryStackedCards = ({
-  itineraryData,
+  flights,
+  hotels,
+  activities,
+  reservations,
   onFlightClick,
   onHotelClick,
   onActivityClick,
@@ -35,111 +36,60 @@ export const ItineraryStackedCards = ({
   onAddFlight,
   onAddHotel,
   onAddActivity,
-  onAddReservation
+  onAddReservation,
+  onEdit,
+  onDelete,
 }: ItineraryStackedCardsProps) => {
   return (
-    <div className="mb-8">
-      {/* Mobile Layout - Single column on small screens, 2 columns on medium */}
-      <div className="block sm:grid sm:grid-cols-2 lg:hidden gap-4 space-y-8 sm:space-y-0">
-        {/* All sections stacked vertically on mobile, side by side on sm+ */}
-        <div className="space-y-8">
-          <ItineraryStackedSection
-            title="Flights"
-            icon={Plane}
-            items={itineraryData.flights || []}
-            onCardClick={onFlightClick}
-            renderCard={EnhancedFlightCardRenderer}
-            emptyMessage="No flights booked"
-            onAddClick={onAddFlight}
-          />
-          <ItineraryStackedSection
-            title="Hotels"
-            icon={MapPin}
-            items={itineraryData.hotels || []}
-            onCardClick={onHotelClick}
-            renderCard={EnhancedHotelCardRenderer}
-            emptyMessage="No hotels booked"
-            onAddClick={onAddHotel}
-          />
-        </div>
-        
-        {/* Second column for medium screens and up */}
-        <div className="space-y-8">
-          <ItineraryStackedSection
-            title="Activities"
-            icon={Calendar}
-            items={itineraryData.activities || []}
-            onCardClick={onActivityClick}
-            renderCard={EnhancedActivityCardRenderer}
-            emptyMessage="No activities planned"
-            onAddClick={onAddActivity}
-          />
-          <ItineraryStackedSection
-            title="Reservations"
-            icon={Clock}
-            items={itineraryData.reservations || []}
-            onCardClick={onReservationClick}
-            renderCard={EnhancedReservationCardRenderer}
-            emptyMessage="No reservations made"
-            onAddClick={onAddReservation}
-          />
-        </div>
-      </div>
-
-      {/* Desktop Layout - 4 columns */}
-      <div className="hidden lg:grid lg:grid-cols-4 gap-6">
-        {/* Flights */}
-        <div>
-          <ItineraryStackedSection
-            title="Flights"
-            icon={Plane}
-            items={itineraryData.flights || []}
-            onCardClick={onFlightClick}
-            renderCard={EnhancedFlightCardRenderer}
-            emptyMessage="No flights booked"
-            onAddClick={onAddFlight}
-          />
-        </div>
-        
-        {/* Hotels */}
-        <div>
-          <ItineraryStackedSection
-            title="Hotels"
-            icon={MapPin}
-            items={itineraryData.hotels || []}
-            onCardClick={onHotelClick}
-            renderCard={EnhancedHotelCardRenderer}
-            emptyMessage="No hotels booked"
-            onAddClick={onAddHotel}
-          />
-        </div>
-
-        {/* Activities */}
-        <div>
-          <ItineraryStackedSection
-            title="Activities"
-            icon={Calendar}
-            items={itineraryData.activities || []}
-            onCardClick={onActivityClick}
-            renderCard={EnhancedActivityCardRenderer}
-            emptyMessage="No activities planned"
-            onAddClick={onAddActivity}
-          />
-        </div>
-        
-        {/* Reservations */}
-        <div>
-          <ItineraryStackedSection
-            title="Reservations"
-            icon={Clock}
-            items={itineraryData.reservations || []}
-            onCardClick={onReservationClick}
-            renderCard={EnhancedReservationCardRenderer}
-            emptyMessage="No reservations made"
-            onAddClick={onAddReservation}
-          />
-        </div>
-      </div>
+    <div className="space-y-8">
+      <ItineraryStackedSection
+        title="Flights"
+        icon={Plane}
+        items={flights}
+        itemType="flights"
+        onCardClick={onFlightClick}
+        renderCard={EnhancedFlightCardRenderer}
+        emptyMessage="No flights yet. Add a flight to get started!"
+        onAddClick={onAddFlight}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+      <ItineraryStackedSection
+        title="Hotels"
+        icon={Building}
+        items={hotels}
+        itemType="hotels"
+        onCardClick={onHotelClick}
+        renderCard={EnhancedHotelCardRenderer}
+        emptyMessage="No hotels yet. Add a hotel to get started!"
+        onAddClick={onAddHotel}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+      <ItineraryStackedSection
+        title="Activities"
+        icon={Calendar}
+        items={activities}
+        itemType="activities"
+        onCardClick={onActivityClick}
+        renderCard={EnhancedActivityCardRenderer}
+        emptyMessage="No activities yet. Add an activity to get started!"
+        onAddClick={onAddActivity}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+      <ItineraryStackedSection
+        title="Reservations"
+        icon={Utensils}
+        items={reservations}
+        itemType="reservations"
+        onCardClick={onReservationClick}
+        renderCard={EnhancedReservationCardRenderer}
+        emptyMessage="No reservations yet. Add a reservation to get started!"
+        onAddClick={onAddReservation}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
     </div>
   );
 };

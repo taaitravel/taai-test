@@ -58,12 +58,13 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
 
         console.log('🛒 Fetched cart items:', cartItems);
 
-        // Separate cart items by type
+        // Separate cart items by type and include cart_id for editing/deleting
         const cartFlights = (cartItems?.filter(item => item.type === 'flight') || []).map(item => ({
           ...(item.item_data as any),
           cost: item.price,
           booking_status: (item.item_data as any)?.bookingStatus || 'pending',
-          from_cart: true
+          from_cart: true,
+          cart_id: item.id
         }));
 
         const cartHotels = (cartItems?.filter(item => item.type === 'hotel') || []).map(item => ({
@@ -71,7 +72,8 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
           cost: item.price,
           city: (item.item_data as any)?.city || (item.item_data as any)?.location?.city,
           booking_status: (item.item_data as any)?.bookingStatus || 'pending',
-          from_cart: true
+          from_cart: true,
+          cart_id: item.id
         }));
 
         const cartActivities = (cartItems?.filter(item => item.type === 'activity') || []).map(item => ({
@@ -79,15 +81,28 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
           cost: item.price,
           city: (item.item_data as any)?.location?.city || (item.item_data as any)?.location,
           booking_status: (item.item_data as any)?.bookingStatus || 'pending',
-          from_cart: true
+          from_cart: true,
+          cart_id: item.id
         }));
 
         const cartReservations = (cartItems?.filter(item => item.type === 'reservation') || []).map(item => ({
           ...(item.item_data as any),
           cost: item.price,
           booking_status: (item.item_data as any)?.bookingStatus || 'pending',
-          from_cart: true
+          from_cart: true,
+          cart_id: item.id
         }));
+
+        // Calculate total spending from all cart items
+        const totalSpending = cartItems?.reduce((sum, item) => sum + item.price, 0) || 0;
+        
+        // Update itinerary spending in database if changed
+        if (totalSpending !== data.spending) {
+          await supabase
+            .from('itinerary')
+            .update({ spending: totalSpending })
+            .eq('id', data.id);
+        }
 
         // Transform and enhance data with cart items
         const transformedData: ItineraryData = {
