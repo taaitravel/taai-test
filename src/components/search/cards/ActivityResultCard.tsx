@@ -1,11 +1,89 @@
-import { MapPin, Clock, Star, Users } from 'lucide-react';
+import { MapPin, Clock, Star, Users, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ActivityResultCardProps {
   activity: any;
 }
 
 export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
+  const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
+
+  const handleAddToItinerary = async () => {
+    setSaving(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to save activities to your itinerary.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Get user's itineraries
+      const { data: itineraries, error: itinError } = await supabase
+        .from('itinerary')
+        .select('id, itin_name')
+        .eq('userid', user.id)
+        .order('created_at', { ascending: false });
+
+      if (itinError) throw itinError;
+
+      if (!itineraries || itineraries.length === 0) {
+        toast({
+          title: 'No Itineraries Found',
+          description: 'Please create an itinerary first before adding activities.',
+          variant: 'default',
+        });
+        return;
+      }
+
+      // For now, add to the most recent itinerary
+      const targetItinerary = itineraries[0];
+
+      // Save as cart item with reference to search
+      const { error: cartError } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: user.id,
+          itinerary_id: targetItinerary.id.toString(),
+          type: 'activity',
+          external_ref: activity.id,
+          price: activity.price || 0,
+          item_data: {
+            ...activity,
+            status: 'inactive',
+            savedAt: new Date().toISOString(),
+            source: 'search_result',
+          },
+        });
+
+      if (cartError) throw cartError;
+
+      toast({
+        title: 'Activity Saved',
+        description: `Added to "${targetItinerary.itin_name || 'Untitled Itinerary'}" as inactive booking.`,
+      });
+
+    } catch (error: any) {
+      console.error('Error saving activity:', error);
+      toast({
+        title: 'Save Failed',
+        description: error.message || 'Unable to save activity to itinerary.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Image */}
@@ -73,21 +151,24 @@ export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
           <p className="text-white/70 text-sm line-clamp-3">{activity.description}</p>
         )}
 
-        {/* Price */}
+        {/* Price and Actions */}
         <div className="pt-4 border-t border-white/10">
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-center justify-between">
             <div>
               <p className="text-white/60 text-sm">From</p>
-              <p className="text-3xl font-bold text-white">
+              <p className="text-3xl font-bold text-[#ff849c]">
                 ${activity.price || activity.cost || '75'}
               </p>
               <p className="text-white/60 text-xs">per person</p>
             </div>
-            {activity.availability && (
-              <Badge variant="outline" className="bg-green-500/20 border-green-500/50 text-green-500">
-                {activity.availability}
-              </Badge>
-            )}
+            <Button
+              onClick={handleAddToItinerary}
+              disabled={saving}
+              className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Add to Itinerary'}
+            </Button>
           </div>
         </div>
       </div>

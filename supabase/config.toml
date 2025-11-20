@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.amadeus-activities]
 verify_jwt = true
+
+[functions.amadeus-flights]
+verify_jwt = true

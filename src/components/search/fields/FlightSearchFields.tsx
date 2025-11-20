@@ -65,33 +65,41 @@ export const FlightSearchFields = ({
 
       {/* From/To with Swap */}
       <div className="grid md:grid-cols-[1fr_auto_1fr] gap-3 items-end">
-        <PlaceSearch
-          id="flight-origin"
-          label="From *"
-          placeholder="City or airport"
-          mode="city"
-          defaultQuery={origin}
-          onSelect={(place) => onOriginChange(place.name)}
-        />
+        <div>
+          <label className="text-sm font-medium text-white mb-2 block">From (Airport Code) *</label>
+          <input
+            type="text"
+            value={origin}
+            onChange={(e) => onOriginChange(e.target.value.toUpperCase())}
+            placeholder="e.g., JFK"
+            maxLength={3}
+            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <p className="text-xs text-white/40 mt-1">Use 3-letter airport code</p>
+        </div>
 
         <Button
           type="button"
           variant="ghost"
           size="icon"
           onClick={handleSwapLocations}
-          className="mb-0 hover:bg-white/10"
+          className="mb-6 hover:bg-white/10"
         >
           <ArrowLeftRight className="h-5 w-5 text-white/60" />
         </Button>
 
-        <PlaceSearch
-          id="flight-destination"
-          label="To *"
-          placeholder="City or airport"
-          mode="city"
-          defaultQuery={destination}
-          onSelect={(place) => onDestinationChange(place.name)}
-        />
+        <div>
+          <label className="text-sm font-medium text-white mb-2 block">To (Airport Code) *</label>
+          <input
+            type="text"
+            value={destination}
+            onChange={(e) => onDestinationChange(e.target.value.toUpperCase())}
+            placeholder="e.g., LAX"
+            maxLength={3}
+            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <p className="text-xs text-white/40 mt-1">Use 3-letter airport code</p>
+        </div>
       </div>
 
       {/* Dates */}

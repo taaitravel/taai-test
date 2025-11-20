@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
 import { useExpediaAPI } from './useExpediaAPI';
 import { useAmadeusActivities } from './useAmadeusActivities';
+import { useAmadeusFlights } from './useAmadeusFlights';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -66,6 +67,7 @@ export const useSearchOrchestrator = () => {
   const { searchHotels, searchDestinations } = useBookingAPI();
   const { searchHotels: searchExpediaHotels } = useExpediaAPI();
   const { searchActivities: searchAmadeusActivities } = useAmadeusActivities();
+  const { searchFlights: searchAmadeusFlights } = useAmadeusFlights();
   const { toast } = useToast();
 
   const executeSearch = async (type: SearchType, params: any) => {
@@ -218,15 +220,49 @@ export const useSearchOrchestrator = () => {
         }
 
       case 'flights': {
-          console.log('✈️ Flight search not implemented');
+          console.log('✈️ Searching flights via Amadeus...');
           
-          toast({
-            title: 'Coming Soon',
-            description: 'Flight search is not yet available. We\'re working on it!',
-            variant: 'default',
-          });
-          
-          searchResults = [];
+          try {
+            const { data, error } = await searchAmadeusFlights({
+              origin: params.origin,
+              destination: params.destination,
+              departureDate: params.departureDate,
+              returnDate: params.returnDate,
+              adults: params.adults || 1,
+              children: params.children || 0,
+              cabinClass: params.cabinClass || 'ECONOMY',
+            });
+
+            if (error || !data?.flights) {
+              console.error('Flight search error:', error);
+              toast({
+                title: 'Flight Search Failed',
+                description: 'Unable to find flights. Please check your airport codes and try again.',
+                variant: 'destructive',
+              });
+              searchResults = [];
+              break;
+            }
+
+            searchResults = data.flights;
+            console.log(`✅ Found ${searchResults.length} flights from Amadeus`);
+
+            if (searchResults.length === 0) {
+              toast({
+                title: 'No Flights Found',
+                description: 'Try adjusting your dates or airports.',
+                variant: 'default',
+              });
+            }
+          } catch (err: any) {
+            console.error('❌ Flight search failed:', err);
+            toast({
+              title: 'Search Failed',
+              description: err.message || 'Unable to search flights.',
+              variant: 'destructive',
+            });
+            searchResults = [];
+          }
           break;
         }
 
