@@ -28,15 +28,19 @@ export const useExpediaAPI = () => {
     setLoading(true);
     
     try {
-      console.log('🏨 Calling Expedia API:', { endpoint, method, params });
+      console.log('🏨 Calling Expedia API with params:', { endpoint, method, params, hasBody: !!body });
+      
+      const requestBody = {
+        endpoint: endpoint,
+        method: method,
+        params: params,
+        ...(body && { body: body })
+      };
+      
+      console.log('🏨 Request body being sent:', requestBody);
       
       const { data, error } = await supabase.functions.invoke('expedia-rapid-api', {
-        body: {
-          endpoint,
-          method,
-          params,
-          body
-        }
+        body: requestBody
       });
 
       if (error) {
