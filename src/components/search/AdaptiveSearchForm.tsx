@@ -153,7 +153,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
   const getSearchButtonText = () => {
     switch (searchType) {
       case 'flights': return 'Search Flights';
-      case 'hotels': return 'Find Hotels';
+      case 'hotels': return 'Find Properties';
       case 'cars': return 'Search Rental Cars';
       case 'activities': return 'Find Activities';
       case 'packages': return 'Search Package Deals';
@@ -166,6 +166,13 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
       <Tabs value={searchType} onValueChange={(v) => setSearchType(v as SearchType)}>
         <TabsList className="grid grid-cols-5 bg-[#1a1c2e] border border-white/10 mb-4 h-auto p-1">
           <TabsTrigger 
+            value="hotels"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
+          >
+            <Hotel className="h-4 w-4" />
+            <span>Properties</span>
+          </TabsTrigger>
+          <TabsTrigger 
             value="flights" 
             className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
           >
@@ -173,11 +180,11 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
             <span>Flights</span>
           </TabsTrigger>
           <TabsTrigger 
-            value="hotels"
+            value="activities"
             className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
           >
-            <Hotel className="h-4 w-4" />
-            <span>Hotels</span>
+            <Activity className="h-4 w-4" />
+            <span>Activities</span>
           </TabsTrigger>
           <TabsTrigger 
             value="cars"
@@ -185,13 +192,6 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
           >
             <Car className="h-4 w-4" />
             <span>Cars</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="activities"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
-          >
-            <Activity className="h-4 w-4" />
-            <span>Activities</span>
           </TabsTrigger>
           <TabsTrigger 
             value="packages"
