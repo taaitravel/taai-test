@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useExpediaAPI } from "@/hooks/useExpediaAPI";
 export interface PlaceResult {
   id?: string;
   name: string;
@@ -41,7 +40,6 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
   const containerRef = useRef<HTMLDivElement>(null);
   const [biasCoords, setBiasCoords] = useState<{ lat: number; lng: number } | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
-  const { getDestinations } = useExpediaAPI();
 
   // Resolve city name to coordinates for better provider results
   useEffect(() => {
@@ -118,36 +116,8 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       return items;
     };
 
-    const fetchExpedia = async (q: string, category: string) => {
-      try {
-        console.log(`Attempting Expedia search for ${category}:`, q);
-        const result = await getDestinations(q);
-        if (result.error || !result.data) return [];
-
-        const raw = (result.data as any);        
-        const destinations = (raw && (raw.destinations || raw.results || raw.data || raw.items)) || [];
-
-        const items: PlaceResult[] = (Array.isArray(destinations) ? destinations : []).map((d: any, index: number) => ({
-          id: d.id?.toString?.() ?? d.destinationId?.toString?.() ?? String(index),
-          name: d.name || d.city || d.destination || d.title || q,
-          lat: d.lat ?? d.latitude ?? d.location?.lat ?? 0,
-          lng: d.lng ?? d.longitude ?? d.location?.lng ?? 0,
-          address: d.fullName || d.address || d.label || d.description || d.name,
-          source: "expedia" as const,
-          url: d.url || undefined,
-          property_id: d.propertyId || d.id,
-          rating: d.rating || d.stars,
-          price: d.price?.formatted || d.priceText,
-          images: d.images || [],
-          description: d.description || undefined,
-        })).filter((p) => typeof p.lat === "number" && typeof p.lng === "number");
-
-        return items;
-      } catch (e) {
-        console.log(`Falling back to Mapbox for ${category} search`, e);
-        return [];
-      }
-    };
+    // Note: Expedia doesn't have a destination search endpoint
+    // We use Mapbox exclusively for location autocomplete
 
     const fetchResults = async () => {
       setLoading(true);
@@ -155,10 +125,8 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
         let items: PlaceResult[] = [];
 
         if (mode === "hotel") {
-          items = await fetchExpedia(query, mode);
-          if (!items.length) {
-            items = await fetchMapbox(query, "poi");
-          }
+          // Use Mapbox for hotel location search
+          items = await fetchMapbox(query, "poi");
           setResults(items);
         } else if (mode === "activity") {
           // For activities, only use Mapbox for location search
