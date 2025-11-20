@@ -27,7 +27,7 @@ export const EnhancedHotelCardRenderer = (hotel: any, index: number) => {
         <p className="text-white/50 text-sm mb-2">{locationDisplay}</p>
         <div className="flex flex-wrap gap-1 mb-2">
           <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
-            ${hotel.price || hotel.cost}
+            ${Math.round(hotel.price || hotel.cost).toLocaleString()}
           </Badge>
           {hotel.rating && (
             <div className="flex items-center gap-1 text-white/60 text-sm">
@@ -60,11 +60,11 @@ export const EnhancedFlightCardRenderer = (flight: any, index: number) => (
       <p className="text-white/50 text-sm mb-2">
         {flight.from} → {flight.to}
       </p>
-      <div className="flex flex-wrap gap-1 mb-2">
-        <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
-          ${flight.cost}
-        </Badge>
-      </div>
+        <div className="flex flex-wrap gap-1 mb-2">
+          <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
+            ${Math.round(flight.cost).toLocaleString()}
+          </Badge>
+        </div>
     </div>
     <div className="space-y-1">
       <div className="flex items-center text-sm text-white/50">
@@ -102,7 +102,7 @@ export const EnhancedActivityCardRenderer = (activity: any, index: number) => {
         <p className="text-white/50 text-sm mb-2 line-clamp-1">{locationDisplay}</p>
         <div className="flex flex-wrap gap-1 mb-2">
           <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
-            ${activity.price || activity.cost}
+            ${Math.round(activity.price || activity.cost).toLocaleString()}
           </Badge>
           {activity.rating && (
             <div className="flex items-center gap-1 text-white/60 text-sm">
