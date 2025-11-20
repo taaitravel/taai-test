@@ -20,7 +20,12 @@ export const ItinerarySidebar = ({ itineraryData, refreshTrigger }: ItinerarySid
   return (
     <div className="space-y-6">
       {/* Budget Pie Chart */}
-      <BudgetPieChart itineraryId={itineraryData.id} refreshTrigger={refreshTrigger} />
+      <BudgetPieChart 
+        itineraryId={itineraryData.id} 
+        totalBudget={itineraryData.budget}
+        totalSpent={itineraryData.spending}
+        refreshTrigger={refreshTrigger} 
+      />
 
       {/* AI Recommendations */}
       <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
