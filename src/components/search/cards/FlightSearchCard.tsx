@@ -69,9 +69,6 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
       {/* Flight Details */}
       <div className="flex flex-wrap gap-2 mb-4">
         <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
-          {flight.airline}
-        </Badge>
-        <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
           Baggage Included
         </Badge>
         {flight.aircraft && (
