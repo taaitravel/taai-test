@@ -11,6 +11,7 @@ interface FlightSearchCardProps {
 export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) => {
   const price = flight.price || flight.cost || 0;
   const totalPrice = flight.totalPrice || price;
+  const roundedPrice = Math.ceil(totalPrice);
   
   // Parse dates safely
   const departureDate = new Date(flight.departure);
@@ -87,7 +88,7 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
           <div>
             <p className="text-white/60 text-sm">Total Price</p>
             <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
-              {flight.priceDisplay || `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              {flight.priceDisplay || `$${roundedPrice.toLocaleString('en-US')}`}
             </p>
           </div>
           <Button
