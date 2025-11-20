@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +31,7 @@ interface PlaceSearchProps {
   locationBias?: { city?: string; lat?: number; lng?: number };
 }
 
-const dropdownBase = "absolute z-20 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-background text-foreground shadow-md";
+const dropdownBase = "absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-[#1a1c2e] border-white/10 shadow-lg";
 
 export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder, mode, defaultQuery = "", onSelect, locationBias }) => {
   const [query, setQuery] = useState(defaultQuery);
@@ -118,7 +118,42 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
     };
 
     const fetchExpedia = async (q: string, category: string) => {
-...
+      try {
+        console.log(`Attempting Expedia search for ${category}:`, q);
+        const { data, error } = await supabase.functions.invoke("expedia-rapid-api", {
+          body: {
+            query: q,
+            category,
+            ...(biasCoords && { lat: biasCoords.lat, lng: biasCoords.lng }),
+          },
+        });
+        if (error) throw error;
+        return data?.results || [];
+      } catch (e) {
+        console.log(`Falling back to Mapbox for ${category} search`);
+        return [];
+      }
+    };
+
+    const fetchResults = async () => {
+      setLoading(true);
+      try {
+        let items: PlaceResult[] = [];
+
+        if (mode === "hotel" || mode === "activity") {
+          items = await fetchExpedia(query, mode);
+          if (!items.length) {
+            items = await fetchMapbox(query, "poi");
+          }
+          setResults(items);
+        } else {
+          const typesParam = mode === "city" ? "place,region" : "poi,place,region";
+          items = await fetchMapbox(query, typesParam);
+          setResults(items);
+        }
+      } catch (e) {
+        console.error("PlaceSearch error", e);
+        setResults([]);
       } finally {
         setLoading(false);
       }
@@ -148,8 +183,8 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
         className="bg-white/5 text-white border-white/10 focus-visible:ring-2 focus-visible:ring-primary/50 h-9 text-sm placeholder:text-white/40"
       />
       {open && (results.length > 0 || loading) && (
-        <div className={`${dropdownBase} bg-[#1a1c2e] border-white/10`}>
-          {loading && <div className="px-3 py-2 text-sm opacity-70">Searching…</div>}
+        <div className={dropdownBase}>
+          {loading && <div className="px-3 py-2 text-sm opacity-70 text-white">Searching…</div>}
           {!loading && results.map((r) => (
             <button
               key={(r.id || r.name) + String(r.lat)}
@@ -159,7 +194,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
                 setOpen(false);
                 onSelect(r);
               }}
-              className="block w-full text-left px-3 py-2 hover:bg-accent/30"
+              className="block w-full text-left px-3 py-2 hover:bg-accent/30 text-white"
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
