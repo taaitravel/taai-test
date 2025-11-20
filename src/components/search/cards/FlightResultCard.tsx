@@ -98,7 +98,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
   };
 
   return (
-    <div className="p-6">
+    <div className="flex flex-col h-full p-6">
       {/* Flight header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -116,7 +116,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
       </div>
 
       {/* Route visualization */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4">
+      <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           {/* Departure */}
           <div className="text-center">
@@ -155,7 +155,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
       </div>
 
       {/* Flight details */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4 flex-shrink-0">
         <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
           Baggage Included
         </Badge>
@@ -167,7 +167,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
       </div>
 
       {/* Price */}
-      <div className="pt-4 border-t border-white/10">
+      <div className="pt-4 border-t border-white/10 mt-auto">
         <div className="flex items-baseline justify-between">
           <div>
             <p className="text-white/60 text-sm">Total Price</p>

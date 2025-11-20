@@ -21,7 +21,7 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
   const formattedDate = isValid(departureDate) ? format(departureDate, 'MMM dd, yyyy') : '';
 
   return (
-    <div className="space-y-4 bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
+    <div className="flex flex-col h-full bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
       {/* Flight Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -39,7 +39,7 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
       </div>
 
       {/* Route Visualization */}
-      <div className="bg-white/5 p-4 rounded-lg border border-white/10 mb-4">
+      <div className="bg-white/5 p-4 rounded-lg border border-white/10 mb-4 flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div className="text-center flex-1">
             <p className="text-2xl font-bold text-white">{flight.from || flight.origin}</p>
@@ -67,7 +67,7 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
       </div>
 
       {/* Flight Details */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4 flex-shrink-0">
         <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
           Baggage Included
         </Badge>
@@ -79,7 +79,7 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
       </div>
 
       {/* Price and Action */}
-      <div className="pt-4 border-t border-white/10">
+      <div className="pt-4 border-t border-white/10 mt-auto">
         <div className="flex items-baseline justify-between">
           <div>
             <p className="text-white/60 text-sm">Total Price</p>
