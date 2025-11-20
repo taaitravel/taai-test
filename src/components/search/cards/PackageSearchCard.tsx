@@ -174,7 +174,7 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
           className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
         >
           <Plus className="mr-2 h-4 w-4" />
-          {saving ? 'Saving...' : '+ Package'}
+          {saving ? 'Saving...' : 'Package'}
         </Button>
       </div>
 

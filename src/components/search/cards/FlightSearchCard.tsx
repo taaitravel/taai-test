@@ -191,7 +191,7 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
           className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
         >
           <Plus className="mr-2 h-4 w-4" />
-          {saving ? 'Saving...' : '+ Flight'}
+          {saving ? 'Saving...' : 'Flight'}
         </Button>
       </div>
 
