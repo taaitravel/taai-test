@@ -21,78 +21,62 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
   const formattedDate = isValid(departureDate) ? format(departureDate, 'MMM dd, yyyy') : '';
 
   return (
-    <div className="space-y-4 bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
+    <div className="space-y-4 bg-[#1a1c2e] p-5 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
       {/* Flight Header */}
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-xl font-bold text-white">{flight.airline}</h3>
-          <p className="text-white/60 text-sm">{flight.flight_number || 'Flight'}</p>
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+            <Plane className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white">{flight.airline}</h3>
+            <p className="text-white/50 text-xs">{flight.flight_number || 'Flight'}</p>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Badge className="bg-white/10 text-white/80 border-white/20">
-            {flight.source}
-          </Badge>
-          <Badge className="bg-white/10 text-white/80 border-white/20 capitalize">
-            {flight.class || 'Economy'}
-          </Badge>
-        </div>
+        <Badge className="bg-white/10 text-white/70 border-white/20 text-xs capitalize">
+          {flight.class || 'Economy'}
+        </Badge>
       </div>
 
       {/* Route Visualization */}
-      <div className="bg-white/5 p-6 rounded-lg border border-white/20">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+        <div className="flex items-center justify-between mb-3">
           <div className="text-center flex-1">
-            <p className="text-3xl font-bold text-white">{flight.from || flight.origin}</p>
-            <p className="text-white/60 text-sm">{departureTime}</p>
+            <p className="text-2xl font-bold text-white">{flight.from || flight.origin}</p>
+            <p className="text-white/50 text-xs mt-0.5">{departureTime}</p>
           </div>
 
-          <div className="flex-1 flex flex-col items-center">
-            <Plane className="h-6 w-6 text-white/60 mb-1 transform rotate-90" />
-            <div className="w-full h-0.5 bg-white/30"></div>
-            <p className="text-white/60 text-sm mt-1">{flight.duration || '3h 30m'}</p>
+          <div className="flex-1 flex flex-col items-center px-4">
+            <Plane className="h-4 w-4 text-white/40 mb-1 transform rotate-90" />
+            <div className="w-full h-px bg-white/20"></div>
+            <p className="text-white/50 text-xs mt-1">{flight.duration || '3h 30m'}</p>
           </div>
 
           <div className="text-center flex-1">
-            <p className="text-3xl font-bold text-white">{flight.to || flight.destination}</p>
-            <p className="text-white/60 text-sm">{arrivalTime}</p>
+            <p className="text-2xl font-bold text-white">{flight.to || flight.destination}</p>
+            <p className="text-white/50 text-xs mt-0.5">{arrivalTime}</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-4 text-white/60 text-sm">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            {formattedDate}
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
+        <div className="flex items-center justify-center gap-1 pt-2 border-t border-white/10">
+          <Clock className="h-3 w-3 text-white/40" />
+          <span className="text-white/50 text-xs">
             {flight.stops || 0} {flight.stops === 1 ? 'stop' : 'stops'}
-          </div>
+          </span>
         </div>
-      </div>
-
-      {/* Flight Details */}
-      <div className="grid grid-cols-2 gap-3">
-        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2">
-          <Luggage className="h-4 w-4" />
-          Baggage Included
-        </Badge>
-        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2">
-          <Plane className="h-4 w-4" />
-          {flight.aircraft || 'Boeing 737'}
-        </Badge>
       </div>
 
       {/* Price and Action */}
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-end justify-between pt-2">
         <div>
-          <p className="text-4xl font-bold" style={{ color: '#ff849c' }}>
+          <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
             {flight.priceDisplay || `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           </p>
-          <p className="text-white/60 text-xs">total price</p>
+          <p className="text-white/50 text-xs">total price</p>
         </div>
         <Button
           onClick={onExpand}
-          className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] hover:opacity-90 text-white"
+          className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] hover:opacity-90 text-white px-5"
         >
           view deal
         </Button>
