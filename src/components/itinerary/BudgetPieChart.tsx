@@ -16,6 +16,8 @@ interface BudgetCategory {
 
 interface BudgetPieChartProps {
   itineraryId: number;
+  totalBudget?: number | null;
+  totalSpent?: number | null;
   refreshTrigger?: number; // Add this to force refresh when itinerary changes
 }
 
@@ -29,7 +31,7 @@ const COLORS = [
   'hsl(45, 80%, 70%)',   // Gold
 ];
 
-export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartProps) => {
+export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, totalSpent: totalSpentProp, refreshTrigger }: BudgetPieChartProps) => {
   const [budgetData, setBudgetData] = useState<BudgetCategory[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<BudgetCategory[]>([]);
@@ -185,8 +187,10 @@ export const BudgetPieChart = ({ itineraryId, refreshTrigger }: BudgetPieChartPr
       fill: COLORS[index % COLORS.length]
     }));
 
-  const totalBudget = budgetData.reduce((sum, item) => sum + item.budgeted_amount, 0);
-  const totalSpent = budgetData.reduce((sum, item) => sum + item.spent_amount, 0);
+  const totalBudgetFromBreakdown = budgetData.reduce((sum, item) => sum + item.budgeted_amount, 0);
+  const totalSpentFromBreakdown = budgetData.reduce((sum, item) => sum + item.spent_amount, 0);
+  const totalBudget = (totalBudgetProp ?? totalBudgetFromBreakdown) || 0;
+  const totalSpent = (totalSpentProp ?? totalSpentFromBreakdown) || 0;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
