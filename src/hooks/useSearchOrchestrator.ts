@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
 import { useExpediaAPI } from './useExpediaAPI';
-import { useAirScraperAPI } from './useAirScraperAPI';
 import { useAmadeusActivities } from './useAmadeusActivities';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,7 +65,6 @@ export const useSearchOrchestrator = () => {
 
   const { searchHotels, searchDestinations } = useBookingAPI();
   const { searchHotels: searchExpediaHotels } = useExpediaAPI();
-  const { searchFlights } = useAirScraperAPI();
   const { searchActivities: searchAmadeusActivities } = useAmadeusActivities();
   const { toast } = useToast();
 
@@ -220,72 +218,15 @@ export const useSearchOrchestrator = () => {
         }
 
       case 'flights': {
-          console.log('✈️ Searching flights via AirScraper API...');
+          console.log('✈️ Flight search not implemented');
           
-          try {
-            const { data, error } = await searchFlights({
-              origin: params.origin,
-              destination: params.destination,
-              departureDate: params.departureDate,
-              adults: params.adults || 1,
-              children: params.children || 0,
-              cabinClass: params.cabinClass || 'economy',
-            });
-
-            if (error || !data?.data?.itineraries) {
-              console.error('Flight search error:', error);
-              toast({
-                title: 'Flight Search Failed',
-                description: 'Unable to find flights. Please try different dates or locations.',
-                variant: 'destructive',
-              });
-              searchResults = [];
-              break;
-            }
-
-            // Process flight results from AirScraper
-            searchResults = (data.data.itineraries || []).map((itinerary: any, index: number) => {
-              const leg = itinerary.legs?.[0];
-              const price = itinerary.price?.raw || 0;
-              
-              return {
-                id: `airscraper-${itinerary.id || index}`,
-                airline: leg?.carriers?.marketing?.[0]?.name || 'Unknown Airline',
-                flight_number: leg?.segments?.[0]?.flightNumber || '',
-                departure: leg?.departure || '',
-                arrival: leg?.arrival || '',
-                from: leg?.origin?.displayCode || params.origin,
-                to: leg?.destination?.displayCode || params.destination,
-                duration: leg?.durationInMinutes ? `${Math.floor(leg.durationInMinutes / 60)}h ${leg.durationInMinutes % 60}m` : '',
-                stops: leg?.stopCount || 0,
-                price: price,
-                totalPrice: price,
-                priceDisplay: itinerary.price?.formatted || `$${price}`,
-                source: 'Skyscanner',
-                bookingUrl: itinerary.pricingOptions?.[0]?.items?.[0]?.deepLink || '#',
-                class: params.cabinClass || 'economy',
-                aircraft: leg?.segments?.[0]?.operatingCarrier?.name || '',
-              };
-            });
-
-            console.log(`✅ Found ${searchResults.length} flights`);
-
-            if (searchResults.length === 0) {
-              toast({
-                title: 'No Flights Found',
-                description: 'Try adjusting your dates or airports.',
-                variant: 'default',
-              });
-            }
-          } catch (err: any) {
-            console.error('❌ Flight search failed:', err);
-            toast({
-              title: 'Search Failed',
-              description: err.message || 'Unable to search flights.',
-              variant: 'destructive',
-            });
-            searchResults = [];
-          }
+          toast({
+            title: 'Coming Soon',
+            description: 'Flight search is not yet available. We\'re working on it!',
+            variant: 'default',
+          });
+          
+          searchResults = [];
           break;
         }
 
