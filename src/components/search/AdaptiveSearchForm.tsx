@@ -70,6 +70,10 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
 
     switch (searchType) {
       case 'flights':
+        if (!flightOrigin || !flightDestination) {
+          alert('Please enter origin and destination airport codes');
+          return;
+        }
         params = {
           tripType,
           origin: flightOrigin,
@@ -83,6 +87,10 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
         break;
 
       case 'hotels':
+        if (!hotelDestination) {
+          alert('Please select a destination from the dropdown');
+          return;
+        }
         params = {
           destination: hotelDestination,
           checkin: checkinDate ? format(checkinDate, 'yyyy-MM-dd') : undefined,
@@ -107,6 +115,10 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
         break;
 
       case 'activities':
+        if (!activityDestination) {
+          alert('Please select a destination from the dropdown');
+          return;
+        }
         params = {
           destination: activityDestination,
           checkin: activityDate ? format(activityDate, 'yyyy-MM-dd') : undefined,
