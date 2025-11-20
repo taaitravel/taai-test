@@ -5,6 +5,29 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Security-Policy": "default-src 'self'",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+};
+
+// Rate limiting: 5 checkout sessions per IP per hour
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+const checkRateLimit = (ip: string): boolean => {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+  
+  if (!record || now > record.resetAt) {
+    rateLimitStore.set(ip, { count: 1, resetAt: now + 3600000 }); // 1 hour
+    return true;
+  }
+  
+  if (record.count >= 5) {
+    return false; // Rate limit exceeded
+  }
+  
+  record.count++;
+  return true;
 };
 
 const logStep = (step: string, details?: any) => {
@@ -19,6 +42,19 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
+
+    // Rate limiting check
+    const clientIp = req.headers.get("x-forwarded-for")?.split(',')[0] || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+    
+    if (!checkRateLimit(clientIp)) {
+      logStep("Rate limit exceeded", { ip: clientIp });
+      return new Response(
+        JSON.stringify({ error: "Too many checkout attempts. Please try again in an hour." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 429 }
+      );
+    }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     logStep("Checking Stripe key", { hasKey: !!stripeKey, keyPrefix: stripeKey?.substring(0, 7) });
