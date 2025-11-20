@@ -58,8 +58,16 @@ export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
           external_ref: activity.id,
           price: activity.price || 0,
           item_data: {
-            ...activity,
-            status: 'inactive',
+            name: activity.name,
+            location: activity.location || activity.address,
+            city: activity.city,
+            rating: activity.rating,
+            price: Math.ceil(activity.price || 0),
+            images: activity.images || [],
+            description: activity.description,
+            category: activity.category,
+            duration: activity.duration,
+            bookingStatus: 'pending',
             savedAt: new Date().toISOString(),
             source: 'search_result',
           },
@@ -69,7 +77,7 @@ export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
 
       toast({
         title: 'Activity Saved',
-        description: `Added to "${targetItinerary.itin_name || 'Untitled Itinerary'}" as inactive booking.`,
+        description: `Added to "${targetItinerary.itin_name || 'Untitled Itinerary'}" as pending booking.`,
       });
 
     } catch (error: any) {
