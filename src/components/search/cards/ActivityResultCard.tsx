@@ -124,9 +124,9 @@ export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col">
+    <div className="w-[255px] h-[375px] p-6 flex flex-col">
       {/* Image */}
-      <div className="relative h-48 bg-white/5 rounded-lg overflow-hidden">
+      <div className="relative h-32 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
         {activity.images?.[0] ? (
           <img 
             src={activity.images[0]} 

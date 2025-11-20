@@ -123,7 +123,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
   };
 
   return (
-    <div className="flex flex-col h-full p-6">
+    <div className="w-[255px] h-[375px] flex flex-col p-6">
       {/* Flight header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
