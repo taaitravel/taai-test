@@ -244,8 +244,18 @@ export const useSearchOrchestrator = () => {
               break;
             }
 
-            searchResults = data.flights;
-            console.log(`✅ Found ${searchResults.length} flights from Amadeus`);
+            // Deduplicate flights by unique departure time, origin, and destination
+            const uniqueFlights = data.flights.reduce((acc: any[], flight: any) => {
+              const key = `${flight.from}-${flight.to}-${flight.departure}`;
+              const exists = acc.some((f: any) => `${f.from}-${f.to}-${f.departure}` === key);
+              if (!exists) {
+                acc.push(flight);
+              }
+              return acc;
+            }, []);
+            
+            searchResults = uniqueFlights;
+            console.log(`✅ Found ${searchResults.length} unique flights from Amadeus (${data.flights.length} total offers)`);
 
             if (searchResults.length === 0) {
               toast({
