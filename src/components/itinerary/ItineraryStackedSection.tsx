@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plane, MapPin, Calendar, Users, Star, Utensils, Plus } from "lucide-react";
+import { Plane, MapPin, Calendar, Users, Star, Utensils, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface StackedCardProps {
   title: string;
@@ -28,6 +29,15 @@ export const ItineraryStackedSection = ({
   onEdit,
   onDelete
 }: StackedCardProps) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % items.length);
+  };
+  
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
+  };
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -49,52 +59,88 @@ export const ItineraryStackedSection = ({
       </div>
       
       {items.length > 0 ? (
-        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-          {items.map((item, index) => (
-          <Card 
-            key={index}
-            className="trip-card-past hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
-          >
-            <CardContent className="p-4 flex flex-col justify-between">
-              <div className="mb-3">
-                {renderCard(item, index)}
-              </div>
+        <div className="relative">
+          <div className="relative w-[200px] h-[270px] sm:w-[240px] md:w-[260px] sm:h-[350px] md:h-[380px] mx-auto sm:mx-0">
+            {items.slice(0, 3).map((item, stackIndex) => {
+              const actualIndex = (currentIndex + stackIndex) % items.length;
+              const displayItem = items[actualIndex];
               
-              {(onEdit || onDelete) && (
-                <div className="flex gap-2 pt-3 border-t border-white/10">
-                  {onEdit && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(itemType, index);
-                      }}
-                      className="flex-1 text-xs"
-                    >
-                      Edit
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm('Are you sure you want to delete this item?')) {
-                          onDelete(itemType, index);
-                        }
-                      }}
-                      className="flex-1 text-xs text-red-400 hover:text-red-300"
-                    >
-                      Delete
-                    </Button>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          ))}
+              return (
+                <Card 
+                  key={actualIndex}
+                  className="absolute w-full h-full trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
+                  style={{
+                    transform: `translateY(${stackIndex * 10}px) translateX(${stackIndex * 5}px)`,
+                    zIndex: 10 - stackIndex
+                  }}
+                  onClick={() => onCardClick(actualIndex)}
+                >
+                  <CardContent className="p-4 h-full flex flex-col justify-between">
+                    <div className="flex-1 overflow-hidden">
+                      {renderCard(displayItem, actualIndex)}
+                    </div>
+                    
+                    {stackIndex === 0 && (onEdit || onDelete) && (
+                      <div className="flex gap-2 pt-3 mt-2 border-t border-white/10">
+                        {onEdit && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(itemType, actualIndex);
+                            }}
+                            className="flex-1 text-xs"
+                          >
+                            Edit
+                          </Button>
+                        )}
+                        {onDelete && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('Are you sure you want to delete this item?')) {
+                                onDelete(itemType, actualIndex);
+                              }
+                            }}
+                            className="flex-1 text-xs text-red-400 hover:text-red-300"
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+            
+            {items.length > 1 && (
+              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePrev}
+                  className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="flex items-center text-xs text-white/60">
+                  {currentIndex + 1} / {items.length}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNext}
+                  className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="text-center py-8 text-white/50">
