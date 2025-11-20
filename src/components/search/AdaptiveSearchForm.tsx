@@ -74,11 +74,11 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
           tripType,
           origin: flightOrigin,
           destination: flightDestination,
-          checkin: departDate ? format(departDate, 'yyyy-MM-dd') : undefined,
-          checkout: tripType === 'roundtrip' && returnDate ? format(returnDate, 'yyyy-MM-dd') : undefined,
+          departureDate: departDate ? format(departDate, 'yyyy-MM-dd') : undefined,
+          returnDate: tripType === 'roundtrip' && returnDate ? format(returnDate, 'yyyy-MM-dd') : undefined,
           adults: flightAdults,
           children: flightChildren,
-          flightClass,
+          cabinClass: flightClass.toUpperCase(),
         };
         break;
 
