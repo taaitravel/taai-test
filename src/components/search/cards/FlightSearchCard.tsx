@@ -9,29 +9,33 @@ interface FlightSearchCardProps {
 }
 
 export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) => {
-  const pricePerPerson = flight.price || flight.cost || 450;
-  const travelers = flight.travelers || 2;
-  const totalPrice = pricePerPerson * travelers;
+  const price = flight.price || flight.cost || 0;
+  const totalPrice = flight.totalPrice || price;
   
   // Parse dates safely
   const departureDate = new Date(flight.departure);
   const arrivalDate = new Date(flight.arrival);
   
-  const departureTime = isValid(departureDate) ? format(departureDate, 'hh:mm a') : '08:00 AM';
-  const arrivalTime = isValid(arrivalDate) ? format(arrivalDate, 'hh:mm a') : '11:30 AM';
-  const formattedDate = isValid(departureDate) ? format(departureDate, 'MMM dd, yyyy') : 'Today';
+  const departureTime = isValid(departureDate) ? format(departureDate, 'h:mm a') : '';
+  const arrivalTime = isValid(arrivalDate) ? format(arrivalDate, 'h:mm a') : '';
+  const formattedDate = isValid(departureDate) ? format(departureDate, 'MMM dd, yyyy') : '';
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
       {/* Flight Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-2xl font-bold text-white">{flight.airline}</h3>
-          <p className="text-white/60">{flight.flight_number || 'Flight'}</p>
+          <h3 className="text-xl font-bold text-white">{flight.airline}</h3>
+          <p className="text-white/60 text-sm">{flight.flight_number || 'Flight'}</p>
         </div>
-        <Badge className="bg-white/10 text-white/80 border-white/20">
-          {flight.class || 'Economy'}
-        </Badge>
+        <div className="flex gap-2">
+          <Badge className="bg-white/10 text-white/80 border-white/20">
+            {flight.source}
+          </Badge>
+          <Badge className="bg-white/10 text-white/80 border-white/20 capitalize">
+            {flight.class || 'Economy'}
+          </Badge>
+        </div>
       </div>
 
       {/* Route Visualization */}
@@ -78,28 +82,19 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
         </Badge>
       </div>
 
-      {/* Price */}
-      <div className="bg-white/5 p-4 rounded-lg border border-white/20">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-4xl font-bold text-white">${pricePerPerson}</p>
-            <p className="text-white/60 text-sm">per person</p>
-          </div>
-          <div className="text-right">
-            <p className="text-white/70 text-sm">Total for {travelers} travelers</p>
-            <p className="text-2xl font-semibold text-primary">${totalPrice}</p>
-          </div>
+      {/* Price and Action */}
+      <div className="flex items-center justify-between pt-2">
+        <div>
+          <p className="text-3xl font-bold text-white">{flight.priceDisplay || `$${price}`}</p>
+          <p className="text-white/60 text-xs">total price</p>
         </div>
+        <Button
+          onClick={onExpand}
+          className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] hover:opacity-90 text-white"
+        >
+          view deal
+        </Button>
       </div>
-
-      {/* View Details Button */}
-      <Button
-        onClick={onExpand}
-        variant="outline"
-        className="w-full bg-white/5 border-white/20 text-white hover:bg-white/10"
-      >
-        View Full Details
-      </Button>
     </div>
   );
 };
