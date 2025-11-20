@@ -64,11 +64,20 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
         targetItineraryId = newItin.id.toString();
       }
 
+      // Fetch the itinerary to get its itin_id (UUID)
+      const { data: itinData, error: itinError } = await supabase
+        .from('itinerary')
+        .select('itin_id')
+        .eq('id', parseInt(targetItineraryId))
+        .single();
+
+      if (itinError) throw itinError;
+
       const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
-          itinerary_id: targetItineraryId,
+          itinerary_id: itinData.itin_id,
           type: 'flight',
           external_ref: flight.id || `flight-${Date.now()}`,
           price: parseFloat(flight.price?.total || '0'),

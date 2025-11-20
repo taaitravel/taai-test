@@ -52,22 +52,55 @@ export const HotelResultCard = ({ hotel }: HotelResultCardProps) => {
         targetItineraryId = newItin.id.toString();
       }
 
+      // Fetch the itinerary to get its itin_id (UUID) and add location to map
+      const { data: itinData, error: itinError } = await supabase
+        .from('itinerary')
+        .select('itin_id, itin_map_locations')
+        .eq('id', parseInt(targetItineraryId))
+        .single();
+
+      if (itinError) throw itinError;
+
+      // Prepare hotel location data
+      const hotelLocation = {
+        city: hotel.city || hotel.location || 'Unknown',
+        lat: hotel.latitude || 0,
+        lng: hotel.longitude || 0
+      };
+
+      // Add location to itinerary map if not already present
+      const currentMapLocations = Array.isArray(itinData.itin_map_locations) ? itinData.itin_map_locations : [];
+      const locationExists = currentMapLocations.some(
+        (loc: any) => loc.city === hotelLocation.city
+      );
+
+      if (!locationExists) {
+        await supabase
+          .from('itinerary')
+          .update({
+            itin_map_locations: [...currentMapLocations, hotelLocation]
+          })
+          .eq('id', parseInt(targetItineraryId));
+      }
+
       const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
-          itinerary_id: targetItineraryId,
+          itinerary_id: itinData.itin_id,
           type: 'hotel',
           external_ref: hotel.hotel_id || hotel.hotelId || `hotel-${Date.now()}`,
           price: hotel.priceBreakdown?.grossPrice?.value || hotel.min_total_price || 0,
           item_data: {
             name: hotel.hotel_name || hotel.hotelName,
-            location: hotel.city || hotel.location,
+            city: hotel.city || hotel.location,
             checkIn: hotel.checkin || hotel.checkInDate,
             checkOut: hotel.checkout || hotel.checkOutDate,
             rating: hotel.review_score || hotel.reviewScore,
             reviewCount: hotel.review_nr || hotel.reviewCount,
             images: hotel.photos || hotel.images || [],
+            address: hotel.address || '',
+            location: hotelLocation,
             priceBreakdown: hotel.priceBreakdown,
             amenities: hotel.amenities,
             url: hotel.url,
