@@ -33,7 +33,7 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
         let query = supabase
           .from('itinerary')
           .select('*')
-          .eq('userid', user.id); // Ensure user can only access their own itineraries
+          .eq('userid', user.id);
         
         if (itineraryId) {
           query = query.eq('id', parseInt(itineraryId));
@@ -45,68 +45,126 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
 
         if (error) throw error;
 
-        // Transform and enhance data with Expedia integration
+        // Fetch cart items for this itinerary
+        const { data: cartItems, error: cartError } = await supabase
+          .from('cart_items')
+          .select('*')
+          .eq('itinerary_id', data.itin_id)
+          .eq('user_id', user.id);
+
+        if (cartError) {
+          console.error('Error fetching cart items:', cartError);
+        }
+
+        console.log('🛒 Fetched cart items:', cartItems);
+
+        // Separate cart items by type
+        const cartFlights = (cartItems?.filter(item => item.type === 'flight') || []).map(item => ({
+          ...(item.item_data as any),
+          cost: item.price,
+          booking_status: (item.item_data as any)?.bookingStatus || 'pending',
+          from_cart: true
+        }));
+
+        const cartHotels = (cartItems?.filter(item => item.type === 'hotel') || []).map(item => ({
+          ...(item.item_data as any),
+          cost: item.price,
+          city: (item.item_data as any)?.city || (item.item_data as any)?.location?.city,
+          booking_status: (item.item_data as any)?.bookingStatus || 'pending',
+          from_cart: true
+        }));
+
+        const cartActivities = (cartItems?.filter(item => item.type === 'activity') || []).map(item => ({
+          ...(item.item_data as any),
+          cost: item.price,
+          city: (item.item_data as any)?.location?.city || (item.item_data as any)?.location,
+          booking_status: (item.item_data as any)?.bookingStatus || 'pending',
+          from_cart: true
+        }));
+
+        const cartReservations = (cartItems?.filter(item => item.type === 'reservation') || []).map(item => ({
+          ...(item.item_data as any),
+          cost: item.price,
+          booking_status: (item.item_data as any)?.bookingStatus || 'pending',
+          from_cart: true
+        }));
+
+        // Transform and enhance data with cart items
         const transformedData: ItineraryData = {
           ...data,
           itin_locations: data.itin_locations as string[],
           itin_map_locations: data.itin_map_locations as Array<{ city: string; lat: number; lng: number }>,
           attendees: data.attendees as Array<{ id: number; name: string; email: string; avatar: string; status: string }>,
-          flights: (data.flights as Array<any>)?.map(flight => ({
-            ...flight,
-            images: flight.images || [],
-            booking_status: flight.booking_status || 'pending',
-            expedia_property_id: flight.expedia_property_id,
-            location: flight.location || flight.to,
-            rating: flight.rating || 4.0
-          })) || [],
-          hotels: (data.hotels as Array<any>)?.map(hotel => ({
-            ...hotel,
-            images: hotel.images || [],
-            booking_status: hotel.booking_status || 'pending',
-            expedia_property_id: hotel.expedia_property_id,
-            location: hotel.location || hotel.city,
-            rating: hotel.rating || 4.0,
-            price: hotel.price || hotel.cost
-          })) || [],
-          activities: (data.activities as Array<any>)?.map(activity => ({
-            ...activity,
-            images: activity.images || [],
-            booking_status: activity.booking_status || 'pending',
-            location: activity.location || activity.city,
-            rating: activity.rating || 4.0,
-            price: activity.price || activity.cost
-          })) || [],
-          reservations: (data.reservations as Array<any>)?.map(reservation => ({
-            ...reservation,
-            images: reservation.images || [],
-            booking_status: reservation.booking_status || 'pending',
-            location: reservation.location || reservation.city,
-            cuisine: reservation.cuisine || 'International'
-          })) || [],
+          flights: [
+            ...((data.flights as Array<any>)?.map(flight => ({
+              ...flight,
+              images: flight.images || [],
+              booking_status: flight.booking_status || 'pending',
+              expedia_property_id: flight.expedia_property_id,
+              location: flight.location || flight.to,
+              rating: flight.rating || 4.0
+            })) || []),
+            ...cartFlights
+          ],
+          hotels: [
+            ...((data.hotels as Array<any>)?.map(hotel => ({
+              ...hotel,
+              images: hotel.images || [],
+              booking_status: hotel.booking_status || 'pending',
+              expedia_property_id: hotel.expedia_property_id,
+              location: hotel.location || hotel.city,
+              rating: hotel.rating || 4.0,
+              price: hotel.price || hotel.cost
+            })) || []),
+            ...cartHotels
+          ],
+          activities: [
+            ...((data.activities as Array<any>)?.map(activity => ({
+              ...activity,
+              images: activity.images || [],
+              booking_status: activity.booking_status || 'pending',
+              location: activity.location || activity.city,
+              rating: activity.rating || 4.0,
+              price: activity.price || activity.cost
+            })) || []),
+            ...cartActivities
+          ],
+          reservations: [
+            ...((data.reservations as Array<any>)?.map(reservation => ({
+              ...reservation,
+              images: reservation.images || [],
+              booking_status: reservation.booking_status || 'pending',
+              location: reservation.location || reservation.city,
+              cuisine: reservation.cuisine || 'International'
+            })) || []),
+            ...cartReservations
+          ],
           expedia_data: data.expedia_data || {}
         };
 
-        console.log('🔐 useAuthenticatedItineraryData - User authenticated:', user.id);
-        console.log('📊 useAuthenticatedItineraryData - Enhanced data:', transformedData);
-        console.log('🏨 useAuthenticatedItineraryData - Hotels with images:', transformedData.hotels);
-        console.log('🎯 useAuthenticatedItineraryData - Activities with images:', transformedData.activities);
+        console.log('🔐 User authenticated:', user.id);
+        console.log('📊 Enhanced data:', transformedData);
+        console.log('🏨 Hotels:', transformedData.hotels);
+        console.log('🎯 Activities:', transformedData.activities);
+        console.log('✈️ Flights:', transformedData.flights);
 
         setItineraryData(transformedData);
-        refreshBudgetData();
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching authenticated itinerary:', error);
         toast({
-          title: "Authentication Error",
-          description: "Please log in to access your itinerary data",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to load itinerary. Please make sure you are logged in.',
+          variant: 'destructive',
         });
-      } finally {
         setLoading(false);
       }
     };
 
-    fetchAuthenticatedItinerary();
-  }, [itineraryId, toast, mapRefreshTrigger]);
+    if (itineraryId) {
+      fetchAuthenticatedItinerary();
+    }
+  }, [itineraryId, budgetRefreshTrigger, mapRefreshTrigger, toast]);
 
   return {
     itineraryData,
