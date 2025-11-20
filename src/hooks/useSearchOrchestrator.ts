@@ -81,64 +81,41 @@ export const useSearchOrchestrator = () => {
 
       switch (type) {
       case 'hotels': {
-          console.log('🏨 Searching hotels via Booking.com and Expedia APIs...');
+          console.log('🏨 Searching hotels via Booking.com API...');
           
-          // Make parallel API calls to both providers
-          const [bookingData, expediaData] = await Promise.all([
-            // Booking.com search
-            (async () => {
-              try {
-                const { data: destData, error: destError } = await searchDestinations(params.destination);
-                if (destError || !destData) return null;
-                
-                let destinations = destData?.data || destData?.destinations || destData;
-                if (!Array.isArray(destinations)) destinations = [destinations];
-                if (!destinations || destinations.length === 0) return null;
-                
-                const destination = destinations[0];
-                const destId = destination.dest_id || destination.id;
-                const destType = destination.dest_type || destination.type || 'city';
-                const searchLat = destination.latitude || destination.lat;
-                const searchLon = destination.longitude || destination.lon || destination.lng;
-                
-                const { data, error } = await searchHotels({
-                  dest_id: destId,
-                  search_type: destType,
-                  arrival_date: params.checkin,
-                  departure_date: params.checkout,
-                  adults: params.adults || 2,
-                  room_qty: params.rooms || 1,
-                });
-                
-                if (error || !data?.data?.hotels) return null;
-                
-                return { hotels: data.data.hotels, searchLat, searchLon };
-              } catch (err) {
-                console.error('🏨 Booking.com error:', err);
-                return null;
-              }
-            })(),
-            
-            // Expedia search
-            (async () => {
-              try {
-                const { data, error } = await searchExpediaHotels({
-                  destination: params.destination,
-                  checkin: params.checkin,
-                  checkout: params.checkout,
-                  adults: params.adults || 2,
-                  children: params.children || 0,
-                  rooms: params.rooms || 1,
-                });
-                
-                if (error || !data) return null;
-                return data;
-              } catch (err) {
-                console.error('🏨 Expedia error:', err);
-                return null;
-              }
-            })()
-          ]);
+          // Only use Booking.com for hotel searches (Expedia API endpoint not available)
+          const bookingData = await (async () => {
+            try {
+              const { data: destData, error: destError } = await searchDestinations(params.destination);
+              if (destError || !destData) return null;
+              
+              let destinations = destData?.data || destData?.destinations || destData;
+              if (!Array.isArray(destinations)) destinations = [destinations];
+              if (!destinations || destinations.length === 0) return null;
+              
+              const destination = destinations[0];
+              const destId = destination.dest_id || destination.id;
+              const destType = destination.dest_type || destination.type || 'city';
+              const searchLat = destination.latitude || destination.lat;
+              const searchLon = destination.longitude || destination.lon || destination.lng;
+              
+              const { data, error } = await searchHotels({
+                dest_id: destId,
+                search_type: destType,
+                arrival_date: params.checkin,
+                departure_date: params.checkout,
+                adults: params.adults || 2,
+                room_qty: params.rooms || 1,
+              });
+              
+              if (error || !data?.data?.hotels) return null;
+              
+              return { hotels: data.data.hotels, searchLat, searchLon };
+            } catch (err) {
+              console.error('🏨 Booking.com error:', err);
+              return null;
+            }
+          })();
           
           const checkinDate = new Date(params.checkin);
           const checkoutDate = new Date(params.checkout);
@@ -182,32 +159,9 @@ export const useSearchOrchestrator = () => {
             })
           ) : [];
           
-          // Process Expedia results
-          const expediaHotels = expediaData ? (expediaData.properties || expediaData.hotels || []).map((hotel: any) => {
-            const priceData = hotel.price || hotel.ratePlan?.price || {};
-            const totalPrice = priceData.total || priceData.lead?.amount || 0;
-            const pricePerNight = Math.round((totalPrice / nights) * 100) / 100;
-            
-            return {
-              id: `expedia-${hotel.id || hotel.propertyId}`,
-              name: hotel.name || 'Unknown Hotel',
-              images: hotel.images ? hotel.images.map((img: any) => img.url) : [],
-              rating: hotel.starRating || hotel.guestReviews?.rating || 0,
-              review_count: hotel.guestReviews?.total || 0,
-              pricePerNight,
-              totalPrice,
-              nights,
-              cityName: hotel.address?.city || hotel.location?.city || '',
-              distanceFromSearch: null,
-              latitude: hotel.latitude || hotel.lat || hotel.location?.latitude,
-              longitude: hotel.longitude || hotel.lon || hotel.lng || hotel.location?.longitude,
-              bookingUrl: hotel.url || `https://www.expedia.com/h${hotel.id}.Hotel-Information`,
-              source: 'Expedia',
-            };
-          }) : [];
-          
-          searchResults = [...bookingHotels, ...expediaHotels];
-          console.log(`✅ Combined ${searchResults.length} hotels (${bookingHotels.length} Booking.com, ${expediaHotels.length} Expedia)`);
+          // Only using Booking.com results (Expedia API not available)
+          searchResults = bookingHotels;
+          console.log(`✅ Found ${searchResults.length} hotels from Booking.com`);
           
           if (searchResults.length === 0) {
             toast({
