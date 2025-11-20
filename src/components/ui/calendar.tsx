@@ -37,7 +37,7 @@ function Calendar({
         cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected])]:bg-gradient-to-r [&:has([aria-selected])]:from-[hsl(351,85%,75%)] [&:has([aria-selected])]:via-[hsl(15,80%,70%)] [&:has([aria-selected])]:to-[hsl(25,75%,65%)] first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+          "h-9 w-9 p-0 font-normal text-white hover:bg-white/10 transition-colors"
         ),
         day_range_end: "day-range-end",
         day_selected:
