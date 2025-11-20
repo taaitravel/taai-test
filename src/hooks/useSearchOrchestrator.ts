@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
 import { useExpediaAPI } from './useExpediaAPI';
 import { useAirScraperAPI } from './useAirScraperAPI';
-import { useToast } from '@/hooks/use-toast';
+import { useAmadeusActivities } from './useAmadeusActivities';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages';
@@ -66,6 +67,7 @@ export const useSearchOrchestrator = () => {
   const { searchHotels, searchDestinations } = useBookingAPI();
   const { searchHotels: searchExpediaHotels } = useExpediaAPI();
   const { searchFlights } = useAirScraperAPI();
+  const { searchActivities: searchAmadeusActivities } = useAmadeusActivities();
   const { toast } = useToast();
 
   const executeSearch = async (type: SearchType, params: any) => {
@@ -288,13 +290,67 @@ export const useSearchOrchestrator = () => {
         }
 
       case 'activities': {
-          console.log('🎯 Activity search not yet implemented');
-          toast({
-            title: 'Coming Soon',
-            description: 'Activity search will be available soon.',
-            variant: 'default',
-          });
-          searchResults = [];
+          console.log('🎯 Searching activities via Amadeus...');
+          
+          try {
+            // First, geocode the destination to get coordinates
+            const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke(
+              'search-cities',
+              { body: { query: params.destination } }
+            );
+
+            if (geocodeError || !geocodeData?.features?.[0]) {
+              throw new Error('Could not find location coordinates');
+            }
+
+            const [longitude, latitude] = geocodeData.features[0].center;
+            console.log(`📍 Geocoded ${params.destination} to [${latitude}, ${longitude}]`);
+
+            // Search activities using Amadeus
+            const { data, error } = await searchAmadeusActivities({
+              latitude,
+              longitude,
+              radius: 5, // 5km radius
+            });
+
+            if (error) throw new Error(error);
+
+            searchResults = (data?.activities || []).map((activity: any) => ({
+              id: activity.id,
+              name: activity.name,
+              description: activity.description,
+              location: activity.city,
+              latitude: activity.latitude,
+              longitude: activity.longitude,
+              category: activity.category,
+              rating: activity.rating,
+              price: activity.price,
+              currency: activity.currency,
+              images: activity.images,
+              duration: activity.duration,
+              groupSize: activity.groupSize,
+              bookingLink: activity.bookingLink,
+              date: params.checkin,
+            }));
+
+            console.log(`✅ Found ${searchResults.length} activities`);
+
+            if (searchResults.length === 0) {
+              toast({
+                title: 'No Activities Found',
+                description: 'Try adjusting your location or search criteria.',
+                variant: 'default',
+              });
+            }
+          } catch (err: any) {
+            console.error('❌ Activity search failed:', err);
+            toast({
+              title: 'Search Failed',
+              description: err.message || 'Unable to search activities.',
+              variant: 'destructive',
+            });
+            searchResults = [];
+          }
           break;
         }
 
