@@ -41,7 +41,7 @@ export const ItineraryStackedCards = ({
   onDelete,
 }: ItineraryStackedCardsProps) => {
   return (
-    <div className="space-y-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <ItineraryStackedSection
         title="Flights"
         icon={Plane}
