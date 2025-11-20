@@ -4,6 +4,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Security-Policy": "default-src 'self'",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
 };
 
 serve(async (req) => {
@@ -29,12 +32,13 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action as string | undefined;
 
-    // Check admin privileges (must have 'admin' role)
-    const { data: myRoles, error: rolesErr } = await client
-      .from("user_roles")
-      .select("role");
+    // Check admin privileges using security definer function (prevents RLS bypass)
+    const { data: roleCheck, error: rolesErr } = await client.rpc('has_role', {
+      _user_id: caller.id,
+      _role: 'admin'
+    });
     if (rolesErr) throw rolesErr;
-    const isAdmin = (myRoles || []).some((r: any) => r.role === "admin");
+    const isAdmin = roleCheck === true;
 
     if (action === "list") {
       if (!isAdmin) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
