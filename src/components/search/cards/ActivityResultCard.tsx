@@ -99,17 +99,19 @@ export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
             No image available
           </div>
         )}
-        <div className="absolute top-4 right-4">
-          <Badge className="bg-primary text-white">
-            {activity.rating || 4.7} <Star className="ml-1 h-3 w-3 fill-current" />
-          </Badge>
-        </div>
+        {activity.rating && (
+          <div className="absolute top-4 right-4">
+            <Badge className="bg-primary text-white">
+              {activity.rating} <Star className="ml-1 h-3 w-3 fill-current" />
+            </Badge>
+          </div>
+        )}
       </div>
 
       {/* Activity info */}
       <div className="space-y-3">
         <div>
-          <h3 className="text-2xl font-bold text-white">{activity.name}</h3>
+          <h3 className="text-2xl font-bold text-white line-clamp-2">{activity.name}</h3>
           <p className="text-white/60 flex items-center gap-1 mt-1">
             <MapPin className="h-4 w-4" />
             {activity.location || activity.address}
@@ -117,57 +119,43 @@ export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
         </div>
 
         {/* Details */}
-        <div className="flex flex-wrap gap-3 text-sm">
+        <div className="flex flex-wrap gap-2">
           {activity.duration && (
-            <div className="flex items-center gap-1 text-white/70">
-              <Clock className="h-4 w-4" />
+            <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
+              <Clock className="mr-1 h-3 w-3" />
               {activity.duration}
-            </div>
+            </Badge>
           )}
           {activity.groupSize && (
-            <div className="flex items-center gap-1 text-white/70">
-              <Users className="h-4 w-4" />
-              Max {activity.groupSize} people
-            </div>
+            <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
+              <Users className="mr-1 h-3 w-3" />
+              {activity.groupSize}
+            </Badge>
           )}
-        </div>
-
-        {/* Category badges */}
-        <div className="flex flex-wrap gap-2">
           {activity.category && (
-            <Badge variant="outline" className="bg-white/5 border-white/20 text-white">
+            <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
               {activity.category}
             </Badge>
           )}
-          {activity.type && (
-            <Badge variant="outline" className="bg-white/5 border-white/20 text-white">
-              {activity.type}
-            </Badge>
-          )}
         </div>
 
-        {/* Description */}
-        {activity.description && (
-          <p className="text-white/70 text-sm line-clamp-3">{activity.description}</p>
-        )}
-
-        {/* Price and Actions */}
+        {/* Price */}
         <div className="pt-4 border-t border-white/10">
-          <div className="flex items-center justify-between">
+          <div className="flex items-baseline justify-between">
             <div>
               <p className="text-white/60 text-sm">From</p>
-              <p className="text-3xl font-bold text-[#ff849c]">
+              <p className="text-2xl font-bold text-white" style={{ color: '#ff849c' }}>
                 ${activity.price || activity.cost || '75'}
               </p>
-              <p className="text-white/60 text-xs">per person</p>
+              <p className="text-white/50 text-xs">per person</p>
             </div>
-            <Button
+            <Button 
               onClick={handleAddToItinerary}
               disabled={saving}
-              className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-white"
+              className="bg-gradient-to-r from-primary to-[#7E69AB] hover:opacity-90 text-white"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              {saving ? 'Saving...' : 'Add to Itinerary'}
+              <Plus className="h-4 w-4 mr-1.5" />
+              {saving ? 'Saving...' : 'Add'}
             </Button>
           </div>
         </div>
