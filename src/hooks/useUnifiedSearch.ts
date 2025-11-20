@@ -26,16 +26,14 @@ export const useUnifiedSearch = (searchType: 'hotel' | 'flight' | 'activity' | '
         setResults(data?.hotels || []);
       } 
       else if (searchType === 'flight') {
-        const { data, error } = await searchFlights({
-          origin: params.origin,
-          destination: params.destination,
-          departure_date: params.checkin,
-          return_date: params.checkout,
-          adults: params.adults,
+        // Flight search APIs are not currently available
+        // Booking.com RapidAPI doesn't support flights
+        // Expedia Rapid Flight API is in early access (2026 release)
+        toast({
+          title: "Coming Soon",
+          description: "Flight search will be available once provider APIs are publicly released.",
         });
-
-        if (error) throw new Error(error);
-        setResults(data?.flights || []);
+        setResults([]);
       }
       else if (searchType === 'activity') {
         const { data, error } = await searchActivities({
@@ -47,40 +45,12 @@ export const useUnifiedSearch = (searchType: 'hotel' | 'flight' | 'activity' | '
         setResults(data?.activities || []);
       }
       else if (searchType === 'package') {
-        // Search both hotels and flights in parallel
-        const [hotelResponse, flightResponse] = await Promise.all([
-          searchHotels({
-            destination: params.destination,
-            checkin: params.checkin,
-            checkout: params.checkout,
-            adults: params.adults,
-            rooms: params.rooms,
-          }),
-          searchFlights({
-            origin: params.origin,
-            destination: params.destination,
-            departure_date: params.checkin,
-            return_date: params.checkout,
-            adults: params.adults,
-          }),
-        ]);
-
-        if (hotelResponse.error || flightResponse.error) {
-          throw new Error(hotelResponse.error || flightResponse.error);
-        }
-
-        // Combine results as packages
-        const hotels = hotelResponse.data?.hotels || [];
-        const flights = flightResponse.data?.flights || [];
-        
-        const packages = hotels.slice(0, 5).map((hotel: any, idx: number) => ({
-          id: `package-${idx}`,
-          hotel,
-          flight: flights[idx % flights.length],
-          totalPrice: (hotel.price || 0) + (flights[idx % flights.length]?.price || 0),
-        }));
-
-        setResults(packages);
+        // Package search requires flight API which is not available yet
+        toast({
+          title: "Coming Soon",
+          description: "Package search will be available once flight search APIs are publicly released.",
+        });
+        setResults([]);
       }
     } catch (err: any) {
       console.error('Search error:', err);
