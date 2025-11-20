@@ -29,7 +29,7 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
     setShowModal(true);
   };
 
-  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string, startDate?: string, endDate?: string) => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -46,16 +46,13 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
       let targetItineraryId = itineraryId;
 
       if (itineraryId === 'new') {
-        const checkin = hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0];
-        const checkout = hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0];
-        
         const { data: newItin, error: createError } = await supabase
           .from('itinerary')
           .insert({
             userid: user.id,
             itin_name: newItineraryName,
-            itin_date_start: checkin,
-            itin_date_end: checkout,
+            itin_date_start: startDate,
+            itin_date_end: endDate,
           })
           .select()
           .single();

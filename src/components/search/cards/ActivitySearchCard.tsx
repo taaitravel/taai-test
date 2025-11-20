@@ -23,7 +23,7 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
     setShowModal(true);
   };
 
-  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string, startDate?: string, endDate?: string) => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -40,15 +40,13 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
       let targetItineraryId = itineraryId;
 
       if (itineraryId === 'new') {
-        const today = new Date().toISOString().split('T')[0];
-        
         const { data: newItin, error: createError } = await supabase
           .from('itinerary')
           .insert({
             userid: user.id,
             itin_name: newItineraryName,
-            itin_date_start: today,
-            itin_date_end: today,
+            itin_date_start: startDate,
+            itin_date_end: endDate,
           })
           .select()
           .single();

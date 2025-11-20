@@ -26,7 +26,7 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
     setShowModal(true);
   };
 
-  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string, startDate?: string, endDate?: string) => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -44,9 +44,6 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
 
       // If 'new', create the itinerary first
       if (itineraryId === 'new') {
-        const startDate = pkg.startDate || new Date().toISOString().split('T')[0];
-        const endDate = pkg.endDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
-        
         const { data: newItin, error: createError } = await supabase
           .from('itinerary')
           .insert({

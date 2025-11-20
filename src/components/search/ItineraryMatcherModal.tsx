@@ -18,7 +18,7 @@ interface ItineraryMatcherModalProps {
   onOpenChange: (open: boolean) => void;
   searchDates: { checkin: string; checkout: string };
   item: any;
-  onConfirm: (itineraryId: string | 'new', newItineraryName?: string) => void;
+  onConfirm: (itineraryId: string | 'new', newItineraryName?: string, startDate?: string, endDate?: string) => void;
 }
 
 export const ItineraryMatcherModal = ({
@@ -32,6 +32,13 @@ export const ItineraryMatcherModal = ({
   const [matchingItineraries, setMatchingItineraries] = useState<any[]>([]);
   const [selectedItinerary, setSelectedItinerary] = useState<string>('new');
   const [newItineraryName, setNewItineraryName] = useState('');
+  const [newItineraryStartDate, setNewItineraryStartDate] = useState(searchDates.checkin);
+  const [newItineraryEndDate, setNewItineraryEndDate] = useState(searchDates.checkout);
+
+  useEffect(() => {
+    setNewItineraryStartDate(searchDates.checkin);
+    setNewItineraryEndDate(searchDates.checkout);
+  }, [searchDates]);
 
   useEffect(() => {
     if (open && searchDates.checkin && searchDates.checkout) {
@@ -41,8 +48,10 @@ export const ItineraryMatcherModal = ({
 
   const handleConfirm = () => {
     if (selectedItinerary === 'new') {
-      const name = newItineraryName || `Trip to ${searchDates.checkin}`;
-      onConfirm('new', name);
+      if (!newItineraryName.trim()) {
+        return; // Don't allow empty names
+      }
+      onConfirm('new', newItineraryName, newItineraryStartDate, newItineraryEndDate);
     } else {
       onConfirm(selectedItinerary);
     }
@@ -111,13 +120,50 @@ export const ItineraryMatcherModal = ({
                   <p className="font-semibold text-white">Create New Itinerary</p>
                 </div>
                 {selectedItinerary === 'new' && (
-                  <Input
-                    value={newItineraryName}
-                    onChange={(e) => setNewItineraryName(e.target.value)}
-                    placeholder="Enter trip name..."
-                    className="mt-2 bg-[#1f1f27] border-white/30 text-white"
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                  <div className="mt-3 space-y-3" onClick={(e) => e.stopPropagation()}>
+                    <div>
+                      <Label htmlFor="trip-name" className="text-white/70 text-sm">
+                        Trip Name *
+                      </Label>
+                      <Input
+                        id="trip-name"
+                        value={newItineraryName}
+                        onChange={(e) => setNewItineraryName(e.target.value)}
+                        placeholder="e.g., Summer Vacation 2025"
+                        className="mt-1 bg-[#1f1f27] border-white/30 text-white"
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="start-date" className="text-white/70 text-sm">
+                          Start Date *
+                        </Label>
+                        <Input
+                          id="start-date"
+                          type="date"
+                          value={newItineraryStartDate}
+                          onChange={(e) => setNewItineraryStartDate(e.target.value)}
+                          className="mt-1 bg-[#1f1f27] border-white/30 text-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="end-date" className="text-white/70 text-sm">
+                          End Date *
+                        </Label>
+                        <Input
+                          id="end-date"
+                          type="date"
+                          value={newItineraryEndDate}
+                          onChange={(e) => setNewItineraryEndDate(e.target.value)}
+                          min={newItineraryStartDate}
+                          className="mt-1 bg-[#1f1f27] border-white/30 text-white"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
                 )}
               </Label>
             </div>
@@ -134,7 +180,8 @@ export const ItineraryMatcherModal = ({
           </Button>
           <Button
             onClick={handleConfirm}
-            className="flex-1 gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+            disabled={selectedItinerary === 'new' && !newItineraryName.trim()}
+            className="flex-1 gold-gradient hover:opacity-90 text-[#171821] font-semibold disabled:opacity-50"
           >
             Add to Selected
           </Button>
