@@ -42,8 +42,5 @@ verify_jwt = true
 [functions.get-stripe-prices]
 verify_jwt = false
 
-[functions.air-scraper-api]
-verify_jwt = true
-
 [functions.amadeus-activities]
 verify_jwt = true
