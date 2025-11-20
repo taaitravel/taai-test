@@ -45,22 +45,22 @@ export const DateRangePicker = ({
     <div className="space-y-1.5">
       <label className="text-xs font-medium text-white/70">Dates *</label>
       <div className="border border-white/10 rounded-lg p-2 bg-[#1a1c2e]">
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-1.5">
           {/* Start Date */}
           <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  'flex-1 justify-start text-left font-normal bg-white/5 border-white/10 h-auto py-1.5 px-2 hover:bg-white/10',
+                  'flex-1 justify-start text-left font-normal bg-white/5 border-white/10 h-auto py-1.5 px-2 hover:bg-white/10 w-full',
                   !startDate && 'text-white/50'
                 )}
                 onClick={() => setSelectingEnd(false)}
               >
                 <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
                 <div className="flex items-center gap-2 w-full">
-                  <span className="text-xs text-white/50 w-[50%] md:w-[25%]">{startLabel}</span>
-                  <span className="text-sm w-[50%] md:w-[75%]">{startDate ? format(startDate, 'MMM dd') : 'Select'}</span>
+                  <span className="text-xs text-white/50 w-[40%] md:w-[25%]">{startLabel}</span>
+                  <span className="text-sm w-[60%] md:w-[75%]">{startDate ? format(startDate, 'MMM dd') : 'Select'}</span>
                 </div>
               </Button>
             </PopoverTrigger>
@@ -77,13 +77,13 @@ export const DateRangePicker = ({
           </Popover>
 
           {/* Arrow */}
-          <ArrowRight className="h-3 w-3 text-white/30 flex-shrink-0" />
+          <ArrowRight className="hidden md:block h-3 w-3 text-white/30 flex-shrink-0" />
 
           {/* End Date */}
           <Button
             variant="outline"
             className={cn(
-              'flex-1 justify-start text-left font-normal bg-white/5 border-white/10 h-auto py-1.5 px-2 hover:bg-white/10',
+              'flex-1 justify-start text-left font-normal bg-white/5 border-white/10 h-auto py-1.5 px-2 hover:bg-white/10 w-full',
               !endDate && 'text-white/50'
             )}
             onClick={() => {
@@ -93,8 +93,8 @@ export const DateRangePicker = ({
           >
             <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
             <div className="flex items-center gap-2 w-full">
-              <span className="text-xs text-white/50 w-[50%] md:w-[25%]">{endLabel}</span>
-              <span className="text-sm w-[50%] md:w-[75%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
+              <span className="text-xs text-white/50 w-[40%] md:w-[25%]">{endLabel}</span>
+              <span className="text-sm w-[60%] md:w-[75%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
             </div>
           </Button>
         </div>
