@@ -1,19 +1,108 @@
 import { Badge } from '@/components/ui/badge';
-import { Plane, Hotel, Car, Sparkles } from 'lucide-react';
+import { Plane, Hotel, Car, Sparkles, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { useState } from 'react';
+import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface PackageSearchCardProps {
   package: any;
-  onExpand: () => void;
 }
 
-export const PackageSearchCard = ({ package: pkg, onExpand }: PackageSearchCardProps) => {
+export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
   const flightPrice = pkg.flight?.price || 450;
   const hotelPrice = pkg.hotel?.price || 199;
   const carPrice = pkg.car?.price || 45;
   const regularTotal = flightPrice + hotelPrice + carPrice;
   const discount = Math.round(regularTotal * 0.15);
   const packagePrice = regularTotal - discount;
+
+  const handleAddToItinerary = () => {
+    setShowModal(true);
+  };
+
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please sign in to add items to your itinerary',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let targetItineraryId = itineraryId;
+
+      // If 'new', create the itinerary first
+      if (itineraryId === 'new') {
+        const startDate = pkg.startDate || new Date().toISOString().split('T')[0];
+        const endDate = pkg.endDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+        
+        const { data: newItin, error: createError } = await supabase
+          .from('itinerary')
+          .insert({
+            userid: user.id,
+            itin_name: newItineraryName,
+            itin_date_start: startDate,
+            itin_date_end: endDate,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        targetItineraryId = newItin.id.toString();
+      }
+
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: user.id,
+          itinerary_id: targetItineraryId,
+          type: 'package',
+          external_ref: pkg.id || `package-${Date.now()}`,
+          price: packagePrice,
+          item_data: {
+            flight: pkg.flight,
+            hotel: pkg.hotel,
+            car: pkg.car,
+            flightPrice: flightPrice,
+            hotelPrice: hotelPrice,
+            carPrice: carPrice,
+            regularTotal: regularTotal,
+            discount: discount,
+            packagePrice: packagePrice,
+            bookingStatus: 'pending'
+          }
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Package Saved',
+        description: 'Added to your itinerary as a pending booking',
+      });
+
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error saving package:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save package to itinerary',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -63,23 +152,42 @@ export const PackageSearchCard = ({ package: pkg, onExpand }: PackageSearchCardP
       </div>
 
       {/* Package Price */}
-      <div className="bg-gradient-to-r from-primary/20 to-primary/10 p-6 rounded-lg border border-primary/30">
-        <div className="text-center">
-          <p className="text-white/70 text-sm mb-1">Package Total</p>
-          <p className="text-white/60 text-sm line-through mb-2">${regularTotal}</p>
-          <p className="text-5xl font-bold text-white mb-2">${packagePrice}</p>
-          <p className="text-primary font-semibold">Save 15% vs booking separately!</p>
+      <div className="pt-4 border-t border-white/10">
+        <div className="bg-gradient-to-r from-primary/20 to-primary/10 p-6 rounded-lg border border-primary/30 mb-4">
+          <div className="text-center">
+            <p className="text-white/70 text-sm mb-1">Package Total</p>
+            <p className="text-white/60 text-sm line-through mb-2">${Math.ceil(regularTotal).toLocaleString('en-US')}</p>
+            <p className="text-4xl font-bold" style={{ color: '#ff849c' }}>
+              ${Math.ceil(packagePrice).toLocaleString('en-US')}
+            </p>
+            <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
+            <p className="text-primary font-semibold mt-2">Save 15% vs booking separately!</p>
+          </div>
         </div>
       </div>
 
-      {/* View Details Button */}
-      <Button
-        onClick={onExpand}
-        variant="outline"
-        className="w-full bg-white/5 border-white/20 text-white hover:bg-white/10"
-      >
-        View Full Package Details
-      </Button>
+      {/* Add to Itinerary Button */}
+      <div className="pt-4 border-t border-white/10 mt-auto">
+        <Button
+          onClick={handleAddToItinerary}
+          disabled={saving}
+          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          {saving ? 'Saving...' : '+ Package'}
+        </Button>
+      </div>
+
+      <ItineraryMatcherModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        searchDates={{
+          checkin: pkg.startDate || new Date().toISOString().split('T')[0],
+          checkout: pkg.endDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+        }}
+        item={pkg}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 };

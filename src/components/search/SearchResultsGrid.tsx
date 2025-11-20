@@ -43,13 +43,11 @@ export const SearchResultsGrid = ({ results, searchType, searchParams }: SearchR
             {searchType === 'cars' && (
               <CarSearchCard 
                 car={result}
-                onExpand={() => {}}
               />
             )}
             {searchType === 'packages' && (
               <PackageSearchCard 
                 package={result}
-                onExpand={() => {}}
               />
             )}
           </div>

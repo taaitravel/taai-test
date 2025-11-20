@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface FlightResultCardProps {
   flight: any;
@@ -11,6 +12,7 @@ interface FlightResultCardProps {
 
 export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
   const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
 
   // Parse departure and arrival times
@@ -25,81 +27,87 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
   const departureInfo = flight.departure ? parseDatetime(flight.departure) : { time: '10:00', dateShort: 'TBD' };
   const arrivalInfo = flight.arrival ? parseDatetime(flight.arrival) : { time: '14:30', dateShort: 'TBD' };
 
-  const handleAddToItinerary = async () => {
+  const handleAddToItinerary = () => {
+    setShowModal(true);
+  };
+
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
     setSaving(true);
-    
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         toast({
           title: 'Authentication Required',
-          description: 'Please log in to save flights to your itinerary.',
+          description: 'Please sign in to add items to your itinerary',
           variant: 'destructive',
         });
         return;
       }
 
-      // Get user's itineraries
-      const { data: itineraries, error: itinError } = await supabase
-        .from('itinerary')
-        .select('id, itin_name')
-        .eq('userid', user.id)
-        .order('created_at', { ascending: false });
+      let targetItineraryId = itineraryId;
 
-      if (itinError) throw itinError;
+      // If 'new', create the itinerary first
+      if (itineraryId === 'new') {
+        const departureDate = flight.departure?.at || new Date().toISOString().split('T')[0];
+        
+        const { data: newItin, error: createError } = await supabase
+          .from('itinerary')
+          .insert({
+            userid: user.id,
+            itin_name: newItineraryName,
+            itin_date_start: departureDate,
+            itin_date_end: departureDate,
+          })
+          .select()
+          .single();
 
-      if (!itineraries || itineraries.length === 0) {
-        toast({
-          title: 'No Itineraries Found',
-          description: 'Please create an itinerary first before adding flights.',
-          variant: 'default',
-        });
-        return;
+        if (createError) throw createError;
+        targetItineraryId = newItin.id.toString();
       }
 
-      // For now, add to the most recent itinerary
-      // TODO: Add a selector modal to let users choose which itinerary
-      const targetItinerary = itineraries[0];
-
-      // Save as cart item with reference to search
-      const { error: cartError } = await supabase
+      const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
-          itinerary_id: targetItinerary.id.toString(),
+          itinerary_id: targetItineraryId,
           type: 'flight',
-          external_ref: flight.id,
-          price: flight.price || 0,
+          external_ref: flight.id || `flight-${Date.now()}`,
+          price: parseFloat(flight.price?.total || '0'),
           item_data: {
-            airline: flight.airlineName || flight.airline,
-            flight_number: flight.flight_number,
-            departure: flight.departure,
-            arrival: flight.arrival,
-            from: flight.origin,
-            to: flight.destination,
-            price: Math.ceil(flight.price || 0),
+            airline: flight.validatingAirlineCodes?.[0] || flight.airline,
+            flightNumber: flight.flightNumber,
+            departure: {
+              iataCode: flight.departure?.iataCode,
+              at: flight.departure?.at,
+            },
+            arrival: {
+              iataCode: flight.arrival?.iataCode,
+              at: flight.arrival?.at,
+            },
             duration: flight.duration,
-            stops: flight.stops,
-            aircraft: flight.aircraft,
-            baggage: flight.baggage,
-            bookingStatus: 'pending',
-            savedAt: new Date().toISOString(),
-            source: 'search_result',
-          },
+            stops: flight.numberOfStops || 0,
+            baggage: flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity || 0,
+            aircraft: flight.aircraft?.code,
+            class: flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin,
+            price: flight.price,
+            bookingStatus: 'pending'
+          }
         });
 
-      if (cartError) throw cartError;
+      if (error) throw error;
 
       toast({
         title: 'Flight Saved',
-        description: `Added to "${targetItinerary.itin_name || 'Untitled Itinerary'}" as pending booking.`,
+        description: 'Added to your itinerary as a pending booking',
       });
 
-    } catch (error: any) {
+      setShowModal(false);
+    } catch (error) {
       console.error('Error saving flight:', error);
       toast({
-        title: 'Save Failed',
-        description: error.message || 'Unable to save flight to itinerary.',
+        title: 'Error',
+        description: 'Failed to save flight to itinerary',
         variant: 'destructive',
       });
     } finally {
@@ -178,25 +186,41 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
         )}
       </div>
 
-      {/* Price */}
-      <div className="pt-4 border-t border-white/10 mt-auto">
-        <div className="flex items-baseline justify-between">
+      {/* Price Section */}
+      <div className="pt-4 border-t border-white/10">
+        <div className="flex items-baseline justify-between mb-4">
           <div>
             <p className="text-white/60 text-sm">Total Price</p>
-            <p className="text-2xl font-bold text-white" style={{ color: '#ff849c' }}>
-              {flight.priceDisplay || `$${Math.ceil(flight.price || 0).toLocaleString('en-US')}`}
+            <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+              ${Math.ceil(parseFloat(flight.price?.total || flight.price || '0')).toLocaleString('en-US')}
             </p>
+            <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
           </div>
-          <Button 
-            onClick={handleAddToItinerary}
-            disabled={saving}
-            className="bg-gradient-to-r from-primary to-[#7E69AB] hover:opacity-90 text-white"
-          >
-            <Plus className="h-4 w-4 mr-1.5" />
-            {saving ? 'Saving...' : 'Add'}
-          </Button>
         </div>
       </div>
+
+      {/* Add to Itinerary Button */}
+      <div className="pt-4 border-t border-white/10 mt-auto">
+        <Button
+          onClick={handleAddToItinerary}
+          disabled={saving}
+          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          {saving ? 'Saving...' : '+ Flight'}
+        </Button>
+      </div>
+
+      <ItineraryMatcherModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        searchDates={{
+          checkin: flight.departure?.at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          checkout: flight.departure?.at?.split('T')[0] || new Date().toISOString().split('T')[0]
+        }}
+        item={flight}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 };

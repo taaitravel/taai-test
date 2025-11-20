@@ -1,16 +1,108 @@
 import { Badge } from '@/components/ui/badge';
-import { Car, Users, Settings, Navigation, Fuel } from 'lucide-react';
+import { Car, Users, Settings, Navigation, Fuel, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { useState } from 'react';
+import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface CarSearchCardProps {
   car: any;
-  onExpand: () => void;
 }
 
-export const CarSearchCard = ({ car, onExpand }: CarSearchCardProps) => {
+export const CarSearchCard = ({ car }: CarSearchCardProps) => {
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
   const pricePerDay = car.price || car.pricePerDay || 45;
   const days = car.days || 4;
   const totalPrice = pricePerDay * days;
+
+  const handleAddToItinerary = () => {
+    setShowModal(true);
+  };
+
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please sign in to add items to your itinerary',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let targetItineraryId = itineraryId;
+
+      // If 'new', create the itinerary first
+      if (itineraryId === 'new') {
+        const pickupDate = car.pickupDate || new Date().toISOString().split('T')[0];
+        const dropoffDate = car.dropoffDate || new Date(Date.now() + days * 86400000).toISOString().split('T')[0];
+        
+        const { data: newItin, error: createError } = await supabase
+          .from('itinerary')
+          .insert({
+            userid: user.id,
+            itin_name: newItineraryName,
+            itin_date_start: pickupDate,
+            itin_date_end: dropoffDate,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        targetItineraryId = newItin.id.toString();
+      }
+
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: user.id,
+          itinerary_id: targetItineraryId,
+          type: 'car',
+          external_ref: car.id || `car-${Date.now()}`,
+          price: totalPrice,
+          item_data: {
+            name: car.name || 'Toyota Camry',
+            type: car.type || 'Sedan',
+            seats: car.seats || 5,
+            transmission: car.transmission || 'Automatic',
+            fuelType: car.fuelType || 'Gasoline',
+            pickupLocation: car.pickupLocation || 'Airport',
+            dropoffLocation: car.dropoffLocation || 'Airport',
+            mileageLimit: car.mileageLimit || 'Unlimited',
+            pricePerDay: pricePerDay,
+            days: days,
+            totalPrice: totalPrice,
+            image: car.image,
+            bookingStatus: 'pending'
+          }
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Car Saved',
+        description: 'Added to your itinerary as a pending booking',
+      });
+
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error saving car:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save car to itinerary',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -57,27 +149,46 @@ export const CarSearchCard = ({ car, onExpand }: CarSearchCardProps) => {
       </div>
 
       {/* Price */}
-      <div className="bg-white/5 p-4 rounded-lg border border-white/20">
-        <div className="flex items-end justify-between">
+      <div className="pt-4 border-t border-white/10">
+        <div className="flex items-baseline justify-between mb-4">
           <div>
-            <p className="text-4xl font-bold text-white">${pricePerDay}</p>
-            <p className="text-white/60 text-sm">per day</p>
+            <p className="text-white/60 text-sm">Price per day</p>
+            <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+              ${Math.ceil(pricePerDay).toLocaleString('en-US')}
+            </p>
+            <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
           </div>
           <div className="text-right">
-            <p className="text-white/70 text-sm">Total for {days} days</p>
-            <p className="text-2xl font-semibold text-primary">${totalPrice}</p>
+            <p className="text-white/60 text-sm">Total for {days} days</p>
+            <p className="text-2xl font-semibold" style={{ color: '#ff849c' }}>
+              ${Math.ceil(totalPrice).toLocaleString('en-US')}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* View Details Button */}
-      <Button
-        onClick={onExpand}
-        variant="outline"
-        className="w-full bg-white/5 border-white/20 text-white hover:bg-white/10"
-      >
-        View Full Details
-      </Button>
+      {/* Add to Itinerary Button */}
+      <div className="pt-4 border-t border-white/10 mt-auto">
+        <Button
+          onClick={handleAddToItinerary}
+          disabled={saving}
+          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          {saving ? 'Saving...' : '+ Car'}
+        </Button>
+      </div>
+
+      <ItineraryMatcherModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        searchDates={{
+          checkin: car.pickupDate || new Date().toISOString().split('T')[0],
+          checkout: car.dropoffDate || new Date(Date.now() + days * 86400000).toISOString().split('T')[0]
+        }}
+        item={car}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 };
