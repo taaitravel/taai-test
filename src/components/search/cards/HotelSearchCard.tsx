@@ -1,13 +1,21 @@
 import { Badge } from '@/components/ui/badge';
 import { ImageGallery } from '@/components/ui/image-gallery';
-import { Star, MapPin, Calendar } from 'lucide-react';
+import { Star, MapPin, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface HotelSearchCardProps {
   hotel: any;
 }
 
 export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
+  const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const { toast } = useToast();
+
   const images = hotel.images || (hotel.image ? [hotel.image] : []);
   const pricePerNight = hotel.pricePerNight || hotel.price || 0;
   const totalPrice = hotel.totalPrice || hotel.min_total_price || 0;
@@ -16,6 +24,87 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
     ? `${hotel.cityName}${hotel.distanceFromSearch ? `, ${hotel.distanceFromSearch} mi` : ''}` 
     : (hotel.location || hotel.city || '');
   const source = hotel.source || 'Booking.com';
+
+  const handleAddToItinerary = () => {
+    setShowModal(true);
+  };
+
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please sign in to add items to your itinerary',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let targetItineraryId = itineraryId;
+
+      if (itineraryId === 'new') {
+        const checkin = hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0];
+        const checkout = hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        
+        const { data: newItin, error: createError } = await supabase
+          .from('itinerary')
+          .insert({
+            userid: user.id,
+            itin_name: newItineraryName,
+            itin_date_start: checkin,
+            itin_date_end: checkout,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        targetItineraryId = newItin.id.toString();
+      }
+
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: user.id,
+          itinerary_id: targetItineraryId,
+          type: 'hotel',
+          external_ref: hotel.hotel_id || hotel.hotelId || `hotel-${Date.now()}`,
+          price: totalPrice,
+          item_data: {
+            name: hotel.name,
+            location: location,
+            pricePerNight: pricePerNight,
+            totalPrice: totalPrice,
+            nights: nights,
+            rating: hotel.rating,
+            images: images,
+            source: source,
+            bookingUrl: hotel.bookingUrl,
+            bookingStatus: 'pending'
+          }
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Property Saved',
+        description: 'Added to your itinerary as a pending booking',
+      });
+
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error saving hotel:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save property to itinerary',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
@@ -58,26 +147,39 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
           </div>
         </div>
         <div className="space-y-2">
-          <div className="space-y-1">
+          <div className="space-y-1 mb-4">
             <div className="flex items-center text-sm text-white/50">
               <Calendar className="h-3 w-3 mr-1" />
               {nights} nights
             </div>
-            <p className="text-base font-semibold" style={{ color: '#ff849c' }}>
-              Total: ${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+              ${Math.ceil(totalPrice).toLocaleString('en-US')}
             </p>
             <p className="text-white/40 text-xs">including taxes and fees</p>
           </div>
-          <Button
-            onClick={() => window.open(hotel.bookingUrl, '_blank')}
-            variant="outline"
-            size="sm"
-            className="w-full bg-white/5 border-white/20 text-white hover:bg-white/10 text-xs"
-          >
-            view taai deal
-          </Button>
+          <div className="pt-4 border-t border-white/10">
+            <Button
+              onClick={handleAddToItinerary}
+              disabled={saving}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {saving ? 'Saving...' : '+ Property'}
+            </Button>
+          </div>
         </div>
       </div>
+
+      <ItineraryMatcherModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        searchDates={{
+          checkin: hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
+          checkout: hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
+        }}
+        item={hotel}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 };

@@ -1,16 +1,99 @@
 import { Badge } from '@/components/ui/badge';
 import { ImageGallery } from '@/components/ui/image-gallery';
-import { Star, MapPin, Clock, Users, Calendar } from 'lucide-react';
+import { Star, MapPin, Clock, Users, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface ActivitySearchCardProps {
   activity: any;
-  onExpand: () => void;
 }
 
-export const ActivitySearchCard = ({ activity, onExpand }: ActivitySearchCardProps) => {
+export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
+  const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const { toast } = useToast();
+
   const images = activity.images || (activity.image ? [activity.image] : []);
   const pricePerPerson = activity.price || activity.cost || 75;
+
+  const handleAddToItinerary = () => {
+    setShowModal(true);
+  };
+
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please sign in to add items to your itinerary',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let targetItineraryId = itineraryId;
+
+      if (itineraryId === 'new') {
+        const today = new Date().toISOString().split('T')[0];
+        
+        const { data: newItin, error: createError } = await supabase
+          .from('itinerary')
+          .insert({
+            userid: user.id,
+            itin_name: newItineraryName,
+            itin_date_start: today,
+            itin_date_end: today,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        targetItineraryId = newItin.id.toString();
+      }
+
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: user.id,
+          itinerary_id: targetItineraryId,
+          type: 'activity',
+          external_ref: activity.id || `activity-${Date.now()}`,
+          price: pricePerPerson,
+          item_data: {
+            name: activity.name,
+            location: activity.location || activity.city,
+            price: pricePerPerson,
+            rating: activity.rating,
+            images: images,
+            bookingStatus: 'pending'
+          }
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Activity Saved',
+        description: 'Added to your itinerary as a pending booking',
+      });
+
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error saving activity:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save activity to itinerary',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-4 bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)] h-full flex flex-col">
@@ -46,23 +129,42 @@ export const ActivitySearchCard = ({ activity, onExpand }: ActivitySearchCardPro
           </p>
         </div>
 
-        {/* Price */}
-        <div className="pt-3 border-t border-white/10">
-          <div className="flex items-center justify-between">
+        {/* Price Section */}
+        <div className="pt-4 border-t border-white/10">
+          <div className="flex items-baseline justify-between mb-4">
             <div>
-              <p className="text-xl font-bold" style={{ color: '#ff849c' }}>
-                ${pricePerPerson}
+              <p className="text-white/60 text-sm">Price</p>
+              <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+                ${Math.ceil(pricePerPerson).toLocaleString('en-US')}
               </p>
+              <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
             </div>
-            <Button
-              onClick={onExpand}
-              className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] hover:opacity-90 text-white text-sm"
-            >
-              view deal
-            </Button>
           </div>
         </div>
+
+        {/* Add to Itinerary Button */}
+        <div className="pt-4 border-t border-white/10">
+          <Button
+            onClick={handleAddToItinerary}
+            disabled={saving}
+            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {saving ? 'Saving...' : '+ Activity'}
+          </Button>
+        </div>
       </div>
+
+      <ItineraryMatcherModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        searchDates={{
+          checkin: new Date().toISOString().split('T')[0],
+          checkout: new Date().toISOString().split('T')[0]
+        }}
+        item={activity}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 };
