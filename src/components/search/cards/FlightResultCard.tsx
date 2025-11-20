@@ -100,7 +100,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
   return (
     <div className="p-6">
       {/* Flight header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Plane className="h-5 w-5 text-primary" />
@@ -116,7 +116,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
       </div>
 
       {/* Route visualization */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-5 mb-5">
+      <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4">
         <div className="flex items-center justify-between">
           {/* Departure */}
           <div className="text-center">
@@ -154,22 +154,36 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
         </div>
       </div>
 
-      {/* Price and action */}
-      <div className="flex items-end justify-between pt-3">
-        <div>
-          <p className="text-white/50 text-xs mb-0.5">Total Price</p>
-          <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
-            {flight.priceDisplay || `$${flight.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '450.00'}`}
-          </p>
+      {/* Flight details */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
+          Baggage Included
+        </Badge>
+        {flight.aircraft && (
+          <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
+            {flight.aircraft}
+          </Badge>
+        )}
+      </div>
+
+      {/* Price */}
+      <div className="pt-4 border-t border-white/10">
+        <div className="flex items-baseline justify-between">
+          <div>
+            <p className="text-white/60 text-sm">Total Price</p>
+            <p className="text-2xl font-bold text-white" style={{ color: '#ff849c' }}>
+              {flight.priceDisplay || `$${flight.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '450.00'}`}
+            </p>
+          </div>
+          <Button 
+            onClick={handleAddToItinerary}
+            disabled={saving}
+            className="bg-gradient-to-r from-primary to-[#7E69AB] hover:opacity-90 text-white"
+          >
+            <Plus className="h-4 w-4 mr-1.5" />
+            {saving ? 'Saving...' : 'Add'}
+          </Button>
         </div>
-        <Button 
-          onClick={handleAddToItinerary}
-          disabled={saving}
-          className="bg-gradient-to-r from-primary to-[#7E69AB] hover:opacity-90 text-white px-6"
-        >
-          <Plus className="h-4 w-4 mr-1.5" />
-          {saving ? 'Saving...' : 'Add to Itinerary'}
-        </Button>
       </div>
     </div>
   );
