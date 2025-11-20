@@ -303,13 +303,14 @@ export const useSearchOrchestrator = () => {
               throw new Error('Could not find location coordinates');
             }
 
-            const [longitude, latitude] = geocodeData.features[0].center;
-            console.log(`📍 Geocoded ${params.destination} to [${latitude}, ${longitude}]`);
+            // Mapbox returns [longitude, latitude] format
+            const [lon, lat] = geocodeData.features[0].center;
+            console.log(`📍 Geocoded ${params.destination} to [${lat}, ${lon}]`);
 
             // Search activities using Amadeus
             const { data, error } = await searchAmadeusActivities({
-              latitude,
-              longitude,
+              latitude: lat,
+              longitude: lon,
               radius: 5, // 5km radius
             });
 
