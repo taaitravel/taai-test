@@ -71,8 +71,18 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
           external_ref: flight.id,
           price: flight.price || 0,
           item_data: {
-            ...flight,
-            status: 'inactive',
+            airline: flight.airlineName || flight.airline,
+            flight_number: flight.flight_number,
+            departure: flight.departure,
+            arrival: flight.arrival,
+            from: flight.origin,
+            to: flight.destination,
+            price: Math.ceil(flight.price || 0),
+            duration: flight.duration,
+            stops: flight.stops,
+            aircraft: flight.aircraft,
+            baggage: flight.baggage,
+            bookingStatus: 'pending',
             savedAt: new Date().toISOString(),
             source: 'search_result',
           },
@@ -82,7 +92,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
 
       toast({
         title: 'Flight Saved',
-        description: `Added to "${targetItinerary.itin_name || 'Untitled Itinerary'}" as inactive booking.`,
+        description: `Added to "${targetItinerary.itin_name || 'Untitled Itinerary'}" as pending booking.`,
       });
 
     } catch (error: any) {
