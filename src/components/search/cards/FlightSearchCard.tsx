@@ -33,7 +33,7 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
     setShowModal(true);
   };
 
-  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string, startDate?: string, endDate?: string) => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -50,15 +50,13 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
       let targetItineraryId = itineraryId;
 
       if (itineraryId === 'new') {
-        const departureDate = flight.departure || new Date().toISOString().split('T')[0];
-        
         const { data: newItin, error: createError } = await supabase
           .from('itinerary')
           .insert({
             userid: user.id,
             itin_name: newItineraryName,
-            itin_date_start: departureDate,
-            itin_date_end: departureDate,
+            itin_date_start: startDate,
+            itin_date_end: endDate,
           })
           .select()
           .single();

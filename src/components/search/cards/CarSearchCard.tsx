@@ -23,7 +23,7 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
     setShowModal(true);
   };
 
-  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string, startDate?: string, endDate?: string) => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -41,16 +41,13 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
 
       // If 'new', create the itinerary first
       if (itineraryId === 'new') {
-        const pickupDate = car.pickupDate || new Date().toISOString().split('T')[0];
-        const dropoffDate = car.dropoffDate || new Date(Date.now() + days * 86400000).toISOString().split('T')[0];
-        
         const { data: newItin, error: createError } = await supabase
           .from('itinerary')
           .insert({
             userid: user.id,
             itin_name: newItineraryName,
-            itin_date_start: pickupDate,
-            itin_date_end: dropoffDate,
+            itin_date_start: startDate,
+            itin_date_end: endDate,
           })
           .select()
           .single();
