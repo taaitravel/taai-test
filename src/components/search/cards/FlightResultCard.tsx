@@ -174,7 +174,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
           <div>
             <p className="text-white/60 text-sm">Total Price</p>
             <p className="text-2xl font-bold text-white" style={{ color: '#ff849c' }}>
-              {flight.priceDisplay || `$${flight.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '450.00'}`}
+              {flight.priceDisplay || `$${Math.ceil(flight.price || 0).toLocaleString('en-US')}`}
             </p>
           </div>
           <Button 
