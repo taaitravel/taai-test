@@ -18,12 +18,12 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
     const date = new Date(dateTimeStr);
     return {
       time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      dateShort: date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '/'),
     };
   };
 
-  const departureInfo = flight.departure ? parseDatetime(flight.departure) : { time: '10:00', date: 'TBD' };
-  const arrivalInfo = flight.arrival ? parseDatetime(flight.arrival) : { time: '14:30', date: 'TBD' };
+  const departureInfo = flight.departure ? parseDatetime(flight.departure) : { time: '10:00', dateShort: 'TBD' };
+  const arrivalInfo = flight.arrival ? parseDatetime(flight.arrival) : { time: '14:30', dateShort: 'TBD' };
 
   const handleAddToItinerary = async () => {
     setSaving(true);
@@ -120,6 +120,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
         <div className="flex items-center justify-between">
           {/* Departure */}
           <div className="text-center">
+            <div className="text-white/40 text-xs mb-1">{departureInfo.dateShort}</div>
             <div className="text-2xl font-bold text-white">{flight.from}</div>
             <div className="text-white/60 text-sm mt-0.5">{departureInfo.time}</div>
           </div>
@@ -140,6 +141,7 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
 
           {/* Arrival */}
           <div className="text-center">
+            <div className="text-white/40 text-xs mb-1">{arrivalInfo.dateShort}</div>
             <div className="text-2xl font-bold text-white">{flight.to}</div>
             <div className="text-white/60 text-sm mt-0.5">{arrivalInfo.time}</div>
           </div>

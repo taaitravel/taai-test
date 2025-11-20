@@ -18,7 +18,8 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
   
   const departureTime = isValid(departureDate) ? format(departureDate, 'h:mm a') : '';
   const arrivalTime = isValid(arrivalDate) ? format(arrivalDate, 'h:mm a') : '';
-  const formattedDate = isValid(departureDate) ? format(departureDate, 'MMM dd, yyyy') : '';
+  const departureOnlyDate = isValid(departureDate) ? format(departureDate, 'MM/dd/yy') : '';
+  const arrivalOnlyDate = isValid(arrivalDate) ? format(arrivalDate, 'MM/dd/yy') : '';
 
   return (
     <div className="flex flex-col h-full bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
@@ -42,6 +43,7 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
       <div className="bg-white/5 p-4 rounded-lg border border-white/10 mb-4 flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div className="text-center flex-1">
+            <p className="text-white/40 text-xs mb-1">{departureOnlyDate}</p>
             <p className="text-2xl font-bold text-white">{flight.from || flight.origin}</p>
             <p className="text-white/50 text-sm mt-0.5">{departureTime}</p>
           </div>
@@ -53,6 +55,7 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
           </div>
 
           <div className="text-center flex-1">
+            <p className="text-white/40 text-xs mb-1">{arrivalOnlyDate}</p>
             <p className="text-2xl font-bold text-white">{flight.to || flight.destination}</p>
             <p className="text-white/50 text-sm mt-0.5">{arrivalTime}</p>
           </div>
