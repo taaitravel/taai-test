@@ -271,18 +271,28 @@ export const useSearchOrchestrator = () => {
           
           try {
             // First, geocode the destination to get coordinates
+            console.log(`🗺️ Geocoding destination: "${params.destination}"`);
+            
             const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke(
               'search-cities',
               { body: { query: params.destination } }
             );
 
-            if (geocodeError || !geocodeData?.features?.[0]) {
-              throw new Error('Could not find location coordinates');
+            console.log('Geocode response:', { geocodeData, geocodeError });
+
+            if (geocodeError) {
+              console.error('Geocode error:', geocodeError);
+              throw new Error(`Geocoding failed: ${geocodeError.message}`);
+            }
+
+            if (!geocodeData?.features || geocodeData.features.length === 0) {
+              console.error('No geocode results for:', params.destination);
+              throw new Error(`Could not find coordinates for "${params.destination}". Try a more specific location like "Miami, Florida" or "Miami Beach"`);
             }
 
             // Mapbox returns [longitude, latitude] format
             const [lon, lat] = geocodeData.features[0].center;
-            console.log(`📍 Geocoded ${params.destination} to [${lat}, ${lon}]`);
+            console.log(`📍 Geocoded "${params.destination}" to [${lat}, ${lon}]`);
 
             // Search activities using Amadeus
             const { data, error } = await searchAmadeusActivities({
