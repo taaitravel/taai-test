@@ -99,7 +99,7 @@ export const EnhancedActivityCardRenderer = (activity: any, index: number) => {
         <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2">
           {activity.name}
         </h4>
-        <p className="text-white/50 text-sm mb-2">{locationDisplay}</p>
+        <p className="text-white/50 text-sm mb-2 line-clamp-1">{locationDisplay}</p>
         <div className="flex flex-wrap gap-1 mb-2">
           <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
             ${activity.price || activity.cost}
