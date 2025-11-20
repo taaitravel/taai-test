@@ -1,14 +1,21 @@
 import { Badge } from '@/components/ui/badge';
-import { Plane, Clock, Luggage, Calendar } from 'lucide-react';
+import { Plane, Clock, Luggage, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, isValid } from 'date-fns';
+import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface FlightSearchCardProps {
   flight: any;
-  onExpand: () => void;
 }
 
-export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) => {
+export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
+  const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const { toast } = useToast();
+
   const price = flight.price || flight.cost || 0;
   const totalPrice = flight.totalPrice || price;
   const roundedPrice = Math.ceil(totalPrice);
@@ -21,6 +28,87 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
   const arrivalTime = isValid(arrivalDate) ? format(arrivalDate, 'h:mm a') : '';
   const departureOnlyDate = isValid(departureDate) ? format(departureDate, 'MM/dd/yy') : '';
   const arrivalOnlyDate = isValid(arrivalDate) ? format(arrivalDate, 'MM/dd/yy') : '';
+
+  const handleAddToItinerary = () => {
+    setShowModal(true);
+  };
+
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please sign in to add items to your itinerary',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let targetItineraryId = itineraryId;
+
+      if (itineraryId === 'new') {
+        const departureDate = flight.departure || new Date().toISOString().split('T')[0];
+        
+        const { data: newItin, error: createError } = await supabase
+          .from('itinerary')
+          .insert({
+            userid: user.id,
+            itin_name: newItineraryName,
+            itin_date_start: departureDate,
+            itin_date_end: departureDate,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        targetItineraryId = newItin.id.toString();
+      }
+
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: user.id,
+          itinerary_id: targetItineraryId,
+          type: 'flight',
+          external_ref: flight.id || `flight-${Date.now()}`,
+          price: roundedPrice,
+          item_data: {
+            airline: flight.airline,
+            flightNumber: flight.flight_number,
+            from: flight.from || flight.origin,
+            to: flight.to || flight.destination,
+            departure: flight.departure,
+            arrival: flight.arrival,
+            duration: flight.duration,
+            stops: flight.stops || 0,
+            class: flight.class,
+            aircraft: flight.aircraft,
+            bookingStatus: 'pending'
+          }
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Flight Saved',
+        description: 'Added to your itinerary as a pending booking',
+      });
+
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error saving flight:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save flight to itinerary',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
@@ -82,23 +170,41 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
         )}
       </div>
 
-      {/* Price and Action */}
+      {/* Price Section */}
       <div className="pt-4 border-t border-white/10 mt-auto">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between mb-4">
           <div>
             <p className="text-white/60 text-sm">Total Price</p>
-            <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
-              {flight.priceDisplay || `$${roundedPrice.toLocaleString('en-US')}`}
+            <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+              ${roundedPrice.toLocaleString('en-US')}
             </p>
+            <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
           </div>
-          <Button
-            onClick={onExpand}
-            className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] hover:opacity-90 text-white"
-          >
-            view deal
-          </Button>
         </div>
       </div>
+
+      {/* Add to Itinerary Button */}
+      <div className="pt-4 border-t border-white/10">
+        <Button
+          onClick={handleAddToItinerary}
+          disabled={saving}
+          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          {saving ? 'Saving...' : '+ Flight'}
+        </Button>
+      </div>
+
+      <ItineraryMatcherModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        searchDates={{
+          checkin: flight.departure || new Date().toISOString().split('T')[0],
+          checkout: flight.departure || new Date().toISOString().split('T')[0]
+        }}
+        item={flight}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 };

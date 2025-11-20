@@ -31,13 +31,11 @@ export const SearchResultsGrid = ({ results, searchType, searchParams }: SearchR
             {searchType === 'flights' && (
               <FlightSearchCard 
                 flight={result}
-                onExpand={() => {}}
               />
             )}
             {searchType === 'activities' && (
               <ActivitySearchCard 
                 activity={result}
-                onExpand={() => {}}
               />
             )}
             {searchType === 'cars' && (
