@@ -15,6 +15,7 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
   const location = hotel.cityName 
     ? `${hotel.cityName}${hotel.distanceFromSearch ? `, ${hotel.distanceFromSearch} mi` : ''}` 
     : (hotel.location || hotel.city || '');
+  const source = hotel.source || 'Booking.com';
 
   return (
     <div className="h-full flex flex-col hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
@@ -31,7 +32,12 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
       {/* Card Content - Matching Itinerary Card Style */}
       <div className="p-4 flex-1 flex flex-col justify-between bg-[#1a1c2e] border border-white/10 rounded-b-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
         <div>
-          <div className="text-2xl mb-2 opacity-60">🏨</div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-2xl opacity-60">🏨</div>
+            <Badge variant="secondary" className="text-xs bg-white/5 text-white/40 border-white/10">
+              {source}
+            </Badge>
+          </div>
           <h4 className="font-bold text-white text-base mb-1 line-clamp-2">
             {hotel.name}
           </h4>
