@@ -139,14 +139,14 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
   };
 
   return (
-    <div className="h-full flex flex-col hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
+    <div className="w-[255px] h-[375px] flex flex-col hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
       {/* Image Gallery */}
       {images.length > 0 && (
         <ImageGallery
           images={images}
           alt={hotel.name}
           aspectRatio="wide"
-          className="rounded-t-lg overflow-hidden"
+          className="rounded-t-lg overflow-hidden h-32 flex-shrink-0"
         />
       )}
 

@@ -129,9 +129,9 @@ export const HotelResultCard = ({ hotel }: HotelResultCardProps) => {
   };
 
   return (
-    <div className="p-6 flex flex-col h-full">
+    <div className="w-[255px] h-[375px] p-6 flex flex-col">
       {/* Image carousel */}
-      <div className="relative h-64 bg-white/5 rounded-lg mb-4 overflow-hidden">
+      <div className="relative h-32 bg-white/5 rounded-lg mb-4 overflow-hidden flex-shrink-0">
         {hotel.images?.[0] ? (
           <img 
             src={hotel.images[0]} 

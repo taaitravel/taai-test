@@ -11,7 +11,7 @@ export const PackageResultCard = ({ package: pkg }: PackageResultCardProps) => {
   const flight = pkg.flight || {};
 
   return (
-    <div className="p-6">
+    <div className="w-[255px] h-[375px] p-6 flex flex-col overflow-auto">
       {/* Package header */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">

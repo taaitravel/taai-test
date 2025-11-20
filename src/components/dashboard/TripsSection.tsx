@@ -24,7 +24,7 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
               <p className="text-white/70 text-sm">Loading...</p>
             </div>
           ) : (
-            <div className="relative w-[260px] h-[380px]">
+            <div className="relative w-[255px] h-[375px]">
               {activeItineraries
                 .filter(trip => ['planning', 'upcoming', 'active'].includes(trip.status))
                 .slice(0, 3)
@@ -79,7 +79,7 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
             <Clock className="h-5 w-5 mr-2" />
             Past Trips
           </h3>
-          <div className="relative w-[260px] h-[380px]">
+          <div className="relative w-[255px] h-[375px]">
             {activeItineraries
               .filter(trip => trip.status === 'completed')
               .slice(0, 3)
