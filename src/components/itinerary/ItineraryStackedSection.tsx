@@ -7,20 +7,26 @@ interface StackedCardProps {
   title: string;
   icon: React.ComponentType<any>;
   items: any[];
+  itemType: string;
   onCardClick: (index: number) => void;
   renderCard: (item: any, index: number) => React.ReactNode;
   emptyMessage: string;
   onAddClick?: () => void;
+  onEdit?: (type: any, index: number) => void;
+  onDelete?: (type: string, index: number) => void;
 }
 
 export const ItineraryStackedSection = ({ 
   title, 
   icon: Icon, 
-  items, 
+  items,
+  itemType,
   onCardClick, 
   renderCard,
   emptyMessage,
-  onAddClick
+  onAddClick,
+  onEdit,
+  onDelete
 }: StackedCardProps) => {
   return (
     <div className="mb-8">
@@ -43,28 +49,52 @@ export const ItineraryStackedSection = ({
       </div>
       
       {items.length > 0 ? (
-        <div className="relative w-[200px] h-[270px] sm:w-[240px] md:w-[260px] sm:h-[350px] md:h-[380px] mx-auto sm:mx-0">
-          {items.slice(0, 3).map((item, index) => (
+        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+          {items.map((item, index) => (
           <Card 
             key={index}
-            className="absolute w-full h-full trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
-            style={{
-              transform: `translateY(${index * 10}px) translateX(${index * 5}px)`,
-              zIndex: 10 - index
-            }}
-            onClick={() => onCardClick(index)}
+            className="trip-card-past hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
           >
-            <CardContent className="p-4 h-full flex flex-col justify-between">
-              {renderCard(item, index)}
+            <CardContent className="p-4 flex flex-col justify-between">
+              <div className="mb-3">
+                {renderCard(item, index)}
+              </div>
+              
+              {(onEdit || onDelete) && (
+                <div className="flex gap-2 pt-3 border-t border-white/10">
+                  {onEdit && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(itemType, index);
+                      }}
+                      className="flex-1 text-xs"
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Are you sure you want to delete this item?')) {
+                          onDelete(itemType, index);
+                        }
+                      }}
+                      className="flex-1 text-xs text-red-400 hover:text-red-300"
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
           ))}
-          
-          {items.length > 3 && (
-            <div className="absolute bottom-0 right-0 bg-white/10 backdrop-blur-md rounded-full px-3 py-1 text-xs text-white/60 border border-white/20">
-              +{items.length - 3} more
-            </div>
-          )}
         </div>
       ) : (
         <div className="text-center py-8 text-white/50">

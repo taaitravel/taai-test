@@ -25,6 +25,8 @@ interface ItineraryContentProps {
   onHotelClick: (index: number) => void;
   onActivityClick: (index: number) => void;
   onReservationClick: (index: number) => void;
+  onEdit?: (type: any, index: number) => void;
+  onDelete?: (type: string, index: number) => void;
   refreshMapData?: () => void;
 }
 
@@ -35,6 +37,8 @@ export const ItineraryContent = ({
   onHotelClick,
   onActivityClick,
   onReservationClick,
+  onEdit,
+  onDelete,
   refreshMapData,
 }: ItineraryContentProps) => {
   const duration = Math.ceil(
@@ -188,7 +192,10 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
 
       {/* Stacked Cards Section */}
       <ItineraryStackedCards
-        itineraryData={itineraryData}
+        flights={itineraryData.flights || []}
+        hotels={itineraryData.hotels || []}
+        activities={itineraryData.activities || []}
+        reservations={itineraryData.reservations || []}
         onFlightClick={onFlightClick}
         onHotelClick={onHotelClick}
         onActivityClick={onActivityClick}
@@ -197,6 +204,8 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
         onAddHotel={() => openAdd('hotels')}
         onAddActivity={() => openAdd('activities')}
         onAddReservation={() => openAdd('reservations')}
+        onEdit={onEdit}
+        onDelete={onDelete}
       />
 
       {/* Attendees Section - Full Width */}
