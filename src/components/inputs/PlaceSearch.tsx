@@ -40,6 +40,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
   const [results, setResults] = useState<PlaceResult[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [biasCoords, setBiasCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Resolve city name to coordinates for better provider results
   useEffect(() => {
@@ -77,6 +78,19 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
   }, []);
 
   useEffect(() => {
+    // Clear any existing search timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!query || query.length < 2) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
     const fetchMapbox = async (q: string, types: string) => {
       const { data: tokenResp, error: tokenErr } = await supabase.functions.invoke("get-mapbox-token");
       if (tokenErr) throw tokenErr;
@@ -104,89 +118,20 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
     };
 
     const fetchExpedia = async (q: string, category: string) => {
-      try {
-        console.log(`Attempting Expedia search for ${category}:`, q);
-        // Since the specific endpoints don't exist, fallback to Mapbox for now
-        // but with enhanced UI to show it's hotel/activity focused
-        return [];
-      } catch (error) {
-        console.error('Expedia search error:', error);
-        return [];
-      }
-    };
-
-    const fetchResults = async () => {
-      if (!query || query.trim().length < 2) {
-        setResults([]);
-        return;
-      }
-      setLoading(true);
-      try {
-        if (mode === "hotel") {
-          // Try Expedia first, then fallback to Mapbox with hotel-focused search
-          let items = await fetchExpedia(query, "hotels");
-          if (!items.length) {
-            console.log('Falling back to Mapbox for hotel search');
-            const mapboxItems = await fetchMapbox(query, "poi,place");
-            items = mapboxItems.map(item => ({
-              ...item,
-              category: "hotel"
-            }));
-          }
-          setResults(items);
-        } else if (mode === "activity") {
-          // Try Expedia first, then fallback to Mapbox with activity-focused search
-          let items = await fetchExpedia(query, "activities");
-          if (!items.length) {
-            console.log('Falling back to Mapbox for activity search');
-            const mapboxItems = await fetchMapbox(query, "poi");
-            items = mapboxItems.map(item => ({
-              ...item,
-              category: "activity"
-            }));
-          }
-          setResults(items);
-        } else if (mode === "restaurant") {
-          const body: any = { term: query };
-          if (biasCoords) {
-            body.latitude = biasCoords.lat;
-            body.longitude = biasCoords.lng;
-          } else if (locationBias?.city) {
-            body.location = locationBias.city;
-          }
-          const { data, error } = await supabase.functions.invoke("search-yelp-businesses", { body });
-          if (error) throw error;
-          let items: PlaceResult[] = (data?.businesses || []).map((b: any) => ({
-            id: b.id,
-            name: b.name,
-            lat: b.coordinates?.latitude,
-            lng: b.coordinates?.longitude,
-            address: b.location?.display_address?.join(", "),
-            source: "yelp",
-            url: b.url,
-          }));
-
-          // Fallback to Mapbox POI if Yelp yields no results
-          if (!items.length) {
-            items = await fetchMapbox(query, "poi");
-          }
-          setResults(items);
-        } else {
-          const typesParam = mode === "city" ? "place,region" : "poi,place,region";
-          const items = await fetchMapbox(query, typesParam);
-          setResults(items);
-        }
-      } catch (e) {
-        console.error("PlaceSearch error", e);
-        setResults([]);
+...
       } finally {
         setLoading(false);
       }
     };
 
-    const t = setTimeout(fetchResults, 300);
-    return () => clearTimeout(t);
-  }, [query, mode, JSON.stringify(locationBias), JSON.stringify(biasCoords)]);
+    searchTimeoutRef.current = setTimeout(fetchResults, 400);
+    
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [query, mode]);
 
   return (
     <div ref={containerRef} className="relative">
