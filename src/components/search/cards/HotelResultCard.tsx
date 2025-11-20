@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface HotelResultCardProps {
   hotel: any;
@@ -11,79 +12,85 @@ interface HotelResultCardProps {
 
 export const HotelResultCard = ({ hotel }: HotelResultCardProps) => {
   const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
 
-  const handleAddToItinerary = async () => {
+  const handleAddToItinerary = () => {
+    setShowModal(true);
+  };
+
+  const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string) => {
     setSaving(true);
-    
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         toast({
           title: 'Authentication Required',
-          description: 'Please log in to save properties to your itinerary.',
+          description: 'Please sign in to add items to your itinerary',
           variant: 'destructive',
         });
         return;
       }
 
-      const { data: itineraries, error: itinError } = await supabase
-        .from('itinerary')
-        .select('id, itin_name')
-        .eq('userid', user.id)
-        .order('created_at', { ascending: false });
+      let targetItineraryId = itineraryId;
 
-      if (itinError) throw itinError;
+      // If 'new', create the itinerary first
+      if (itineraryId === 'new') {
+        const checkin = hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0];
+        const checkout = hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        
+        const { data: newItin, error: createError } = await supabase
+          .from('itinerary')
+          .insert({
+            userid: user.id,
+            itin_name: newItineraryName,
+            itin_date_start: checkin,
+            itin_date_end: checkout,
+          })
+          .select()
+          .single();
 
-      if (!itineraries || itineraries.length === 0) {
-        toast({
-          title: 'No Itineraries Found',
-          description: 'Please create an itinerary first before adding properties.',
-          variant: 'default',
-        });
-        return;
+        if (createError) throw createError;
+        targetItineraryId = newItin.id.toString();
       }
 
-      const targetItinerary = itineraries[0];
-
-      const { error: cartError } = await supabase
+      const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
-          itinerary_id: targetItinerary.id.toString(),
+          itinerary_id: targetItineraryId,
           type: 'hotel',
-          external_ref: hotel.hotel_id || hotel.id,
-          price: Math.ceil(hotel.price || hotel.cost || 0),
+          external_ref: hotel.hotel_id || hotel.hotelId || `hotel-${Date.now()}`,
+          price: hotel.priceBreakdown?.grossPrice?.value || hotel.min_total_price || 0,
           item_data: {
-            name: hotel.name,
-            location: hotel.location || hotel.address,
-            city: hotel.city,
-            rating: hotel.rating,
-            price: Math.ceil(hotel.price || hotel.cost || 0),
-            images: hotel.images || [],
-            description: hotel.description,
+            name: hotel.hotel_name || hotel.hotelName,
+            location: hotel.city || hotel.location,
+            checkIn: hotel.checkin || hotel.checkInDate,
+            checkOut: hotel.checkout || hotel.checkOutDate,
+            rating: hotel.review_score || hotel.reviewScore,
+            reviewCount: hotel.review_nr || hotel.reviewCount,
+            images: hotel.photos || hotel.images || [],
+            priceBreakdown: hotel.priceBreakdown,
             amenities: hotel.amenities,
-            reviewScore: hotel.reviewScore,
-            reviewCount: hotel.reviewCount,
-            distance: hotel.distance,
-            bookingStatus: 'pending',
-            savedAt: new Date().toISOString(),
-            source: 'search_result',
-          },
+            url: hotel.url,
+            bookingStatus: 'pending'
+          }
         });
 
-      if (cartError) throw cartError;
+      if (error) throw error;
 
       toast({
         title: 'Property Saved',
-        description: `Added to "${targetItinerary.itin_name || 'Untitled Itinerary'}" as pending booking.`,
+        description: 'Added to your itinerary as a pending booking',
       });
 
-    } catch (error: any) {
-      console.error('Error saving property:', error);
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error saving hotel:', error);
       toast({
-        title: 'Save Failed',
-        description: error.message || 'Unable to save property to itinerary.',
+        title: 'Error',
+        description: 'Failed to save property to itinerary',
         variant: 'destructive',
       });
     } finally {
@@ -170,9 +177,20 @@ export const HotelResultCard = ({ hotel }: HotelResultCardProps) => {
           className="w-full mt-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
         >
           <Plus className="mr-2 h-4 w-4" />
-          {saving ? 'Saving...' : 'Add to Itinerary'}
+          {saving ? 'Saving...' : '+ Property'}
         </Button>
       </div>
+
+      <ItineraryMatcherModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        searchDates={{
+          checkin: hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
+          checkout: hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
+        }}
+        item={hotel}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 };
