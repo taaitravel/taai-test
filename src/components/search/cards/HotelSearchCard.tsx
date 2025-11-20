@@ -47,7 +47,7 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
           </p>
           <div className="flex flex-wrap gap-1 mb-2">
             <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
-              ${pricePerNight}/night
+              ${pricePerNight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/night
             </Badge>
             {hotel.rating && (
               <Badge className="text-sm bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
@@ -63,8 +63,8 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
               <Calendar className="h-3 w-3 mr-1" />
               {nights} nights
             </div>
-            <p className="text-white/50 text-xs">
-              Total: ${totalPrice}
+            <p className="text-base font-semibold" style={{ color: '#ff849c' }}>
+              Total: ${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             <p className="text-white/40 text-xs">including taxes and fees</p>
           </div>
