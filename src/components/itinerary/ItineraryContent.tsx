@@ -21,6 +21,7 @@ import { useExpediaMapSync } from "@/hooks/useExpediaMapSync";
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
   budgetRefreshTrigger: number;
+  refreshBudgetData?: () => void;
   onFlightClick: (index: number) => void;
   onHotelClick: (index: number) => void;
   onActivityClick: (index: number) => void;
@@ -33,6 +34,7 @@ interface ItineraryContentProps {
 export const ItineraryContent = ({
   itineraryData,
   budgetRefreshTrigger,
+  refreshBudgetData,
   onFlightClick,
   onHotelClick,
   onActivityClick,
@@ -98,6 +100,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
   setAddOpen(false);
   // Ask parent hook to refetch
   refreshMapData?.();
+  refreshBudgetData?.();
 };
 
   // Destination adding (upcoming trips only)

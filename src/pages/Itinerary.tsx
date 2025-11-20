@@ -22,7 +22,7 @@ const Itinerary = () => {
     }
   }, [itineraryId, navigate]);
   
-  const { itineraryData, loading, budgetRefreshTrigger, refreshMapData } = useAuthenticatedItineraryData(itineraryId);
+  const { itineraryData, loading, budgetRefreshTrigger, refreshMapData, refreshBudgetData } = useAuthenticatedItineraryData(itineraryId);
   
   const {
     browserState,
@@ -79,6 +79,7 @@ const Itinerary = () => {
       if (!error) {
         setEditOpen(false);
         refreshMapData();
+        refreshBudgetData();
       }
       return;
     }
@@ -110,6 +111,7 @@ const Itinerary = () => {
     await supabase.from('itinerary').update({ [type]: updated, itin_map_locations: newMapLocations }).eq('id', itineraryData.id);
     setEditOpen(false);
     refreshMapData();
+    refreshBudgetData();
   };
 
   const handleEdit = async (type: ItemType, index: number) => {
@@ -146,12 +148,14 @@ const Itinerary = () => {
       
       if (!error) {
         refreshMapData();
+        refreshBudgetData();
       }
     } else {
       // Delete from legacy JSON array
       const updated = items.filter((_, i) => i !== index);
       await supabase.from('itinerary').update({ [itemType]: updated }).eq('id', itineraryData.id);
       refreshMapData();
+      refreshBudgetData();
     }
   };
 
@@ -170,6 +174,7 @@ const Itinerary = () => {
       <ItineraryContent
         itineraryData={itineraryData}
         budgetRefreshTrigger={budgetRefreshTrigger}
+        refreshBudgetData={refreshBudgetData}
         onFlightClick={openFlightBrowser}
         onHotelClick={openHotelBrowser}
         onActivityClick={openActivityBrowser}
