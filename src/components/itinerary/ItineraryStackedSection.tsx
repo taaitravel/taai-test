@@ -59,8 +59,8 @@ export const ItineraryStackedSection = ({
       </div>
       
       {items.length > 0 ? (
-        <div className="relative">
-          <div className="relative w-[200px] h-[270px] sm:w-[240px] md:w-[260px] sm:h-[350px] md:h-[380px] mx-auto sm:mx-0">
+        <div className="relative flex justify-center">
+          <div className="relative w-[200px] h-[270px] sm:w-[240px] md:w-[260px] sm:h-[350px] md:h-[380px]">
             {items.slice(0, 3).map((item, stackIndex) => {
               const actualIndex = (currentIndex + stackIndex) % items.length;
               const displayItem = items[actualIndex];
