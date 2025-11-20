@@ -56,13 +56,84 @@ serve(async (req) => {
     
     console.log('Searching flights:', { origin, destination, departureDate, adults });
 
-    // Call AirScraper API for flight search
+    // Step 1: Search for origin airport
+    const originSearchUrl = `https://sky-scrapper.p.rapidapi.com/api/v1/flights/searchAirport?query=${encodeURIComponent(origin)}`;
+    const originResponse = await fetch(originSearchUrl, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': rapidApiKey,
+        'X-RapidAPI-Host': 'sky-scrapper.p.rapidapi.com',
+      },
+    });
+
+    if (!originResponse.ok) {
+      console.error('Origin airport search failed:', originResponse.status);
+      return new Response(
+        JSON.stringify({ error: 'Failed to find origin airport' }), 
+        {
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const originData = await originResponse.json();
+    const originAirport = originData.data?.[0];
+    if (!originAirport) {
+      return new Response(
+        JSON.stringify({ error: 'Origin airport not found' }), 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Step 2: Search for destination airport
+    const destSearchUrl = `https://sky-scrapper.p.rapidapi.com/api/v1/flights/searchAirport?query=${encodeURIComponent(destination)}`;
+    const destResponse = await fetch(destSearchUrl, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': rapidApiKey,
+        'X-RapidAPI-Host': 'sky-scrapper.p.rapidapi.com',
+      },
+    });
+
+    if (!destResponse.ok) {
+      console.error('Destination airport search failed:', destResponse.status);
+      return new Response(
+        JSON.stringify({ error: 'Failed to find destination airport' }), 
+        {
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const destData = await destResponse.json();
+    const destAirport = destData.data?.[0];
+    if (!destAirport) {
+      return new Response(
+        JSON.stringify({ error: 'Destination airport not found' }), 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    console.log('Found airports:', {
+      origin: originAirport.skyId,
+      destination: destAirport.skyId
+    });
+
+    // Step 3: Search for flights
     const url = `https://sky-scrapper.p.rapidapi.com/api/v1/flights/searchFlights`;
     const params = new URLSearchParams({
-      originSkyId: origin,
-      destinationSkyId: destination,
-      originEntityId: origin,
-      destinationEntityId: destination,
+      originSkyId: originAirport.skyId,
+      destinationSkyId: destAirport.skyId,
+      originEntityId: originAirport.entityId,
+      destinationEntityId: destAirport.entityId,
       date: departureDate,
       adults: String(adults || 1),
       children: String(children || 0),
