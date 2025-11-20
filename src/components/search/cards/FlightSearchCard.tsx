@@ -85,7 +85,9 @@ export const FlightSearchCard = ({ flight, onExpand }: FlightSearchCardProps) =>
       {/* Price and Action */}
       <div className="flex items-center justify-between pt-2">
         <div>
-          <p className="text-3xl font-bold text-white">{flight.priceDisplay || `$${price}`}</p>
+          <p className="text-4xl font-bold" style={{ color: '#ff849c' }}>
+            {flight.priceDisplay || `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          </p>
           <p className="text-white/60 text-xs">total price</p>
         </div>
         <Button
