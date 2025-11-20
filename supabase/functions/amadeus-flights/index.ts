@@ -97,10 +97,23 @@ serve(async (req) => {
       const minutes = durationMatch && durationMatch[2] ? parseInt(durationMatch[2]) : 0;
       const duration = `${hours}h ${minutes}m`;
 
+      // Map airline codes to full names
+      const airlineNames: Record<string, string> = {
+        'AA': 'American Airlines', 'DL': 'Delta Air Lines', 'UA': 'United Airlines',
+        'WN': 'Southwest Airlines', 'B6': 'JetBlue Airways', 'AS': 'Alaska Airlines',
+        'F9': 'Frontier Airlines', 'NK': 'Spirit Airlines', 'G4': 'Allegiant Air',
+        'AC': 'Air Canada', 'BA': 'British Airways', 'LH': 'Lufthansa',
+        'AF': 'Air France', 'KL': 'KLM', 'EK': 'Emirates', 'QR': 'Qatar Airways',
+        'TK': 'Turkish Airlines', 'NH': 'All Nippon Airways', 'JL': 'Japan Airlines',
+      };
+      
+      const carrierCode = firstSegment.carrierCode;
+      const airlineName = airlineNames[carrierCode] || carrierCode;
+
       return {
         id: `amadeus-${offer.id}`,
-        airline: firstSegment.carrierCode,
-        airlineName: firstSegment.operating?.carrierCode || firstSegment.carrierCode,
+        airline: carrierCode,
+        airlineName: airlineName,
         flight_number: firstSegment.number,
         departure: firstSegment.departure.at,
         arrival: lastSegment.arrival.at,

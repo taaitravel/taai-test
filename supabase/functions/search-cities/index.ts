@@ -71,7 +71,10 @@ serve(async (req) => {
     }) || []
 
     return new Response(
-      JSON.stringify({ locations }),
+      JSON.stringify({ 
+        locations,
+        features: geocodeData.features // Include raw Mapbox features for compatibility
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
