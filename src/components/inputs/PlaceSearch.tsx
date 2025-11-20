@@ -125,8 +125,9 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
         let items: PlaceResult[] = [];
 
         if (mode === "hotel") {
-          // Use Mapbox for hotel location search
-          items = await fetchMapbox(query, "poi");
+          // For hotel search, treat input as a city/region rather than a specific POI
+          // so users can type destinations like "London" and get valid results.
+          items = await fetchMapbox(query.trim(), "place,region,locality");
           setResults(items);
         } else if (mode === "activity") {
           // For activities, only use Mapbox for location search
