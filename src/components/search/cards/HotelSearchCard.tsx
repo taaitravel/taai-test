@@ -61,17 +61,52 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
         targetItineraryId = newItin.id.toString();
       }
 
+      // Fetch the itinerary to get its itin_id (UUID) and add location to map
+      const { data: itinData, error: itinError } = await supabase
+        .from('itinerary')
+        .select('itin_id, itin_map_locations')
+        .eq('id', parseInt(targetItineraryId))
+        .single();
+
+      if (itinError) throw itinError;
+
+      // Prepare hotel location data
+      const hotelLocation = {
+        city: hotel.cityName || hotel.location || hotel.city || 'Unknown',
+        lat: hotel.latitude || 0,
+        lng: hotel.longitude || 0
+      };
+
+      // Add location to itinerary map if not already present
+      const currentMapLocations = Array.isArray(itinData.itin_map_locations) ? itinData.itin_map_locations : [];
+      const locationExists = currentMapLocations.some(
+        (loc: any) => loc.city === hotelLocation.city
+      );
+
+      if (!locationExists) {
+        await supabase
+          .from('itinerary')
+          .update({
+            itin_map_locations: [...currentMapLocations, hotelLocation]
+          })
+          .eq('id', parseInt(targetItineraryId));
+      }
+
       const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
-          itinerary_id: targetItineraryId,
+          itinerary_id: itinData.itin_id,
           type: 'hotel',
           external_ref: hotel.hotel_id || hotel.hotelId || `hotel-${Date.now()}`,
           price: totalPrice,
           item_data: {
             name: hotel.name,
-            location: location,
+            city: hotel.cityName || hotel.city,
+            location: hotelLocation,
+            address: hotel.address || '',
+            checkIn: hotel.checkin || hotel.checkInDate,
+            checkOut: hotel.checkout || hotel.checkOutDate,
             pricePerNight: pricePerNight,
             totalPrice: totalPrice,
             nights: nights,

@@ -55,17 +55,49 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
         targetItineraryId = newItin.id.toString();
       }
 
+      // Fetch the itinerary to get its itin_id (UUID) and add location to map
+      const { data: itinData, error: itinError } = await supabase
+        .from('itinerary')
+        .select('itin_id, itin_map_locations')
+        .eq('id', parseInt(targetItineraryId))
+        .single();
+
+      if (itinError) throw itinError;
+
+      // Prepare activity location data
+      const activityLocation = {
+        city: activity.location || activity.city || 'Unknown',
+        lat: activity.latitude || 0,
+        lng: activity.longitude || 0
+      };
+
+      // Add location to itinerary map if not already present
+      const currentMapLocations = Array.isArray(itinData.itin_map_locations) ? itinData.itin_map_locations : [];
+      const locationExists = currentMapLocations.some(
+        (loc: any) => loc.city === activityLocation.city
+      );
+
+      if (!locationExists) {
+        await supabase
+          .from('itinerary')
+          .update({
+            itin_map_locations: [...currentMapLocations, activityLocation]
+          })
+          .eq('id', parseInt(targetItineraryId));
+      }
+
       const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
-          itinerary_id: targetItineraryId,
+          itinerary_id: itinData.itin_id,
           type: 'activity',
           external_ref: activity.id || `activity-${Date.now()}`,
           price: pricePerPerson,
           item_data: {
             name: activity.name,
-            location: activity.location || activity.city,
+            location: activityLocation,
+            address: activity.address || '',
             price: pricePerPerson,
             rating: activity.rating,
             images: images,
