@@ -140,11 +140,16 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       try {
         let items: PlaceResult[] = [];
 
-        if (mode === "hotel" || mode === "activity") {
+        if (mode === "hotel") {
           items = await fetchExpedia(query, mode);
           if (!items.length) {
             items = await fetchMapbox(query, "poi");
           }
+          setResults(items);
+        } else if (mode === "activity") {
+          // For activities, only use Mapbox for location search
+          // Actual activity search happens later via Amadeus using coordinates
+          items = await fetchMapbox(query, "place,region");
           setResults(items);
         } else {
           const typesParam = mode === "city" ? "place,region" : "poi,place,region";
