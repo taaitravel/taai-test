@@ -66,14 +66,21 @@ serve(async (req) => {
 
     // Validate input
     const rawData = await req.json();
+    console.log('Received raw data:', JSON.stringify(rawData, null, 2));
+    
     let validatedData;
     
     try {
       validatedData = expediaRequestSchema.parse(rawData);
     } catch (validationError) {
       console.error('Validation error:', validationError);
+      console.error('Raw data that failed validation:', JSON.stringify(rawData, null, 2));
       return new Response(
-        JSON.stringify({ error: 'Invalid input parameters' }),
+        JSON.stringify({ 
+          error: 'Invalid input parameters',
+          details: validationError instanceof Error ? validationError.message : 'Validation failed',
+          receivedData: rawData
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
