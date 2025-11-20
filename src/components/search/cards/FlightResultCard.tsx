@@ -100,91 +100,76 @@ export const FlightResultCard = ({ flight }: FlightResultCardProps) => {
   return (
     <div className="p-6">
       {/* Flight header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-          <Plane className="h-6 w-6 text-primary" />
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Plane className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white">{flight.airlineName || flight.airline}</h3>
+            <p className="text-white/50 text-sm">{flight.flight_number}</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-xl font-bold text-white">{flight.airlineName || flight.airline || 'Airline'}</h3>
-          <p className="text-white/60">{flight.flight_number || 'Flight Number'}</p>
-        </div>
-        <Badge className="ml-auto bg-white/10 text-white border-white/20">
+        <Badge className="bg-white/10 text-white/80 border-white/20 text-xs capitalize">
           {flight.cabinClass || flight.class || 'Economy'}
         </Badge>
       </div>
 
       {/* Route visualization */}
-      <div className="bg-white/5 rounded-lg p-4 mb-4">
+      <div className="bg-white/5 border border-white/10 rounded-lg p-5 mb-5">
         <div className="flex items-center justify-between">
-          <div className="flex-1 text-center">
-            <p className="text-2xl font-bold text-white">{departureInfo.time}</p>
-            <p className="text-white/60 text-sm">{flight.from}</p>
-            <p className="text-white/40 text-xs mt-1 flex items-center justify-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {departureInfo.date}
-            </p>
+          {/* Departure */}
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">{flight.from}</div>
+            <div className="text-white/60 text-sm mt-0.5">{departureInfo.time}</div>
           </div>
 
-          <div className="flex-1 flex flex-col items-center">
-            <div className="flex items-center gap-2 text-white/60">
-              <div className="h-px w-12 bg-white/20" />
-              <Plane className="h-4 w-4" />
-              <div className="h-px w-12 bg-white/20" />
+          {/* Flight path */}
+          <div className="flex-1 mx-6">
+            <div className="flex items-center justify-center">
+              <div className="flex-1 h-px bg-white/20"></div>
+              <div className="px-3">
+                <Plane className="h-4 w-4 text-white/30 transform rotate-90" />
+              </div>
+              <div className="flex-1 h-px bg-white/20"></div>
             </div>
-            <p className="text-white/60 text-sm mt-2 flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {flight.duration || '2h 30m'}
-            </p>
-            {flight.stops !== undefined && (
-              <p className="text-[#ff849c] text-xs mt-1 font-medium">
-                {flight.stops === 0 ? 'Non-stop' : `${flight.stops} stop${flight.stops > 1 ? 's' : ''}`}
-              </p>
-            )}
+            <div className="text-center mt-1.5">
+              <p className="text-white/50 text-xs">{flight.duration}</p>
+            </div>
           </div>
 
-          <div className="flex-1 text-center">
-            <p className="text-2xl font-bold text-white">{arrivalInfo.time}</p>
-            <p className="text-white/60 text-sm">{flight.to}</p>
-            <p className="text-white/40 text-xs mt-1 flex items-center justify-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {arrivalInfo.date}
-            </p>
+          {/* Arrival */}
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">{flight.to}</div>
+            <div className="text-white/60 text-sm mt-0.5">{arrivalInfo.time}</div>
           </div>
+        </div>
+        
+        {/* Stops info */}
+        <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-white/10">
+          <Clock className="h-3.5 w-3.5 text-white/40" />
+          <span className="text-white/50 text-xs">
+            {flight.stops === 0 ? 'Non-stop' : `${flight.stops} ${flight.stops === 1 ? 'stop' : 'stops'}`}
+          </span>
         </div>
       </div>
 
-      {/* Additional details */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-white/60">Source</span>
-          <span className="text-white">{flight.source || 'Amadeus'}</span>
+      {/* Price and action */}
+      <div className="flex items-end justify-between pt-3">
+        <div>
+          <p className="text-white/50 text-xs mb-0.5">Total Price</p>
+          <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+            {flight.priceDisplay || `$${flight.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '450.00'}`}
+          </p>
         </div>
-        {flight.aircraft && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-white/60">Aircraft</span>
-            <span className="text-white">{flight.aircraft}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Price and Actions */}
-      <div className="pt-4 mt-4 border-t border-white/10">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-white/60 text-sm">Total price</p>
-            <p className="text-3xl font-bold text-[#ff849c]">
-              {flight.priceDisplay || `$${flight.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '450.00'}`}
-            </p>
-          </div>
-          <Button
-            onClick={handleAddToItinerary}
-            disabled={saving}
-            className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Add to Itinerary'}
-          </Button>
-        </div>
+        <Button 
+          onClick={handleAddToItinerary}
+          disabled={saving}
+          className="bg-gradient-to-r from-primary to-[#7E69AB] hover:opacity-90 text-white px-6"
+        >
+          <Plus className="h-4 w-4 mr-1.5" />
+          {saving ? 'Saving...' : 'Add to Itinerary'}
+        </Button>
       </div>
     </div>
   );
