@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
+import { useExpediaAPI } from './useExpediaAPI';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -62,6 +63,7 @@ export const useSearchOrchestrator = () => {
   const [searchType, setSearchType] = useState<SearchType | null>(null);
 
   const { searchHotels, searchDestinations } = useBookingAPI();
+  const { searchHotels: searchExpediaHotels } = useExpediaAPI();
   const { toast } = useToast();
 
   const executeSearch = async (type: SearchType, params: any) => {
@@ -75,147 +77,140 @@ export const useSearchOrchestrator = () => {
 
       switch (type) {
       case 'hotels': {
-          console.log('🏨 Searching real hotels via Booking.com API...');
+          console.log('🏨 Searching hotels via Booking.com and Expedia APIs...');
           
-          // First, get destination ID from destination name
-          const { data: destData, error: destError } = await searchDestinations(params.destination);
-          
-          console.log('🏨 Destination API Response:', { 
-            destData, 
-            destError,
-            fullResponse: JSON.stringify(destData, null, 2)
-          });
-          
-          // Handle different response structures
-          if (destError) {
-            console.error('🏨 Destination search error:', destError);
-            toast({
-              title: 'Destination Search Failed',
-              description: `Error: ${destError}`,
-              variant: 'destructive',
-            });
-            searchResults = [];
-            break;
-          }
-
-          // Try different possible response structures
-          let destinations = destData?.data || destData?.destinations || destData;
-          if (!Array.isArray(destinations)) {
-            destinations = [destinations];
-          }
-
-          if (!destinations || destinations.length === 0 || !destinations[0]) {
-            console.error('🏨 No destinations found in response:', destData);
-            toast({
-              title: 'Destination Not Found',
-              description: 'Could not find the destination. Please try a different location.',
-              variant: 'default',
-            });
-            searchResults = [];
-            break;
-          }
-          
-          const destination = destinations[0];
-          const destId = destination.dest_id || destination.id;
-          const destType = destination.dest_type || destination.type || 'city';
-          const searchLat = destination.latitude || destination.lat;
-          const searchLon = destination.longitude || destination.lon || destination.lng;
-          
-          console.log('🏨 Found destination:', { destId, destType, searchLat, searchLon, fullDestination: destination });
-          
-          const { data, error } = await searchHotels({
-            dest_id: destId,
-            search_type: destType,
-            arrival_date: params.checkin,
-            departure_date: params.checkout,
-            adults: params.adults || 2,
-            room_qty: params.rooms || 1,
-          });
-
-          if (error) {
-            console.error('🏨 Hotel search API error:', error);
+          // Make parallel API calls to both providers
+          const [bookingData, expediaData] = await Promise.all([
+            // Booking.com search
+            (async () => {
+              try {
+                const { data: destData, error: destError } = await searchDestinations(params.destination);
+                if (destError || !destData) return null;
+                
+                let destinations = destData?.data || destData?.destinations || destData;
+                if (!Array.isArray(destinations)) destinations = [destinations];
+                if (!destinations || destinations.length === 0) return null;
+                
+                const destination = destinations[0];
+                const destId = destination.dest_id || destination.id;
+                const destType = destination.dest_type || destination.type || 'city';
+                const searchLat = destination.latitude || destination.lat;
+                const searchLon = destination.longitude || destination.lon || destination.lng;
+                
+                const { data, error } = await searchHotels({
+                  dest_id: destId,
+                  search_type: destType,
+                  arrival_date: params.checkin,
+                  departure_date: params.checkout,
+                  adults: params.adults || 2,
+                  room_qty: params.rooms || 1,
+                });
+                
+                if (error || !data?.data?.hotels) return null;
+                
+                return { hotels: data.data.hotels, searchLat, searchLon };
+              } catch (err) {
+                console.error('🏨 Booking.com error:', err);
+                return null;
+              }
+            })(),
             
-            // Check for quota exceeded error
-            if (error.includes('QUOTA_EXCEEDED') || error.includes('429') || error.includes('exceeded the MONTHLY quota')) {
-              toast({
-                title: 'API Quota Exceeded',
-                description: 'The hotel search API has reached its limit. Please try again later or contact support.',
-                variant: 'destructive',
-              });
-              searchResults = [];
-              break;
-            }
+            // Expedia search
+            (async () => {
+              try {
+                const { data, error } = await searchExpediaHotels({
+                  destination: params.destination,
+                  checkin: params.checkin,
+                  checkout: params.checkout,
+                  adults: params.adults || 2,
+                  children: params.children || 0,
+                  rooms: params.rooms || 1,
+                });
+                
+                if (error || !data) return null;
+                return data;
+              } catch (err) {
+                console.error('🏨 Expedia error:', err);
+                return null;
+              }
+            })()
+          ]);
+          
+          const checkinDate = new Date(params.checkin);
+          const checkoutDate = new Date(params.checkout);
+          const nights = Math.ceil((checkoutDate.getTime() - checkinDate.getTime()) / (1000 * 60 * 60 * 24)) || 1;
+          
+          // Process Booking.com results
+          const bookingHotels = bookingData ? await Promise.all(
+            bookingData.hotels.map(async (hotel: any) => {
+              const totalPrice = Math.round((hotel.property?.priceBreakdown?.grossPrice?.value || 0) * 100) / 100;
+              const pricePerNight = Math.round((totalPrice / nights) * 100) / 100;
+              
+              const hotelLat = hotel.property?.latitude;
+              const hotelLon = hotel.property?.longitude;
+              
+              let cityName = 'Location';
+              let distanceFromSearch = 0;
+              
+              if (hotelLat && hotelLon) {
+                cityName = await getCityName(hotelLat, hotelLon);
+                if (bookingData.searchLat && bookingData.searchLon) {
+                  distanceFromSearch = calculateDistance(bookingData.searchLat, bookingData.searchLon, hotelLat, hotelLon);
+                }
+              }
+              
+              return {
+                id: `booking-${hotel.hotel_id}`,
+                name: hotel.property?.name || hotel.accessibilityLabel?.split('.')[0] || 'Unknown Hotel',
+                images: hotel.property?.photoUrls || [],
+                rating: hotel.property?.reviewScore || hotel.property?.accuratePropertyClass || 0,
+                review_count: hotel.property?.reviewCount || 0,
+                pricePerNight,
+                totalPrice,
+                nights,
+                cityName,
+                distanceFromSearch,
+                latitude: hotelLat,
+                longitude: hotelLon,
+                bookingUrl: hotel.property?.url || `https://www.booking.com/hotel/us/${hotel.hotel_id}.html`,
+                source: 'Booking.com',
+              };
+            })
+          ) : [];
+          
+          // Process Expedia results
+          const expediaHotels = expediaData ? (expediaData.properties || expediaData.hotels || []).map((hotel: any) => {
+            const priceData = hotel.price || hotel.ratePlan?.price || {};
+            const totalPrice = priceData.total || priceData.lead?.amount || 0;
+            const pricePerNight = Math.round((totalPrice / nights) * 100) / 100;
             
-            throw new Error(`Hotel search failed: ${error}`);
-          }
-
-          if (!data?.data?.hotels || data.data.hotels.length === 0) {
-            console.log('🏨 No hotels found for search criteria');
+            return {
+              id: `expedia-${hotel.id || hotel.propertyId}`,
+              name: hotel.name || 'Unknown Hotel',
+              images: hotel.images ? hotel.images.map((img: any) => img.url) : [],
+              rating: hotel.starRating || hotel.guestReviews?.rating || 0,
+              review_count: hotel.guestReviews?.total || 0,
+              pricePerNight,
+              totalPrice,
+              nights,
+              cityName: hotel.address?.city || hotel.location?.city || '',
+              distanceFromSearch: null,
+              latitude: hotel.latitude || hotel.lat || hotel.location?.latitude,
+              longitude: hotel.longitude || hotel.lon || hotel.lng || hotel.location?.longitude,
+              bookingUrl: hotel.url || `https://www.expedia.com/h${hotel.id}.Hotel-Information`,
+              source: 'Expedia',
+            };
+          }) : [];
+          
+          searchResults = [...bookingHotels, ...expediaHotels];
+          console.log(`✅ Combined ${searchResults.length} hotels (${bookingHotels.length} Booking.com, ${expediaHotels.length} Expedia)`);
+          
+          if (searchResults.length === 0) {
             toast({
               title: 'No Hotels Found',
               description: 'Try adjusting your dates or destination.',
               variant: 'default',
             });
-            searchResults = [];
-          } else {
-            console.log('✅ Found', data.data.hotels.length, 'real hotels');
-            
-            // Calculate nights from checkin/checkout dates
-            const checkinDate = new Date(params.checkin);
-            const checkoutDate = new Date(params.checkout);
-            const nights = Math.ceil((checkoutDate.getTime() - checkinDate.getTime()) / (1000 * 60 * 60 * 24));
-            
-            // Transform Booking.com response to expected format with geocoding
-            const hotelsWithLocation = await Promise.all(
-              data.data.hotels.map(async (hotel: any) => {
-                const totalPrice = Math.round((hotel.property?.priceBreakdown?.grossPrice?.value || 0) * 100) / 100;
-                const pricePerNight = Math.round((totalPrice / nights) * 100) / 100;
-                
-                const hotelLat = hotel.property?.latitude;
-                const hotelLon = hotel.property?.longitude;
-                
-                // Get city name and distance
-                let cityName = 'Location';
-                let distanceFromSearch = 0;
-                
-                if (hotelLat && hotelLon) {
-                  cityName = await getCityName(hotelLat, hotelLon);
-                  if (searchLat && searchLon) {
-                    distanceFromSearch = calculateDistance(searchLat, searchLon, hotelLat, hotelLon);
-                  }
-                }
-                
-                return {
-                  id: hotel.hotel_id,
-                  name: hotel.property?.name || hotel.accessibilityLabel?.split('.')[0] || 'Unknown Hotel',
-                  images: hotel.property?.photoUrls || [],
-                  rating: hotel.property?.reviewScore || hotel.property?.accuratePropertyClass || 0,
-                  class: hotel.property?.propertyClass || 0,
-                  review_score: hotel.property?.reviewScore || 0,
-                  review_count: hotel.property?.reviewCount || 0,
-                  pricePerNight: pricePerNight,
-                  totalPrice: totalPrice,
-                  price: pricePerNight,
-                  min_total_price: totalPrice,
-                  nights: nights,
-                  currency: hotel.property?.priceBreakdown?.grossPrice?.currency || 'USD',
-                  location: `${cityName}, ${distanceFromSearch} mi`,
-                  cityName: cityName,
-                  distanceFromSearch: distanceFromSearch,
-                  latitude: hotelLat,
-                  longitude: hotelLon,
-                  description: hotel.accessibilityLabel || '',
-                  amenities: [],
-                  hotel_facilities: [],
-                  checkin: hotel.property?.checkin,
-                  checkout: hotel.property?.checkout,
-                  bookingUrl: hotel.property?.url || `https://www.booking.com/hotel/us/${hotel.hotel_id}.html`,
-                  _original: hotel
-                };
-              })
-            );
-            
-            searchResults = hotelsWithLocation;
           }
           break;
         }
