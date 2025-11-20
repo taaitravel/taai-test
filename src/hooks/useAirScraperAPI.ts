@@ -11,7 +11,7 @@ export interface FlightSearchParams {
 }
 
 export const useAirScraperAPI = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const searchFlights = async (params: FlightSearchParams) => {
