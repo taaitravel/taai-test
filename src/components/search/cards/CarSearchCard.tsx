@@ -111,35 +111,35 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
   };
 
   return (
-    <div className="w-[255px] h-[375px] space-y-4 flex flex-col">
+    <div className="w-[255px] h-[375px] space-y-4 flex flex-col overflow-hidden">
       {/* Car Image */}
       {car.image && (
-        <div className="rounded-lg overflow-hidden bg-white/5 p-4 flex-shrink-0 h-32">
+        <div className="rounded-lg overflow-hidden bg-white/5 p-4 flex-shrink-0 h-28">
           <img src={car.image} alt={car.name} className="w-full h-full object-contain" />
         </div>
       )}
 
       {/* Car Header */}
       <div>
-        <h3 className="text-2xl font-bold text-white mb-1">{car.name || 'Toyota Camry'}</h3>
-        <p className="text-white/70">{car.type || 'Sedan'}</p>
+        <h3 className="text-xl font-bold text-white mb-1">{car.name || 'Toyota Camry'}</h3>
+        <p className="text-white/70 text-sm">{car.type || 'Sedan'}</p>
       </div>
 
       {/* Features */}
       <div className="grid grid-cols-2 gap-3">
-        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2">
+        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
           <Users className="h-4 w-4" />
           {car.seats || 5} seats
         </Badge>
-        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2">
+        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
           <Settings className="h-4 w-4" />
           {car.transmission || 'Automatic'}
         </Badge>
-        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2">
+        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
           <Fuel className="h-4 w-4" />
           {car.fuelType || 'Gasoline'}
         </Badge>
-        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2">
+        <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
           <Navigation className="h-4 w-4" />
           GPS Included
         </Badge>
@@ -147,7 +147,7 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
 
       {/* Pickup/Dropoff */}
       <div className="bg-white/5 p-4 rounded-lg border border-white/20">
-        <div className="space-y-2 text-sm text-white/70">
+        <div className="space-y-2 text-xs text-white/70">
           <p><strong className="text-white">Pickup:</strong> {car.pickupLocation || 'Airport'}</p>
           <p><strong className="text-white">Dropoff:</strong> {car.dropoffLocation || 'Airport'}</p>
           <p><strong className="text-white">Mileage:</strong> {car.mileageLimit || 'Unlimited'}</p>
@@ -158,15 +158,15 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
       <div className="pt-4 border-t border-white/10">
         <div className="flex items-baseline justify-between mb-4">
           <div>
-            <p className="text-white/60 text-sm">Price per day</p>
-            <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+            <p className="text-white/60 text-xs">Price per day</p>
+            <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
               ${Math.ceil(pricePerDay).toLocaleString('en-US')}
             </p>
             <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
           </div>
           <div className="text-right">
-            <p className="text-white/60 text-sm">Total for {days} days</p>
-            <p className="text-2xl font-semibold" style={{ color: '#ff849c' }}>
+            <p className="text-white/60 text-xs">Total for {days} days</p>
+            <p className="text-xl font-semibold" style={{ color: '#ff849c' }}>
               ${Math.ceil(totalPrice).toLocaleString('en-US')}
             </p>
           </div>
@@ -174,7 +174,7 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
       </div>
 
       {/* Add to Itinerary Button */}
-      <div className="pt-4 border-t border-white/10 mt-auto">
+      <div className="pt-4 border-t border-white/10 mt-auto flex-shrink-0 min-h-[52px]">
         <Button
           onClick={handleAddToItinerary}
           disabled={saving}

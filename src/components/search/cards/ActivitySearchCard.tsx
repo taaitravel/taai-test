@@ -126,9 +126,9 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
   };
 
   return (
-    <div className="w-[255px] h-[375px] space-y-4 bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)] flex flex-col">
+    <div className="w-[255px] h-[375px] space-y-4 bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)] flex flex-col overflow-hidden">
       {/* Image */}
-      <div className="relative h-32 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
+      <div className="relative h-28 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
         {images[0] ? (
           <img 
             src={images[0]} 
@@ -152,8 +152,8 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
       {/* Activity info */}
       <div className="flex-1 flex flex-col justify-between space-y-3">
         <div>
-          <h3 className="text-lg font-bold text-white line-clamp-2">{activity.name}</h3>
-          <p className="text-white/50 flex items-center gap-1 text-sm mt-1">
+          <h3 className="text-base font-bold text-white line-clamp-2">{activity.name}</h3>
+          <p className="text-white/50 flex items-center gap-1 text-xs mt-1">
             <MapPin className="h-3.5 w-3.5" />
             {activity.location || activity.city}
           </p>
@@ -163,8 +163,8 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
         <div className="pt-4 border-t border-white/10">
           <div className="flex items-baseline justify-between mb-4">
             <div>
-              <p className="text-white/60 text-sm">Price</p>
-              <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+              <p className="text-white/60 text-xs">Price</p>
+              <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
                 ${Math.ceil(pricePerPerson).toLocaleString('en-US')}
               </p>
               <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
@@ -173,7 +173,7 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
         </div>
 
         {/* Add to Itinerary Button */}
-        <div className="pt-4 border-t border-white/10">
+        <div className="pt-4 border-t border-white/10 flex-shrink-0 min-h-[52px]">
           <Button
             onClick={handleAddToItinerary}
             disabled={saving}
