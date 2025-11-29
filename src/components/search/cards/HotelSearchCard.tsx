@@ -159,7 +159,7 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
               {source}
             </Badge>
           </div>
-          <h4 className="font-bold text-white text-sm mb-1 line-clamp-2">
+          <h4 className="font-bold text-white text-sm mb-1 line-clamp-1">
             {hotel.name}
           </h4>
           <p className="text-white/60 text-xs mb-2 flex items-center gap-1">
