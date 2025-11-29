@@ -139,14 +139,14 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
   };
 
   return (
-    <div className="w-[255px] h-[375px] flex flex-col hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
+    <div className="w-[255px] h-[375px] flex flex-col overflow-hidden hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
       {/* Image Gallery */}
       {images.length > 0 && (
         <ImageGallery
           images={images}
           alt={hotel.name}
           aspectRatio="wide"
-          className="rounded-t-lg overflow-hidden h-32 flex-shrink-0"
+          className="rounded-t-lg overflow-hidden h-28 flex-shrink-0"
         />
       )}
 
@@ -154,24 +154,24 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
       <div className="p-4 flex-1 flex flex-col justify-between bg-[#1a1c2e] border border-white/10 rounded-b-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-2xl opacity-60">🏨</div>
+            <div className="text-xl opacity-60">🏨</div>
             <Badge variant="secondary" className="text-xs bg-white/5 text-white/40 border-white/10">
               {source}
             </Badge>
           </div>
-          <h4 className="font-bold text-white text-base mb-1 line-clamp-2">
+          <h4 className="font-bold text-white text-sm mb-1 line-clamp-2">
             {hotel.name}
           </h4>
-          <p className="text-white/60 text-sm mb-2 flex items-center gap-1">
+          <p className="text-white/60 text-xs mb-2 flex items-center gap-1">
             <MapPin className="h-3 w-3" />
             {location}
           </p>
           <div className="flex flex-wrap gap-1 mb-2">
-            <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
+            <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
               ${pricePerNight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/night
             </Badge>
             {hotel.rating && (
-              <Badge className="text-sm bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
+              <Badge className="text-xs bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
                 <Star className="h-3 w-3 fill-current" />
                 {hotel.rating}
               </Badge>
@@ -180,16 +180,16 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
         </div>
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
-            <div className="flex items-center text-sm text-white/50">
+            <div className="flex items-center text-xs text-white/50">
               <Calendar className="h-3 w-3 mr-1" />
               {nights} nights
             </div>
-            <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+            <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
               ${Math.ceil(totalPrice).toLocaleString('en-US')}
             </p>
             <p className="text-white/40 text-xs">including taxes and fees</p>
           </div>
-          <div className="pt-4 border-t border-white/10">
+          <div className="pt-4 border-t border-white/10 flex-shrink-0 min-h-[52px]">
             <Button
               onClick={handleAddToItinerary}
               disabled={saving}

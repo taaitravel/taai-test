@@ -118,7 +118,7 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   };
 
   return (
-    <div className="w-[255px] h-[375px] flex flex-col bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
+    <div className="w-[255px] h-[375px] flex flex-col overflow-hidden bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
       {/* Flight Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -126,8 +126,8 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
             <Plane className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">{flight.airline}</h3>
-            <p className="text-white/50 text-sm">{flight.flight_number || 'Flight'}</p>
+            <h3 className="text-base font-bold text-white">{flight.airline}</h3>
+            <p className="text-white/50 text-xs">{flight.flight_number || 'Flight'}</p>
           </div>
         </div>
         <Badge className="bg-white/10 text-white/80 border-white/20 text-xs capitalize">
@@ -140,8 +140,8 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
         <div className="flex items-center justify-between mb-3">
           <div className="text-center flex-1">
             <p className="text-white/40 text-xs mb-1">{departureOnlyDate}</p>
-            <p className="text-2xl font-bold text-white">{flight.from || flight.origin}</p>
-            <p className="text-white/50 text-sm mt-0.5">{departureTime}</p>
+            <p className="text-xl font-bold text-white">{flight.from || flight.origin}</p>
+            <p className="text-white/50 text-xs mt-0.5">{departureTime}</p>
           </div>
 
           <div className="flex-1 flex flex-col items-center px-4">
@@ -152,8 +152,8 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
 
           <div className="text-center flex-1">
             <p className="text-white/40 text-xs mb-1">{arrivalOnlyDate}</p>
-            <p className="text-2xl font-bold text-white">{flight.to || flight.destination}</p>
-            <p className="text-white/50 text-sm mt-0.5">{arrivalTime}</p>
+            <p className="text-xl font-bold text-white">{flight.to || flight.destination}</p>
+            <p className="text-white/50 text-xs mt-0.5">{arrivalTime}</p>
           </div>
         </div>
 
@@ -181,8 +181,8 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
       <div className="pt-4 border-t border-white/10 mt-auto">
         <div className="flex items-baseline justify-between mb-4">
           <div>
-            <p className="text-white/60 text-sm">Total Price</p>
-            <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+            <p className="text-white/60 text-xs">Total Price</p>
+            <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
               ${roundedPrice.toLocaleString('en-US')}
             </p>
             <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
@@ -191,7 +191,7 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
       </div>
 
       {/* Add to Itinerary Button */}
-      <div className="pt-4 border-t border-white/10">
+      <div className="pt-4 border-t border-white/10 flex-shrink-0 min-h-[52px]">
         <Button
           onClick={handleAddToItinerary}
           disabled={saving}
