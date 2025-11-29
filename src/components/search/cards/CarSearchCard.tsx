@@ -174,13 +174,13 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
       </div>
 
       {/* Add to Itinerary Button */}
-      <div className="pt-4 border-t border-white/10 mt-auto flex-shrink-0 min-h-[52px]">
+      <div className="pt-2 border-t border-white/10 mt-auto flex-shrink-0">
         <Button
           onClick={handleAddToItinerary}
           disabled={saving}
-          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs"
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-1 h-3 w-3" />
           {saving ? 'Saving...' : 'Car'}
         </Button>
       </div>
