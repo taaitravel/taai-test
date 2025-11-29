@@ -139,7 +139,7 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 pt-[5px] pb-[20px]">
+    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 pt-[5px] pb-[20px] hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
       {/* Image Gallery */}
       {images.length > 0 && (
         <ImageGallery
@@ -151,7 +151,7 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
       )}
 
       {/* Card Content - Matching Itinerary Card Style */}
-      <div className="p-4 flex-1 flex flex-col justify-between bg-[#1a1c2e] border border-white/10 rounded-b-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)]">
+      <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-2">
             <div className="text-xl opacity-60">🏨</div>

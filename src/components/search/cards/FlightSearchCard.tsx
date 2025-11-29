@@ -118,7 +118,7 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)] pt-[5px] pb-[20px]">
+    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 pt-[5px] pb-[20px]">
       {/* Flight Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">

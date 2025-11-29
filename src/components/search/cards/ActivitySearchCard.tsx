@@ -126,7 +126,7 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] space-y-4 bg-[#1a1c2e] p-6 rounded-lg shadow-[0_4px_12px_rgba(192,192,192,0.15)] flex flex-col overflow-hidden pt-[5px] pb-[20px]">
+    <div className="w-[270px] h-[385px] space-y-4 rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 flex flex-col overflow-hidden pt-[5px] pb-[20px]">
       {/* Image */}
       <div className="relative h-28 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
         {images[0] ? (
