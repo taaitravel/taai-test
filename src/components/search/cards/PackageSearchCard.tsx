@@ -111,7 +111,7 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
   };
 
   return (
-    <div className="w-[255px] h-[375px] space-y-4 flex flex-col overflow-hidden">
+    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden">
       {/* Package Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
