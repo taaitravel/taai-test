@@ -111,7 +111,7 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden pt-[5px] pb-[20px]">
+    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-4 pt-[5px] pb-[20px]">
       {/* Car Image */}
       {car.image && (
         <div className="rounded-lg overflow-hidden bg-white/5 p-4 flex-shrink-0 h-28">
