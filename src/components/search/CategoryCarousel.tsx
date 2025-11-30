@@ -84,20 +84,19 @@ export const CategoryCarousel = ({
       <div className="flex flex-col items-center">
         {/* Card Stack */}
         <div className="relative w-[270px] h-[385px] mb-6">
-          {validItems.slice(Math.max(0, currentIndex - 2), currentIndex + 1).map((item, idx) => {
-            const actualIndex = Math.max(0, currentIndex - 2) + idx;
-            const offset = currentIndex - actualIndex;
-            const isVisible = offset <= 2;
+          {[0, 1, 2].map((stackIndex) => {
+            const actualIndex = (currentIndex + stackIndex) % validItems.length;
+            const item = validItems[actualIndex];
+            if (!item) return null;
             
             return (
               <div
-                key={item.hotel_id || item.id || actualIndex}
+                key={`${item.hotel_id || item.id}-${stackIndex}`}
                 className="absolute top-0 left-0 transition-all duration-300 ease-out"
                 style={{
-                  transform: `translateY(${offset * -8}px) translateX(${offset * -8}px) scale(${1 - offset * 0.05})`,
-                  zIndex: 10 - offset,
-                  opacity: isVisible ? 1 : 0,
-                  pointerEvents: offset === 0 ? 'auto' : 'none'
+                  transform: `translateY(${stackIndex * 10}px) translateX(${stackIndex * 5}px)`,
+                  zIndex: 10 - stackIndex,
+                  pointerEvents: stackIndex === 0 ? 'auto' : 'none'
                 }}
               >
                 {renderCard(item, actualIndex)}
