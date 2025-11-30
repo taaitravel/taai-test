@@ -40,7 +40,7 @@ export const ItineraryStackedSection = ({
   };
   return (
     <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col items-center lg:flex-row lg:items-center lg:justify-between mb-4 gap-2">
         <h3 className="text-lg font-semibold text-white flex items-center">
           <Icon className="h-5 w-5 mr-2" />
           {title}
