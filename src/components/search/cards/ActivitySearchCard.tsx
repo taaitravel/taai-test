@@ -149,27 +149,27 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
           <h4 className="font-bold text-white text-sm mb-1 line-clamp-1">
             {activity.name}
           </h4>
-          <p className="text-white/60 text-xs mb-2 flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
-            {activity.location || activity.city}
+          <p className="text-white/60 text-xs mb-2 line-clamp-2">
+            {activity.description || activity.shortDescription || 'Explore this amazing activity'}
           </p>
-          <div className="flex flex-wrap gap-1 mb-2">
+          <div className="flex items-center justify-between gap-2 mb-2">
             {activity.rating && (
               <Badge className="text-xs bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
                 <Star className="h-3 w-3 fill-current" />
                 {activity.rating}
               </Badge>
             )}
+            <div className="flex items-center text-xs text-white/50">
+              <Calendar className="h-3 w-3 mr-1" />
+              {activity.duration || 'Flexible'}
+            </div>
           </div>
         </div>
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
-            <div className="flex items-center text-xs text-white/50">
-              <Calendar className="h-3 w-3 mr-1" />
-              Per person
-            </div>
-            <p className="text-2xl font-bold text-center" style={{ color: '#ff849c' }}>
+            <p className="text-2xl font-bold text-center flex items-baseline justify-center gap-1" style={{ color: '#ff849c' }}>
               ${Math.ceil(pricePerPerson).toLocaleString('en-US')}
+              <span className="text-xs text-white/50">/p</span>
             </p>
             <p className="text-white/40 text-xs text-center">including taxes and fees</p>
           </div>
