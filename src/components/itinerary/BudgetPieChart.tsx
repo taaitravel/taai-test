@@ -461,7 +461,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       </CardHeader>
       <CardContent className="space-y-8">
         {/* Summary Stats */}
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="text-center p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
             <p className="text-[10px] text-white/50 mb-1 font-medium">Total Budget</p>
             <p className="text-base font-bold text-white">${totalBudget.toLocaleString()}</p>
@@ -474,6 +474,12 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
             <p className="text-[10px] text-white/50 mb-1 font-medium">Remaining</p>
             <p className={`text-base font-bold ${(totalBudget - totalSpent) >= 0 ? 'text-white' : 'text-red-400'}`}>
               ${(totalBudget - totalSpent).toLocaleString()}
+            </p>
+          </div>
+          <div className="text-center p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+            <p className="text-[10px] text-white/50 mb-1 font-medium">Budget Utilization</p>
+            <p className="text-base font-bold text-white">
+              {totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(1) : 0}%
             </p>
           </div>
         </div>
