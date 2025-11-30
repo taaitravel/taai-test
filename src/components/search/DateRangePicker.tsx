@@ -66,9 +66,20 @@ export const DateRangePicker = ({
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
-                mode="single"
-                selected={selectingEnd ? endDate : startDate}
-                onSelect={handleDateSelect}
+                mode="range"
+                selected={startDate && endDate ? { from: startDate, to: endDate } : startDate ? { from: startDate, to: startDate } : undefined}
+                onSelect={(range) => {
+                  if (range?.from) {
+                    if (!selectingEnd) {
+                      onStartDateChange(range.from);
+                      setSelectingEnd(true);
+                    } else if (range?.to) {
+                      onEndDateChange(range.to);
+                      setIsOpen(false);
+                      setSelectingEnd(false);
+                    }
+                  }
+                }}
                 initialFocus
                 disabled={(date) => date < new Date()}
                 className="pointer-events-auto"
