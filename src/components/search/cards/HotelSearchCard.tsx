@@ -139,14 +139,14 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 pt-[5px] pb-[20px] hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
+    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 pb-[20px] hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
       {/* Image Gallery */}
       {images.length > 0 && (
         <ImageGallery
           images={images}
           alt={hotel.name}
           aspectRatio="wide"
-          className="rounded-t-lg overflow-hidden h-28 flex-shrink-0"
+          className="h-28 flex-shrink-0"
         />
       )}
 
@@ -193,10 +193,10 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
             <Button
               onClick={handleAddToItinerary}
               disabled={saving}
-              className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs"
+              className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
             >
               <Plus className="mr-1 h-3 w-3" />
-              {saving ? 'Saving...' : 'Property'}
+              {saving ? 'Saving...' : '+ Property'}
             </Button>
           </div>
         </div>

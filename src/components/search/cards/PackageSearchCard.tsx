@@ -111,7 +111,7 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 pt-[5px] pb-[20px]">
+    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 pb-[20px]">
       {/* Package Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -177,10 +177,10 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
         <Button
           onClick={handleAddToItinerary}
           disabled={saving}
-          className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs"
+          className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
         >
           <Plus className="mr-1 h-3 w-3" />
-          {saving ? 'Saving...' : 'Package'}
+          {saving ? 'Saving...' : '+ Package'}
         </Button>
       </div>
 
