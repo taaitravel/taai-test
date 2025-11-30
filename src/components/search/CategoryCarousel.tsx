@@ -23,25 +23,23 @@ export const CategoryCarousel = ({
   searchType,
   searchParams
 }: CategoryCarouselProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = direction === 'left' ? -600 : 600;
-      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      
-      // Update arrow visibility after scroll
-      setTimeout(checkScrollPosition, 300);
+  const capitalizeTitle = (title: string) => {
+    return title.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
+  const handleNext = () => {
+    if (currentIndex < items.length - 1) {
+      setCurrentIndex(currentIndex + 1);
     }
   };
 
-  const checkScrollPosition = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
     }
   };
 
@@ -64,54 +62,76 @@ export const CategoryCarousel = ({
     }
   };
 
+  if (items.length === 0) return null;
+
+  const validItems = items.filter(item => item && (item.hotel_id || item.id));
+  if (validItems.length === 0) return null;
+
   return (
-    <div className="mb-8">
+    <div className="mb-12">
       {/* Category Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-white flex items-center gap-2">
           <span className="text-2xl">{categoryIcon}</span>
-          {categoryName}
+          {capitalizeTitle(categoryName)}
           <span className="text-sm text-white/50 font-normal ml-2">
-            ({items.length} {items.length === 1 ? 'result' : 'results'})
+            ({validItems.length} {validItems.length === 1 ? 'result' : 'results'})
           </span>
         </h3>
       </div>
 
-      {/* Carousel Container */}
-      <div className="relative">
-        {/* Left Arrow */}
-        {showLeftArrow && (
+      {/* Stacked Cards Container */}
+      <div className="flex flex-col items-center">
+        {/* Card Stack */}
+        <div className="relative w-[270px] h-[385px] mb-6">
+          {validItems.slice(Math.max(0, currentIndex - 2), currentIndex + 1).map((item, idx) => {
+            const actualIndex = Math.max(0, currentIndex - 2) + idx;
+            const offset = currentIndex - actualIndex;
+            const isVisible = offset <= 2;
+            
+            return (
+              <div
+                key={item.hotel_id || item.id || actualIndex}
+                className="absolute top-0 left-0 transition-all duration-300 ease-out"
+                style={{
+                  transform: `translateY(${offset * -8}px) translateX(${offset * -8}px) scale(${1 - offset * 0.05})`,
+                  zIndex: 10 - offset,
+                  opacity: isVisible ? 1 : 0,
+                  pointerEvents: offset === 0 ? 'auto' : 'none'
+                }}
+              >
+                {renderCard(item, actualIndex)}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Navigation Controls */}
+        <div className="flex items-center gap-4">
           <Button
             variant="outline"
             size="icon"
-            onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/10 border-white/20 hover:bg-white/20 backdrop-blur-sm"
+            onClick={handlePrev}
+            disabled={currentIndex === 0}
+            className="h-10 w-10 rounded-full bg-white/10 border-white/20 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-        )}
 
-        {/* Scrollable Cards */}
-        <div
-          ref={scrollRef}
-          onScroll={checkScrollPosition}
-          className="flex gap-8 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {items.filter(item => item && (item.hotel_id || item.id)).map((item, index) => renderCard(item, index))}
-        </div>
+          <span className="text-white/70 text-sm font-medium min-w-[60px] text-center">
+            {currentIndex + 1} / {validItems.length}
+          </span>
 
-        {/* Right Arrow */}
-        {showRightArrow && items.length > 3 && (
           <Button
             variant="outline"
             size="icon"
-            onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/10 border-white/20 hover:bg-white/20 backdrop-blur-sm"
+            onClick={handleNext}
+            disabled={currentIndex === validItems.length - 1}
+            className="h-10 w-10 rounded-full bg-white/10 border-white/20 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
-        )}
+        </div>
       </div>
     </div>
   );
