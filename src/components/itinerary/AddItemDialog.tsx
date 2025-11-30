@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlaceSearch, PlaceResult } from "@/components/inputs/PlaceSearch";
-import { Trash2 } from "lucide-react";
+import { Trash2, X, Check } from "lucide-react";
 
 export type ItemType = 'flights' | 'hotels' | 'activities' | 'reservations';
 
@@ -33,7 +33,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
   const [form, setForm] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const inputClass = "bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary";
+  const inputClass = "bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary text-base";
 
   useEffect(() => {
     if (open && type) {
@@ -348,10 +348,10 @@ if (type === 'hotels') {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg gold-gradient text-[#171821]">
+      <DialogContent className="sm:max-w-lg gold-gradient text-[#171821] text-base">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl">{title}</DialogTitle>
+          <DialogDescription className="text-base">
             Fill in the details below to add to your itinerary.
           </DialogDescription>
         </DialogHeader>
@@ -379,6 +379,7 @@ if (type === 'hotels') {
           {initialItem && onDelete && (
             <Button 
               variant="ghost" 
+              size="icon"
               onClick={() => {
                 if (confirm('Are you sure you want to delete this item?')) {
                   onDelete();
@@ -386,15 +387,33 @@ if (type === 'hotels') {
                 }
               }} 
               disabled={loading}
-              className="text-red-600 hover:text-red-500 hover:bg-red-500/10 border border-red-400/20"
+              className="h-10 w-10 text-red-600 hover:text-red-500 hover:bg-red-500/10 border border-red-400/20"
+              aria-label="Delete"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              <Trash2 className="h-5 w-5" />
             </Button>
           )}
           <div className="flex gap-2 ml-auto">
-            <Button variant="ghost" onClick={onClose} disabled={loading}>Cancel</Button>
-            <Button variant="contrast" onClick={handleSubmit} disabled={loading || !type}>{loading ? 'Saving...' : 'Save'}</Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={onClose} 
+              disabled={loading}
+              className="h-10 w-10"
+              aria-label="Cancel"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="contrast" 
+              size="icon"
+              onClick={handleSubmit} 
+              disabled={loading || !type}
+              className="h-10 w-10"
+              aria-label="Save"
+            >
+              <Check className="h-5 w-5" />
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
