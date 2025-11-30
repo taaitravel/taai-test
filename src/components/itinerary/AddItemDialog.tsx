@@ -409,7 +409,7 @@ if (type === 'hotels') {
               size="icon"
               onClick={handleSubmit} 
               disabled={loading || !type}
-              className="h-10 w-10"
+              className="h-10 w-10 hover:text-green-700 transition-colors"
               aria-label="Save"
             >
               <Check className="h-5 w-5" />
