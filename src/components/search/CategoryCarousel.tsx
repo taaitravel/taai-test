@@ -105,7 +105,9 @@ export const CategoryCarousel = ({
       <div className="flex items-center justify-center mb-6">
         <h3 className="text-sm font-semibold text-white flex items-center gap-2 truncate">
           {renderIcon()}
-          <span className="truncate">{capitalizeTitle(categoryName)}</span>
+          <span className="truncate" title={capitalizeTitle(categoryName)}>
+            {capitalizeTitle(categoryName)}
+          </span>
         </h3>
       </div>
 
