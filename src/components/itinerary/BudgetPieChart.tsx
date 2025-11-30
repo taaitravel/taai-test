@@ -461,7 +461,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       </CardHeader>
       <CardContent className="space-y-8">
         {/* Summary Stats */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="flex flex-col gap-3">
           <div className="text-center p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
             <p className="text-[10px] text-white/50 mb-1 font-medium">Total Budget</p>
             <p className="text-base font-bold text-white">${totalBudget.toLocaleString()}</p>
