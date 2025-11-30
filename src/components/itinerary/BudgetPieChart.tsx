@@ -361,6 +361,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       <div className="flex flex-wrap justify-center gap-4 mb-6">
         {payload.map((entry: any, index: number) => {
           const IconComponent = getCategoryIcon(entry.value);
+          const percentage = ((entry.payload.spent / totalSpent) * 100).toFixed(1);
           return (
             <div key={`legend-${index}`} className="flex items-center gap-2">
               <div 
@@ -368,7 +369,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
                 style={{ backgroundColor: entry.color }}
               />
               <IconComponent className="w-3 h-3 text-white/70" />
-              <span className="text-xs text-white/70">{entry.value}</span>
+              <span className="text-xs text-white/70">{percentage}%</span>
             </div>
           );
         })}
@@ -494,13 +495,15 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={110}
+                  innerRadius={104}
                   outerRadius={130}
                   fill="#8884d8"
                   dataKey="budgeted"
+                  stroke="#0a0b14"
+                  strokeWidth={2}
                 >
                   {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={`url(#gradient-${index})`} />
+                    <Cell key={`cell-${index}`} fill={`url(#gradient-${index})`} stroke="#0a0b14" />
                   ))}
                 </Pie>
                 <Legend content={<CustomLegend />} />
