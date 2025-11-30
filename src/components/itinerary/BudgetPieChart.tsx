@@ -58,7 +58,85 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         return;
       }
 
-      setBudgetData(data || []);
+      // Get the current itinerary to fetch itin_id
+      const { data: itinerary, error: itinError } = await supabase
+        .from('itinerary')
+        .select('itin_id, flights, hotels, activities, reservations')
+        .eq('id', itineraryId)
+        .single();
+
+      if (itinError) throw itinError;
+
+      // Fetch cart items to recalculate spent amounts
+      const { data: cartItems, error: cartError } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('itinerary_id', itinerary.itin_id);
+
+      if (cartError) {
+        console.error('Error fetching cart items:', cartError);
+      }
+
+      // Calculate actual spending from cart_items by type
+      const flightCostFromCart = cartItems?.filter(item => item.type === 'flight')
+        .reduce((sum, item) => sum + item.price, 0) || 0;
+      
+      const hotelCostFromCart = cartItems?.filter(item => item.type === 'hotel')
+        .reduce((sum, item) => sum + item.price, 0) || 0;
+      
+      const activityCostFromCart = cartItems?.filter(item => item.type === 'activity')
+        .reduce((sum, item) => sum + item.price, 0) || 0;
+      
+      const diningCostFromCart = cartItems?.filter(item => item.type === 'reservation')
+        .reduce((sum, item) => {
+          const itemData = item.item_data as any;
+          if (itemData?.type === 'restaurant') {
+            return sum + item.price;
+          }
+          return sum;
+        }, 0) || 0;
+
+      // Also include legacy JSON data if it exists
+      const flightCostFromJSON = itinerary.flights ? 
+        (itinerary.flights as any[]).reduce((sum: number, flight: any) => sum + (flight.cost || 0), 0) : 0;
+      
+      const hotelCostFromJSON = itinerary.hotels ? 
+        (itinerary.hotels as any[]).reduce((sum: number, hotel: any) => sum + (hotel.cost || 0), 0) : 0;
+      
+      const activityCostFromJSON = itinerary.activities ? 
+        (itinerary.activities as any[]).reduce((sum: number, activity: any) => sum + (activity.cost || 0), 0) : 0;
+      
+      const diningCostFromJSON = itinerary.reservations ? 
+        (itinerary.reservations as any[]).reduce((sum: number, reservation: any) => {
+          if (reservation.type === 'restaurant') {
+            return sum + (reservation.estimated_cost || reservation.cost || 0);
+          }
+          return sum;
+        }, 0) : 0;
+
+      // Combine cart and JSON costs
+      const costsByCategory: Record<string, number> = {
+        'Flights': flightCostFromCart + flightCostFromJSON,
+        'Accommodation': hotelCostFromCart + hotelCostFromJSON,
+        'Activities': activityCostFromCart + activityCostFromJSON,
+        'Dining': diningCostFromCart + diningCostFromJSON,
+      };
+
+      // Update the budget data with actual spent amounts
+      const updatedData = data.map(category => ({
+        ...category,
+        spent_amount: costsByCategory[category.category] ?? category.spent_amount
+      }));
+
+      // Update the database with new spent amounts
+      for (const category of updatedData) {
+        await supabase
+          .from('itinerary_budget_breakdown')
+          .update({ spent_amount: category.spent_amount })
+          .eq('id', category.id);
+      }
+
+      setBudgetData(updatedData || []);
     } catch (error) {
       console.error('Error fetching budget data:', error);
       toast({
@@ -73,7 +151,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
 
   const initializeBudgetCategories = async () => {
     try {
-      // Get the current itinerary data to calculate estimates
+      // Get the current itinerary data
       const { data: itinerary, error: itinError } = await supabase
         .from('itinerary')
         .select('*')
@@ -82,24 +160,58 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
 
       if (itinError) throw itinError;
 
-      // Calculate estimated costs
-      const flightCost = itinerary.flights ? 
-        (itinerary.flights as any[]).reduce((sum: number, flight: any) => sum + (flight.cost || 500), 0) : 0;
+      // Get cart items for this itinerary
+      const { data: cartItems, error: cartError } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('itinerary_id', itinerary.itin_id);
+
+      if (cartError) {
+        console.error('Error fetching cart items:', cartError);
+      }
+
+      // Calculate costs from cart_items by type
+      const flightCostFromCart = cartItems?.filter(item => item.type === 'flight')
+        .reduce((sum, item) => sum + item.price, 0) || 0;
       
-      const hotelCost = itinerary.hotels ? 
-        (itinerary.hotels as any[]).reduce((sum: number, hotel: any) => sum + (hotel.cost || 150 * hotel.nights || 300), 0) : 0;
+      const hotelCostFromCart = cartItems?.filter(item => item.type === 'hotel')
+        .reduce((sum, item) => sum + item.price, 0) || 0;
       
-      const activityCost = itinerary.activities ? 
-        (itinerary.activities as any[]).reduce((sum: number, activity: any) => sum + (activity.cost || 75), 0) : 0;
+      const activityCostFromCart = cartItems?.filter(item => item.type === 'activity')
+        .reduce((sum, item) => sum + item.price, 0) || 0;
       
-      // Estimate dining costs for reservations
-      const diningCost = itinerary.reservations ? 
+      const diningCostFromCart = cartItems?.filter(item => item.type === 'reservation')
+        .reduce((sum, item) => {
+          const itemData = item.item_data as any;
+          if (itemData?.type === 'restaurant') {
+            return sum + item.price;
+          }
+          return sum;
+        }, 0) || 0;
+
+      // Also include legacy JSON data if it exists
+      const flightCostFromJSON = itinerary.flights ? 
+        (itinerary.flights as any[]).reduce((sum: number, flight: any) => sum + (flight.cost || 0), 0) : 0;
+      
+      const hotelCostFromJSON = itinerary.hotels ? 
+        (itinerary.hotels as any[]).reduce((sum: number, hotel: any) => sum + (hotel.cost || 0), 0) : 0;
+      
+      const activityCostFromJSON = itinerary.activities ? 
+        (itinerary.activities as any[]).reduce((sum: number, activity: any) => sum + (activity.cost || 0), 0) : 0;
+      
+      const diningCostFromJSON = itinerary.reservations ? 
         (itinerary.reservations as any[]).reduce((sum: number, reservation: any) => {
           if (reservation.type === 'restaurant') {
-            return sum + (reservation.estimated_cost || reservation.party_size * 65 || 130); // $65 per person average
+            return sum + (reservation.estimated_cost || reservation.cost || 0);
           }
           return sum;
         }, 0) : 0;
+
+      // Combine cart and JSON costs
+      const flightCost = flightCostFromCart + flightCostFromJSON;
+      const hotelCost = hotelCostFromCart + hotelCostFromJSON;
+      const activityCost = activityCostFromCart + activityCostFromJSON;
+      const diningCost = diningCostFromCart + diningCostFromJSON;
 
       // Create default budget breakdown
       const categories = [
@@ -119,6 +231,8 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
           .upsert({
             itinerary_id: itineraryId,
             ...category
+          }, {
+            onConflict: 'itinerary_id,category'
           });
       }
 
