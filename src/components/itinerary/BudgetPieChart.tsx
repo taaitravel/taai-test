@@ -347,22 +347,22 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-[#0a0b14] border border-white/20 rounded-lg p-4 shadow-2xl backdrop-blur-xl">
-          <p className="text-white font-bold text-base mb-2">{label}</p>
+        <div className="bg-[#0a0b14] border border-white/20 rounded-lg p-3 shadow-2xl backdrop-blur-xl">
+          <p className="text-white font-bold text-xs mb-2">{label}</p>
           <div className="space-y-1">
-            <p className="text-sm">
+            <p className="text-xs">
               <span className="text-white/60">Budgeted:</span>
               <span className="text-[hsl(351,85%,75%)] font-semibold ml-2">
                 ${data.budgeted.toLocaleString()}
               </span>
             </p>
-            <p className="text-sm">
+            <p className="text-xs">
               <span className="text-white/60">Spent:</span>
               <span className="text-[hsl(15,80%,70%)] font-semibold ml-2">
                 ${data.spent.toLocaleString()}
               </span>
             </p>
-            <p className="text-sm">
+            <p className="text-xs">
               <span className="text-white/60">Remaining:</span>
               <span className="text-white font-semibold ml-2">
                 ${(data.budgeted - data.spent).toLocaleString()}
@@ -389,16 +389,16 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
     <Card className="bg-gradient-to-br from-[#0a0b14] via-[#12131f] to-[#171821] border-white/10 backdrop-blur-md shadow-2xl">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white text-2xl font-bold">Budget Overview</CardTitle>
+          <CardTitle className="text-white text-xl font-bold">Budget Overview</CardTitle>
           <div className="flex space-x-2">
             {!isEditing ? (
               <Button
                 size="sm"
                 variant="outline"
                 onClick={handleEdit}
-                className="bg-white/5 text-white border-white/20 hover:bg-white/10 transition-all"
+                className="bg-white/5 text-white border-white/20 hover:bg-white/10 transition-all text-xs"
               >
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="h-3 w-3 mr-1" />
                 Edit
               </Button>
             ) : (
@@ -407,17 +407,17 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
                   size="sm"
                   variant="outline"
                   onClick={handleCancel}
-                  className="bg-white/5 text-white border-white/20 hover:bg-white/10 transition-all"
+                  className="bg-white/5 text-white border-white/20 hover:bg-white/10 transition-all text-xs"
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="h-3 w-3 mr-1" />
                   Cancel
                 </Button>
                 <Button
                   size="sm"
                   onClick={handleSave}
-                  className="gold-gradient hover:opacity-90 text-[#171821] font-semibold transition-all"
+                  className="gold-gradient hover:opacity-90 text-[#171821] font-semibold transition-all text-xs"
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-3 w-3 mr-1" />
                   Save
                 </Button>
               </>
@@ -429,16 +429,16 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-6">
           <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-            <p className="text-sm text-white/50 mb-1 font-medium">Total Budget</p>
-            <p className="text-2xl font-bold text-white">${totalBudget.toLocaleString()}</p>
+            <p className="text-xs text-white/50 mb-1 font-medium">Total Budget</p>
+            <p className="text-xl font-bold text-white">${totalBudget.toLocaleString()}</p>
           </div>
           <div className="text-center p-4 rounded-xl bg-gradient-to-br from-[hsl(351,85%,75%)]/10 to-[hsl(15,80%,70%)]/10 border border-[hsl(351,85%,75%)]/20 backdrop-blur-sm">
-            <p className="text-sm text-white/50 mb-1 font-medium">Total Spent</p>
-            <p className="text-2xl font-bold text-[hsl(351,85%,75%)]">${totalSpent.toLocaleString()}</p>
+            <p className="text-xs text-white/50 mb-1 font-medium">Total Spent</p>
+            <p className="text-xl font-bold text-[hsl(351,85%,75%)]">${totalSpent.toLocaleString()}</p>
           </div>
           <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-            <p className="text-sm text-white/50 mb-1 font-medium">Remaining</p>
-            <p className={`text-2xl font-bold ${(totalBudget - totalSpent) >= 0 ? 'text-white' : 'text-red-400'}`}>
+            <p className="text-xs text-white/50 mb-1 font-medium">Remaining</p>
+            <p className={`text-xl font-bold ${(totalBudget - totalSpent) >= 0 ? 'text-white' : 'text-red-400'}`}>
               ${(totalBudget - totalSpent).toLocaleString()}
             </p>
           </div>
@@ -478,7 +478,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
                         fill="white" 
                         textAnchor={x > cx ? 'start' : 'end'}
                         dominantBaseline="central"
-                        className="text-sm font-semibold"
+                        className="text-xs font-semibold"
                       >
                         {`${name}: ${(percent * 100).toFixed(1)}%`}
                       </text>
@@ -499,8 +499,8 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
             
             {/* Center Label */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-              <p className="text-white/50 text-sm font-medium mb-1">Total</p>
-              <p className="text-white text-3xl font-bold">${totalBudget.toLocaleString()}</p>
+              <p className="text-white/50 text-xs font-medium mb-1">Total</p>
+              <p className="text-white text-xl font-bold">${totalBudget.toLocaleString()}</p>
             </div>
           </div>
         )}
@@ -508,11 +508,11 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         {/* Quick Edit Budget Categories */}
         {isEditing && (
           <div className="space-y-3">
-            <h4 className="text-white font-semibold text-base">Quick Budget Adjustments</h4>
+            <h4 className="text-white font-semibold text-xs">Quick Budget Adjustments</h4>
             <div className="grid grid-cols-2 gap-3">
               {editData.filter(item => item.budgeted_amount > 0).map((item, index) => (
                 <div key={item.id} className="p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all">
-                  <label className="text-sm text-white/70 block mb-2 font-medium">{item.category}</label>
+                  <label className="text-xs text-white/70 block mb-2 font-medium">{item.category}</label>
                   <Input
                     type="number"
                     value={item.budgeted_amount}
@@ -522,7 +522,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
                       newEditData[fullIndex].budgeted_amount = parseFloat(e.target.value) || 0;
                       setEditData(newEditData);
                     }}
-                    className="w-full bg-white/10 border-white/20 text-white h-10 font-semibold"
+                    className="w-full bg-white/10 border-white/20 text-white h-8 text-xs font-semibold"
                     placeholder="Budget amount"
                   />
                 </div>
