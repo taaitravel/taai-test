@@ -184,10 +184,10 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
               <Calendar className="h-3 w-3 mr-1" />
               {nights} nights
             </div>
-            <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
+            <p className="text-2xl font-bold text-center" style={{ color: '#ff849c' }}>
               ${Math.ceil(totalPrice).toLocaleString('en-US')}
             </p>
-            <p className="text-white/40 text-xs">including taxes and fees</p>
+            <p className="text-white/40 text-xs text-center">including taxes and fees</p>
           </div>
           <div className="pt-2 border-t border-white/10 flex-shrink-0">
             <Button
