@@ -18,6 +18,16 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
 
   const images = activity.images || (activity.image ? [activity.image] : []);
   const pricePerPerson = activity.price || activity.cost || 75;
+  
+  // Strip HTML tags from description
+  const stripHtml = (html: string) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+  
+  const description = activity.description || activity.shortDescription || 'Explore this amazing activity';
+  const plainDescription = typeof description === 'string' ? stripHtml(description) : 'Explore this amazing activity';
 
   const handleAddToItinerary = () => {
     setShowModal(true);
@@ -150,7 +160,7 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
             {activity.name}
           </h4>
           <p className="text-white/60 text-xs mb-2 line-clamp-2">
-            {activity.description || activity.shortDescription || 'Explore this amazing activity'}
+            {plainDescription}
           </p>
           <div className="flex items-center justify-between gap-2 mb-2">
             {activity.rating && (
