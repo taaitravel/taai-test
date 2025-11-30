@@ -131,18 +131,28 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         const spent = costsByCategory[category.category] ?? category.spent_amount;
         let budgeted = category.budgeted_amount;
         
-        // If no budgets are allocated yet and we have a total budget, allocate proportionally
+        // If no budgets are allocated yet and we have a total budget, allocate based on actual spending proportions
         if (needsAllocation && totalBudget > 0) {
-          const allocations: Record<string, number> = {
-            'Flights': 0.25,
-            'Accommodation': 0.30,
-            'Activities': 0.20,
-            'Dining': 0.15,
-            'Transportation': 0.10,
-            'Shopping': 0,
-            'Miscellaneous': 0
-          };
-          budgeted = Math.max(spent, totalBudget * (allocations[category.category] || 0));
+          // Calculate total actual spending
+          const totalSpending = Object.values(costsByCategory).reduce((sum, cost) => sum + cost, 0);
+          
+          if (totalSpending > 0) {
+            // Allocate budget proportionally based on actual spending
+            const proportion = spent / totalSpending;
+            budgeted = totalBudget * proportion;
+          } else {
+            // Fallback to default allocations if no spending yet
+            const allocations: Record<string, number> = {
+              'Flights': 0.25,
+              'Accommodation': 0.30,
+              'Activities': 0.20,
+              'Dining': 0.15,
+              'Transportation': 0.10,
+              'Shopping': 0,
+              'Miscellaneous': 0
+            };
+            budgeted = totalBudget * (allocations[category.category] || 0);
+          }
         }
         
         return {
