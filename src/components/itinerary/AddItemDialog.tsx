@@ -386,7 +386,7 @@ if (type === 'hotels') {
                 }
               }} 
               disabled={loading}
-              className="text-red-400/80 hover:text-red-400 hover:bg-red-500/10 border border-red-400/20"
+              className="text-red-600 hover:text-red-500 hover:bg-red-500/10 border border-red-400/20"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
