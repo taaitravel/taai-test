@@ -1,12 +1,13 @@
 import { SearchResultsGrid } from './SearchResultsGrid';
 import { SearchResultsMap } from './SearchResultsMap';
+import { SearchResultsTree } from './SearchResultsTree';
 import { SearchType } from './AdaptiveSearchForm';
 import { Loader2 } from 'lucide-react';
 
 interface SearchResultsProps {
   results: any[];
   loading: boolean;
-  viewMode: 'grid' | 'map';
+  viewMode: 'grid' | 'tree' | 'map';
   searchType: SearchType;
   searchParams: any;
   showMapView: boolean;
@@ -35,6 +36,16 @@ export const SearchResults = ({
         <p className="text-white/60 text-lg">No results found</p>
         <p className="text-white/40 text-sm mt-2">Try adjusting your search criteria</p>
       </div>
+    );
+  }
+
+  if (viewMode === 'tree') {
+    return (
+      <SearchResultsTree
+        results={results}
+        searchType={searchType}
+        searchParams={searchParams}
+      />
     );
   }
 

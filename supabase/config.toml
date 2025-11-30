@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.amadeus-flights]
 verify_jwt = true
+
+[functions.categorize-search-results]
+verify_jwt = false
