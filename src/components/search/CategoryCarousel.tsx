@@ -84,7 +84,7 @@ export const CategoryCarousel = ({
       case 'flights':
         return <FlightSearchCard key={key} {...item} searchParams={searchParams} />;
       case 'activities':
-        return <ActivitySearchCard key={key} {...item} searchParams={searchParams} />;
+        return <ActivitySearchCard key={key} activity={item} />;
       case 'cars':
         return <CarSearchCard key={key} {...item} searchParams={searchParams} />;
       case 'packages':
