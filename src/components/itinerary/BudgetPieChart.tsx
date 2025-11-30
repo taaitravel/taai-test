@@ -430,15 +430,15 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         <div className="grid grid-cols-3 gap-6">
           <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
             <p className="text-xs text-white/50 mb-1 font-medium">Total Budget</p>
-            <p className="text-xl font-bold text-white">${totalBudget.toLocaleString()}</p>
+            <p className="text-[10px] font-bold text-white">${totalBudget.toLocaleString()}</p>
           </div>
           <div className="text-center p-4 rounded-xl bg-gradient-to-br from-[hsl(351,85%,75%)]/10 to-[hsl(15,80%,70%)]/10 border border-[hsl(351,85%,75%)]/20 backdrop-blur-sm">
             <p className="text-xs text-white/50 mb-1 font-medium">Total Spent</p>
-            <p className="text-xl font-bold text-[hsl(351,85%,75%)]">${totalSpent.toLocaleString()}</p>
+            <p className="text-[10px] font-bold text-[hsl(351,85%,75%)]">${totalSpent.toLocaleString()}</p>
           </div>
           <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
             <p className="text-xs text-white/50 mb-1 font-medium">Remaining</p>
-            <p className={`text-xl font-bold ${(totalBudget - totalSpent) >= 0 ? 'text-white' : 'text-red-400'}`}>
+            <p className={`text-[10px] font-bold ${(totalBudget - totalSpent) >= 0 ? 'text-white' : 'text-red-400'}`}>
               ${(totalBudget - totalSpent).toLocaleString()}
             </p>
           </div>
