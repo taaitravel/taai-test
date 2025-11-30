@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { Building2, Landmark, MapPin, Hotel, UtensilsCrossed, Activity } from "lucide-react";
 export interface PlaceResult {
   id?: string;
   name: string;
@@ -17,6 +18,8 @@ export interface PlaceResult {
   price?: string;
   images?: string[];
   description?: string;
+  // Mapbox place type
+  placeType?: string;
 }
 
 interface PlaceSearchProps {
@@ -31,6 +34,34 @@ interface PlaceSearchProps {
 }
 
 const dropdownBase = "absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-[#1a1c2e] border-white/10 shadow-lg";
+
+// Helper to get icon based on place type
+const getPlaceIcon = (result: PlaceResult) => {
+  if (result.source === "expedia" && result.category === "hotel") {
+    return <Hotel className="h-4 w-4 text-primary" />;
+  }
+  if (result.source === "expedia" && result.category === "activity") {
+    return <Activity className="h-4 w-4 text-primary" />;
+  }
+  if (result.source === "yelp") {
+    return <UtensilsCrossed className="h-4 w-4 text-primary" />;
+  }
+  if (result.source === "mapbox") {
+    const type = result.placeType;
+    if (type === "poi") {
+      return <Landmark className="h-4 w-4 text-primary" />;
+    }
+    if (type === "place" || type === "locality") {
+      return <Building2 className="h-4 w-4 text-primary" />;
+    }
+    if (type === "region" || type === "country") {
+      return <MapPin className="h-4 w-4 text-primary" />;
+    }
+    // Default for mapbox
+    return <MapPin className="h-4 w-4 text-primary" />;
+  }
+  return <MapPin className="h-4 w-4 text-primary" />;
+};
 
 export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder, mode, defaultQuery = "", onSelect, locationBias }) => {
   const [query, setQuery] = useState(defaultQuery);
@@ -105,14 +136,19 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(effectiveQuery)}.json?types=${types}&limit=8${proximity}&access_token=${token}`;
       const resp = await fetch(url);
       const json = await resp.json();
-      const items: PlaceResult[] = (json.features || []).map((f: any) => ({
-        id: f.id,
-        name: f.text || f.place_name,
-        lat: f.center?.[1],
-        lng: f.center?.[0],
-        address: f.place_name,
-        source: "mapbox",
-      }));
+      const items: PlaceResult[] = (json.features || []).map((f: any) => {
+        // Extract place type from Mapbox feature ID (e.g., "poi.12345" -> "poi")
+        const placeType = f.id?.split('.')?.[0] || f.place_type?.[0] || 'place';
+        return {
+          id: f.id,
+          name: f.text || f.place_name,
+          lat: f.center?.[1],
+          lng: f.center?.[0],
+          address: f.place_name,
+          source: "mapbox",
+          placeType,
+        };
+      });
       return items;
     };
 
@@ -187,10 +223,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="text-sm font-medium flex items-center gap-2">
-                    {r.source === "expedia" && r.category === "hotel" && "🏨"}
-                    {r.source === "expedia" && r.category === "activity" && "🎯"}
-                    {r.source === "yelp" && "🍽️"}
-                    {r.source === "mapbox" && "📍"}
+                    {getPlaceIcon(r)}
                     {r.name}
                   </div>
                   {r.address && <div className="text-xs opacity-70">{r.address}</div>}
