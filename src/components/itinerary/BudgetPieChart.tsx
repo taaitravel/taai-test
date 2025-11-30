@@ -58,10 +58,10 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         return;
       }
 
-      // Get the current itinerary to fetch itin_id
+      // Get the current itinerary to fetch itin_id and budget
       const { data: itinerary, error: itinError } = await supabase
         .from('itinerary')
-        .select('itin_id, flights, hotels, activities, reservations')
+        .select('itin_id, budget, flights, hotels, activities, reservations')
         .eq('id', itineraryId)
         .single();
 
@@ -122,17 +122,44 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         'Dining': diningCostFromCart + diningCostFromJSON,
       };
 
-      // Update the budget data with actual spent amounts
-      const updatedData = data.map(category => ({
-        ...category,
-        spent_amount: costsByCategory[category.category] ?? category.spent_amount
-      }));
+      // Calculate budget allocations if they're all 0
+      const needsAllocation = data.every(cat => cat.budgeted_amount === 0);
+      const totalBudget = itinerary.budget || 0;
 
-      // Update the database with new spent amounts
+      // Update the budget data with actual spent amounts and budgeted amounts if needed
+      const updatedData = data.map(category => {
+        const spent = costsByCategory[category.category] ?? category.spent_amount;
+        let budgeted = category.budgeted_amount;
+        
+        // If no budgets are allocated yet and we have a total budget, allocate proportionally
+        if (needsAllocation && totalBudget > 0) {
+          const allocations: Record<string, number> = {
+            'Flights': 0.25,
+            'Accommodation': 0.30,
+            'Activities': 0.20,
+            'Dining': 0.15,
+            'Transportation': 0.10,
+            'Shopping': 0,
+            'Miscellaneous': 0
+          };
+          budgeted = Math.max(spent, totalBudget * (allocations[category.category] || 0));
+        }
+        
+        return {
+          ...category,
+          spent_amount: spent,
+          budgeted_amount: budgeted
+        };
+      });
+
+      // Update the database with new spent amounts and budgeted amounts
       for (const category of updatedData) {
         await supabase
           .from('itinerary_budget_breakdown')
-          .update({ spent_amount: category.spent_amount })
+          .update({ 
+            spent_amount: category.spent_amount,
+            budgeted_amount: category.budgeted_amount
+          })
           .eq('id', category.id);
       }
 
