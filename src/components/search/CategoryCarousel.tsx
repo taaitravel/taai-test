@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, Sparkles, DollarSign, Building, Plane, MapPin, Crown, Gem, Hotel, Waves, TreePalm, Mountain, Heart } from 'lucide-react';
 import { HotelSearchCard } from './cards/HotelSearchCard';
 import { FlightSearchCard } from './cards/FlightSearchCard';
 import { ActivitySearchCard } from './cards/ActivitySearchCard';
@@ -29,6 +29,38 @@ export const CategoryCarousel = ({
     return title.split(' ').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     ).join(' ');
+  };
+
+  const iconMap: Record<string, React.ComponentType<any>> = {
+    star: Star,
+    sparkles: Sparkles,
+    dollar: DollarSign,
+    building: Building,
+    plane: Plane,
+    mappin: MapPin,
+    crown: Crown,
+    gem: Gem,
+    hotel: Hotel,
+    waves: Waves,
+    palm: TreePalm,
+    mountain: Mountain,
+    heart: Heart,
+  };
+
+  const isEmoji = (str: string) => {
+    const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/u;
+    return emojiRegex.test(str);
+  };
+
+  const renderIcon = () => {
+    if (isEmoji(categoryIcon)) {
+      return <span className="text-base">{categoryIcon}</span>;
+    }
+    const IconComponent = iconMap[categoryIcon.toLowerCase()];
+    if (IconComponent) {
+      return <IconComponent className="h-4 w-4 text-white/80" />;
+    }
+    return <Star className="h-4 w-4 text-white/80" />;
   };
 
   const handleNext = () => {
@@ -71,12 +103,9 @@ export const CategoryCarousel = ({
     <div className="mb-12">
       {/* Category Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-          <span className="text-2xl">{categoryIcon}</span>
+        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+          {renderIcon()}
           {capitalizeTitle(categoryName)}
-          <span className="text-sm text-white/50 font-normal ml-2">
-            ({validItems.length} {validItems.length === 1 ? 'result' : 'results'})
-          </span>
         </h3>
       </div>
 
