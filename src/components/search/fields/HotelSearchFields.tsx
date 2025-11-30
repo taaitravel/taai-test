@@ -55,7 +55,7 @@ export const HotelSearchFields = ({
       />
 
       {/* Guests & Rooms */}
-      <div className="grid md:grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <div>
           <label className="text-xs font-medium text-white/70 mb-1.5 block">Adults *</label>
           <Select value={adults.toString()} onValueChange={(v) => onAdultsChange(parseInt(v))}>
