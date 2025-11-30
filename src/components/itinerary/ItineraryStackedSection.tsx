@@ -151,7 +151,7 @@ export const ItineraryStackedSection = ({
       
       {/* Mobile Add Button - Below Cards */}
       {typeof (onAddClick) !== 'undefined' && items.length > 0 && (
-        <div className="flex justify-center mt-8 lg:hidden">
+        <div className="flex justify-center mt-16 lg:hidden">
           <Button
             variant="ghost"
             size="sm"
