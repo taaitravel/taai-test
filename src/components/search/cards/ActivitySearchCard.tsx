@@ -126,9 +126,9 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] space-y-4 rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 flex flex-col overflow-hidden pt-[5px] pb-[20px]">
+    <div className="w-[270px] h-[385px] rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 flex flex-col overflow-hidden pb-[20px]">
       {/* Image */}
-      <div className="relative h-28 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
+      <div className="relative h-28 bg-white/5 overflow-hidden flex-shrink-0">
         {images[0] ? (
           <img 
             src={images[0]} 
@@ -150,7 +150,7 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
       </div>
 
       {/* Activity info */}
-      <div className="flex-1 flex flex-col justify-between space-y-3">
+      <div className="flex-1 flex flex-col justify-between space-y-3 p-6">
         <div>
           <h3 className="text-base font-bold text-white line-clamp-2">{activity.name}</h3>
           <p className="text-white/50 flex items-center gap-1 text-xs mt-1">
@@ -177,10 +177,10 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
           <Button
             onClick={handleAddToItinerary}
             disabled={saving}
-            className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs"
+            className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
           >
             <Plus className="mr-1 h-3 w-3" />
-            {saving ? 'Saving...' : 'Activity'}
+            {saving ? 'Saving...' : '+ Activity'}
           </Button>
         </div>
       </div>

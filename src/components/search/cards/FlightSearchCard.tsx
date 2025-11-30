@@ -118,7 +118,7 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 pt-[5px] pb-[20px]">
+    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 pb-[20px]">
       {/* Flight Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -191,14 +191,14 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
       </div>
 
       {/* Add to Itinerary Button */}
-      <div className="pt-2 border-t border-white/10 flex-shrink-0">
+      <div className="pt-2 border-t border-white/10 mt-auto flex-shrink-0">
         <Button
           onClick={handleAddToItinerary}
           disabled={saving}
-          className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs"
+          className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
         >
           <Plus className="mr-1 h-3 w-3" />
-          {saving ? 'Saving...' : 'Flight'}
+          {saving ? 'Saving...' : '+ Flight'}
         </Button>
       </div>
 
