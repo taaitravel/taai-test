@@ -222,11 +222,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <div className="text-sm font-medium flex items-center gap-2">
-                    {getPlaceIcon(r)}
-                    {r.name}
-                  </div>
-                  {r.address && <div className="text-xs opacity-70">{r.address}</div>}
+                  {r.address && <div className="text-sm font-medium">{r.address}</div>}
                   {r.rating && (
                     <div className="text-xs text-primary">
                       ★ {typeof r.rating === 'number' ? r.rating.toFixed(1) : r.rating} 
