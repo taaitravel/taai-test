@@ -1,17 +1,24 @@
 import { Button } from '@/components/ui/button';
-import { LayoutGrid, Map } from 'lucide-react';
+import { LayoutGrid, Map, Network } from 'lucide-react';
 
 interface SearchViewToggleProps {
-  viewMode: 'grid' | 'map';
-  onViewModeChange: (mode: 'grid' | 'map') => void;
+  viewMode: 'grid' | 'tree' | 'map';
+  onViewModeChange: (mode: 'grid' | 'tree' | 'map') => void;
   showMapView: boolean;
 }
 
 export const SearchViewToggle = ({ viewMode, onViewModeChange, showMapView }: SearchViewToggleProps) => {
-  if (!showMapView) return null;
-
   return (
     <div className="flex gap-2">
+      <Button
+        variant={viewMode === 'tree' ? 'default' : 'outline'}
+        size="sm"
+        onClick={() => onViewModeChange('tree')}
+        className="h-9"
+      >
+        <Network className="h-4 w-4 mr-2" />
+        taaiTree
+      </Button>
       <Button
         variant={viewMode === 'grid' ? 'default' : 'outline'}
         size="sm"
@@ -21,15 +28,17 @@ export const SearchViewToggle = ({ viewMode, onViewModeChange, showMapView }: Se
         <LayoutGrid className="h-4 w-4 mr-2" />
         Grid
       </Button>
-      <Button
-        variant={viewMode === 'map' ? 'default' : 'outline'}
-        size="sm"
-        onClick={() => onViewModeChange('map')}
-        className="h-9"
-      >
-        <Map className="h-4 w-4 mr-2" />
-        Map
-      </Button>
+      {showMapView && (
+        <Button
+          variant={viewMode === 'map' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => onViewModeChange('map')}
+          className="h-9"
+        >
+          <Map className="h-4 w-4 mr-2" />
+          Map
+        </Button>
+      )}
     </div>
   );
 };

@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 
 const Search = () => {
   const [searchParams, setSearchParams] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'tree' | 'map'>('tree');
   const { results, loading, searchType, executeSearch } = useSearchOrchestrator();
   const { filters, setFilters, maxPrice, filteredResults } = useHotelFilters(results);
   const {
@@ -54,17 +54,7 @@ const Search = () => {
         {/* Results Controls */}
         {!loading && displayResults.length > 0 && (
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <p className="text-white/70 text-sm">
-              {displayResults.length} result{displayResults.length !== 1 ? 's' : ''} found
-            </p>
-
             <div className="flex items-center gap-2">
-              <SearchViewToggle
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                showMapView={showMapView}
-              />
-
               {searchType === 'hotels' && (
                 <Sheet>
                   <SheetTrigger asChild>
@@ -87,7 +77,16 @@ const Search = () => {
                   </SheetContent>
                 </Sheet>
               )}
+              <p className="text-white/70 text-sm">
+                {displayResults.length} result{displayResults.length !== 1 ? 's' : ''} found
+              </p>
             </div>
+
+            <SearchViewToggle
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              showMapView={showMapView}
+            />
           </div>
         )}
 
