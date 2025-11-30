@@ -123,9 +123,10 @@ export const CategoryCarousel = ({
                 key={`${item.hotel_id || item.id}-${stackIndex}`}
                 className="absolute top-0 left-0 transition-all duration-300 ease-out"
                 style={{
-                  transform: `translateY(${stackIndex * 10}px) translateX(${stackIndex * 5}px)`,
+                  transform: `translateY(${stackIndex * 12}px) translateX(${stackIndex * 6}px)`,
                   zIndex: 10 - stackIndex,
-                  pointerEvents: stackIndex === 0 ? 'auto' : 'none'
+                  pointerEvents: stackIndex === 0 ? 'auto' : 'none',
+                  boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.3)'
                 }}
               >
                 {renderCard(item, actualIndex)}
