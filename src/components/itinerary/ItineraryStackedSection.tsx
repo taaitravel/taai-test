@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plane, MapPin, Calendar, Users, Star, Utensils, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plane, MapPin, Calendar, Users, Star, Utensils, Plus, ChevronLeft, ChevronRight, Edit, Share2, DollarSign, Trash2 } from "lucide-react";
 
 interface StackedCardProps {
   title: string;
@@ -75,42 +75,71 @@ export const ItineraryStackedSection = ({
                   }}
                   onClick={() => onCardClick(actualIndex)}
                 >
-                  <CardContent className="p-4 h-full flex flex-col justify-between">
+                  <CardContent className="p-4 h-full flex flex-col justify-between relative">
                     <div className="flex-1 overflow-hidden">
                       {renderCard(displayItem, actualIndex)}
                     </div>
                     
                     {stackIndex === 0 && (onEdit || onDelete) && (
-                      <div className="flex gap-2 pt-3 mt-2 border-t border-white/10">
-                        {onEdit && (
+                      <>
+                        <div className="flex justify-center gap-2 pt-3 mt-2 border-t border-white/10">
+                          {onEdit && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(itemType, actualIndex);
+                              }}
+                              className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+                              aria-label="Edit"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
-                            variant="outline"
-                            size="sm"
+                            variant="ghost"
+                            size="icon"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onEdit(itemType, actualIndex);
+                              // Share functionality to be implemented
                             }}
-                            className="flex-1 text-xs text-black hover:text-black/80 bg-white/5 backdrop-blur-md border-white/20 hover:bg-white/10 hover:backdrop-blur-lg transition-all"
+                            className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+                            aria-label="Share"
                           >
-                            Edit
+                            <Share2 className="h-4 w-4" />
                           </Button>
-                        )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Split cost functionality to be implemented
+                            }}
+                            className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+                            aria-label="Split Cost"
+                          >
+                            <DollarSign className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
                         {onDelete && (
                           <Button
-                            variant="outline"
-                            size="sm"
+                            variant="ghost"
+                            size="icon"
                             onClick={(e) => {
                               e.stopPropagation();
                               if (confirm('Are you sure you want to delete this item?')) {
                                 onDelete(itemType, actualIndex);
                               }
                             }}
-                            className="flex-1 text-xs text-black hover:text-black/80 bg-red-500/10 backdrop-blur-md border-red-400/20 hover:bg-red-500/20 hover:backdrop-blur-lg transition-all"
+                            className="absolute bottom-4 left-4 h-8 w-8 text-red-400/80 hover:text-red-400 hover:bg-red-500/10 border border-red-400/20"
+                            aria-label="Delete"
                           >
-                            Delete
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
-                      </div>
+                      </>
                     )}
                   </CardContent>
                 </Card>
