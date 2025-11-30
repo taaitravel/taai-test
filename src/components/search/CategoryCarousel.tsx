@@ -46,23 +46,19 @@ export const CategoryCarousel = ({
   };
 
   const renderCard = (item: any, index: number) => {
-    const cardProps = {
-      key: item.hotel_id || item.id || index,
-      ...item,
-      searchParams
-    };
+    const key = item.hotel_id || item.id || index;
 
     switch (searchType) {
       case 'hotels':
-        return <HotelSearchCard {...cardProps} />;
+        return <HotelSearchCard key={key} hotel={item} />;
       case 'flights':
-        return <FlightSearchCard {...cardProps} />;
+        return <FlightSearchCard key={key} {...item} searchParams={searchParams} />;
       case 'activities':
-        return <ActivitySearchCard {...cardProps} />;
+        return <ActivitySearchCard key={key} {...item} searchParams={searchParams} />;
       case 'cars':
-        return <CarSearchCard {...cardProps} />;
+        return <CarSearchCard key={key} {...item} searchParams={searchParams} />;
       case 'packages':
-        return <PackageSearchCard {...cardProps} />;
+        return <PackageSearchCard key={key} {...item} searchParams={searchParams} />;
       default:
         return null;
     }
@@ -102,7 +98,7 @@ export const CategoryCarousel = ({
           className="flex gap-8 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {items.map((item, index) => renderCard(item, index))}
+          {items.filter(item => item && (item.hotel_id || item.id)).map((item, index) => renderCard(item, index))}
         </div>
 
         {/* Right Arrow */}
