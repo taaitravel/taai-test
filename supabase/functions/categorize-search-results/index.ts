@@ -21,11 +21,44 @@ serve(async (req) => {
 
     console.log(`Categorizing ${results.length} ${searchType} results`);
 
+    // Limit results for AI processing to avoid token limits
+    const MAX_RESULTS = 50;
+    const limitedResults = results.slice(0, MAX_RESULTS);
+    
+    console.log(`Processing ${limitedResults.length} of ${results.length} results for AI categorization`);
+
     // Create AI prompt based on search type
-    const systemPrompt = `You are an expert travel categorization assistant. Analyze the search results and organize them into meaningful categories that help travelers make better decisions.
+    let systemPrompt = '';
+    
+    if (searchType === 'activities') {
+      systemPrompt = `You are an expert travel categorization assistant. Analyze these activity search results and organize them into meaningful, specific categories.
+
+For activities, create categories like:
+- Landmark/Palace Experiences (e.g., "Buckingham Palace Experiences", "Tower of London Tours")
+- Food & Culinary (e.g., "Food Tours", "Pub Crawls", "Cooking Classes")
+- City Tours (e.g., "City Bus Tours", "Walking Tours", "Bike Tours")
+- Water Activities (e.g., "River Cruises", "Thames Tours")
+- Cultural Experiences (e.g., "Museums", "Theater Shows", "Historical Tours")
+- Adventure Activities (e.g., "Day Trips", "Outdoor Adventures")
+
+Return a JSON array of 5-8 specific categories with this structure:
+[
+  {
+    "name": "Category Name (be specific, e.g., 'Buckingham Palace Experiences')",
+    "icon": "landmark",
+    "resultIds": ["id1", "id2", "id3"]
+  }
+]
+
+Important: 
+- Use specific landmark/location names in category titles when possible
+- Each result should appear in ONLY ONE category
+- Create 5-8 meaningful categories
+- Use lucide icon names: landmark, utensils, bus, ship, theater, mountain, etc.`;
+    } else {
+      systemPrompt = `You are an expert travel categorization assistant. Analyze the search results and organize them into meaningful categories that help travelers make better decisions.
 
 For hotels, consider: star rating, property type, location features (beachfront, city center), amenities, and review scores.
-For activities, consider: activity type, duration, price range, and themes.
 For flights, consider: airline quality, stops, duration, and price.
 
 Return a JSON array of categories with this structure:
@@ -38,8 +71,9 @@ Return a JSON array of categories with this structure:
 ]
 
 Important: Each result ID should appear in ONLY ONE category - the most relevant one. Choose 4-7 meaningful categories that cover all results.`;
+    }
 
-    const userPrompt = `Categorize these ${searchType} search results:\n\n${JSON.stringify(results, null, 2)}`;
+    const userPrompt = `Categorize these ${searchType} search results:\n\n${JSON.stringify(limitedResults, null, 2)}`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -86,11 +120,11 @@ Important: Each result ID should appear in ONLY ONE category - the most relevant
       categories = createFallbackCategories(results, searchType);
     }
 
-    // Map result IDs back to actual results
+    // Map result IDs back to actual results (from limited set)
     const categorizedResults = categories.map((category: any) => ({
       ...category,
       results: category.resultIds
-        .map((id: string) => results.find((r: any) => r.hotel_id === id || r.id === id))
+        .map((id: string) => limitedResults.find((r: any) => r.hotel_id === id || r.id === id))
         .filter(Boolean)
     }));
 
