@@ -47,7 +47,7 @@ const Search = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Search Form */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-lg p-5 border border-white/10">
+        <div className="bg-white/5 backdrop-blur-sm rounded-lg px-5 py-2.5 border border-white/10">
           <AdaptiveSearchForm onSearch={handleSearch} />
         </div>
 
