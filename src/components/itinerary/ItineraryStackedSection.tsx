@@ -90,7 +90,7 @@ export const ItineraryStackedSection = ({
                               e.stopPropagation();
                               onEdit(itemType, actualIndex);
                             }}
-                            className="flex-1 text-xs"
+                            className="flex-1 text-xs bg-white/5 backdrop-blur-md border-white/20 hover:bg-white/10 hover:backdrop-blur-lg transition-all"
                           >
                             Edit
                           </Button>
@@ -105,7 +105,7 @@ export const ItineraryStackedSection = ({
                                 onDelete(itemType, actualIndex);
                               }
                             }}
-                            className="flex-1 text-xs text-red-400 hover:text-red-300"
+                            className="flex-1 text-xs text-red-400 hover:text-red-300 bg-red-500/10 backdrop-blur-md border-red-400/20 hover:bg-red-500/20 hover:backdrop-blur-lg transition-all"
                           >
                             Delete
                           </Button>
