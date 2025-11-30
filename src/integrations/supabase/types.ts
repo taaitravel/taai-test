@@ -480,6 +480,47 @@ export type Database = {
         }
         Relationships: []
       }
+      itinerary_attendees: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          itinerary_id: number
+          joined_at: string | null
+          role: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          itinerary_id: number
+          joined_at?: string | null
+          role: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          itinerary_id?: number
+          joined_at?: string | null
+          role?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_attendees_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itinerary_budget_breakdown: {
         Row: {
           budgeted_amount: number
@@ -517,6 +558,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      itinerary_invitations: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          invite_method: string
+          invite_token: string | null
+          invite_value: string
+          invited_by: string
+          itinerary_id: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          invite_method: string
+          invite_token?: string | null
+          invite_value: string
+          invited_by: string
+          itinerary_id: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          invite_method?: string
+          invite_token?: string | null
+          invite_value?: string
+          invited_by?: string
+          itinerary_id?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_invitations_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          reference_id: string | null
+          reference_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       payments: {
         Row: {
@@ -846,11 +967,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_itinerary_role: {
+        Args: { itinerary_id_param: number; user_id_param: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_itinerary_attendee: {
+        Args: { itinerary_id_param: number; user_id_param: string }
         Returns: boolean
       }
     }

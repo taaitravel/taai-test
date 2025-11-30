@@ -2,7 +2,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
 import { ItineraryContent } from "@/components/itinerary/ItineraryContent";
-
+import { AttendeesSection } from "@/components/itinerary/AttendeesSection";
 import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingState";
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
 import { useBrowserState } from "@/hooks/useBrowserState";
@@ -184,6 +184,9 @@ const Itinerary = () => {
         refreshMapData={refreshMapData}
       />
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AttendeesSection itineraryId={itineraryData.id} />
+      </div>
 
       {/* Edit Item Dialog */}
       <AddItemDialog
