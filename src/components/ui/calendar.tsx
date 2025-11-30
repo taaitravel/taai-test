@@ -34,20 +34,20 @@ function Calendar({
         head_cell:
           "text-white/50 rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected])]:bg-gradient-to-r [&:has([aria-selected])]:from-[hsl(351,85%,75%)] [&:has([aria-selected])]:via-[hsl(15,80%,70%)] [&:has([aria-selected])]:to-[hsl(25,75%,65%)] first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected])]:bg-white first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-normal text-white hover:bg-white/10 transition-colors"
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "!bg-gradient-to-r !from-[hsl(351,85%,75%)] !via-[hsl(15,80%,70%)] !to-[hsl(25,75%,65%)] text-white hover:opacity-90 focus:opacity-90 font-semibold",
+          "!bg-white !text-[#1a1c2e] hover:opacity-90 focus:opacity-90 font-semibold",
         day_today: "bg-white/10 text-white font-medium border border-white/20",
         day_outside:
           "day-outside text-white/20 opacity-40",
         day_disabled: "text-white/10 opacity-20 cursor-not-allowed",
         day_range_middle:
-          "aria-selected:bg-gradient-to-r aria-selected:from-[hsl(351,85%,75%)] aria-selected:via-[hsl(15,80%,70%)] aria-selected:to-[hsl(25,75%,65%)] aria-selected:text-white",
+          "aria-selected:bg-white aria-selected:text-[#1a1c2e]",
         day_hidden: "invisible",
         ...classNames,
       }}
