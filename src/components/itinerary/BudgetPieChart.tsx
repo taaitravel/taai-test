@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Save, X, Plus } from "lucide-react";
+import { Edit, Save, X, Plus, Plane, Hotel, Compass, Utensils, Car, ShoppingBag, MoreHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -343,6 +343,39 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
   const totalBudget = (totalBudgetProp ?? totalBudgetFromBreakdown) || 0;
   const totalSpent = (totalSpentProp ?? totalSpentFromBreakdown) || 0;
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Flights': return Plane;
+      case 'Accommodation': return Hotel;
+      case 'Activities': return Compass;
+      case 'Dining': return Utensils;
+      case 'Transportation': return Car;
+      case 'Shopping': return ShoppingBag;
+      case 'Miscellaneous': return MoreHorizontal;
+      default: return MoreHorizontal;
+    }
+  };
+
+  const CustomLegend = ({ payload }: any) => {
+    return (
+      <div className="flex flex-wrap justify-center gap-4 mb-6">
+        {payload.map((entry: any, index: number) => {
+          const IconComponent = getCategoryIcon(entry.value);
+          return (
+            <div key={`legend-${index}`} className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: entry.color }}
+              />
+              <IconComponent className="w-3 h-3 text-white/70" />
+              <span className="text-xs text-white/70">{entry.value}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -461,38 +494,16 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={80}
+                  innerRadius={110}
                   outerRadius={130}
                   fill="#8884d8"
                   dataKey="budgeted"
-                  label={({ name, percent, cx, cy, midAngle, outerRadius }) => {
-                    const RADIAN = Math.PI / 180;
-                    const radius = outerRadius + 30;
-                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                    
-                    return (
-                      <text 
-                        x={x} 
-                        y={y} 
-                        fill="white" 
-                        textAnchor={x > cx ? 'start' : 'end'}
-                        dominantBaseline="central"
-                        className="text-xs font-semibold"
-                      >
-                        {`${name}: ${(percent * 100).toFixed(1)}%`}
-                      </text>
-                    );
-                  }}
-                  labelLine={{
-                    stroke: 'rgba(255,255,255,0.3)',
-                    strokeWidth: 2
-                  }}
                 >
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={`url(#gradient-${index})`} />
                   ))}
                 </Pie>
+                <Legend content={<CustomLegend />} />
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
