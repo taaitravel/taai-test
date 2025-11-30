@@ -191,6 +191,7 @@ const Itinerary = () => {
         type={editType}
         onClose={() => setEditOpen(false)}
         onSubmit={handleEditSubmit}
+        onDelete={() => editType && handleDelete(editType, editIndex)}
         initialItem={initialItem}
         defaultCity={(itineraryData.itin_locations || [])[0] || ''}
         suggestions={{ cities: itineraryData.itin_locations || [] }}
