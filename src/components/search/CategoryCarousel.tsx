@@ -102,7 +102,7 @@ export const CategoryCarousel = ({
   return (
     <div className="mb-12">
       {/* Category Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-center mb-6">
         <h3 className="text-sm font-semibold text-white flex items-center gap-2">
           {renderIcon()}
           {capitalizeTitle(categoryName)}
