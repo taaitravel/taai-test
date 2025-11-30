@@ -196,7 +196,7 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
               className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
             >
               <Plus className="mr-1 h-3 w-3" />
-              {saving ? 'Saving...' : '+ Property'}
+              {saving ? 'Saving...' : 'Property'}
             </Button>
           </div>
         </div>
