@@ -4,6 +4,7 @@ import { TripsSection } from "@/components/dashboard/TripsSection";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TripBrowser } from "@/components/dashboard/TripBrowser";
 import { TripsFilter } from "@/components/dashboard/TripsFilter";
+import { PendingInvitationsCard } from "@/components/itinerary/PendingInvitationsCard";
 import { useDashboard } from "@/hooks/useDashboard";
 
 export const DashboardContent = () => {
@@ -31,6 +32,11 @@ export const DashboardContent = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section */}
       <HeroSection userProfile={userProfile} activeItineraries={activeItineraries} />
+
+      {/* Pending Invitations */}
+      <div className="mb-8">
+        <PendingInvitationsCard />
+      </div>
 
       {/* Enhanced Stats Cards with Charts */}
       <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} activeItineraries={activeItineraries} />

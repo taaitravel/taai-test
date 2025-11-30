@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserProfileDropdown } from "./UserProfileDropdown";
+import { NotificationCenter } from "./NotificationCenter";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileNavigationProps {
@@ -175,6 +176,7 @@ export const MobileNavigation = ({
                   </DropdownMenu>
                 )}
                 {showProfileButton && <UserProfileDropdown />}
+                <NotificationCenter />
                 {customActions}
               </>
             ) : (

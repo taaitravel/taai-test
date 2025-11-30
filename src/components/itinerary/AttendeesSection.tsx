@@ -1,22 +1,53 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus } from "lucide-react";
-
-interface Attendee {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string;
-  status: string;
-}
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserMinus, Shield, Eye, Edit, Users } from "lucide-react";
+import { useItineraryAttendees } from "@/hooks/useItineraryAttendees";
+import { InviteAttendeesDialog } from "./InviteAttendeesDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AttendeesSectionProps {
-  attendees?: Attendee[];
+  itineraryId: number;
 }
 
-export const AttendeesSection = ({ attendees }: AttendeesSectionProps) => {
-  if (!attendees || attendees.length === 0) return null;
+export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
+  const { attendees, loading, updateAttendeeRole, removeAttendee } = useItineraryAttendees(itineraryId);
+
+  if (loading) {
+    return null;
+  }
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'owner':
+        return <Shield className="h-4 w-4" />;
+      case 'editor':
+        return <Edit className="h-4 w-4" />;
+      case 'viewer':
+        return <Eye className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'owner':
+        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'editor':
+        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      case 'viewer':
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      default:
+        return '';
+    }
+  };
 
   return (
     <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md mb-8">
@@ -24,34 +55,86 @@ export const AttendeesSection = ({ attendees }: AttendeesSectionProps) => {
         <div className="flex items-center justify-between">
           <CardTitle className="text-white flex items-center space-x-2">
             <Users className="h-5 w-5 text-white" />
-            <span>Trip Attendees</span>
+            <span>Trip Attendees ({attendees.length})</span>
           </CardTitle>
-          <Button 
-            size="sm" 
-            className="gold-gradient hover:opacity-90 text-[#171821] font-semibold text-xs px-3 py-1 h-8"
-            onClick={() => console.log('Invite more people')}
-          >
-            <UserPlus className="h-4 w-4 mr-1" />
-            Invite
-          </Button>
+          <InviteAttendeesDialog itineraryId={itineraryId} />
         </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {attendees.map((attendee) => (
-            <div key={attendee.id} className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg border border-white/20 hover:bg-white/15 transition-colors">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-sm font-medium">
-                {attendee.avatar}
+          {attendees.map((attendee) => {
+            const isOwner = attendee.role === 'owner';
+            const userName = attendee.users?.first_name
+              ? `${attendee.users.first_name} ${attendee.users.last_name || ''}`.trim()
+              : attendee.users?.username || attendee.users?.email || 'Unknown';
+
+            return (
+              <div
+                key={attendee.id}
+                className="flex items-center justify-between p-3 bg-white/10 rounded-lg border border-white/20 hover:bg-white/15 transition-colors"
+              >
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <Avatar className="h-10 w-10 flex-shrink-0">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                      {userName.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-white text-sm truncate">{userName}</p>
+                    <p className="text-xs text-white/60 truncate">{attendee.users?.email || ''}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Badge className={`gap-1 text-xs px-2 py-0.5 ${getRoleBadgeColor(attendee.role)}`}>
+                    {getRoleIcon(attendee.role)}
+                    {attendee.role}
+                  </Badge>
+
+                  {attendee.status === 'pending' && (
+                    <Badge variant="secondary" className="bg-white/20 text-white text-xs px-2 py-0.5">
+                      Pending
+                    </Badge>
+                  )}
+
+                  {!isOwner && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white">
+                          •••
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-[#171821] border-white/30">
+                        {attendee.role !== 'editor' && (
+                          <DropdownMenuItem 
+                            onClick={() => updateAttendeeRole(attendee.id, 'editor')}
+                            className="text-white hover:bg-white/10 cursor-pointer"
+                          >
+                            Make Editor
+                          </DropdownMenuItem>
+                        )}
+                        {attendee.role !== 'viewer' && (
+                          <DropdownMenuItem 
+                            onClick={() => updateAttendeeRole(attendee.id, 'viewer')}
+                            className="text-white hover:bg-white/10 cursor-pointer"
+                          >
+                            Make Viewer
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem 
+                          onClick={() => removeAttendee(attendee.id)}
+                          className="text-destructive hover:bg-white/10 cursor-pointer"
+                        >
+                          <UserMinus className="h-4 w-4 mr-2" />
+                          Remove
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{attendee.name}</p>
-                <p className="text-xs text-white/60 truncate">{attendee.email}</p>
-              </div>
-              <Badge className={`text-xs px-2 py-0.5 shrink-0 ${attendee.status === 'confirmed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-white/20 text-white border-white/30'}`}>
-                {attendee.status}
-              </Badge>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
