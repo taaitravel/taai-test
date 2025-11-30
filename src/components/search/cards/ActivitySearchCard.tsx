@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { ImageGallery } from '@/components/ui/image-gallery';
-import { Star, MapPin, Clock, Users, Calendar, Plus } from 'lucide-react';
+import { Star, MapPin, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
@@ -126,62 +126,63 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 flex flex-col overflow-hidden pb-[20px]">
-      {/* Image */}
-      <div className="relative h-28 bg-white/5 overflow-hidden flex-shrink-0">
-        {images[0] ? (
-          <img 
-            src={images[0]} 
-            alt={activity.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
-            No image
-          </div>
-        )}
-        {activity.rating && (
-          <div className="absolute top-3 right-3">
-            <Badge className="bg-primary text-white text-xs">
-              {activity.rating} <Star className="ml-1 h-3 w-3 fill-current" />
+    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-[#1a1c2e] pb-[20px] hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
+      {/* Image Gallery */}
+      {images.length > 0 && (
+        <ImageGallery
+          images={images}
+          alt={activity.name}
+          aspectRatio="wide"
+          className="h-28 flex-shrink-0"
+        />
+      )}
+
+      {/* Card Content - Matching Hotel Card Style */}
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xl opacity-60">🎯</div>
+            <Badge variant="secondary" className="text-xs bg-white/5 text-white/40 border-white/10">
+              Activity
             </Badge>
           </div>
-        )}
-      </div>
-
-      {/* Activity info */}
-      <div className="flex-1 flex flex-col justify-between space-y-3 p-6">
-        <div>
-          <h3 className="text-base font-bold text-white line-clamp-2">{activity.name}</h3>
-          <p className="text-white/50 flex items-center gap-1 text-xs mt-1">
-            <MapPin className="h-3.5 w-3.5" />
+          <h4 className="font-bold text-white text-sm mb-1 line-clamp-1">
+            {activity.name}
+          </h4>
+          <p className="text-white/60 text-xs mb-2 flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
             {activity.location || activity.city}
           </p>
-        </div>
-
-        {/* Price Section */}
-        <div className="pt-4 border-t border-white/10">
-          <div className="flex items-baseline justify-between mb-4">
-            <div>
-              <p className="text-white/60 text-xs">Price</p>
-              <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
-                ${Math.ceil(pricePerPerson).toLocaleString('en-US')}
-              </p>
-              <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
-            </div>
+          <div className="flex flex-wrap gap-1 mb-2">
+            {activity.rating && (
+              <Badge className="text-xs bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
+                <Star className="h-3 w-3 fill-current" />
+                {activity.rating}
+              </Badge>
+            )}
           </div>
         </div>
-
-        {/* Add to Itinerary Button */}
-        <div className="pt-2 border-t border-white/10 flex-shrink-0">
-          <Button
-            onClick={handleAddToItinerary}
-            disabled={saving}
-            className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
-          >
-            <Plus className="mr-1 h-3 w-3" />
-            {saving ? 'Saving...' : 'Activity'}
-          </Button>
+        <div className="space-y-2">
+          <div className="space-y-1 mb-4">
+            <div className="flex items-center text-xs text-white/50">
+              <Calendar className="h-3 w-3 mr-1" />
+              Per person
+            </div>
+            <p className="text-2xl font-bold text-center" style={{ color: '#ff849c' }}>
+              ${Math.ceil(pricePerPerson).toLocaleString('en-US')}
+            </p>
+            <p className="text-white/40 text-xs text-center">including taxes and fees</p>
+          </div>
+          <div className="pt-2 border-t border-white/10 flex-shrink-0">
+            <Button
+              onClick={handleAddToItinerary}
+              disabled={saving}
+              className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
+            >
+              <Plus className="mr-1 h-3 w-3" />
+              {saving ? 'Saving...' : 'Activity'}
+            </Button>
+          </div>
         </div>
       </div>
 
