@@ -51,7 +51,7 @@ export const ItineraryStackedSection = ({
             size="icon"
             aria-label={`Add ${title}`}
             onClick={onAddClick}
-            className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10"
+            className="hidden lg:flex text-white/80 hover:text-white hover:bg-white/10 border border-white/10"
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -146,6 +146,22 @@ export const ItineraryStackedSection = ({
         <div className="text-center py-8 text-white/50">
           <Icon className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">{emptyMessage}</p>
+        </div>
+      )}
+      
+      {/* Mobile Add Button - Below Cards */}
+      {typeof (onAddClick) !== 'undefined' && items.length > 0 && (
+        <div className="flex justify-center mt-8 lg:hidden">
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={`Add ${title}`}
+            onClick={onAddClick}
+            className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 px-6"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add {title}
+          </Button>
         </div>
       )}
     </div>
