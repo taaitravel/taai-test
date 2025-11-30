@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlaceSearch, PlaceResult } from "@/components/inputs/PlaceSearch";
+import { Trash2 } from "lucide-react";
 
 export type ItemType = 'flights' | 'hotels' | 'activities' | 'reservations';
 
@@ -20,12 +21,13 @@ interface AddItemDialogProps {
   type: ItemType | null;
   onClose: () => void;
   onSubmit: (type: ItemType, item: any) => Promise<void>;
+  onDelete?: () => void;
   suggestions?: Suggestions;
   defaultCity?: string;
   initialItem?: any | null;
 }
 
-export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClose, onSubmit, suggestions, defaultCity, initialItem }) => {
+export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClose, onSubmit, onDelete, suggestions, defaultCity, initialItem }) => {
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState<any>({});
@@ -373,9 +375,27 @@ if (type === 'hotels') {
 
         {renderFields()}
 
-        <DialogFooter className="mt-6">
-          <Button variant="ghost" onClick={onClose} disabled={loading}>Cancel</Button>
-          <Button variant="contrast" onClick={handleSubmit} disabled={loading || !type}>{loading ? 'Saving...' : 'Save'}</Button>
+        <DialogFooter className="mt-6 flex justify-between items-center">
+          {initialItem && onDelete && (
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this item?')) {
+                  onDelete();
+                  onClose();
+                }
+              }} 
+              disabled={loading}
+              className="text-red-400/80 hover:text-red-400 hover:bg-red-500/10 border border-red-400/20"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          )}
+          <div className="flex gap-2 ml-auto">
+            <Button variant="ghost" onClick={onClose} disabled={loading}>Cancel</Button>
+            <Button variant="contrast" onClick={handleSubmit} disabled={loading || !type}>{loading ? 'Saving...' : 'Save'}</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

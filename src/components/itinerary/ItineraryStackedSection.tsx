@@ -80,66 +80,45 @@ export const ItineraryStackedSection = ({
                       {renderCard(displayItem, actualIndex)}
                     </div>
                     
-                    {stackIndex === 0 && (onEdit || onDelete) && (
-                      <>
-                        <div className="flex justify-center gap-2 pt-3 mt-2 border-t border-white/10">
-                          {onEdit && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(itemType, actualIndex);
-                              }}
-                              className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
-                              aria-label="Edit"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Share functionality to be implemented
-                            }}
-                            className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
-                            aria-label="Share"
-                          >
-                            <Share2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Split cost functionality to be implemented
-                            }}
-                            className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
-                            aria-label="Split Cost"
-                          >
-                            <DollarSign className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        
-                        {onDelete && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm('Are you sure you want to delete this item?')) {
-                                onDelete(itemType, actualIndex);
-                              }
-                            }}
-                            className="absolute bottom-4 left-4 h-8 w-8 text-red-400/80 hover:text-red-400 hover:bg-red-500/10 border border-red-400/20"
-                            aria-label="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </>
+                    {stackIndex === 0 && onEdit && (
+                      <div className="flex justify-center gap-2 pt-3 mt-2 border-t border-white/10">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(itemType, actualIndex);
+                          }}
+                          className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+                          aria-label="Edit"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Share functionality to be implemented
+                          }}
+                          className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+                          aria-label="Share"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Split cost functionality to be implemented
+                          }}
+                          className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+                          aria-label="Split Cost"
+                        >
+                          <DollarSign className="h-4 w-4" />
+                        </Button>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
