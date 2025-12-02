@@ -16,6 +16,11 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
 
+  // Guard clause: return null if activity is undefined or invalid
+  if (!activity || typeof activity !== 'object') {
+    return null;
+  }
+
   const images = activity.images || (activity.image ? [activity.image] : []);
   const pricePerPerson = activity.price || activity.cost || 75;
   
