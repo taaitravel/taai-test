@@ -15,7 +15,6 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // Guard clause: return null if car is undefined or invalid
   if (!car || typeof car !== 'object') {
     return null;
   }
@@ -44,7 +43,6 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
 
       let targetItineraryId = itineraryId;
 
-      // If 'new', create the itinerary first
       if (itineraryId === 'new') {
         const { data: newItin, error: createError } = await supabase
           .from('itinerary')
@@ -61,15 +59,15 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
         targetItineraryId = newItin.id.toString();
       }
 
-      // Fetch the itinerary to get its itin_id (UUID)
       const { data: itinData, error: itinError } = await supabase
         .from('itinerary')
-        .select('itin_id')
+        .select('itin_id, itin_map_locations')
         .eq('id', parseInt(targetItineraryId))
         .single();
 
       if (itinError) throw itinError;
 
+      // Save the car to cart_items with geolocation data
       const { error } = await supabase
         .from('cart_items')
         .insert({
@@ -91,11 +89,45 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
             days: days,
             totalPrice: totalPrice,
             image: car.image,
-            bookingStatus: 'pending'
+            bookingStatus: 'pending',
+            // Geolocation data
+            latitude: car.latitude,
+            longitude: car.longitude,
+            address: car.address || car.pickupLocation
           }
         });
 
       if (error) throw error;
+
+      // Update itinerary map locations if we have coordinates
+      if (car.latitude && car.longitude) {
+        const existingLocations = Array.isArray(itinData.itin_map_locations) 
+          ? itinData.itin_map_locations 
+          : [];
+        
+        const newLocation = {
+          city: car.pickupLocation || car.location || 'Pickup Location',
+          lat: car.latitude,
+          lng: car.longitude,
+          category: 'car',
+          name: car.name || 'Car Rental',
+          address: car.address || car.pickupLocation,
+          price: totalPrice
+        };
+
+        const locationExists = existingLocations.some(
+          (loc: any) => loc.lat === newLocation.lat && loc.lng === newLocation.lng
+        );
+
+        if (!locationExists) {
+          await supabase
+            .from('itinerary')
+            .update({
+              itin_map_locations: [...existingLocations, newLocation]
+            })
+            .eq('id', parseInt(targetItineraryId));
+        }
+      }
 
       toast({
         title: 'Car Saved',
@@ -116,23 +148,19 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 pb-[20px]">
-      {/* Car Image */}
+    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-[#1a1c2e] pb-[20px]">
       {car.image && (
         <div className="overflow-hidden bg-white/5 p-4 flex-shrink-0 h-28">
           <img src={car.image} alt={car.name} className="w-full h-full object-contain" />
         </div>
       )}
 
-      {/* Car Content */}
       <div className="p-4 flex-1 flex flex-col space-y-4">
-        {/* Car Header */}
         <div>
           <h3 className="text-xl font-bold text-white mb-1">{car.name || 'Toyota Camry'}</h3>
           <p className="text-white/70 text-sm">{car.type || 'Sedan'}</p>
         </div>
 
-        {/* Features */}
         <div className="grid grid-cols-2 gap-3">
           <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
             <Users className="h-4 w-4" />
@@ -152,7 +180,6 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
           </Badge>
         </div>
 
-        {/* Pickup/Dropoff */}
         <div className="bg-white/5 p-4 rounded-lg border border-white/20">
           <div className="space-y-2 text-xs text-white/70">
             <p><strong className="text-white">Pickup:</strong> {car.pickupLocation || 'Airport'}</p>
@@ -161,7 +188,6 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
           </div>
         </div>
 
-        {/* Price */}
         <div className="pt-4 border-t border-white/10">
           <div className="flex items-baseline justify-between mb-4">
             <div>
@@ -180,7 +206,6 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
           </div>
         </div>
 
-        {/* Add to Itinerary Button */}
         <div className="pt-2 border-t border-white/10 mt-auto flex-shrink-0">
           <Button
             onClick={handleAddToItinerary}

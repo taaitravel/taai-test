@@ -15,7 +15,6 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // Guard clause: return null if package is undefined or invalid
   if (!pkg || typeof pkg !== 'object') {
     return null;
   }
@@ -47,7 +46,6 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
 
       let targetItineraryId = itineraryId;
 
-      // If 'new', create the itinerary first
       if (itineraryId === 'new') {
         const { data: newItin, error: createError } = await supabase
           .from('itinerary')
@@ -64,15 +62,15 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
         targetItineraryId = newItin.id.toString();
       }
 
-      // Fetch the itinerary to get its itin_id (UUID)
       const { data: itinData, error: itinError } = await supabase
         .from('itinerary')
-        .select('itin_id')
+        .select('itin_id, itin_map_locations')
         .eq('id', parseInt(targetItineraryId))
         .single();
 
       if (itinError) throw itinError;
 
+      // Save the package to cart_items with geolocation data
       const { error } = await supabase
         .from('cart_items')
         .insert({
@@ -91,11 +89,48 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
             regularTotal: regularTotal,
             discount: discount,
             packagePrice: packagePrice,
-            bookingStatus: 'pending'
+            bookingStatus: 'pending',
+            // Geolocation from hotel (primary location)
+            latitude: pkg.hotel?.latitude || pkg.latitude,
+            longitude: pkg.hotel?.longitude || pkg.longitude,
+            address: pkg.hotel?.address || pkg.hotel?.location
           }
         });
 
       if (error) throw error;
+
+      // Update itinerary map locations if we have coordinates
+      const lat = pkg.hotel?.latitude || pkg.latitude;
+      const lng = pkg.hotel?.longitude || pkg.longitude;
+      
+      if (lat && lng) {
+        const existingLocations = Array.isArray(itinData.itin_map_locations) 
+          ? itinData.itin_map_locations 
+          : [];
+        
+        const newLocation = {
+          city: pkg.hotel?.location || pkg.destination || 'Package Destination',
+          lat: lat,
+          lng: lng,
+          category: 'package',
+          name: `Package: ${pkg.hotel?.name || 'Travel Package'}`,
+          address: pkg.hotel?.address || pkg.hotel?.location,
+          price: packagePrice
+        };
+
+        const locationExists = existingLocations.some(
+          (loc: any) => loc.lat === newLocation.lat && loc.lng === newLocation.lng
+        );
+
+        if (!locationExists) {
+          await supabase
+            .from('itinerary')
+            .update({
+              itin_map_locations: [...existingLocations, newLocation]
+            })
+            .eq('id', parseInt(targetItineraryId));
+        }
+      }
 
       toast({
         title: 'Package Saved',
@@ -116,8 +151,7 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 pb-[20px]">
-      {/* Package Header */}
+    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden rounded-lg border border-white/20 bg-[#1a1c2e] p-6 pb-[20px]">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -131,7 +165,6 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
         </Badge>
       </div>
 
-      {/* Flight Section */}
       <div className="bg-white/5 p-4 rounded-lg border border-white/20">
         <div className="flex items-center gap-2 mb-2">
           <Plane className="h-5 w-5 text-white/60" />
@@ -141,7 +174,6 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
         <p className="text-white/60 text-sm line-through mt-1">${flightPrice}</p>
       </div>
 
-      {/* Hotel Section */}
       <div className="bg-white/5 p-4 rounded-lg border border-white/20">
         <div className="flex items-center gap-2 mb-2">
           <Hotel className="h-5 w-5 text-white/60" />
@@ -152,7 +184,6 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
         <p className="text-white/60 text-sm line-through mt-1">${hotelPrice}</p>
       </div>
 
-      {/* Car Section */}
       <div className="bg-white/5 p-4 rounded-lg border border-white/20">
         <div className="flex items-center gap-2 mb-2">
           <Car className="h-5 w-5 text-white/60" />
@@ -162,7 +193,6 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
         <p className="text-white/60 text-sm line-through mt-1">${carPrice}</p>
       </div>
 
-      {/* Package Price */}
       <div className="pt-4 border-t border-white/10">
         <div className="bg-gradient-to-r from-primary/20 to-primary/10 p-6 rounded-lg border border-primary/30 mb-4">
           <div className="text-center">
@@ -177,7 +207,6 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
         </div>
       </div>
 
-      {/* Add to Itinerary Button */}
       <div className="pt-2 border-t border-white/10 mt-auto flex-shrink-0">
         <Button
           onClick={handleAddToItinerary}
