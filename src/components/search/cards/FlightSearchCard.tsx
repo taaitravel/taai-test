@@ -16,6 +16,11 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
 
+  // Guard clause: return null if flight is undefined or invalid
+  if (!flight || typeof flight !== 'object') {
+    return null;
+  }
+
   const price = flight.price || flight.cost || 0;
   const totalPrice = flight.totalPrice || price;
   const roundedPrice = Math.ceil(totalPrice);

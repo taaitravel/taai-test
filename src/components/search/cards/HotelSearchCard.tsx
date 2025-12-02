@@ -16,6 +16,11 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
 
+  // Guard clause: return null if hotel is undefined or invalid
+  if (!hotel || typeof hotel !== 'object') {
+    return null;
+  }
+
   const images = hotel.images || (hotel.image ? [hotel.image] : []);
   const pricePerNight = hotel.pricePerNight || hotel.price || 0;
   const totalPrice = hotel.totalPrice || hotel.min_total_price || 0;
