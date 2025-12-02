@@ -469,15 +469,6 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[600px] bg-[#1a1c2e]/50 rounded-lg border border-white/10">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400 mb-3" />
-        <p className="text-white/70 text-sm">Loading search results map...</p>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-[600px] bg-[#1a1c2e]/50 rounded-lg border border-white/10">
@@ -488,60 +479,70 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
   }
 
   const validResults = results.filter(r => r.latitude && r.longitude);
-  
-  if (validResults.length === 0 && results.length > 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[600px] bg-[#1a1c2e]/50 rounded-lg border border-white/10">
-        <p className="text-white/60 text-sm">No locations available for map view</p>
-      </div>
-    );
-  }
-
   const hasMoreResults = validResults.length > visibleCount;
 
   return (
     <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-white/10">
+      {/* Map container - always render so map can initialize */}
       <div ref={mapContainer} className="absolute inset-0" />
       
+      {/* Loading overlay */}
+      {loading && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1c2e]/80 z-20">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-400 mb-3" />
+          <p className="text-white/70 text-sm">Loading map...</p>
+        </div>
+      )}
+
+      {/* No locations message */}
+      {!loading && validResults.length === 0 && results.length > 0 && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1c2e]/80 z-20">
+          <p className="text-white/60 text-sm">No locations available for map view</p>
+        </div>
+      )}
+      
       {/* Legend */}
-      <MapLegend searchType={searchType} />
+      {!loading && <MapLegend searchType={searchType} />}
       
       {/* Map Controls Overlay */}
-      <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
-        {/* Results counter and controls */}
-        <div className="bg-[#1a1c2e]/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 flex items-center gap-3">
-          <span className="text-white/70 text-sm">
-            Showing {Math.min(visibleCount, validResults.length)} of {validResults.length}
-          </span>
-          
-          {hasMoreResults && (
+      {!loading && validResults.length > 0 && (
+        <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
+          <div className="bg-[#1a1c2e]/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 flex items-center gap-3">
+            <span className="text-white/70 text-sm">
+              Showing {Math.min(visibleCount, validResults.length)} of {validResults.length}
+            </span>
+            
+            {hasMoreResults && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs text-white/80 hover:text-white hover:bg-white/10"
+                onClick={handleLoadMore}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Load More
+              </Button>
+            )}
+            
             <Button
               size="sm"
               variant="ghost"
               className="h-7 text-xs text-white/80 hover:text-white hover:bg-white/10"
-              onClick={handleLoadMore}
+              onClick={handleResetView}
             >
-              <Plus className="h-3 w-3 mr-1" />
-              Load More
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Reset
             </Button>
-          )}
-          
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 text-xs text-white/80 hover:text-white hover:bg-white/10"
-            onClick={handleResetView}
-          >
-            <RotateCcw className="h-3 w-3 mr-1" />
-            Reset
-          </Button>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Scroll zoom hint */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#1a1c2e]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-white/50 text-xs z-10 pointer-events-none">
-        Use controls to zoom • Drag to pan
-      </div>
+      {!loading && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#1a1c2e]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-white/50 text-xs z-10 pointer-events-none">
+          Use controls to zoom • Drag to pan
+        </div>
+      )}
     </div>
   );
 };
