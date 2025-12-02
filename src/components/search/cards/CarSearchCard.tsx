@@ -15,6 +15,11 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  // Guard clause: return null if car is undefined or invalid
+  if (!car || typeof car !== 'object') {
+    return null;
+  }
+
   const pricePerDay = car.price || car.pricePerDay || 45;
   const days = car.days || 4;
   const totalPrice = pricePerDay * days;

@@ -15,6 +15,11 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  // Guard clause: return null if package is undefined or invalid
+  if (!pkg || typeof pkg !== 'object') {
+    return null;
+  }
+
   const flightPrice = pkg.flight?.price || 450;
   const hotelPrice = pkg.hotel?.price || 199;
   const carPrice = pkg.car?.price || 45;
