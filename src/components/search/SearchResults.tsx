@@ -50,7 +50,7 @@ export const SearchResults = ({
   }
 
   if (viewMode === 'map' && showMapView) {
-    return <SearchResultsMap results={results} />;
+    return <SearchResultsMap results={results} searchType={searchType} />;
   }
 
   return (

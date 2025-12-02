@@ -3,47 +3,273 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
+
 interface MapLocation {
   city: string;
   lat: number;
   lng: number;
-  category?: 'flight' | 'hotel' | 'activity' | 'reservation' | 'destination';
+  category?: 'flight' | 'hotel' | 'activity' | 'reservation' | 'car' | 'package' | 'destination';
+  name?: string;
+  address?: string;
+  price?: number;
 }
+
 interface MapProps {
   locations?: MapLocation[];
 }
+
 const getCategoryColor = (category?: string) => {
   switch (category) {
-    case 'flight':
-      return 'hsl(220, 90%, 65%)'; // Bright blue
     case 'hotel':
-      return 'hsl(280, 85%, 70%)'; // Bright purple
+    case 'property':
+      return 'hsl(280, 85%, 70%)'; // Purple
     case 'activity':
-      return 'hsl(160, 80%, 55%)'; // Bright teal
+      return 'hsl(160, 80%, 55%)'; // Teal
+    case 'flight':
+      return 'hsl(220, 90%, 65%)'; // Blue
     case 'reservation':
-      return 'hsl(30, 95%, 65%)'; // Bright orange
+    case 'restaurant':
+      return 'hsl(30, 95%, 65%)'; // Orange
+    case 'car':
+      return 'hsl(140, 70%, 55%)'; // Green
+    case 'package':
+      return '#ff849c'; // Pink
     case 'destination':
-      return '#ff849c'; // Soft pink/coral
+      return '#ffce87'; // Golden
     default:
-      return 'hsl(220, 90%, 65%)'; // Bright blue
+      return '#ffce87'; // Golden default
   }
 };
-const getHoverColor = (category?: string) => {
+
+// Generate marker HTML based on category shape
+const getMarkerHTML = (category?: string, price?: number): string => {
+  const color = getCategoryColor(category);
+  const priceDisplay = price ? `$${Math.round(price)}` : '';
+  
   switch (category) {
-    case 'flight':
-      return 'hsl(220, 100%, 75%)';
     case 'hotel':
-      return 'hsl(280, 95%, 80%)';
+    case 'property':
+      // Square marker
+      return `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        ">
+          <div style="
+            width: 28px;
+            height: 28px;
+            background: ${color};
+            border-radius: 4px;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+          ">🏨</div>
+          ${priceDisplay ? `<div style="
+            background: ${color};
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+            white-space: nowrap;
+          ">${priceDisplay}</div>` : ''}
+        </div>
+      `;
+      
     case 'activity':
-      return 'hsl(160, 90%, 65%)';
+      // Triangle marker
+      return `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        ">
+          <div style="
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-bottom: 24px solid ${color};
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            position: relative;
+          ">
+            <span style="
+              position: absolute;
+              top: 8px;
+              left: -5px;
+              font-size: 10px;
+            ">🎯</span>
+          </div>
+          ${priceDisplay ? `<div style="
+            background: ${color};
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+            white-space: nowrap;
+          ">${priceDisplay}</div>` : ''}
+        </div>
+      `;
+      
+    case 'flight':
+      // Circle marker
+      return `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        ">
+          <div style="
+            width: 24px;
+            height: 24px;
+            background: ${color};
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+          ">✈️</div>
+          ${priceDisplay ? `<div style="
+            background: ${color};
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+            white-space: nowrap;
+          ">${priceDisplay}</div>` : ''}
+        </div>
+      `;
+      
     case 'reservation':
-      return 'hsl(30, 100%, 75%)';
-    case 'destination':
-      return '#ffaec0'; // Lighter pink for hover
+    case 'restaurant':
+      // Diamond marker
+      return `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        ">
+          <div style="
+            width: 20px;
+            height: 20px;
+            background: ${color};
+            transform: rotate(45deg);
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <span style="transform: rotate(-45deg); font-size: 10px;">🍽️</span>
+          </div>
+          ${priceDisplay ? `<div style="
+            background: ${color};
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 6px;
+            white-space: nowrap;
+          ">${priceDisplay}</div>` : ''}
+        </div>
+      `;
+      
+    case 'car':
+      // Rounded rectangle marker
+      return `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        ">
+          <div style="
+            width: 30px;
+            height: 20px;
+            background: ${color};
+            border-radius: 8px;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+          ">🚗</div>
+          ${priceDisplay ? `<div style="
+            background: ${color};
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+            white-space: nowrap;
+          ">${priceDisplay}</div>` : ''}
+        </div>
+      `;
+      
+    case 'package':
+      // Star marker
+      return `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        ">
+          <div style="
+            font-size: 28px;
+            color: ${color};
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            line-height: 1;
+          ">★</div>
+          ${priceDisplay ? `<div style="
+            background: ${color};
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: -4px;
+            white-space: nowrap;
+          ">${priceDisplay}</div>` : ''}
+        </div>
+      `;
+      
     default:
-      return 'hsl(220, 100%, 75%)';
+      // Default golden circle (destination)
+      return `
+        <div style="
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background: #ffce87;
+          border: 2px solid #ffce87;
+          box-shadow: 0 0 10px rgba(255,206,135,0.6);
+          cursor: pointer;
+        "></div>
+      `;
   }
 };
+
 const Map = ({
   locations = []
 }: MapProps) => {
@@ -54,16 +280,12 @@ const Map = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
-  console.log('🗺️ Map component rendered with locations:', locations.length);
-  console.log('🗺️ Map locations details:', locations);
 
   // Fetch Mapbox token with retry
   useEffect(() => {
     const fetchMapboxToken = async () => {
       try {
         setError(null);
-        console.log('🗺️ Map: Attempting to get Mapbox token...');
-        
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         
         if (error) {
@@ -75,14 +297,12 @@ const Map = ({
           throw new Error('Invalid token received');
         }
         
-        console.log('🗺️ Map: Token received successfully');
         setMapboxToken(mapboxToken);
         setRetryCount(0);
       } catch (err: any) {
         console.error('🗺️ Map: Error getting token:', err);
         
         if (retryCount < 3) {
-          console.log(`🗺️ Map: Retrying token fetch (${retryCount + 1}/3)...`);
           setTimeout(() => setRetryCount(prev => prev + 1), 2000 * Math.pow(2, retryCount));
         } else {
           setError('Unable to load map. Please check your connection and try refreshing.');
@@ -97,11 +317,9 @@ const Map = ({
   // Initialize map when token is available
   useEffect(() => {
     if (!mapboxToken || !mapContainer.current || map.current) {
-      console.log('🗺️ Map: Skipping init - token:', !!mapboxToken, 'container:', !!mapContainer.current, 'existing map:', !!map.current);
       return;
     }
     
-    console.log('🗺️ Map: Initializing map with token');
     setLoading(true);
     
     try {
@@ -119,30 +337,20 @@ const Map = ({
 
       map.current = newMap;
 
-      // Add navigation controls
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
       const loadTimeout = setTimeout(() => {
-        console.log('🗺️ Map: Load timeout reached - forcing ready state');
         setLoading(false);
       }, 5000);
 
       const handleMapReady = () => {
-        console.log('🗺️ Map: Map is ready!');
         clearTimeout(loadTimeout);
         setLoading(false);
         setError(null);
       };
 
-      newMap.once('load', () => {
-        console.log('🗺️ Map: Load event fired');
-        handleMapReady();
-      });
-      
-      newMap.once('idle', () => {
-        console.log('🗺️ Map: Idle event fired');
-        handleMapReady();
-      });
+      newMap.once('load', handleMapReady);
+      newMap.once('idle', handleMapReady);
       
       newMap.on('error', (e) => {
         console.error('🗺️ Map: Map error:', e);
@@ -151,7 +359,6 @@ const Map = ({
         setLoading(false);
       });
 
-      // Handle resize
       const resizeObserver = new ResizeObserver(() => {
         map.current?.resize();
       });
@@ -164,7 +371,6 @@ const Map = ({
         clearTimeout(loadTimeout);
         resizeObserver.disconnect();
         if (map.current) {
-          console.log('🗺️ Map: Cleaning up map');
           map.current.remove();
           map.current = null;
         }
@@ -185,137 +391,97 @@ const Map = ({
   // Add markers when locations change
   useEffect(() => {
     if (!map.current || loading) {
-      console.log('🗺️ Map: Not ready for markers - map:', !!map.current, 'loading:', loading);
       return;
     }
 
     clearMarkers();
 
     if (!locations.length) {
-      console.log('🗺️ Map: No locations to display');
       return;
     }
-
-    console.log('🗺️ Map: Adding markers for locations:', locations);
 
     const bounds = new mapboxgl.LngLatBounds();
     let validLocations = 0;
 
-    locations.forEach((location, index) => {
-      // Validate coordinates
+    locations.forEach((location) => {
       if (!location.lat || !location.lng || 
           typeof location.lat !== 'number' || typeof location.lng !== 'number' ||
           location.lat < -90 || location.lat > 90 || 
           location.lng < -180 || location.lng > 180) {
-        console.warn('🗺️ Map: Invalid coordinates for location:', location);
         return;
       }
 
       validLocations++;
       bounds.extend([location.lng, location.lat]);
 
-      // Create marker element with improved styling
+      // Create marker element with shape based on category
       const el = document.createElement('div');
       el.className = 'custom-marker';
-      const categoryColor = getCategoryColor(location.category);
+      el.innerHTML = getMarkerHTML(location.category, location.price);
       
-      el.style.cssText = `
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: #ffce87;
-        border: 2px solid #ffce87;
-        box-shadow: 0 0 10px ${categoryColor}99;
-        cursor: pointer;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        z-index: 1;
-      `;
-
-      // Add inner highlight
-      const innerEl = document.createElement('div');
-      innerEl.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 60%);
-        pointer-events: none;
-      `;
-      el.appendChild(innerEl);
-
-      // Enhanced hover effects
+      // Add hover effect
       el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.3)';
-        el.style.background = '#ffce87';
-        el.style.border = '2px solid #ffce87';
-        el.style.boxShadow = `0 0 15px #ffce87cc`;
+        el.style.transform = 'scale(1.15)';
         el.style.zIndex = '1000';
       });
-
       el.addEventListener('mouseleave', () => {
         el.style.transform = 'scale(1)';
-        el.style.background = '#ffce87';
-        el.style.border = '2px solid #ffce87';
-        el.style.boxShadow = `0 0 10px ${categoryColor}99`;
         el.style.zIndex = '1';
       });
 
-      // Enhanced popup
+      // Enhanced popup with more details
       const popup = new mapboxgl.Popup({
         offset: 35,
-        closeButton: false,
+        closeButton: true,
         className: 'custom-popup',
         maxWidth: '300px'
       }).setHTML(`
         <div style="
-          color: hsl(var(--foreground)); 
+          color: white; 
           font-weight: 600; 
-          padding: 16px 20px; 
-          background: hsl(var(--background)); 
-          border: 1px solid hsl(var(--border));
-          border-radius: 16px;
-          box-shadow: 0 12px 32px hsl(var(--foreground) / 0.2);
-          backdrop-filter: blur(12px);
-          font-family: inherit;
+          padding: 16px; 
+          background: #1a1c2e; 
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 12px;
           min-width: 200px;
         ">
-          <div style="font-size: 16px; margin-bottom: 6px; line-height: 1.4;">${location.city}</div>
           ${location.category ? `<div style="
-            font-size: 14px; 
-            color: hsl(var(--muted-foreground)); 
-            text-transform: capitalize;
-            padding: 4px 8px;
-            background: hsl(var(--muted) / 0.5);
-            border-radius: 8px;
-            display: inline-block;
+            font-size: 10px; 
+            color: rgba(255,255,255,0.5); 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
           ">${location.category}</div>` : ''}
+          <div style="font-size: 16px; margin-bottom: 4px; line-height: 1.4;">
+            ${location.name || location.city}
+          </div>
+          ${location.address ? `<div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 8px;">
+            📍 ${location.address}
+          </div>` : ''}
+          ${location.price ? `<div style="font-size: 20px; font-weight: bold; color: #ff849c;">
+            $${location.price.toLocaleString()}
+          </div>` : ''}
         </div>
       `);
 
       try {
-        const marker = new mapboxgl.Marker(el)
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([location.lng, location.lat])
           .setPopup(popup)
           .addTo(map.current!);
         
         markersRef.current.push(marker);
-        console.log(`🗺️ Map: Added marker for ${location.city} at [${location.lng}, ${location.lat}]`);
       } catch (markerErr) {
         console.error(`🗺️ Map: Error adding marker for ${location.city}:`, markerErr);
       }
     });
 
-    console.log(`🗺️ Map: Added ${validLocations} valid markers out of ${locations.length} locations`);
-
-    // Fit map to markers or center on single location
+    // Fit map to markers
     if (validLocations > 0) {
       try {
         if (validLocations === 1) {
           const location = locations.find(l => l.lat && l.lng);
           if (location) {
-            console.log('🗺️ Map: Centering on single location:', location);
             map.current?.flyTo({
               center: [location.lng, location.lat],
               zoom: 11,
@@ -323,7 +489,6 @@ const Map = ({
             });
           }
         } else {
-          console.log('🗺️ Map: Fitting to bounds for multiple locations');
           map.current?.fitBounds(bounds, {
             padding: { top: 60, bottom: 60, left: 60, right: 60 },
             maxZoom: 12,
@@ -335,10 +500,9 @@ const Map = ({
       }
     }
 
-    // Cleanup function
     return () => clearMarkers();
   }, [locations, loading, clearMarkers]);
-  console.log('🗺️ Map: Current state - loading:', loading, 'error:', error, 'token:', !!mapboxToken);
+
   if (error) {
     return (
       <div className="h-full w-full flex items-center justify-center bg-muted/50 border border-border rounded-xl">
@@ -361,12 +525,12 @@ const Map = ({
     );
   }
 
-
   return (
     <div className="h-full w-full relative rounded-xl overflow-hidden bg-background">
       <div ref={mapContainer} className="absolute inset-0" />
     </div>
   );
 };
+
 export { Map };
 export default Map;

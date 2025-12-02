@@ -17,7 +17,6 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
 
-  // Guard clause: return null if flight is undefined or invalid
   if (!flight || typeof flight !== 'object') {
     return null;
   }
@@ -26,7 +25,6 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   const totalPrice = flight.totalPrice || price;
   const roundedPrice = Math.ceil(totalPrice);
   
-  // Parse dates safely
   const departureDate = new Date(flight.departure);
   const arrivalDate = new Date(flight.arrival);
   
@@ -34,7 +32,6 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   const arrivalTime = isValid(arrivalDate) ? format(arrivalDate, 'h:mm a') : '';
   const departureOnlyDate = isValid(departureDate) ? format(departureDate, 'MM/dd/yy') : '';
 
-  // Get full airline name
   const airlineName = getAirlineName(flight.airline || '');
 
   const handleAddToItinerary = () => {
@@ -73,15 +70,15 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
         targetItineraryId = newItin.id.toString();
       }
 
-      // Fetch the itinerary to get its itin_id (UUID)
       const { data: itinData, error: itinError } = await supabase
         .from('itinerary')
-        .select('itin_id')
+        .select('itin_id, itin_map_locations')
         .eq('id', parseInt(targetItineraryId))
         .single();
 
       if (itinError) throw itinError;
 
+      // Save the flight to cart_items with geolocation data
       const { error } = await supabase
         .from('cart_items')
         .insert({
@@ -100,11 +97,44 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
             duration: flight.duration,
             stops: flight.stops || 0,
             class: flight.class,
-            bookingStatus: 'pending'
+            bookingStatus: 'pending',
+            // Geolocation data for destination
+            latitude: flight.destinationLat || flight.latitude,
+            longitude: flight.destinationLng || flight.longitude,
           }
         });
 
       if (error) throw error;
+
+      // Update itinerary map locations if we have destination coordinates
+      if (flight.destinationLat && flight.destinationLng) {
+        const existingLocations = Array.isArray(itinData.itin_map_locations) 
+          ? itinData.itin_map_locations 
+          : [];
+        
+        const newLocation = {
+          city: flight.to || flight.destination,
+          lat: flight.destinationLat,
+          lng: flight.destinationLng,
+          category: 'flight',
+          name: `${airlineName} - ${flight.to || flight.destination}`,
+          price: roundedPrice
+        };
+
+        // Check if location already exists
+        const locationExists = existingLocations.some(
+          (loc: any) => loc.lat === newLocation.lat && loc.lng === newLocation.lng
+        );
+
+        if (!locationExists) {
+          await supabase
+            .from('itinerary')
+            .update({
+              itin_map_locations: [...existingLocations, newLocation]
+            })
+            .eq('id', parseInt(targetItineraryId));
+        }
+      }
 
       toast({
         title: 'Flight Saved',
@@ -126,10 +156,8 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
 
   return (
     <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-[#1a1c2e] pb-[20px] hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
-      {/* Card Content - Matching Hotel Card Style */}
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
-          {/* Header with emoji and class badge */}
           <div className="flex items-center justify-between mb-2">
             <div className="text-xl opacity-60">✈️</div>
             <Badge variant="secondary" className="text-xs bg-white/5 text-white/40 border-white/10 capitalize">
@@ -137,7 +165,6 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
             </Badge>
           </div>
 
-          {/* Airline name */}
           <h4 className="font-bold text-white text-sm mb-1 line-clamp-1">
             {airlineName}
           </h4>
@@ -145,7 +172,6 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
             {flight.flight_number || 'Flight'}
           </p>
 
-          {/* Route Visualization - Compact */}
           <div className="bg-white/5 p-3 rounded-lg border border-white/10 mb-3">
             <div className="flex items-center justify-between mb-2">
               <div className="text-center flex-1">
@@ -168,7 +194,6 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
             </div>
           </div>
 
-          {/* Flight Details Badges */}
           <div className="flex flex-wrap gap-1 mb-2">
             <Badge className="text-xs bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
               <Clock className="h-3 w-3" />
@@ -180,7 +205,6 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
           </div>
         </div>
 
-        {/* Price and Button Section */}
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
             <div className="flex items-center text-xs text-white/50">
