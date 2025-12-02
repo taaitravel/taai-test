@@ -1,11 +1,12 @@
 import { Badge } from '@/components/ui/badge';
-import { Plane, Clock, Luggage, Calendar, Plus } from 'lucide-react';
+import { Plane, Clock, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, isValid } from 'date-fns';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
+import { getAirlineName } from '@/lib/airlineNames';
 
 interface FlightSearchCardProps {
   flight: any;
@@ -32,7 +33,9 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   const departureTime = isValid(departureDate) ? format(departureDate, 'h:mm a') : '';
   const arrivalTime = isValid(arrivalDate) ? format(arrivalDate, 'h:mm a') : '';
   const departureOnlyDate = isValid(departureDate) ? format(departureDate, 'MM/dd/yy') : '';
-  const arrivalOnlyDate = isValid(arrivalDate) ? format(arrivalDate, 'MM/dd/yy') : '';
+
+  // Get full airline name
+  const airlineName = getAirlineName(flight.airline || '');
 
   const handleAddToItinerary = () => {
     setShowModal(true);
@@ -88,7 +91,7 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
           external_ref: flight.id || `flight-${Date.now()}`,
           price: roundedPrice,
           item_data: {
-            airline: flight.airline,
+            airline: airlineName,
             flightNumber: flight.flight_number,
             from: flight.from || flight.origin,
             to: flight.to || flight.destination,
@@ -97,7 +100,6 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
             duration: flight.duration,
             stops: flight.stops || 0,
             class: flight.class,
-            aircraft: flight.aircraft,
             bookingStatus: 'pending'
           }
         });
@@ -123,88 +125,84 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-6 pb-[20px]">
-      {/* Flight Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Plane className="h-5 w-5 text-primary" />
+    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-[#1a1c2e] pb-[20px] hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
+      {/* Card Content - Matching Hotel Card Style */}
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Header with emoji and class badge */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xl opacity-60">✈️</div>
+            <Badge variant="secondary" className="text-xs bg-white/5 text-white/40 border-white/10 capitalize">
+              {flight.class || 'Economy'}
+            </Badge>
           </div>
-          <div>
-            <h3 className="text-base font-bold text-white">{flight.airline}</h3>
-            <p className="text-white/50 text-xs">{flight.flight_number || 'Flight'}</p>
+
+          {/* Airline name */}
+          <h4 className="font-bold text-white text-sm mb-1 line-clamp-1">
+            {airlineName}
+          </h4>
+          <p className="text-white/60 text-xs mb-3">
+            {flight.flight_number || 'Flight'}
+          </p>
+
+          {/* Route Visualization - Compact */}
+          <div className="bg-white/5 p-3 rounded-lg border border-white/10 mb-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-center flex-1">
+                <p className="text-white/40 text-xs">{departureOnlyDate}</p>
+                <p className="text-lg font-bold text-white">{flight.from || flight.origin}</p>
+                <p className="text-white/50 text-xs">{departureTime}</p>
+              </div>
+
+              <div className="flex-1 flex flex-col items-center px-2">
+                <Plane className="h-3 w-3 text-white/40 transform rotate-90" />
+                <div className="w-full h-px bg-white/20 my-1"></div>
+                <p className="text-white/50 text-xs">{flight.duration || '3h 30m'}</p>
+              </div>
+
+              <div className="text-center flex-1">
+                <p className="text-white/40 text-xs">&nbsp;</p>
+                <p className="text-lg font-bold text-white">{flight.to || flight.destination}</p>
+                <p className="text-white/50 text-xs">{arrivalTime}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Flight Details Badges */}
+          <div className="flex flex-wrap gap-1 mb-2">
+            <Badge className="text-xs bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {flight.stops || 0} {flight.stops === 1 ? 'stop' : 'stops'}
+            </Badge>
+            <Badge className="text-xs bg-white/10 text-white/60 border-white/20">
+              Baggage
+            </Badge>
           </div>
         </div>
-        <Badge className="bg-white/10 text-white/80 border-white/20 text-xs capitalize">
-          {flight.class || 'Economy'}
-        </Badge>
-      </div>
 
-      {/* Route Visualization */}
-      <div className="bg-white/5 p-4 rounded-lg border border-white/10 mb-4 flex-shrink-0">
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-center flex-1">
-            <p className="text-white/40 text-xs mb-1">{departureOnlyDate}</p>
-            <p className="text-xl font-bold text-white">{flight.from || flight.origin}</p>
-            <p className="text-white/50 text-xs mt-0.5">{departureTime}</p>
-          </div>
-
-          <div className="flex-1 flex flex-col items-center px-4">
-            <Plane className="h-4 w-4 text-white/40 mb-1 transform rotate-90" />
-            <div className="w-full h-px bg-white/20"></div>
-            <p className="text-white/50 text-xs mt-1">{flight.duration || '3h 30m'}</p>
-          </div>
-
-          <div className="text-center flex-1">
-            <p className="text-white/40 text-xs mb-1">{arrivalOnlyDate}</p>
-            <p className="text-xl font-bold text-white">{flight.to || flight.destination}</p>
-            <p className="text-white/50 text-xs mt-0.5">{arrivalTime}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-1 pt-2 border-t border-white/10">
-          <Clock className="h-3.5 w-3.5 text-white/40" />
-          <span className="text-white/50 text-xs">
-            {flight.stops || 0} {flight.stops === 1 ? 'stop' : 'stops'}
-          </span>
-        </div>
-      </div>
-
-      {/* Flight Details */}
-      <div className="flex flex-wrap gap-2 mb-4 flex-shrink-0">
-        <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
-          Baggage Included
-        </Badge>
-        {flight.aircraft && (
-          <Badge variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
-            {flight.aircraft}
-          </Badge>
-        )}
-      </div>
-
-      {/* Price Section */}
-      <div className="pt-4 border-t border-white/10 mt-auto">
-        <div className="flex items-baseline justify-between mb-4">
-          <div>
-            <p className="text-white/60 text-xs">Total Price</p>
-            <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
+        {/* Price and Button Section */}
+        <div className="space-y-2">
+          <div className="space-y-1 mb-4">
+            <div className="flex items-center text-xs text-white/50">
+              <Calendar className="h-3 w-3 mr-1" />
+              Total Price
+            </div>
+            <p className="text-2xl font-bold text-center" style={{ color: '#ff849c' }}>
               ${roundedPrice.toLocaleString('en-US')}
             </p>
-            <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
+            <p className="text-white/40 text-xs text-center">including taxes and fees</p>
+          </div>
+          <div className="pt-2 border-t border-white/10 flex-shrink-0">
+            <Button
+              onClick={handleAddToItinerary}
+              disabled={saving}
+              className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
+            >
+              <Plus className="mr-1 h-3 w-3" />
+              {saving ? 'Saving...' : 'Flight'}
+            </Button>
           </div>
         </div>
-      </div>
-
-      {/* Add to Itinerary Button */}
-      <div className="pt-2 border-t border-white/10 mt-auto flex-shrink-0">
-        <Button
-          onClick={handleAddToItinerary}
-          disabled={saving}
-          className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
-        >
-          <Plus className="mr-1 h-3 w-3" />
-          {saving ? 'Saving...' : 'Flight'}
-        </Button>
       </div>
 
       <ItineraryMatcherModal
