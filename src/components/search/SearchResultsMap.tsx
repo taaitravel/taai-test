@@ -343,6 +343,12 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         }
       });
 
+      // Move layers to top of stack to ensure they render above custom style layers
+      map.current.moveLayer('clusters');
+      map.current.moveLayer('cluster-count');
+      map.current.moveLayer('unclustered-point');
+      map.current.moveLayer('unclustered-price');
+
       // Fit bounds to show all points
       const bounds = new mapboxgl.LngLatBounds();
       validResults.forEach(result => {
