@@ -281,7 +281,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         source: 'search-results',
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': categoryColor,
+          'circle-color': '#ffce87',
           'circle-radius': [
             'step',
             ['get', 'point_count'],
@@ -307,7 +307,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
           'text-size': 14
         },
         paint: {
-          'text-color': '#ffffff'
+          'text-color': '#1a1c2e'
         }
       });
 
@@ -318,7 +318,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         source: 'search-results',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': categoryColor,
+          'circle-color': '#ffce87',
           'circle-radius': 14,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff'
@@ -339,7 +339,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
           'text-allow-overlap': true
         },
         paint: {
-          'text-color': '#ffffff'
+          'text-color': '#1a1c2e'
         }
       });
 
