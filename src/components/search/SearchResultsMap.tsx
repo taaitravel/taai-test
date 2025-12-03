@@ -8,7 +8,6 @@ import { MapLegend } from './MapLegend';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000;
-const INITIAL_MARKER_COUNT = 12;
 
 interface SearchResultsMapProps {
   results: any[];
@@ -30,174 +29,142 @@ const getCategoryFromSearchType = (searchType?: string): string => {
 // Get category color
 const getCategoryColor = (category: string): string => {
   switch (category) {
-    case 'hotel': return 'hsl(280, 85%, 70%)';
-    case 'activity': return 'hsl(160, 80%, 55%)';
-    case 'flight': return 'hsl(220, 90%, 65%)';
-    case 'reservation': return 'hsl(30, 95%, 65%)';
-    case 'car': return 'hsl(140, 70%, 55%)';
-    case 'package': return '#ff849c';
-    default: return '#ffce87';
+    case 'hotel': return '#c084fc'; // purple
+    case 'activity': return '#34d399'; // green
+    case 'flight': return '#60a5fa'; // blue
+    case 'reservation': return '#fb923c'; // orange
+    case 'car': return '#4ade80'; // lime
+    case 'package': return '#ff849c'; // pink
+    default: return '#ffce87'; // gold
   }
 };
 
-// Generate marker HTML based on category shape
-const getMarkerHTML = (category: string, price?: number): string => {
-  const color = getCategoryColor(category);
-  const priceDisplay = price ? `$${Math.round(price)}` : '';
+// Create popup HTML with reduced padding (50% less)
+const createPopupHTML = (properties: any, category: string, searchType?: string) => {
+  const data = typeof properties === 'string' ? JSON.parse(properties) : properties;
   
-  switch (category) {
-    case 'hotel':
-      // Square marker
-      return `
-        <div class="marker-container" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s;">
-          <div style="
-            width: 32px;
-            height: 32px;
-            background: ${color};
-            border-radius: 6px;
-            border: 2px solid white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-            ${priceDisplay ? `<span style="font-size: 9px; color: white; font-weight: bold;">${priceDisplay}</span>` : '<span style="font-size: 12px;">🏨</span>'}
-          </div>
-        </div>
-      `;
-      
-    case 'activity':
-      // Triangle marker
-      return `
-        <div class="marker-container" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s;">
-          <div style="
-            width: 0;
-            height: 0;
-            border-left: 16px solid transparent;
-            border-right: 16px solid transparent;
-            border-bottom: 28px solid ${color};
-            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
-            position: relative;
-          ">
-            <span style="position: absolute; top: 10px; left: -6px; font-size: 11px;">🎯</span>
-          </div>
-          ${priceDisplay ? `<div style="
-            background: ${color};
-            color: white;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 2px;
-          ">${priceDisplay}</div>` : ''}
-        </div>
-      `;
-      
-    case 'flight':
-      // Circle marker
-      return `
-        <div class="marker-container" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s;">
-          <div style="
-            width: 28px;
-            height: 28px;
-            background: ${color};
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-          ">✈️</div>
-          ${priceDisplay ? `<div style="
-            background: ${color};
-            color: white;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 2px;
-          ">${priceDisplay}</div>` : ''}
-        </div>
-      `;
-      
-    case 'car':
-      // Rounded rectangle marker
-      return `
-        <div class="marker-container" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s;">
-          <div style="
-            width: 36px;
-            height: 24px;
-            background: ${color};
-            border-radius: 10px;
-            border: 2px solid white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-          ">🚗</div>
-          ${priceDisplay ? `<div style="
-            background: ${color};
-            color: white;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 2px;
-          ">${priceDisplay}</div>` : ''}
-        </div>
-      `;
-      
-    case 'package':
-      // Star marker
-      return `
-        <div class="marker-container" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s;">
-          <div style="
-            font-size: 32px;
-            color: ${color};
-            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
-            line-height: 1;
-          ">★</div>
-          ${priceDisplay ? `<div style="
-            background: ${color};
-            color: white;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: -6px;
-          ">${priceDisplay}</div>` : ''}
-        </div>
-      `;
-      
-    default:
-      return `
+  return `
+    <div style="
+      min-width: 240px;
+      max-width: 280px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1c2e;
+    ">
+      ${data.image ? `
         <div style="
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
-          background: #ffce87;
-          border: 2px solid white;
-          box-shadow: 0 2px 8px rgba(255,206,135,0.6);
-          cursor: pointer;
+          width: 100%;
+          height: 100px;
+          background-image: url('${data.image}');
+          background-size: cover;
+          background-position: center;
         "></div>
-      `;
-  }
+      ` : ''}
+      
+      <div style="padding: 8px 10px;">
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 6px;
+        ">
+          <span style="
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">${category}</span>
+          ${data.rating ? `<span style="color: #fbbf24; font-size: 11px;">⭐ ${parseFloat(data.rating).toFixed(1)}</span>` : ''}
+        </div>
+        
+        <h3 style="
+          margin: 0 0 4px 0;
+          font-size: 13px;
+          font-weight: 700;
+          color: white;
+          line-height: 1.3;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        ">${data.name || 'Unknown'}</h3>
+        
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 11px;
+          color: rgba(255,255,255,0.6);
+          margin-bottom: 8px;
+        ">
+          <span>📍</span>
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${data.location || ''}</span>
+          ${data.distance ? `<span>• ${parseFloat(data.distance).toFixed(1)} mi</span>` : ''}
+        </div>
+        
+        <div style="
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          padding-top: 8px;
+          border-top: 1px solid rgba(255,255,255,0.1);
+        ">
+          <div>
+            <div style="font-size: 18px; font-weight: 700; color: #ff849c;">
+              $${Math.ceil(parseFloat(data.price) || 0).toLocaleString()}
+            </div>
+            <div style="font-size: 9px; color: rgba(255,255,255,0.5);">
+              ${searchType === 'hotels' ? 'per night' : 'total'} • incl. taxes
+            </div>
+          </div>
+          
+          ${data.reviews ? `
+            <div style="text-align: right;">
+              <div style="font-size: 10px; color: rgba(255,255,255,0.5);">
+                ${parseInt(data.reviews).toLocaleString()} reviews
+              </div>
+            </div>
+          ` : ''}
+        </div>
+        
+        ${data.bookingUrl ? `
+          <a href="${data.bookingUrl}" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             style="
+               display: block;
+               background: linear-gradient(135deg, hsl(280, 85%, 65%) 0%, hsl(280, 85%, 55%) 100%);
+               color: white;
+               text-align: center;
+               padding: 8px 12px;
+               border-radius: 6px;
+               text-decoration: none;
+               font-size: 11px;
+               font-weight: 600;
+               margin-top: 8px;
+             "
+          >
+            View TAAI Deal →
+          </a>
+        ` : ''}
+      </div>
+    </div>
+  `;
 };
 
 export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(INITIAL_MARKER_COUNT);
-  const hasInitialFit = useRef(false);
+  const sourceAdded = useRef(false);
 
   const category = getCategoryFromSearchType(searchType);
+  const categoryColor = getCategoryColor(category);
 
   // Fetch Mapbox token with retry logic
   useEffect(() => {
@@ -238,8 +205,6 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    
-    // Disable scroll zoom to prevent accidental zooming
     map.current.scrollZoom.disable();
 
     map.current.on('load', () => {
@@ -255,208 +220,254 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
     return () => {
       map.current?.remove();
       map.current = null;
+      sourceAdded.current = false;
     };
   }, [mapboxToken]);
 
-  // Clear markers helper
-  const clearMarkers = useCallback(() => {
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
-  }, []);
-
-  // Add markers for results
+  // Add/update GeoJSON source with clustering
   useEffect(() => {
     if (!map.current || loading) return;
 
-    clearMarkers();
-
-    // Filter valid results with coordinates
     const validResults = results.filter(r => r.latitude && r.longitude);
     if (validResults.length === 0) return;
 
-    // Only show up to visibleCount markers
-    const displayResults = validResults.slice(0, visibleCount);
-    const bounds = new mapboxgl.LngLatBounds();
-    
-    displayResults.forEach((result) => {
-      const price = result.pricePerNight || result.price || result.totalPrice;
-      
-      // Create custom marker element with shape
-      const markerEl = document.createElement('div');
-      markerEl.className = 'search-result-marker';
-      markerEl.innerHTML = getMarkerHTML(category, price);
-      
-      // Add hover effects
-      markerEl.addEventListener('mouseenter', () => {
-        markerEl.style.transform = 'scale(1.15)';
-        markerEl.style.zIndex = '1000';
+    // Convert results to GeoJSON
+    const geojsonData: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: validResults.map((result, index) => ({
+        type: 'Feature' as const,
+        id: index,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [result.longitude, result.latitude]
+        },
+        properties: {
+          id: result.id || index,
+          name: result.name || 'Unknown',
+          price: result.pricePerNight || result.price || result.totalPrice || 0,
+          rating: result.rating || null,
+          image: result.images?.[0] || result.image || null,
+          location: result.cityName || result.location || result.address || '',
+          distance: result.distanceFromSearch || null,
+          reviews: result.review_count || null,
+          bookingUrl: result.bookingUrl || null
+        }
+      }))
+    };
+
+    const setupLayers = () => {
+      if (!map.current) return;
+
+      // Remove existing layers and source if they exist
+      if (map.current.getLayer('cluster-count')) map.current.removeLayer('cluster-count');
+      if (map.current.getLayer('clusters')) map.current.removeLayer('clusters');
+      if (map.current.getLayer('unclustered-point')) map.current.removeLayer('unclustered-point');
+      if (map.current.getLayer('unclustered-price')) map.current.removeLayer('unclustered-price');
+      if (map.current.getSource('search-results')) map.current.removeSource('search-results');
+
+      // Add clustered source
+      map.current.addSource('search-results', {
+        type: 'geojson',
+        data: geojsonData,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50
       });
-      markerEl.addEventListener('mouseleave', () => {
-        markerEl.style.transform = 'scale(1)';
-        markerEl.style.zIndex = '1';
+
+      // Cluster circles
+      map.current.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'search-results',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': categoryColor,
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20,   // radius for < 10 points
+            10, 25,  // radius for 10-49 points
+            50, 30,  // radius for 50-99 points
+            100, 40  // radius for 100+ points
+          ],
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#ffffff'
+        }
       });
 
-      // Create Expedia-style popup matching dark theme
-      const popupContent = `
-        <div style="
-          min-width: 260px;
-          padding: 0;
-          font-family: system-ui, -apple-system, sans-serif;
-          background: #1a1c2e;
-          border-radius: 12px;
-          overflow: hidden;
-          border: 1px solid rgba(255,255,255,0.1);
-        ">
-          ${result.images?.[0] || result.image ? `
-            <div style="
-              width: 100%;
-              height: 120px;
-              background-image: url('${result.images?.[0] || result.image}');
-              background-size: cover;
-              background-position: center;
-            "></div>
-          ` : ''}
-          
-          <div style="padding: 14px;">
-            <div style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              margin-bottom: 8px;
-            ">
-              <span style="
-                background: rgba(255,255,255,0.1);
-                padding: 3px 8px;
-                border-radius: 4px;
-                font-size: 10px;
-                color: rgba(255,255,255,0.6);
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-              ">${category}</span>
-              ${result.rating ? `<span style="color: #fbbf24; font-size: 12px;">⭐ ${result.rating.toFixed(1)}</span>` : ''}
-            </div>
-            
-            <h3 style="
-              margin: 0 0 6px 0;
-              font-size: 15px;
-              font-weight: 700;
-              color: white;
-              line-height: 1.3;
-            ">${result.name}</h3>
-            
-            <div style="
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              font-size: 12px;
-              color: rgba(255,255,255,0.6);
-              margin-bottom: 12px;
-            ">
-              <span>📍</span>
-              <span>${result.cityName || result.location || result.address || ''}</span>
-              ${result.distanceFromSearch ? `<span>• ${result.distanceFromSearch.toFixed(1)} mi</span>` : ''}
-            </div>
-            
-            <div style="
-              display: flex;
-              align-items: baseline;
-              justify-content: space-between;
-              padding-top: 12px;
-              border-top: 1px solid rgba(255,255,255,0.1);
-            ">
-              <div>
-                <div style="font-size: 22px; font-weight: 700; color: #ff849c;">
-                  $${Math.ceil(result.pricePerNight || result.price || 0).toLocaleString()}
-                </div>
-                <div style="font-size: 10px; color: rgba(255,255,255,0.5);">
-                  ${searchType === 'hotels' ? 'per night' : 'total'} • incl. taxes
-                </div>
-              </div>
-              
-              ${result.review_count ? `
-                <div style="text-align: right;">
-                  <div style="font-size: 11px; color: rgba(255,255,255,0.5);">
-                    ${result.review_count.toLocaleString()} reviews
-                  </div>
-                </div>
-              ` : ''}
-            </div>
-            
-            ${result.bookingUrl ? `
-              <a href="${result.bookingUrl}" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 style="
-                   display: block;
-                   background: linear-gradient(135deg, hsl(280, 85%, 65%) 0%, hsl(280, 85%, 55%) 100%);
-                   color: white;
-                   text-align: center;
-                   padding: 10px 16px;
-                   border-radius: 8px;
-                   text-decoration: none;
-                   font-size: 12px;
-                   font-weight: 600;
-                   margin-top: 12px;
-                   transition: opacity 0.2s;
-                 "
-                 onmouseover="this.style.opacity='0.9'"
-                 onmouseout="this.style.opacity='1'"
-              >
-                View TAAI Deal →
-              </a>
-            ` : ''}
-          </div>
-        </div>
-      `;
-
-      const popup = new mapboxgl.Popup({ 
-        offset: 25,
-        closeButton: true,
-        closeOnClick: false,
-        maxWidth: '300px',
-        className: 'search-results-popup'
-      }).setHTML(popupContent);
-
-      const marker = new mapboxgl.Marker({ element: markerEl, anchor: 'bottom' })
-        .setLngLat([result.longitude, result.latitude])
-        .setPopup(popup)
-        .addTo(map.current!);
-      
-      markersRef.current.push(marker);
-      bounds.extend([result.longitude, result.latitude]);
-    });
-
-    // Only fit bounds on initial load, not on subsequent updates
-    if (!bounds.isEmpty() && !hasInitialFit.current) {
-      map.current.fitBounds(bounds, {
-        padding: { top: 80, bottom: 80, left: 80, right: 80 },
-        maxZoom: 14,
-        duration: 1000,
+      // Cluster count text
+      map.current.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'search-results',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-size': 14
+        },
+        paint: {
+          'text-color': '#ffffff'
+        }
       });
-      hasInitialFit.current = true;
+
+      // Individual point circles
+      map.current.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'search-results',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': categoryColor,
+          'circle-radius': 14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
+
+      // Price labels on individual points
+      map.current.addLayer({
+        id: 'unclustered-price',
+        type: 'symbol',
+        source: 'search-results',
+        filter: ['!', ['has', 'point_count']],
+        layout: {
+          'text-field': ['concat', '$', ['to-string', ['round', ['get', 'price']]]],
+          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-size': 9,
+          'text-offset': [0, 0],
+          'text-allow-overlap': true
+        },
+        paint: {
+          'text-color': '#ffffff'
+        }
+      });
+
+      // Fit bounds to show all points
+      const bounds = new mapboxgl.LngLatBounds();
+      validResults.forEach(result => {
+        bounds.extend([result.longitude, result.latitude]);
+      });
+
+      if (!bounds.isEmpty()) {
+        map.current.fitBounds(bounds, {
+          padding: { top: 80, bottom: 80, left: 80, right: 80 },
+          maxZoom: 14,
+          duration: 1000,
+        });
+      }
+    };
+
+    // Wait for style to load before adding layers
+    if (map.current.isStyleLoaded()) {
+      setupLayers();
+    } else {
+      map.current.once('style.load', setupLayers);
     }
+  }, [results, loading, category, categoryColor]);
 
-    return () => clearMarkers();
-  }, [results, loading, visibleCount, category, searchType, clearMarkers]);
-
-  // Reset initial fit when results change significantly
+  // Handle click events for popups and clusters
   useEffect(() => {
-    hasInitialFit.current = false;
-    setVisibleCount(INITIAL_MARKER_COUNT);
-  }, [searchType]);
+    if (!map.current || loading) return;
 
-  const handleLoadMore = () => {
-    setVisibleCount(prev => prev + INITIAL_MARKER_COUNT);
-  };
+    // Click on cluster to zoom in
+    const handleClusterClick = (e: mapboxgl.MapMouseEvent) => {
+      const features = map.current?.queryRenderedFeatures(e.point, {
+        layers: ['clusters']
+      });
 
-  const handleResetView = () => {
+      if (!features?.length || !map.current) return;
+
+      const clusterId = features[0].properties?.cluster_id;
+      const source = map.current.getSource('search-results') as mapboxgl.GeoJSONSource;
+      
+      source?.getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err || !map.current) return;
+
+        const geometry = features[0].geometry;
+        if (geometry.type === 'Point') {
+          map.current.easeTo({
+            center: geometry.coordinates as [number, number],
+            zoom: zoom || 10
+          });
+        }
+      });
+    };
+
+    // Click on individual point to show popup
+    const handlePointClick = (e: mapboxgl.MapMouseEvent) => {
+      const features = map.current?.queryRenderedFeatures(e.point, {
+        layers: ['unclustered-point']
+      });
+
+      if (!features?.length || !map.current) return;
+
+      const feature = features[0];
+      const geometry = feature.geometry;
+      
+      if (geometry.type !== 'Point') return;
+
+      const coordinates = geometry.coordinates.slice() as [number, number];
+      const properties = feature.properties;
+
+      // Close existing popup
+      if (popupRef.current) {
+        popupRef.current.remove();
+      }
+
+      // Create new popup at the correct position
+      popupRef.current = new mapboxgl.Popup({
+        offset: [0, -20],
+        closeButton: true,
+        closeOnClick: true,
+        anchor: 'bottom',
+        maxWidth: '300px'
+      })
+        .setLngLat(coordinates)
+        .setHTML(createPopupHTML(properties, category, searchType))
+        .addTo(map.current);
+    };
+
+    // Change cursor on hover
+    const handleMouseEnter = () => {
+      if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+    };
+
+    const handleMouseLeave = () => {
+      if (map.current) map.current.getCanvas().style.cursor = '';
+    };
+
+    // Add event listeners
+    map.current.on('click', 'clusters', handleClusterClick);
+    map.current.on('click', 'unclustered-point', handlePointClick);
+    map.current.on('mouseenter', 'clusters', handleMouseEnter);
+    map.current.on('mouseleave', 'clusters', handleMouseLeave);
+    map.current.on('mouseenter', 'unclustered-point', handleMouseEnter);
+    map.current.on('mouseleave', 'unclustered-point', handleMouseLeave);
+
+    return () => {
+      if (map.current) {
+        map.current.off('click', 'clusters', handleClusterClick);
+        map.current.off('click', 'unclustered-point', handlePointClick);
+        map.current.off('mouseenter', 'clusters', handleMouseEnter);
+        map.current.off('mouseleave', 'clusters', handleMouseLeave);
+        map.current.off('mouseenter', 'unclustered-point', handleMouseEnter);
+        map.current.off('mouseleave', 'unclustered-point', handleMouseLeave);
+      }
+      if (popupRef.current) {
+        popupRef.current.remove();
+      }
+    };
+  }, [loading, category, searchType]);
+
+  const handleResetView = useCallback(() => {
     if (!map.current) return;
     
     const validResults = results.filter(r => r.latitude && r.longitude);
     if (validResults.length === 0) return;
 
     const bounds = new mapboxgl.LngLatBounds();
-    validResults.slice(0, visibleCount).forEach(result => {
+    validResults.forEach(result => {
       bounds.extend([result.longitude, result.latitude]);
     });
 
@@ -467,7 +478,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         duration: 1000,
       });
     }
-  };
+  }, [results]);
 
   if (error) {
     return (
@@ -479,7 +490,6 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
   }
 
   const validResults = results.filter(r => r.latitude && r.longitude);
-  const hasMoreResults = validResults.length > visibleCount;
 
   return (
     <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-white/10">
@@ -509,20 +519,8 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
           <div className="bg-[#1a1c2e]/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 flex items-center gap-3">
             <span className="text-white/70 text-sm">
-              Showing {Math.min(visibleCount, validResults.length)} of {validResults.length}
+              {validResults.length} locations • Click clusters to expand
             </span>
-            
-            {hasMoreResults && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs text-white/80 hover:text-white hover:bg-white/10"
-                onClick={handleLoadMore}
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Load More
-              </Button>
-            )}
             
             <Button
               size="sm"
@@ -540,7 +538,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
       {/* Scroll zoom hint */}
       {!loading && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#1a1c2e]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-white/50 text-xs z-10 pointer-events-none">
-          Use controls to zoom • Drag to pan
+          Use controls to zoom • Drag to pan • Click markers for details
         </div>
       )}
     </div>
