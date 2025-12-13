@@ -9,6 +9,35 @@ import { MapLegend } from './MapLegend';
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000;
 
+// ============================================
+// MARKER CONFIGURATION - Easy to modify for sales, themes, etc.
+// ============================================
+const MARKER_CONFIG = {
+  // Cluster marker styling
+  cluster: {
+    background: '#ffce87',      // Gold background
+    textColor: '#1a1c2e',       // Dark text
+    borderColor: '#ffffff',     // White border
+    borderWidth: 3,
+    // Size based on point count
+    sizes: {
+      small: 20,    // < 10 points
+      medium: 25,   // 10-49 points
+      large: 30,    // 50-99 points
+      xlarge: 40    // 100+ points
+    }
+  },
+  // Individual point marker styling
+  point: {
+    background: '#ffce87',      // Gold background
+    textColor: '#1a1c2e',       // Dark text
+    borderColor: '#ffffff',     // White border
+    borderWidth: 2,
+    radius: 18,                 // Circle radius
+    textSize: 10
+  }
+};
+
 interface SearchResultsMapProps {
   results: any[];
   searchType?: 'hotels' | 'flights' | 'activities' | 'cars' | 'packages';
@@ -26,16 +55,16 @@ const getCategoryFromSearchType = (searchType?: string): string => {
   }
 };
 
-// Get category color
+// Get category color (for legend/UI, not markers)
 const getCategoryColor = (category: string): string => {
   switch (category) {
-    case 'hotel': return '#c084fc'; // purple
-    case 'activity': return '#34d399'; // green
-    case 'flight': return '#60a5fa'; // blue
-    case 'reservation': return '#fb923c'; // orange
-    case 'car': return '#4ade80'; // lime
-    case 'package': return '#ff849c'; // pink
-    default: return '#ffce87'; // gold
+    case 'hotel': return '#c084fc';
+    case 'activity': return '#34d399';
+    case 'flight': return '#60a5fa';
+    case 'reservation': return '#fb923c';
+    case 'car': return '#4ade80';
+    case 'package': return '#ff849c';
+    default: return '#ffce87';
   }
 };
 
@@ -194,9 +223,10 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
 
     mapboxgl.accessToken = mapboxToken;
     
+    // Use clean dark base style - no conflicting POI layers
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/taai/cme4vu58w01r701s29jan9lw9',
+      style: 'mapbox://styles/mapbox/dark-v11',
       center: [0, 20],
       zoom: 2,
       projection: 'mercator' as any,
@@ -274,28 +304,32 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         clusterRadius: 50
       });
 
-      // Cluster circles
+      // ============================================
+      // CLUSTER CIRCLES - Gold bubbles for grouped points
+      // ============================================
       map.current.addLayer({
         id: 'clusters',
         type: 'circle',
         source: 'search-results',
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': '#ffce87',
+          'circle-color': MARKER_CONFIG.cluster.background,
           'circle-radius': [
             'step',
             ['get', 'point_count'],
-            20,   // radius for < 10 points
-            10, 25,  // radius for 10-49 points
-            50, 30,  // radius for 50-99 points
-            100, 40  // radius for 100+ points
+            MARKER_CONFIG.cluster.sizes.small,
+            10, MARKER_CONFIG.cluster.sizes.medium,
+            50, MARKER_CONFIG.cluster.sizes.large,
+            100, MARKER_CONFIG.cluster.sizes.xlarge
           ],
-          'circle-stroke-width': 3,
-          'circle-stroke-color': '#ffffff'
+          'circle-stroke-width': MARKER_CONFIG.cluster.borderWidth,
+          'circle-stroke-color': MARKER_CONFIG.cluster.borderColor
         }
       });
 
-      // Cluster count text
+      // ============================================
+      // CLUSTER COUNT TEXT - Number inside cluster bubbles
+      // ============================================
       map.current.addLayer({
         id: 'cluster-count',
         type: 'symbol',
@@ -304,28 +338,33 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         layout: {
           'text-field': ['get', 'point_count_abbreviated'],
           'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
-          'text-size': 14
+          'text-size': 14,
+          'text-allow-overlap': true
         },
         paint: {
-          'text-color': '#1a1c2e'
+          'text-color': MARKER_CONFIG.cluster.textColor
         }
       });
 
-      // Individual point circles
+      // ============================================
+      // INDIVIDUAL POINT CIRCLES - Gold bubbles for single items
+      // ============================================
       map.current.addLayer({
         id: 'unclustered-point',
         type: 'circle',
         source: 'search-results',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': '#ffce87',
-          'circle-radius': 14,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#ffffff'
+          'circle-color': MARKER_CONFIG.point.background,
+          'circle-radius': MARKER_CONFIG.point.radius,
+          'circle-stroke-width': MARKER_CONFIG.point.borderWidth,
+          'circle-stroke-color': MARKER_CONFIG.point.borderColor
         }
       });
 
-      // Price labels on individual points
+      // ============================================
+      // PRICE LABELS - Text on individual point markers
+      // ============================================
       map.current.addLayer({
         id: 'unclustered-price',
         type: 'symbol',
@@ -334,20 +373,14 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         layout: {
           'text-field': ['concat', '$', ['to-string', ['round', ['get', 'price']]]],
           'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
-          'text-size': 9,
+          'text-size': MARKER_CONFIG.point.textSize,
           'text-offset': [0, 0],
           'text-allow-overlap': true
         },
         paint: {
-          'text-color': '#1a1c2e'
+          'text-color': MARKER_CONFIG.point.textColor
         }
       });
-
-      // Move layers to top of stack to ensure they render above custom style layers
-      map.current.moveLayer('clusters');
-      map.current.moveLayer('cluster-count');
-      map.current.moveLayer('unclustered-point');
-      map.current.moveLayer('unclustered-price');
 
       // Fit bounds to show all points
       const bounds = new mapboxgl.LngLatBounds();
