@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Plus, RotateCcw } from 'lucide-react';
+import { Loader2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MapLegend } from './MapLegend';
+import { MapPopupCard } from './MapPopupCard';
+import { Toaster } from '@/components/ui/toaster';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000;
@@ -66,120 +69,6 @@ const getCategoryColor = (category: string): string => {
     case 'package': return '#ff849c';
     default: return '#ffce87';
   }
-};
-
-// Create popup HTML with reduced padding (50% less)
-const createPopupHTML = (properties: any, category: string, searchType?: string) => {
-  const data = typeof properties === 'string' ? JSON.parse(properties) : properties;
-  
-  return `
-    <div style="
-      min-width: 240px;
-      max-width: 280px;
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #1a1c2e;
-    ">
-      ${data.image ? `
-        <div style="
-          width: 100%;
-          height: 100px;
-          background-image: url('${data.image}');
-          background-size: cover;
-          background-position: center;
-        "></div>
-      ` : ''}
-      
-      <div style="padding: 8px 10px;">
-        <div style="
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin-bottom: 6px;
-        ">
-          <span style="
-            background: rgba(255,255,255,0.1);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
-            color: rgba(255,255,255,0.6);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          ">${category}</span>
-          ${data.rating ? `<span style="color: #fbbf24; font-size: 11px;">⭐ ${parseFloat(data.rating).toFixed(1)}</span>` : ''}
-        </div>
-        
-        <h3 style="
-          margin: 0 0 4px 0;
-          font-size: 13px;
-          font-weight: 700;
-          color: white;
-          line-height: 1.3;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        ">${data.name || 'Unknown'}</h3>
-        
-        <div style="
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 11px;
-          color: rgba(255,255,255,0.6);
-          margin-bottom: 8px;
-        ">
-          <span>📍</span>
-          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${data.location || ''}</span>
-          ${data.distance ? `<span>• ${parseFloat(data.distance).toFixed(1)} mi</span>` : ''}
-        </div>
-        
-        <div style="
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          padding-top: 8px;
-          border-top: 1px solid rgba(255,255,255,0.1);
-        ">
-          <div>
-            <div style="font-size: 18px; font-weight: 700; color: #ff849c;">
-              $${Math.ceil(parseFloat(data.price) || 0).toLocaleString()}
-            </div>
-            <div style="font-size: 9px; color: rgba(255,255,255,0.5);">
-              ${searchType === 'hotels' ? 'per night' : 'total'} • incl. taxes
-            </div>
-          </div>
-          
-          ${data.reviews ? `
-            <div style="text-align: right;">
-              <div style="font-size: 10px; color: rgba(255,255,255,0.5);">
-                ${parseInt(data.reviews).toLocaleString()} reviews
-              </div>
-            </div>
-          ` : ''}
-        </div>
-        
-        ${data.bookingUrl ? `
-          <a href="${data.bookingUrl}" 
-             target="_blank" 
-             rel="noopener noreferrer"
-             style="
-               display: block;
-               background: linear-gradient(135deg, hsl(280, 85%, 65%) 0%, hsl(280, 85%, 55%) 100%);
-               color: white;
-               text-align: center;
-               padding: 8px 12px;
-               border-radius: 6px;
-               text-decoration: none;
-               font-size: 11px;
-               font-weight: 600;
-               margin-top: 8px;
-             "
-          >
-            View TAAI Deal →
-          </a>
-        ` : ''}
-      </div>
-    </div>
-  `;
 };
 
 export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps) => {
@@ -449,10 +338,20 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
       const coordinates = geometry.coordinates.slice() as [number, number];
       const properties = feature.properties;
 
+      // Find the original result data for full item info
+      const itemId = properties?.id;
+      const originalItem = results.find((r, idx) => 
+        (r.id === itemId) || idx === itemId
+      ) || properties;
+
       // Close existing popup
       if (popupRef.current) {
         popupRef.current.remove();
       }
+
+      // Create popup container
+      const popupContainer = document.createElement('div');
+      popupContainer.className = 'map-popup-container';
 
       // Create new popup at the correct position
       popupRef.current = new mapboxgl.Popup({
@@ -460,11 +359,27 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         closeButton: true,
         closeOnClick: true,
         anchor: 'bottom',
-        maxWidth: '300px'
+        maxWidth: '320px',
+        className: 'map-popup-dark'
       })
         .setLngLat(coordinates)
-        .setHTML(createPopupHTML(properties, category, searchType))
+        .setDOMContent(popupContainer)
         .addTo(map.current);
+
+      // Render React component into popup
+      const root = createRoot(popupContainer);
+      root.render(
+        <MapPopupCard 
+          item={originalItem} 
+          searchType={searchType}
+          onClose={() => popupRef.current?.remove()}
+        />
+      );
+
+      // Cleanup React root when popup closes
+      popupRef.current.on('close', () => {
+        root.unmount();
+      });
     };
 
     // Change cursor on hover
@@ -497,7 +412,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         popupRef.current.remove();
       }
     };
-  }, [loading, category, searchType]);
+  }, [loading, category, searchType, results]);
 
   const handleResetView = useCallback(() => {
     if (!map.current) return;
