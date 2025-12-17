@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { Loader2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MapLegend } from './MapLegend';
@@ -366,14 +369,22 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         .setDOMContent(popupContainer)
         .addTo(map.current);
 
-      // Render React component into popup
+      // Render React component into popup with required context providers
       const root = createRoot(popupContainer);
+      const queryClient = new QueryClient();
       root.render(
-        <MapPopupCard 
-          item={originalItem} 
-          searchType={searchType}
-          onClose={() => popupRef.current?.remove()}
-        />
+        <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <MapPopupCard 
+                item={originalItem} 
+                searchType={searchType}
+                onClose={() => popupRef.current?.remove()}
+              />
+              <Toaster />
+            </AuthProvider>
+          </QueryClientProvider>
+        </BrowserRouter>
       );
 
       // Cleanup React root when popup closes
