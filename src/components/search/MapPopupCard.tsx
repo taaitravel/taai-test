@@ -48,6 +48,18 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
     }
   };
 
+  // Convert plural searchType to singular for database constraint
+  const getDbItemType = (): string => {
+    switch (searchType) {
+      case 'hotels': return 'hotel';
+      case 'flights': return 'flight';
+      case 'activities': return 'activity';
+      case 'cars': return 'hotel';
+      case 'packages': return 'hotel';
+      default: return 'hotel';
+    }
+  };
+
   const handleAddToItinerary = () => {
     setShowModal(true);
   };
@@ -120,7 +132,7 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
         .insert({
           user_id: user.id,
           itinerary_id: itinData.itin_id,
-          type: searchType || 'hotel',
+          type: getDbItemType(),
           external_ref: item.hotel_id || item.hotelId || item.id || `${searchType}-${Date.now()}`,
           price: totalPrice,
           item_data: {
