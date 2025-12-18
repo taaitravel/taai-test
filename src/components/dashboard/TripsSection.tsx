@@ -13,8 +13,8 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
     <div className="col-span-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column - Upcoming Trips Stack (50%) */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+        <div className="flex flex-col items-center md:items-start">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center justify-center md:justify-start">
             <Calendar className="h-5 w-5 mr-2" />
             Upcoming
           </h3>
@@ -74,8 +74,8 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
         </div>
 
         {/* Right Column - Past Trips Stack (50%) */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+        <div className="flex flex-col items-center md:items-start">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center justify-center md:justify-start">
             <Clock className="h-5 w-5 mr-2" />
             Past Trips
           </h3>
