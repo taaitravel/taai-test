@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
+import { escapeHtml, sanitizeCategory, sanitizePrice } from '@/lib/sanitize';
 
 interface MapLocation {
   city: string;
@@ -43,8 +44,12 @@ const getCategoryColor = (category?: string) => {
 
 // Generate marker HTML based on category shape
 const getMarkerHTML = (category?: string, price?: number): string => {
-  const color = getCategoryColor(category);
-  const priceDisplay = price ? `$${Math.round(price)}` : '';
+  // Validate inputs to prevent XSS
+  const safeCategory = sanitizeCategory(category);
+  const safePrice = sanitizePrice(price);
+  
+  const color = getCategoryColor(safeCategory);
+  const priceDisplay = safePrice ? `$${Math.round(safePrice)}` : '';
   
   switch (category) {
     case 'hotel':
@@ -429,7 +434,12 @@ const Map = ({
         el.style.zIndex = '1';
       });
 
-      // Enhanced popup with more details
+      // Enhanced popup with more details - escape all dynamic content to prevent XSS
+      const safeCategory = location.category ? escapeHtml(location.category) : '';
+      const safeName = escapeHtml(location.name || location.city);
+      const safeAddress = location.address ? escapeHtml(location.address) : '';
+      const safePrice = sanitizePrice(location.price);
+      
       const popup = new mapboxgl.Popup({
         offset: 35,
         closeButton: true,
@@ -445,21 +455,21 @@ const Map = ({
           border-radius: 12px;
           min-width: 200px;
         ">
-          ${location.category ? `<div style="
+          ${safeCategory ? `<div style="
             font-size: 10px; 
             color: rgba(255,255,255,0.5); 
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 6px;
-          ">${location.category}</div>` : ''}
+          ">${safeCategory}</div>` : ''}
           <div style="font-size: 16px; margin-bottom: 4px; line-height: 1.4;">
-            ${location.name || location.city}
+            ${safeName}
           </div>
-          ${location.address ? `<div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 8px;">
-            📍 ${location.address}
+          ${safeAddress ? `<div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 8px;">
+            📍 ${safeAddress}
           </div>` : ''}
-          ${location.price ? `<div style="font-size: 20px; font-weight: bold; color: #ff849c;">
-            $${location.price.toLocaleString()}
+          ${safePrice ? `<div style="font-size: 20px; font-weight: bold; color: #ff849c;">
+            $${safePrice.toLocaleString()}
           </div>` : ''}
         </div>
       `);

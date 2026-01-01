@@ -24,11 +24,25 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
   const images = activity.images || (activity.image ? [activity.image] : []);
   const pricePerPerson = activity.price || activity.cost || 75;
   
-  // Strip HTML tags from description
-  const stripHtml = (html: string) => {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
+  // Strip HTML tags safely using regex (no DOM parsing that could execute scripts)
+  const stripHtml = (html: string): string => {
+    if (!html || typeof html !== 'string') return '';
+    // Remove script tags and their content first
+    let clean = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    // Remove style tags and their content
+    clean = clean.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+    // Remove all remaining HTML tags
+    clean = clean.replace(/<[^>]+>/g, '');
+    // Decode common HTML entities
+    clean = clean
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+    // Trim and normalize whitespace
+    return clean.trim().replace(/\s+/g, ' ');
   };
   
   const description = activity.description || activity.shortDescription || 'Explore this amazing activity';
