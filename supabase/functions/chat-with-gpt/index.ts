@@ -3,9 +3,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
-const openAIApiKey = Deno.env.get('CHAT-GPT-TAAI');
+// API Keys
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 const yelpApiKey = Deno.env.get('YELP_API_KEY');
 const rapidApiKey = Deno.env.get('RAPID_API_KEY');
+const amadeusApiKey = Deno.env.get('AMADEUS_API_KEY');
+const amadeusApiSecret = Deno.env.get('AMADEUS_API_SECRET');
+const mapboxToken = Deno.env.get('MAPBOX_TAAI_TOKEN') || Deno.env.get('MAPBOX-TAAI-TOKEN');
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -17,384 +21,653 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Define available functions for OpenAI function calling
-const functions = [
+// ============================================================================
+// TAAI SYSTEM PROMPT - Full Identity, Voice, and Operating Logic
+// ============================================================================
+const TAAI_SYSTEM_PROMPT = `# Identity
+You are TAAI Travel's AI concierge. Travel Agent (TA) Affiliate (A) Intelligence (I) - the intersection of OTA, AI, providers, and travelers in an organized way.
+
+# Core Behavior
+Optimize for clarity, premium guidance, and minimal friction. Ask one question at a time only when required to proceed. Offer structured choices and produce outputs the UI can render as cards.
+
+# Voice Profile
+- Tone: Intelligent, confident, and modern. Polished but never sterile. Aspirational without being pretentious.
+- Energy: Purposeful and assured. Calm authority with moments of excitement when highlighting value, discovery, or innovation.
+- Language: Premium but accessible; Intelligent, not academic; Warm, not casual.
+- Avoid: Corporate buzzwords, over-promising, vague luxury language, excessive technical explanations.
+
+# Positioning
+You are a guide, not a seller. Emphasize clarity, control, and confidence in decision-making. Speak as a knowledgeable travel companion and strategic partner. Treat users as discerning, capable decision-makers.
+
+# Safety and Data Integrity
+- Never modify a reservation unless the target item is uniquely identified.
+- If unsure, ask a short disambiguation question with options.
+- When applying updates, always restate what will change before writing if impact is high (dates, cancellations, price).
+
+# Output Discipline
+- Max 6 options at once.
+- Prefer "best overall / best value / best location" framing.
+- Always summarize the user's constraints back in one line before results.
+
+# Search Result Diversity Rules
+When presenting hotels/flights/activities, return 3-6 diverse options:
+- 1 "Best Overall" - highest combined score
+- 1 "Best Value" - best price-to-quality ratio  
+- 1 "Best Location" - optimal positioning for itinerary
+- Optional: "Boutique/Design", "Spacious/Comfort"
+
+# Card Output Requirements
+Each result card must include:
+- Name and primary details
+- Rating + review count (if available)
+- Price + estimated total
+- Location/neighborhood
+- Top 2-3 reasons (e.g., "walkable", "excellent reviews", "great value")
+- Primary image
+- Action metadata for UI buttons
+
+# Intent Recognition
+Classify user requests into:
+1. Create trip (new itinerary)
+2. Search inventory (hotels/flights/activities)
+3. Modify existing item (change dates, swap hotel, change budget)
+4. Add selection (commit shortlist choice into itinerary)
+5. Explain/recommend (why these options, tradeoffs)
+6. Resolve issues (unavailable, over budget, date conflict)
+
+# Response Structure
+Every response should follow this pattern:
+1. **Acknowledge** - Brief restatement of what user asked
+2. **Constraints Summary** - One line of applied filters/preferences
+3. **Results/Action** - Cards, options, or confirmation of changes
+4. **Next Step** - Clear call to action or question if needed`;
+
+// ============================================================================
+// TOOL DEFINITIONS FOR AI FUNCTION CALLING
+// ============================================================================
+const tools = [
   {
-    name: 'searchHotels',
-    description: 'Search hotels by destination and date',
-    parameters: {
-      type: 'object',
-      properties: {
-        destination: { type: 'string', description: 'Hotel destination city or location' },
-        checkIn: { type: 'string', format: 'date', description: 'Check-in date in YYYY-MM-DD format' },
-        checkOut: { type: 'string', format: 'date', description: 'Check-out date in YYYY-MM-DD format' },
-        guests: { type: 'number', description: 'Number of guests', default: 2 },
-        budget: { type: 'number', description: 'Budget range per night in USD' },
+    type: "function",
+    function: {
+      name: 'search_hotels',
+      description: 'Search for hotels using real Booking.com data. Returns diverse options with Best Overall, Best Value, and Best Location labels.',
+      parameters: {
+        type: 'object',
+        properties: {
+          destination: { type: 'string', description: 'City or location to search (e.g., "Miami", "Paris")' },
+          check_in: { type: 'string', description: 'Check-in date in YYYY-MM-DD format' },
+          check_out: { type: 'string', description: 'Check-out date in YYYY-MM-DD format' },
+          guests: { type: 'number', description: 'Number of guests', default: 2 },
+          rooms: { type: 'number', description: 'Number of rooms', default: 1 },
+          max_price: { type: 'number', description: 'Maximum price per night in USD' },
+          min_rating: { type: 'number', description: 'Minimum rating (1-10 scale)' },
+        },
+        required: ['destination', 'check_in', 'check_out'],
       },
-      required: ['destination', 'checkIn', 'checkOut'],
-    },
+    }
   },
   {
-    name: 'searchFlights',
-    description: 'Search flights between two cities with dates',
-    parameters: {
-      type: 'object',
-      properties: {
-        origin: { type: 'string', description: 'Departure city or airport code' },
-        destination: { type: 'string', description: 'Arrival city or airport code' },
-        departDate: { type: 'string', format: 'date', description: 'Departure date in YYYY-MM-DD format' },
-        returnDate: { type: 'string', format: 'date', description: 'Return date in YYYY-MM-DD format (optional for one-way)' },
-        passengers: { type: 'number', description: 'Number of passengers', default: 1 },
-        class: { type: 'string', enum: ['economy', 'business', 'first'], description: 'Flight class preference' },
+    type: "function",
+    function: {
+      name: 'search_flights',
+      description: 'Search for flights using real Amadeus API data. Returns options with pricing and booking details.',
+      parameters: {
+        type: 'object',
+        properties: {
+          origin: { type: 'string', description: 'Departure airport code (e.g., "JFK", "LAX")' },
+          destination: { type: 'string', description: 'Arrival airport code (e.g., "MIA", "CDG")' },
+          depart_date: { type: 'string', description: 'Departure date in YYYY-MM-DD format' },
+          return_date: { type: 'string', description: 'Return date in YYYY-MM-DD format (optional for one-way)' },
+          passengers: { type: 'number', description: 'Number of passengers', default: 1 },
+          cabin_class: { type: 'string', enum: ['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'], description: 'Cabin class preference' },
+        },
+        required: ['origin', 'destination', 'depart_date'],
       },
-      required: ['origin', 'destination', 'departDate'],
-    },
+    }
   },
   {
-    name: 'searchActivities',
-    description: 'Search activities and attractions by destination',
-    parameters: {
-      type: 'object',
-      properties: {
-        destination: { type: 'string', description: 'Destination city or location' },
-        startDate: { type: 'string', format: 'date', description: 'Activity start date in YYYY-MM-DD format' },
-        endDate: { type: 'string', format: 'date', description: 'Activity end date in YYYY-MM-DD format' },
-        category: { type: 'string', enum: ['tours', 'attractions', 'outdoor', 'cultural', 'food', 'adventure'], description: 'Activity category' },
-        budget: { type: 'number', description: 'Budget range per person in USD' },
+    type: "function",
+    function: {
+      name: 'search_activities',
+      description: 'Search for activities and experiences using real Amadeus API data.',
+      parameters: {
+        type: 'object',
+        properties: {
+          destination: { type: 'string', description: 'City or location to search' },
+          date: { type: 'string', description: 'Activity date in YYYY-MM-DD format' },
+          category: { type: 'string', enum: ['tours', 'attractions', 'outdoor', 'cultural', 'food', 'adventure'], description: 'Activity category' },
+          max_price: { type: 'number', description: 'Maximum price per person in USD' },
+        },
+        required: ['destination'],
       },
-      required: ['destination'],
-    },
+    }
   },
   {
-    name: 'searchRestaurants',
-    description: 'Search restaurants by destination, cuisine, and preferences',
-    parameters: {
-      type: 'object',
-      properties: {
-        destination: { type: 'string', description: 'City or area to search in' },
-        cuisine: { type: 'string', description: 'Cuisine or keyword (e.g., sushi, pizza)' },
-        price: { type: 'string', description: 'Price levels 1-4 as a comma-separated string (e.g., 1,2,3)' },
-        limit: { type: 'number', description: 'Max results to return', default: 20 },
-        openNow: { type: 'boolean', description: 'Only show places open now' },
+    type: "function",
+    function: {
+      name: 'search_restaurants',
+      description: 'Search for restaurants using real Yelp API data.',
+      parameters: {
+        type: 'object',
+        properties: {
+          destination: { type: 'string', description: 'City or area to search' },
+          cuisine: { type: 'string', description: 'Cuisine type or keyword (e.g., "sushi", "italian")' },
+          price: { type: 'string', description: 'Price levels 1-4 as comma-separated string (e.g., "1,2")' },
+          open_now: { type: 'boolean', description: 'Only show currently open restaurants' },
+        },
+        required: ['destination'],
       },
-      required: ['destination'],
-    },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'get_itinerary',
+      description: 'Fetch complete itinerary details by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          itinerary_id: { type: 'number', description: 'The itinerary ID to fetch' },
+        },
+        required: ['itinerary_id'],
+      },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'list_itineraries',
+      description: 'List all itineraries for the current user',
+      parameters: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    }
   },
 ];
 
-// Mock search functions (replace with real API calls)
-async function searchHotels(params: any) {
-  console.log('Searching hotels with params:', params);
-  // This would typically call a real hotel search API
-  return [
-    {
-      id: `expedia#HOTEL_${params.destination.toUpperCase()}_001`,
-      name: `Grand Hotel ${params.destination}`,
-      price: 150,
-      rating: 4.5,
-      location: params.destination,
-      checkIn: params.checkIn,
-      checkOut: params.checkOut,
-      amenities: ['WiFi', 'Pool', 'Spa', 'Restaurant'],
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500&h=300&fit=crop',
-      description: `Luxury hotel in the heart of ${params.destination} with premium amenities`,
-      coordinates: { lat: 40.7589, lng: -73.9851 },
-      source: 'expedia'
-    },
-    {
-      id: `booking#HOTEL_${params.destination.toUpperCase()}_002`,
-      name: `Budget Inn ${params.destination}`,
-      price: 80,
-      rating: 3.8,
-      location: params.destination,
-      checkIn: params.checkIn,
-      checkOut: params.checkOut,
-      amenities: ['WiFi', 'Breakfast'],
-      image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=500&h=300&fit=crop',
-      description: `Comfortable and affordable accommodation in ${params.destination}`,
-      coordinates: { lat: 40.7505, lng: -73.9934 },
-      source: 'booking'
-    },
-    {
-      id: `hotels#HOTEL_${params.destination.toUpperCase()}_003`,
-      name: `Boutique ${params.destination} Hotel`,
-      price: 200,
-      rating: 4.2,
-      location: params.destination,
-      checkIn: params.checkIn,
-      checkOut: params.checkOut,
-      amenities: ['WiFi', 'Restaurant', 'Fitness Center', 'Business Center'],
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&h=300&fit=crop',
-      description: `Stylish boutique hotel with modern amenities in ${params.destination}`,
-      coordinates: { lat: 40.7614, lng: -73.9776 },
-      source: 'hotels.com'
-    }
-  ];
-}
+// ============================================================================
+// REAL API SEARCH FUNCTIONS
+// ============================================================================
 
-async function searchFlights(params: any) {
-  console.log('Searching flights with params:', params);
-  
-  if (!rapidApiKey) {
-    console.warn('RapidAPI key not configured, using mock data');
-    return getMockFlights(params);
+// Get Amadeus access token
+async function getAmadeusToken(): Promise<string | null> {
+  if (!amadeusApiKey || !amadeusApiSecret) {
+    console.error('Amadeus API credentials not configured');
+    return null;
   }
 
   try {
-    const queryParams = new URLSearchParams({
-      origin: params.origin,
-      destination: params.destination,
-      departure_date: params.departDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      adults: params.passengers?.toString() || '1',
-      class: params.class || 'economy'
-    });
-
-    if (params.returnDate) {
-      queryParams.append('return_date', params.returnDate);
-    }
-
-    const response = await fetch(`https://expedia13.p.rapidapi.com/api/v1/flights/search?${queryParams}`, {
-      headers: {
-        'X-RapidAPI-Key': rapidApiKey,
-        'X-RapidAPI-Host': 'expedia13.p.rapidapi.com'
-      }
+    const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=client_credentials&client_id=${amadeusApiKey}&client_secret=${amadeusApiSecret}`,
     });
 
     if (!response.ok) {
-      console.error('Expedia Flight API error:', response.status, await response.text());
-      return getMockFlights(params);
+      console.error('Failed to get Amadeus token:', await response.text());
+      return null;
     }
 
     const data = await response.json();
-    const flights = data.flights || data.results || [];
-    
-    return flights.slice(0, 10).map((flight: any, index: number) => ({
-      id: flight.id || `expedia_flight_${index}`,
-      airline: flight.airline || flight.carrier || `Airline ${index + 1}`,
-      flight_number: flight.flightNumber || flight.number || `FL${1000 + index}`,
-      price: parseFloat((flight.price || flight.displayPrice || '300').replace(/[^0-9.]/g, '')) || 300,
-      departure: flight.departureTime || flight.departure || '10:00 AM',
-      arrival: flight.arrivalTime || flight.arrival || '2:00 PM',
-      from: params.origin,
-      to: params.destination,
-      duration: flight.duration || '4h 0m',
-      stops: flight.stops || 0,
-      date: params.departDate,
-      images: flight.images || ['https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=500&h=300&fit=crop'],
-      booking_status: 'available',
-      expedia_property_id: flight.bookingId || flight.id,
-      cost: parseFloat((flight.price || flight.displayPrice || '300').replace(/[^0-9.]/g, '')) || 300
-    }));
+    return data.access_token;
   } catch (error) {
-    console.error('Error calling Expedia Flights API:', error);
-    return getMockFlights(params);
+    console.error('Error getting Amadeus token:', error);
+    return null;
   }
 }
 
-function getMockFlights(params: any) {
-  return [
-    {
-      id: `mock_flight_001`,
-      airline: 'Sky Airlines',
-      flight_number: 'SA1234',
-      price: 350,
-      departure: '10:30 AM',
-      arrival: '2:45 PM',
-      from: params.origin,
-      to: params.destination,
-      duration: '4h 15m',
-      stops: 0,
-      date: params.departDate,
-      images: ['https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=500&h=300&fit=crop'],
-      booking_status: 'available',
-      expedia_property_id: 'mock_flight_001',
-      cost: 350
-    },
-    {
-      id: `mock_flight_002`,
-      airline: 'Global Airways',
-      flight_number: 'GA5678',
-      price: 420,
-      departure: '2:15 PM',
-      arrival: '6:30 PM',
-      from: params.origin,
-      to: params.destination,
-      duration: '4h 15m',
-      stops: 0,
-      date: params.departDate,
-      images: ['https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=500&h=300&fit=crop'],
-      booking_status: 'available',
-      expedia_property_id: 'mock_flight_002',
-      cost: 420
+// Geocode destination to coordinates using Mapbox
+async function geocodeDestination(destination: string): Promise<{ lat: number; lng: number } | null> {
+  if (!mapboxToken) {
+    console.error('Mapbox token not configured');
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(destination)}.json?access_token=${mapboxToken}&types=place&limit=1`
+    );
+
+    if (!response.ok) {
+      console.error('Geocoding failed:', await response.text());
+      return null;
     }
-  ];
+
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      const [lng, lat] = data.features[0].center;
+      return { lat, lng };
+    }
+    return null;
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    return null;
+  }
 }
 
-async function searchActivities(params: any) {
-  console.log('Searching activities with params:', params);
+// Search Hotels using Booking.com API (Real Data)
+async function searchHotels(params: any) {
+  console.log('Searching hotels with Booking.com API:', params);
+
+  if (!rapidApiKey) {
+    console.error('RapidAPI key not configured');
+    return { error: 'Hotel search is currently unavailable', results: [] };
+  }
+
+  try {
+    // Step 1: Get destination ID
+    const destResponse = await fetch(
+      `https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination?query=${encodeURIComponent(params.destination)}`,
+      {
+        headers: {
+          'x-rapidapi-host': 'booking-com15.p.rapidapi.com',
+          'x-rapidapi-key': rapidApiKey,
+        },
+      }
+    );
+
+    if (!destResponse.ok) {
+      console.error('Destination search failed:', await destResponse.text());
+      return { error: 'Could not find destination', results: [] };
+    }
+
+    const destData = await destResponse.json();
+    const dest = destData.data?.[0];
+
+    if (!dest) {
+      return { error: `Could not find destination: ${params.destination}`, results: [] };
+    }
+
+    console.log('Found destination:', dest.dest_id, dest.search_type);
+
+    // Step 2: Search hotels
+    const searchParams = new URLSearchParams({
+      dest_id: dest.dest_id,
+      search_type: dest.search_type,
+      arrival_date: params.check_in,
+      departure_date: params.check_out,
+      adults: String(params.guests || 2),
+      room_qty: String(params.rooms || 1),
+      currency_code: 'USD',
+      sort_by: 'popularity',
+      page_number: '1',
+    });
+
+    const searchResponse = await fetch(
+      `https://booking-com15.p.rapidapi.com/api/v1/hotels/searchHotels?${searchParams}`,
+      {
+        headers: {
+          'x-rapidapi-host': 'booking-com15.p.rapidapi.com',
+          'x-rapidapi-key': rapidApiKey,
+        },
+      }
+    );
+
+    if (!searchResponse.ok) {
+      console.error('Hotel search failed:', await searchResponse.text());
+      return { error: 'Hotel search failed', results: [] };
+    }
+
+    const searchData = await searchResponse.json();
+    const hotels = searchData.data?.hotels || [];
+
+    console.log(`Found ${hotels.length} hotels`);
+
+    // Transform and add diversity labels
+    const transformedHotels = hotels.slice(0, 6).map((hotel: any, index: number) => {
+      let diversityLabel = '';
+      if (index === 0) diversityLabel = 'Best Overall';
+      else if (index === 1) diversityLabel = 'Best Value';
+      else if (index === 2) diversityLabel = 'Best Location';
+
+      const price = hotel.property?.priceBreakdown?.grossPrice?.value || 
+                   hotel.composite_price_breakdown?.gross_amount?.value || 0;
+
+      return {
+        id: hotel.hotel_id || `booking_${index}`,
+        name: hotel.property?.name || hotel.hotel_name || 'Hotel',
+        price: Math.round(price),
+        pricePerNight: Math.round(price),
+        rating: hotel.property?.reviewScore || hotel.review_score || 0,
+        reviewCount: hotel.property?.reviewCount || hotel.review_nr || 0,
+        location: params.destination,
+        neighborhood: hotel.property?.wishlistName || '',
+        checkIn: params.check_in,
+        checkOut: params.check_out,
+        amenities: [],
+        image: hotel.property?.photoUrls?.[0] || hotel.max_photo_url || '',
+        images: hotel.property?.photoUrls || [hotel.max_photo_url].filter(Boolean),
+        description: hotel.property?.wishlistName || `Hotel in ${params.destination}`,
+        coordinates: {
+          lat: hotel.property?.latitude || 0,
+          lng: hotel.property?.longitude || 0,
+        },
+        source: 'booking.com',
+        diversityLabel,
+        bookingUrl: hotel.property?.deeplink || `https://www.booking.com/hotel/${hotel.hotel_id}`,
+        reasons: getDiversityReasons(diversityLabel, hotel),
+      };
+    });
+
+    return {
+      constraint_summary: `Hotels in ${params.destination} from ${params.check_in} to ${params.check_out} for ${params.guests || 2} guests`,
+      results: transformedHotels,
+      action_buttons: ['select', 'shuffle', 'save_to_shortlist'],
+    };
+  } catch (error) {
+    console.error('Hotel search error:', error);
+    return { error: 'Hotel search failed', results: [] };
+  }
+}
+
+function getDiversityReasons(label: string, hotel: any): string[] {
+  const reasons: string[] = [];
+  const rating = hotel.property?.reviewScore || hotel.review_score || 0;
   
-  // For now, return enhanced mock data with better structure
-  return [
-    {
-      id: `activity_${params.destination}_001`,
-      name: `City Tour of ${params.destination}`,
-      price: 45,
-      duration: '3 hours',
-      rating: 4.7,
-      category: 'tours',
-      location: params.destination,
-      images: ['https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&h=300&fit=crop'],
-      description: `Guided walking tour of ${params.destination}`,
-      date: params.startDate || new Date().toISOString().split('T')[0],
-      booking_status: 'available',
-      expedia_property_id: `activity_001_${params.destination}`,
-      cost: 45
-    },
-    {
-      id: `activity_${params.destination}_002`,
-      name: `${params.destination} Food Experience`,
-      price: 65,
-      duration: '2.5 hours',
-      rating: 4.9,
-      category: 'food',
-      location: params.destination,
-      images: ['https://images.unsplash.com/photo-1555939594-58e9c029d071?w=500&h=300&fit=crop'],
-      description: `Culinary adventure through ${params.destination}`,
-      date: params.startDate || new Date().toISOString().split('T')[0],
-      booking_status: 'available',
-      expedia_property_id: `activity_002_${params.destination}`,
-      cost: 65
-    },
-    {
-      id: `activity_${params.destination}_003`,
-      name: `${params.destination} Adventure Tour`,
-      price: 120,
-      duration: '6 hours',
-      rating: 4.8,
-      category: 'adventure',
-      location: params.destination,
-      images: ['https://images.unsplash.com/photo-1551632811-561732d1e306?w=500&h=300&fit=crop'],
-      description: `Thrilling adventure experience in ${params.destination}`,
-      date: params.startDate || new Date().toISOString().split('T')[0],
-      booking_status: 'available',
-      expedia_property_id: `activity_003_${params.destination}`,
-      cost: 120
-    }
-  ];
+  if (label === 'Best Overall') {
+    reasons.push('Highest rated');
+    if (rating >= 8) reasons.push('Excellent reviews');
+    reasons.push('Popular choice');
+  } else if (label === 'Best Value') {
+    reasons.push('Great price-to-quality');
+    reasons.push('Budget-friendly');
+  } else if (label === 'Best Location') {
+    reasons.push('Prime location');
+    reasons.push('Walkable area');
+  }
+  
+  return reasons.slice(0, 3);
 }
 
-async function searchRestaurants(params: any) {
-  if (!yelpApiKey) {
-    throw new Error('Yelp API key not configured');
+// Search Flights using Amadeus API (Real Data)
+async function searchFlights(params: any) {
+  console.log('Searching flights with Amadeus API:', params);
+
+  const token = await getAmadeusToken();
+  if (!token) {
+    return { error: 'Flight search is currently unavailable', results: [] };
   }
-  const queryParams: Record<string, string> = {
-    term: params.cuisine || 'restaurants',
-    location: params.destination,
-    limit: String(params.limit || 20),
-    sort_by: 'best_match',
-  };
-  if (params.price) queryParams.price = params.price; // e.g., '1,2,3'
-  if (params.openNow) queryParams.open_now = 'true';
 
-  const query = new URLSearchParams(queryParams).toString();
-  const url = `https://api.yelp.com/v3/businesses/search?${query}`;
-
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${yelpApiKey}` },
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error('Yelp API error:', res.status, errText);
-    throw new Error(`Yelp API error: ${res.status}`);
-  }
-  const data = await res.json();
-  const businesses = data.businesses || [];
-  const restaurants = businesses.map((b: any) => ({
-    id: b.id,
-    name: b.name,
-    price: 0,
-    image: b.image_url,
-    description: b.location?.display_address?.join(', '),
-    location: b.location?.address1 || b.location?.city || params.destination,
-    city: b.location?.city || params.destination,
-    cuisine: (b.categories || []).map((c: any) => c.title).join(', '),
-    rating: b.rating,
-    priceRange: b.price,
-    coordinates: b.coordinates,
-    url: b.url,
-    source: 'yelp',
-  }));
-  return restaurants;
-}
-
-// Helper function to get user's itineraries
-async function getUserItineraries(userId: string) {
   try {
-    const { data: itineraries, error } = await supabase
-      .from('itinerary')
-      .select('id, itin_name, itin_desc, itin_date_start, itin_date_end, itin_locations')
-      .eq('userid', userId)
-      .order('created_at', { ascending: false });
+    const searchParams = new URLSearchParams({
+      originLocationCode: params.origin.toUpperCase(),
+      destinationLocationCode: params.destination.toUpperCase(),
+      departureDate: params.depart_date,
+      adults: String(params.passengers || 1),
+      currencyCode: 'USD',
+      max: '10',
+    });
 
-    if (error) {
-      console.error('Error fetching user itineraries:', error);
-      return [];
+    if (params.return_date) {
+      searchParams.append('returnDate', params.return_date);
+    }
+    if (params.cabin_class) {
+      searchParams.append('travelClass', params.cabin_class);
     }
 
-    return itineraries || [];
+    const response = await fetch(
+      `https://test.api.amadeus.com/v2/shopping/flight-offers?${searchParams}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Amadeus flight search failed:', errorText);
+      return { error: 'Flight search failed', results: [] };
+    }
+
+    const data = await response.json();
+    const flights = data.data || [];
+    const dictionaries = data.dictionaries || {};
+
+    console.log(`Found ${flights.length} flight offers`);
+
+    const transformedFlights = flights.slice(0, 6).map((offer: any, index: number) => {
+      const itinerary = offer.itineraries?.[0];
+      const firstSegment = itinerary?.segments?.[0];
+      const lastSegment = itinerary?.segments?.[itinerary.segments.length - 1];
+      const carrierCode = firstSegment?.carrierCode || '';
+      const carrierName = dictionaries?.carriers?.[carrierCode] || carrierCode;
+
+      let diversityLabel = '';
+      if (index === 0) diversityLabel = 'Best Overall';
+      else if (index === 1) diversityLabel = 'Best Value';
+      else if (index === 2) diversityLabel = 'Fastest';
+
+      return {
+        id: offer.id || `amadeus_flight_${index}`,
+        airline: carrierName,
+        carrierCode,
+        flightNumber: `${carrierCode}${firstSegment?.number || ''}`,
+        price: parseFloat(offer.price?.total || '0'),
+        currency: offer.price?.currency || 'USD',
+        departure: firstSegment?.departure?.at || '',
+        arrival: lastSegment?.arrival?.at || '',
+        origin: params.origin.toUpperCase(),
+        destination: params.destination.toUpperCase(),
+        duration: itinerary?.duration || '',
+        stops: (itinerary?.segments?.length || 1) - 1,
+        date: params.depart_date,
+        cabin: offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'ECONOMY',
+        source: 'amadeus',
+        diversityLabel,
+        bookable: offer.instantTicketingRequired !== true,
+      };
+    });
+
+    return {
+      constraint_summary: `Flights from ${params.origin} to ${params.destination} on ${params.depart_date}`,
+      results: transformedFlights,
+      action_buttons: ['select', 'shuffle'],
+    };
   } catch (error) {
-    console.error('Error in getUserItineraries:', error);
-    return [];
+    console.error('Flight search error:', error);
+    return { error: 'Flight search failed', results: [] };
   }
 }
 
-// Helper function to add items to itinerary
-async function addToItinerary(userId: string, itineraryId: string, item: any, type: string) {
+// Search Activities using Amadeus API (Real Data)
+async function searchActivities(params: any) {
+  console.log('Searching activities with Amadeus API:', params);
+
+  const token = await getAmadeusToken();
+  const coords = await geocodeDestination(params.destination);
+
+  if (!token || !coords) {
+    return { error: 'Activity search is currently unavailable', results: [] };
+  }
+
   try {
-    const { data: itinerary, error: fetchError } = await supabase
+    const response = await fetch(
+      `https://test.api.amadeus.com/v1/shopping/activities?latitude=${coords.lat}&longitude=${coords.lng}&radius=5`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Amadeus activities search failed:', errorText);
+      return { error: 'Activity search failed', results: [] };
+    }
+
+    const data = await response.json();
+    const activities = data.data || [];
+
+    console.log(`Found ${activities.length} activities`);
+
+    const transformedActivities = activities.slice(0, 6).map((activity: any, index: number) => {
+      let diversityLabel = '';
+      if (index === 0) diversityLabel = 'Best Overall';
+      else if (index === 1) diversityLabel = 'Best Value';
+      else if (index === 2) diversityLabel = 'Most Popular';
+
+      return {
+        id: activity.id || `amadeus_activity_${index}`,
+        name: activity.name || 'Activity',
+        price: parseFloat(activity.price?.amount || '0'),
+        currency: activity.price?.currencyCode || 'USD',
+        rating: activity.rating || 0,
+        duration: activity.duration || '',
+        description: activity.shortDescription || activity.description || '',
+        location: params.destination,
+        image: activity.pictures?.[0] || '',
+        images: activity.pictures || [],
+        category: activity.type || 'activity',
+        bookingLink: activity.bookingLink || '',
+        source: 'amadeus',
+        diversityLabel,
+      };
+    });
+
+    return {
+      constraint_summary: `Activities in ${params.destination}`,
+      results: transformedActivities,
+      action_buttons: ['select', 'save_to_shortlist'],
+    };
+  } catch (error) {
+    console.error('Activity search error:', error);
+    return { error: 'Activity search failed', results: [] };
+  }
+}
+
+// Search Restaurants using Yelp API (Real Data)
+async function searchRestaurants(params: any) {
+  console.log('Searching restaurants with Yelp API:', params);
+
+  if (!yelpApiKey) {
+    return { error: 'Restaurant search is currently unavailable', results: [] };
+  }
+
+  try {
+    const queryParams: Record<string, string> = {
+      term: params.cuisine || 'restaurants',
+      location: params.destination,
+      limit: '20',
+      sort_by: 'best_match',
+    };
+    if (params.price) queryParams.price = params.price;
+    if (params.open_now) queryParams.open_now = 'true';
+
+    const query = new URLSearchParams(queryParams).toString();
+    const response = await fetch(`https://api.yelp.com/v3/businesses/search?${query}`, {
+      headers: { Authorization: `Bearer ${yelpApiKey}` },
+    });
+
+    if (!response.ok) {
+      console.error('Yelp API error:', await response.text());
+      return { error: 'Restaurant search failed', results: [] };
+    }
+
+    const data = await response.json();
+    const businesses = data.businesses || [];
+
+    console.log(`Found ${businesses.length} restaurants`);
+
+    const transformedRestaurants = businesses.slice(0, 6).map((b: any, index: number) => {
+      let diversityLabel = '';
+      if (index === 0) diversityLabel = 'Best Overall';
+      else if (index === 1) diversityLabel = 'Best Value';
+      else if (index === 2) diversityLabel = 'Highest Rated';
+
+      return {
+        id: b.id,
+        name: b.name,
+        price: 0,
+        priceRange: b.price || '',
+        image: b.image_url,
+        description: b.location?.display_address?.join(', ') || '',
+        location: b.location?.address1 || params.destination,
+        city: b.location?.city || params.destination,
+        cuisine: (b.categories || []).map((c: any) => c.title).join(', '),
+        rating: b.rating,
+        reviewCount: b.review_count,
+        coordinates: b.coordinates,
+        url: b.url,
+        phone: b.phone,
+        source: 'yelp',
+        diversityLabel,
+      };
+    });
+
+    return {
+      constraint_summary: `Restaurants in ${params.destination}${params.cuisine ? ` - ${params.cuisine}` : ''}`,
+      results: transformedRestaurants,
+      action_buttons: ['select', 'save_to_shortlist'],
+    };
+  } catch (error) {
+    console.error('Restaurant search error:', error);
+    return { error: 'Restaurant search failed', results: [] };
+  }
+}
+
+// Get single itinerary
+async function getItinerary(userId: string, itineraryId: number) {
+  try {
+    const { data, error } = await supabase
       .from('itinerary')
       .select('*')
       .eq('id', itineraryId)
       .eq('userid', userId)
       .single();
 
-    if (fetchError || !itinerary) {
-      console.error('Error fetching itinerary:', fetchError);
-      return false;
+    if (error) {
+      console.error('Error fetching itinerary:', error);
+      return { error: 'Itinerary not found' };
     }
 
-    // Update the appropriate JSON field
-    const currentData = itinerary[type + 's'] || [];
-    const newData = [...currentData, item];
-
-    const { error: updateError } = await supabase
-      .from('itinerary')
-      .update({ [type + 's']: newData })
-      .eq('id', itineraryId)
-      .eq('userid', userId);
-
-    if (updateError) {
-      console.error('Error updating itinerary:', updateError);
-      return false;
-    }
-
-    return true;
+    return { itinerary: data };
   } catch (error) {
-    console.error('Error in addToItinerary:', error);
-    return false;
+    console.error('Error in getItinerary:', error);
+    return { error: 'Failed to fetch itinerary' };
   }
 }
 
-// Input validation schema
+// List user itineraries
+async function listItineraries(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('itinerary')
+      .select('id, itin_name, itin_desc, itin_date_start, itin_date_end, itin_locations, budget, spending')
+      .eq('userid', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching itineraries:', error);
+      return { itineraries: [] };
+    }
+
+    return { itineraries: data || [] };
+  } catch (error) {
+    console.error('Error in listItineraries:', error);
+    return { itineraries: [] };
+  }
+}
+
+// ============================================================================
+// INPUT VALIDATION
+// ============================================================================
 const chatSchema = z.object({
   message: z.string().min(1).max(5000),
   context: z.string().max(2000).optional(),
   userId: z.string().uuid().optional(),
-  itineraryId: z.string().uuid().optional()
+  itineraryId: z.string().optional(),
 });
 
+// ============================================================================
+// MAIN REQUEST HANDLER
+// ============================================================================
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -423,7 +696,7 @@ serve(async (req) => {
 
     console.log('User authenticated:', user.id);
 
-    // Validate and parse input
+    // Validate input
     const rawData = await req.json();
     let validatedData;
     
@@ -437,162 +710,174 @@ serve(async (req) => {
       );
     }
 
-    const { message, context, userId, itineraryId } = validatedData;
+    const { message, context, itineraryId } = validatedData;
+    console.log('Received chat request:', { message, context, itineraryId });
 
-    console.log('Received chat request:', { message, context, userId, itineraryId });
-
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Get user's existing itineraries for context
-    let userItineraries = [];
-    if (userId) {
-      userItineraries = await getUserItineraries(userId);
-    }
-
+    // Get user's itineraries for context
+    const { itineraries: userItineraries } = await listItineraries(user.id);
+    
     const itineraryContext = userItineraries.length > 0 
-      ? `\n\nUser's existing itineraries:\n${userItineraries.map(it => 
-          `- ${it.itin_name} (ID: ${it.id}): ${it.itin_desc || 'No description'} | Dates: ${it.itin_date_start} to ${it.itin_date_end} | Locations: ${Array.isArray(it.itin_locations) ? it.itin_locations.map(loc => loc.name || loc).join(', ') : 'None'}`
+      ? `\n\n# User's Itineraries\n${userItineraries.map((it: any) => 
+          `- ${it.itin_name} (ID: ${it.id}): ${it.itin_desc || 'No description'} | Dates: ${it.itin_date_start || 'TBD'} to ${it.itin_date_end || 'TBD'} | Budget: $${it.budget || 0}`
         ).join('\n')}`
-      : '\n\nUser has no existing itineraries.';
+      : '\n\n# User has no existing itineraries.';
 
-    const systemPrompt = `You are TAAI (Travel AI Assistant), an elite travel planning AI assistant built to help users organize and optimize their trips. You specialize in:
+    const fullSystemPrompt = `${TAAI_SYSTEM_PROMPT}
 
-- Comprehensive trip planning and itinerary creation
-- Budget optimization and cost analysis
-- Flight, hotel, and activity recommendations with real Expedia integration
-- Travel logistics and booking assistance
-- Destination insights and local recommendations
-- Travel safety and document requirements
-- Personalized travel experiences based on preferences
+${context ? `# Current Context\n${context}` : ''}${itineraryContext}
 
-IMPORTANT BOOKING FLOW INSTRUCTIONS:
-1. When users ask about travel options, use the search functions to get real data from Expedia
-2. Always ask for MINIMUM required parameters: destination, dates, and preferences
-3. After showing search results, guide users to swipe through options using the card interface
-4. When users want to book or add items to itinerary, reference their existing itineraries by name/ID
-5. If they want to create a new itinerary, ask for a name and basic details first
-6. Always confirm which itinerary they want to modify before making changes
+${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itineraryId}` : ''}`;
 
-${context ? `Current Context: ${context}` : ''}${itineraryContext}
-
-${itineraryId ? `Currently working with itinerary ID: ${itineraryId}` : 'No specific itinerary selected.'}`;
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Lovable AI Gateway
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: fullSystemPrompt },
           { role: 'user', content: message }
         ],
-        functions: functions,
-        function_call: 'auto',
-        max_tokens: 1500,
-        temperature: 0.7,
+        tools,
+        tool_choice: 'auto',
       }),
     });
 
-    const data = await response.json();
-    console.log('OpenAI response:', data);
-
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${data.error?.message || 'Unknown error'}`);
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Usage credits exhausted. Please add credits to continue.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      const errorText = await response.text();
+      console.error('Lovable AI Gateway error:', response.status, errorText);
+      throw new Error(`AI Gateway error: ${response.status}`);
     }
 
-    const choice = data.choices[0];
+    const data = await response.json();
+    console.log('AI response received');
 
-    // Check if OpenAI wants to call a function
-    if (choice.finish_reason === 'function_call' && choice.message.function_call) {
-      const functionCall = choice.message.function_call;
-      const functionName = functionCall.name;
-      const functionArgs = JSON.parse(functionCall.arguments || '{}');
+    const choice = data.choices?.[0];
+    if (!choice) {
+      throw new Error('No response from AI');
+    }
 
-      console.log(`Executing function: ${functionName}`, functionArgs);
+    // Check for tool calls
+    if (choice.message?.tool_calls && choice.message.tool_calls.length > 0) {
+      const toolCall = choice.message.tool_calls[0];
+      const functionName = toolCall.function?.name;
+      const functionArgs = JSON.parse(toolCall.function?.arguments || '{}');
 
-      let searchResults;
-      let resultType;
+      console.log(`Executing tool: ${functionName}`, functionArgs);
 
-      // Execute the appropriate search function
+      let toolResult: any;
+      let resultType = '';
+
       switch (functionName) {
-        case 'searchHotels':
-          searchResults = await searchHotels(functionArgs);
+        case 'search_hotels':
+          toolResult = await searchHotels(functionArgs);
           resultType = 'hotels';
           break;
-        case 'searchFlights':
-          searchResults = await searchFlights(functionArgs);
+        case 'search_flights':
+          toolResult = await searchFlights(functionArgs);
           resultType = 'flights';
           break;
-        case 'searchActivities':
-          searchResults = await searchActivities(functionArgs);
+        case 'search_activities':
+          toolResult = await searchActivities(functionArgs);
           resultType = 'activities';
           break;
-        case 'searchRestaurants':
-          searchResults = await searchRestaurants(functionArgs);
+        case 'search_restaurants':
+          toolResult = await searchRestaurants(functionArgs);
           resultType = 'restaurants';
           break;
+        case 'get_itinerary':
+          toolResult = await getItinerary(user.id, functionArgs.itinerary_id);
+          resultType = 'itinerary';
+          break;
+        case 'list_itineraries':
+          toolResult = await listItineraries(user.id);
+          resultType = 'itineraries';
+          break;
         default:
-          throw new Error(`Unknown function: ${functionName}`);
+          throw new Error(`Unknown tool: ${functionName}`);
       }
 
-      // Generate a follow-up response with the search results
-      const followUpResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Generate follow-up response with tool results
+      const followUpResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'google/gemini-2.5-flash',
           messages: [
-            { role: 'system', content: systemPrompt },
+            { role: 'system', content: fullSystemPrompt },
             { role: 'user', content: message },
-            { role: 'assistant', content: null, function_call: functionCall },
-            { role: 'function', name: functionName, content: JSON.stringify(searchResults) }
+            { role: 'assistant', content: null, tool_calls: choice.message.tool_calls },
+            { role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(toolResult) }
           ],
-          max_tokens: 1000,
-          temperature: 0.7,
         }),
       });
 
+      if (!followUpResponse.ok) {
+        console.error('Follow-up response error:', await followUpResponse.text());
+        // Still return results even if follow-up fails
+        return new Response(JSON.stringify({
+          response: toolResult.constraint_summary || 'Here are your results:',
+          searchResults: toolResult.results || [],
+          resultType,
+          functionUsed: functionName,
+          constraint_summary: toolResult.constraint_summary,
+          action_buttons: toolResult.action_buttons,
+          [resultType]: toolResult.results || toolResult,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const followUpData = await followUpResponse.json();
-      const aiResponse = followUpData.choices[0].message.content;
+      const aiResponse = followUpData.choices?.[0]?.message?.content || 'Here are your results:';
 
-      const payload: any = { 
+      return new Response(JSON.stringify({
         response: aiResponse,
-        searchResults: searchResults,
-        resultType: resultType,
-        functionUsed: functionName 
-      };
-      if (resultType === 'hotels') payload.hotels = searchResults;
-      if (resultType === 'flights') payload.flights = searchResults;
-      if (resultType === 'activities') payload.activities = searchResults;
-      if (resultType === 'restaurants') payload.restaurants = searchResults;
-
-      return new Response(JSON.stringify(payload), {
+        searchResults: toolResult.results || [],
+        resultType,
+        functionUsed: functionName,
+        constraint_summary: toolResult.constraint_summary,
+        action_buttons: toolResult.action_buttons,
+        [resultType]: toolResult.results || toolResult,
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // No function call, return regular response
-    const aiResponse = choice.message.content;
-
-    return new Response(JSON.stringify({ response: aiResponse }), {
+    // No tool call - return direct response
+    return new Response(JSON.stringify({ 
+      response: choice.message?.content || 'I apologize, I couldn\'t generate a response.' 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
     console.error('Error in chat-with-gpt function:', error);
     return new Response(
       JSON.stringify({ error: 'Unable to process chat request. Please try again.' }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
