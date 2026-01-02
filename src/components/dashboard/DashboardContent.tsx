@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+import { FolderOpen } from "lucide-react";
 import { HeroSection } from "@/components/dashboard/HeroSection";
 import { StatsSection } from "@/components/dashboard/StatsSection";
 import { TripsSection } from "@/components/dashboard/TripsSection";
@@ -6,8 +8,10 @@ import { TripBrowser } from "@/components/dashboard/TripBrowser";
 import { TripsFilter } from "@/components/dashboard/TripsFilter";
 import { PendingInvitationsCard } from "@/components/itinerary/PendingInvitationsCard";
 import { useDashboard } from "@/hooks/useDashboard";
+import { Button } from "@/components/ui/button";
 
 export const DashboardContent = () => {
+  const navigate = useNavigate();
   const {
     activeItineraries,
     loading,
@@ -40,6 +44,18 @@ export const DashboardContent = () => {
 
       {/* Enhanced Stats Cards with Charts */}
       <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} activeItineraries={activeItineraries} />
+
+      {/* My Itineraries Button */}
+      <div className="flex justify-center mb-8">
+        <Button
+          onClick={() => navigate('/my-itineraries')}
+          size="lg"
+          className="gap-2 px-8"
+        >
+          <FolderOpen className="h-5 w-5" />
+          My Itineraries
+        </Button>
+      </div>
 
       {/* Trips Filter */}
       <TripsFilter

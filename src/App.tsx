@@ -24,7 +24,7 @@ import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import NotFound from "./pages/NotFound";
 import AdminRoles from "./pages/AdminRoles";
 import Search from "./pages/Search";
-
+import MyItineraries from "./pages/MyItineraries";
 import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
@@ -84,6 +84,11 @@ const App = () => (
             <Route path="/search" element={
               <ProtectedRoute>
                 <Search />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-itineraries" element={
+              <ProtectedRoute>
+                <MyItineraries />
               </ProtectedRoute>
             } />
           
