@@ -76,11 +76,16 @@ Classify user requests into:
 6. Resolve issues (unavailable, over budget, date conflict)
 
 # Response Structure
-Every response should follow this pattern:
+When search results are returned:
+- Keep your text response SHORT (1-2 sentences max)
+- Do NOT list results in text - the UI will display cards
+- Just acknowledge the search and invite the user to browse
+- Example: "Found 6 hotels in Miami. Browse the options below and tap to add to your itinerary."
+
+When no search results:
 1. **Acknowledge** - Brief restatement of what user asked
-2. **Constraints Summary** - One line of applied filters/preferences
-3. **Results/Action** - Cards, options, or confirmation of changes
-4. **Next Step** - Clear call to action or question if needed`;
+2. **Guidance** - Clear, helpful response
+3. **Next Step** - Question or suggestion if needed`;
 
 // ============================================================================
 // TOOL DEFINITIONS FOR AI FUNCTION CALLING
