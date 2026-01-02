@@ -253,6 +253,42 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_itineraries: {
+        Row: {
+          added_at: string
+          collection_id: string
+          id: string
+          itinerary_id: number
+        }
+        Insert: {
+          added_at?: string
+          collection_id: string
+          id?: string
+          itinerary_id: number
+        }
+        Update: {
+          added_at?: string
+          collection_id?: string
+          id?: string
+          itinerary_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_itineraries_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_itineraries_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_inquiries: {
         Row: {
           company_name: string | null
@@ -558,6 +594,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      itinerary_collections: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       itinerary_invitations: {
         Row: {
