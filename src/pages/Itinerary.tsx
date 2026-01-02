@@ -7,6 +7,7 @@ import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingSt
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
 import { useBrowserState } from "@/hooks/useBrowserState";
 import { AddItemDialog, ItemType } from "@/components/itinerary/AddItemDialog";
+import { AddToCollectionButton } from "@/components/itinerary/AddToCollectionButton";
 import { supabase } from "@/integrations/supabase/client";
 
 const Itinerary = () => {
@@ -169,7 +170,10 @@ const Itinerary = () => {
 
   return (
     <div className="min-h-screen bg-[#171821]">
-      <ItineraryHeader itineraryId={itineraryData.id} />
+      <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+        <ItineraryHeader itineraryId={itineraryData.id} />
+        <AddToCollectionButton itineraryId={itineraryData.id} />
+      </div>
       
       <ItineraryContent
         itineraryData={itineraryData}
