@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Calendar, Users, MoreVertical } from 'lucide-react';
+import { Users, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   DropdownMenu,
@@ -34,38 +34,57 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
     navigate(`/itinerary?id=${itinerary.id}`);
   };
 
-  const getStatusBadge = () => {
+  const getStatus = () => {
     const now = new Date();
     const startDate = new Date(itinerary.itin_date_start);
     const endDate = new Date(itinerary.itin_date_end);
 
-    if (now < startDate) {
-      return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Upcoming</Badge>;
-    } else if (now >= startDate && now <= endDate) {
-      return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">In Progress</Badge>;
-    } else {
-      return <Badge className="bg-muted text-muted-foreground">Completed</Badge>;
-    }
+    if (now < startDate) return 'upcoming';
+    if (now >= startDate && now <= endDate) return 'active';
+    return 'completed';
   };
 
-  const locations = itinerary.itin_locations?.slice(0, 3) || [];
-  const remainingLocations = (itinerary.itin_locations?.length || 0) - 3;
+  const getEmoji = () => {
+    const status = getStatus();
+    const locations = itinerary.itin_locations || [];
+    
+    // Check for location-based emojis
+    const locationStr = locations.join(' ').toLowerCase();
+    if (locationStr.includes('japan') || locationStr.includes('tokyo') || locationStr.includes('kyoto')) return '🍜';
+    if (locationStr.includes('paris') || locationStr.includes('france')) return '🗼';
+    if (locationStr.includes('beach') || locationStr.includes('hawaii') || locationStr.includes('bali')) return '🌴';
+    if (locationStr.includes('ski') || locationStr.includes('alps')) return '⛷️';
+    if (locationStr.includes('london') || locationStr.includes('england')) return '🇬🇧';
+    if (locationStr.includes('new york') || locationStr.includes('nyc')) return '🗽';
+    if (locationStr.includes('singapore') || locationStr.includes('thailand') || locationStr.includes('bangkok')) return '🏯';
+    if (locationStr.includes('europe') || locationStr.includes('amsterdam') || locationStr.includes('berlin')) return '❄️';
+    
+    // Default based on status
+    if (status === 'completed') return '📸';
+    return '✈️';
+  };
+
+  const formatDates = () => {
+    if (!itinerary.itin_date_start || !itinerary.itin_date_end) return 'Dates TBD';
+    return `${format(new Date(itinerary.itin_date_start), 'MMM d')} - ${format(new Date(itinerary.itin_date_end), 'MMM d, yyyy')}`;
+  };
+
+  const status = getStatus();
+  const locations = itinerary.itin_locations?.slice(0, 2) || [];
 
   return (
     <Card 
-      className="w-[255px] h-[375px] flex flex-col cursor-pointer group transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 bg-[#1a1c2e] border-white/10"
+      className="w-[255px] h-[375px] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
       onClick={handleClick}
     >
-      {/* Header with gradient */}
-      <div className="h-24 bg-gradient-to-br from-primary/30 to-primary/10 rounded-t-lg relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1c2e] to-transparent" />
-        <div className="absolute top-3 right-3 flex items-center gap-2">
-          {getStatusBadge()}
-          {showCollectionActions && (
+      <CardContent className="p-4 h-full flex flex-col justify-between relative">
+        {/* Collection Menu */}
+        {showCollectionActions && (
+          <div className="absolute top-2 right-2 z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-6 w-6 bg-background/50 hover:bg-background/80">
-                  <MoreVertical className="h-3 w-3" />
+                <Button variant="ghost" size="icon" className="h-6 w-6 bg-white/10 hover:bg-white/20">
+                  <MoreVertical className="h-3 w-3 text-white/60" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
@@ -81,68 +100,46 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
 
-      <CardContent className="flex-1 flex flex-col p-4 pt-2">
-        {/* Title */}
-        <h3 className="font-semibold text-lg text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-          {itinerary.itin_name || 'Untitled Trip'}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-          {itinerary.itin_desc || 'No description'}
-        </p>
-
-        {/* Dates */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <Calendar className="h-4 w-4 text-primary" />
-          <span>
-            {itinerary.itin_date_start && itinerary.itin_date_end
-              ? `${format(new Date(itinerary.itin_date_start), 'MMM d')} - ${format(new Date(itinerary.itin_date_end), 'MMM d, yyyy')}`
-              : 'Dates TBD'}
-          </span>
-        </div>
-
-        {/* Locations */}
-        <div className="flex items-start gap-2 text-sm text-muted-foreground mb-3">
-          <MapPin className="h-4 w-4 text-primary mt-0.5" />
-          <div className="flex flex-wrap gap-1">
-            {locations.length > 0 ? (
-              <>
-                {locations.map((loc, idx) => (
-                  <span key={idx} className="bg-muted/50 px-2 py-0.5 rounded text-xs">
-                    {loc}
-                  </span>
-                ))}
-                {remainingLocations > 0 && (
-                  <span className="bg-muted/50 px-2 py-0.5 rounded text-xs">
-                    +{remainingLocations} more
-                  </span>
-                )}
-              </>
-            ) : (
-              <span>No locations set</span>
+        {/* Top Content */}
+        <div>
+          <div className="text-2xl mb-2 opacity-60">{getEmoji()}</div>
+          <h4 className="font-bold text-[#171822] text-base mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+            {itinerary.itin_name || 'Untitled Trip'}
+          </h4>
+          <p className="text-white/50 text-sm mb-2">{formatDates()}</p>
+          <div className="flex flex-wrap gap-1 mb-2">
+            {locations.map((location, idx) => (
+              <Badge 
+                key={idx} 
+                variant="secondary" 
+                className="text-sm bg-white/10 text-white/60 border-white/20"
+              >
+                {location}
+              </Badge>
+            ))}
+            {(itinerary.itin_locations?.length || 0) > 2 && (
+              <Badge 
+                variant="secondary" 
+                className="text-sm bg-white/10 text-white/60 border-white/20"
+              >
+                +{(itinerary.itin_locations?.length || 0) - 2} more
+              </Badge>
             )}
           </div>
         </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-white/10">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>{itinerary.attendees?.length || 1}</span>
+        {/* Bottom Content */}
+        <div className="space-y-2">
+          <div className="flex items-center text-sm text-white/50">
+            <Users className="h-3 w-3 mr-1" />
+            {itinerary.attendees?.length || 1} people
           </div>
-          {itinerary.budget && (
-            <span className="text-sm font-medium text-primary">
-              ${itinerary.budget.toLocaleString()}
-            </span>
-          )}
+          <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
+            {status}
+          </Badge>
         </div>
       </CardContent>
     </Card>

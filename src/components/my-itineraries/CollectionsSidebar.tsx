@@ -23,13 +23,13 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
   totalItineraries
 }) => {
   return (
-    <div className="w-64 bg-card border-r border-border flex flex-col h-full">
-      <div className="p-4 border-b border-border">
-        <h3 className="font-semibold text-foreground mb-2">Collections</h3>
+    <div className="w-64 bg-[#12131a] border-r border-white/10 flex flex-col h-full">
+      <div className="p-4 border-b border-white/10">
+        <h3 className="font-semibold text-white mb-2">Collections</h3>
         <Button
           variant="outline"
           size="sm"
-          className="w-full justify-start gap-2"
+          className="w-full justify-start gap-2 border-white/20 text-white/80 hover:bg-white/10 hover:text-white"
           onClick={onCreateCollection}
         >
           <FolderPlus className="h-4 w-4" />
@@ -44,15 +44,15 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
             className={cn(
               "w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left",
               selectedCollectionId === null
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-muted text-foreground"
+                ? "bg-primary/20 text-primary"
+                : "hover:bg-white/10 text-white/80"
             )}
             onClick={() => onSelectCollection(null)}
           >
             <Globe className="h-5 w-5" />
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">All Itineraries</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-white/50">
                 {totalItineraries} total
               </p>
             </div>
@@ -65,8 +65,8 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
               className={cn(
                 "group flex items-center gap-3 p-3 rounded-lg transition-colors",
                 selectedCollectionId === collection.id
-                  ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted text-foreground"
+                  ? "bg-primary/20 text-primary"
+                  : "hover:bg-white/10 text-white/80"
               )}
             >
               <button
@@ -76,7 +76,7 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
                 <Folder className="h-5 w-5 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{collection.name}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-white/50">
                     {collection.itinerary_count || 0} itinerary{(collection.itinerary_count || 0) !== 1 ? 's' : ''}
                   </p>
                 </div>
@@ -84,7 +84,7 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-white/60 hover:text-white hover:bg-white/10"
                 onClick={(e) => {
                   e.stopPropagation();
                   onEditCollection(collection);
@@ -96,7 +96,7 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
           ))}
 
           {collections.length === 0 && (
-            <p className="text-center text-muted-foreground text-sm py-8 px-4">
+            <p className="text-center text-white/50 text-sm py-8 px-4">
               Create collections to organize your itineraries
             </p>
           )}

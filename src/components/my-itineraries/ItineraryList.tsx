@@ -99,7 +99,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
     const variants = {
       upcoming: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
       active: 'bg-green-500/20 text-green-400 border-green-500/30',
-      completed: 'bg-muted text-muted-foreground'
+      completed: 'bg-white/10 text-white/60 border-white/20'
     };
     
     return (
@@ -112,11 +112,11 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
   if (itineraries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
           <span className="text-2xl">✈️</span>
         </div>
-        <h3 className="text-lg font-medium text-foreground mb-2">No itineraries found</h3>
-        <p className="text-muted-foreground">Create a new itinerary to get started</p>
+        <h3 className="text-lg font-medium text-white mb-2">No itineraries found</h3>
+        <p className="text-white/60">Create a new itinerary to get started</p>
       </div>
     );
   }
@@ -126,11 +126,12 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
       {/* Bulk Actions */}
       {selectedIds.length > 0 && (
         <div className="flex items-center gap-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-          <span className="text-sm font-medium">{selectedIds.length} selected</span>
+          <span className="text-sm font-medium text-white">{selectedIds.length} selected</span>
           {onBulkAddToCollection && (
             <Button 
               size="sm" 
               variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
               onClick={() => onBulkAddToCollection(selectedIds)}
             >
               Add to Collection
@@ -139,6 +140,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
           <Button 
             size="sm" 
             variant="ghost"
+            className="text-white/60 hover:text-white hover:bg-white/10"
             onClick={() => setSelectedIds([])}
           >
             Clear Selection
@@ -147,30 +149,31 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
       )}
 
       {/* List Table */}
-      <div className="bg-card rounded-lg border border-border overflow-hidden">
+      <div className="rounded-lg border border-white/10 overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-12 gap-4 p-4 bg-muted/50 border-b border-border text-sm font-medium text-muted-foreground">
+        <div className="grid grid-cols-12 gap-4 p-4 bg-[#12131a] border-b border-white/10 text-sm font-medium text-white/60">
           <div className="col-span-1 flex items-center">
             <Checkbox 
               checked={selectedIds.length === itineraries.length && itineraries.length > 0}
               onCheckedChange={toggleSelectAll}
+              className="border-white/30 data-[state=checked]:bg-primary"
             />
           </div>
           <button 
-            className="col-span-3 flex items-center gap-1 hover:text-foreground transition-colors text-left"
+            className="col-span-3 flex items-center gap-1 hover:text-white transition-colors text-left"
             onClick={() => handleSort('name')}
           >
             Name <SortIcon field="name" />
           </button>
           <button 
-            className="col-span-3 flex items-center gap-1 hover:text-foreground transition-colors text-left"
+            className="col-span-3 flex items-center gap-1 hover:text-white transition-colors text-left"
             onClick={() => handleSort('date')}
           >
             Dates <SortIcon field="date" />
           </button>
           <div className="col-span-2">Locations</div>
           <button 
-            className="col-span-2 flex items-center gap-1 hover:text-foreground transition-colors text-left"
+            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left"
             onClick={() => handleSort('status')}
           >
             Status <SortIcon field="status" />
@@ -179,7 +182,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
         </div>
 
         {/* Rows */}
-        {sortedItineraries.map((itinerary) => {
+        {sortedItineraries.map((itinerary, index) => {
           const status = getStatus(itinerary);
           const locations = itinerary.itin_locations?.slice(0, 2) || [];
           const remainingLocations = (itinerary.itin_locations?.length || 0) - 2;
@@ -187,29 +190,32 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
           return (
             <div 
               key={itinerary.id}
-              className="grid grid-cols-12 gap-4 p-4 border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors items-center"
+              className={`grid grid-cols-12 gap-4 p-4 border-b border-white/10 last:border-b-0 hover:bg-[#252738] transition-colors items-center ${
+                index % 2 === 0 ? 'bg-[#1a1c2e]' : 'bg-[#1e2030]'
+              }`}
             >
               <div className="col-span-1 flex items-center gap-2">
                 <Checkbox 
                   checked={selectedIds.includes(itinerary.id)}
                   onCheckedChange={() => toggleSelect(itinerary.id)}
+                  className="border-white/30 data-[state=checked]:bg-primary"
                 />
-                <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                <GripVertical className="h-4 w-4 text-white/30 cursor-grab" />
               </div>
               
               <div 
                 className="col-span-3 cursor-pointer"
                 onClick={() => navigate(`/itinerary?id=${itinerary.id}`)}
               >
-                <p className="font-medium text-foreground hover:text-primary transition-colors line-clamp-1">
+                <p className="font-medium text-white hover:text-primary transition-colors line-clamp-1">
                   {itinerary.itin_name || 'Untitled Trip'}
                 </p>
-                <p className="text-xs text-muted-foreground line-clamp-1">
+                <p className="text-xs text-white/50 line-clamp-1">
                   {itinerary.itin_desc || 'No description'}
                 </p>
               </div>
 
-              <div className="col-span-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="col-span-3 flex items-center gap-2 text-sm text-white/60">
                 <Calendar className="h-4 w-4" />
                 <span>
                   {itinerary.itin_date_start && itinerary.itin_date_end
@@ -219,8 +225,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               </div>
 
               <div className="col-span-2 flex items-center gap-1 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground line-clamp-1">
+                <MapPin className="h-4 w-4 text-white/40" />
+                <span className="text-white/60 line-clamp-1">
                   {locations.join(', ')}
                   {remainingLocations > 0 && ` +${remainingLocations}`}
                 </span>
@@ -233,7 +239,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               <div className="col-span-1 flex justify-end">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>

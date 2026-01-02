@@ -11,7 +11,6 @@ import { CollectionDialog } from '@/components/my-itineraries/CollectionDialog';
 import { AddToCollectionDialog } from '@/components/my-itineraries/AddToCollectionDialog';
 import { useItineraryCollections, Collection } from '@/hooks/useItineraryCollections';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { ItineraryData } from '@/types/itinerary';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type ViewMode = 'grid' | 'map' | 'list';
@@ -52,12 +51,20 @@ const MyItineraries = () => {
     fetchCollectionItineraries();
   }, [selectedCollectionId, getCollectionItineraries, collections]);
 
-  // Filter itineraries based on selected collection
+  // Filter and sort itineraries based on selected collection
   const filteredItineraries = useMemo(() => {
-    if (!selectedCollectionId) {
-      return activeItineraries;
+    let result = activeItineraries;
+    
+    if (selectedCollectionId) {
+      result = activeItineraries.filter(it => collectionItineraryIds.includes(it.id));
     }
-    return activeItineraries.filter(it => collectionItineraryIds.includes(it.id));
+    
+    // Sort by date (newest first)
+    return result.sort((a, b) => {
+      const dateA = new Date(a.itin_date_start || 0).getTime();
+      const dateB = new Date(b.itin_date_start || 0).getTime();
+      return dateB - dateA;
+    });
   }, [activeItineraries, selectedCollectionId, collectionItineraryIds]);
 
   const handleCreateCollection = () => {
@@ -117,7 +124,7 @@ const MyItineraries = () => {
   const loading = collectionsLoading || itinerariesLoading;
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-[#171821] flex">
       {/* Sidebar */}
       <CollectionsSidebar
         collections={collections}
@@ -131,24 +138,25 @@ const MyItineraries = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b border-border px-6 py-4">
+        <header className="border-b border-white/10 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button 
                 variant="ghost" 
                 size="icon"
+                className="text-white/60 hover:text-white hover:bg-white/10"
                 onClick={() => navigate('/dashboard')}
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">
+                <h1 className="text-2xl font-bold text-white">
                   {selectedCollectionId 
                     ? collections.find(c => c.id === selectedCollectionId)?.name || 'Collection'
                     : 'All Itineraries'
                   }
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/60">
                   {filteredItineraries.length} itinerary{filteredItineraries.length !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -157,16 +165,16 @@ const MyItineraries = () => {
             <div className="flex items-center gap-4">
               {/* View Toggle */}
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                <TabsList>
-                  <TabsTrigger value="grid" className="gap-2">
+                <TabsList className="bg-white/10">
+                  <TabsTrigger value="grid" className="gap-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
                     <LayoutGrid className="h-4 w-4" />
                     Grid
                   </TabsTrigger>
-                  <TabsTrigger value="map" className="gap-2">
+                  <TabsTrigger value="map" className="gap-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
                     <Map className="h-4 w-4" />
                     Map
                   </TabsTrigger>
-                  <TabsTrigger value="list" className="gap-2">
+                  <TabsTrigger value="list" className="gap-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
                     <List className="h-4 w-4" />
                     List
                   </TabsTrigger>
@@ -186,7 +194,7 @@ const MyItineraries = () => {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="w-[255px] h-[375px] rounded-lg" />
+                <Skeleton key={i} className="w-[255px] h-[375px] rounded-lg bg-white/10" />
               ))}
             </div>
           ) : (

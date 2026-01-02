@@ -75,65 +75,7 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
         created_at: item.created_at
       }));
 
-      // Add sample trips if no data exists
-      const sampleTrips = [
-        {
-          id: 'sample-singapore',
-          name: 'Southeast Asia Adventure',
-          dates: 'Dec 15, 2024 - Dec 28, 2024',
-          locations: ['Singapore', 'Bangkok', 'Phuket'],
-          budget: 4500,
-          spent: 1200,
-          people: 2,
-          status: 'upcoming',
-          image: '🌴'
-        },
-        {
-          id: 'sample-singapore-thailand',
-          name: 'Singapore & Thailand Explorer',
-          dates: 'Feb 8, 2025 - Feb 18, 2025',
-          locations: ['Singapore', 'Bangkok', 'Chiang Mai'],
-          budget: 3800,
-          spent: 950,
-          people: 2,
-          status: 'upcoming',
-          image: '🏯'
-        },
-        {
-          id: 'sample-europe',
-          name: 'European Winter Escape',
-          dates: 'Jan 10, 2025 - Jan 20, 2025',
-          locations: ['Paris', 'Amsterdam', 'Berlin'],
-          budget: 3200,
-          spent: 800,
-          people: 1,
-          status: 'planning',
-          image: '❄️'
-        },
-        {
-          id: 'sample-completed',
-          name: 'Tokyo Summer Trip',
-          dates: 'Jun 5, 2024 - Jun 15, 2024',
-          locations: ['Tokyo', 'Kyoto', 'Osaka'],
-          budget: 2800,
-          spent: 3200,
-          people: 2,
-          status: 'completed',
-          image: '🍜'
-        }
-      ];
-
-      const allTrips = transformedItineraries.length > 0 ? transformedItineraries : sampleTrips;
-      setActiveItineraries(allTrips);
-      
-      // Show notification only if no real trips found and 2 minutes have passed since last notification
-      if (transformedItineraries.length === 0) {
-        const now = Date.now();
-        if (now - lastNotificationTime.current > 120000) { // 2 minutes in milliseconds
-          toast.error('No trips found. Using sample data for demonstration.');
-          lastNotificationTime.current = now;
-        }
-      }
+      setActiveItineraries(transformedItineraries);
     } catch (error) {
       console.error('Error fetching itineraries:', error);
       const now = Date.now();
