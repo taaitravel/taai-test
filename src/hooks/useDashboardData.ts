@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { getTravelerLevel } from "@/lib/travelerLevel";
 import { toast } from "sonner";
-import { formatDateRange, getItineraryStatus } from "@/lib/dashboardUtils";
 
 export type SortOption = 'start_date' | 'created_at' | 'end_date';
 
@@ -60,19 +58,30 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
 
       if (error) throw error;
 
-      // Transform the data to match the expected format
+      // Return full itinerary data with original field names
       const transformedItineraries = data.map(item => ({
         id: item.id,
-        name: item.itin_name || 'Untitled Trip',
-        dates: formatDateRange(item.itin_date_start, item.itin_date_end),
-        locations: Array.isArray(item.itin_locations) ? item.itin_locations : [],
-        budget: item.budget || 0,
-        spent: item.spending || 0,
-        people: Array.isArray(item.attendees) ? item.attendees.length : 1,
-        status: getItineraryStatus(item.itin_date_start, item.itin_date_end),
+        itin_id: item.itin_id,
+        itin_name: item.itin_name || 'Untitled Trip',
+        itin_desc: item.itin_desc,
         itin_date_start: item.itin_date_start,
         itin_date_end: item.itin_date_end,
-        created_at: item.created_at
+        itin_locations: Array.isArray(item.itin_locations) ? item.itin_locations : [],
+        itin_map_locations: Array.isArray(item.itin_map_locations) ? item.itin_map_locations : [],
+        budget: item.budget || 0,
+        spending: item.spending || 0,
+        budget_rate: item.budget_rate,
+        b_efficiency_rate: item.b_efficiency_rate,
+        user_type: item.user_type,
+        attendees: Array.isArray(item.attendees) ? item.attendees : [],
+        flights: Array.isArray(item.flights) ? item.flights : [],
+        hotels: Array.isArray(item.hotels) ? item.hotels : [],
+        activities: Array.isArray(item.activities) ? item.activities : [],
+        reservations: Array.isArray(item.reservations) ? item.reservations : [],
+        expedia_data: item.expedia_data,
+        images: item.images,
+        created_at: item.created_at,
+        userid: item.userid
       }));
 
       setActiveItineraries(transformedItineraries);
