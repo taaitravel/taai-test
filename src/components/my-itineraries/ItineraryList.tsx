@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { GripVertical, MapPin, Calendar, Users, MoreVertical, ChevronUp, ChevronDown, DollarSign } from 'lucide-react';
+import { MapPin, Calendar, Users, MoreVertical, ChevronUp, ChevronDown, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +29,7 @@ interface ItineraryListProps {
   collectionId?: string;
 }
 
-type SortField = 'name' | 'date' | 'status' | 'attendees' | 'spending';
+type SortField = 'name' | 'date' | 'locations' | 'attendees' | 'spending' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 export const ItineraryList: React.FC<ItineraryListProps> = ({
@@ -54,6 +62,10 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
     return itinerary.spending || 0;
   };
 
+  const getLocationString = (itinerary: ItineraryData) => {
+    return itinerary.itin_locations?.join(', ') || '';
+  };
+
   const sortedItineraries = [...itineraries].sort((a, b) => {
     let comparison = 0;
     
@@ -63,6 +75,9 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
         break;
       case 'date':
         comparison = new Date(a.itin_date_start).getTime() - new Date(b.itin_date_start).getTime();
+        break;
+      case 'locations':
+        comparison = getLocationString(a).localeCompare(getLocationString(b));
         break;
       case 'status':
         const statusOrder = { upcoming: 0, active: 1, completed: 2 };
@@ -171,148 +186,164 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
         </div>
       )}
 
-      {/* List Table */}
-      <div className="rounded-lg border border-white/10 overflow-hidden overflow-x-auto">
-        {/* Header */}
-        <div className="grid grid-cols-16 gap-2 md:gap-4 p-4 bg-[#12131a] border-b border-white/10 text-sm font-medium text-white/60 min-w-[800px]">
-          <div className="col-span-1 flex items-center">
-            <Checkbox 
-              checked={selectedIds.length === itineraries.length && itineraries.length > 0}
-              onCheckedChange={toggleSelectAll}
-              className="border-white/30 data-[state=checked]:bg-primary"
-            />
-          </div>
-          <button 
-            className="col-span-3 flex items-center gap-1 hover:text-white transition-colors text-left"
-            onClick={() => handleSort('name')}
-          >
-            Name <SortIcon field="name" />
-          </button>
-          <button 
-            className="col-span-3 flex items-center gap-1 hover:text-white transition-colors text-left"
-            onClick={() => handleSort('date')}
-          >
-            Dates <SortIcon field="date" />
-          </button>
-          <div className="col-span-2">Locations</div>
-          <button 
-            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left"
-            onClick={() => handleSort('attendees')}
-          >
-            <Users className="h-3 w-3" />
-            Attendees <SortIcon field="attendees" />
-          </button>
-          <button 
-            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left"
-            onClick={() => handleSort('spending')}
-          >
-            <DollarSign className="h-3 w-3" />
-            Spending <SortIcon field="spending" />
-          </button>
-          <button 
-            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left"
-            onClick={() => handleSort('status')}
-          >
-            Status <SortIcon field="status" />
-          </button>
-          <div className="col-span-1"></div>
-        </div>
-
-        {/* Rows */}
-        {sortedItineraries.map((itinerary, index) => {
-          const status = getStatus(itinerary);
-          const locations = itinerary.itin_locations?.slice(0, 2) || [];
-          const remainingLocations = (itinerary.itin_locations?.length || 0) - 2;
-          const attendeeCount = getAttendeeCount(itinerary);
-          const spending = getSpending(itinerary);
-
-          return (
-            <div 
-              key={itinerary.id}
-              className={`grid grid-cols-16 gap-2 md:gap-4 p-4 border-b border-white/10 last:border-b-0 hover:bg-[#252738] transition-colors items-center min-w-[800px] ${
-                index % 2 === 0 ? 'bg-[#1a1c2e]' : 'bg-[#1e2030]'
-              }`}
-            >
-              <div className="col-span-1 flex items-center gap-2">
+      {/* Table */}
+      <div className="rounded-lg border border-white/10 overflow-hidden">
+        <Table>
+          <TableHeader className="bg-[#12131a]">
+            <TableRow className="border-white/10 hover:bg-transparent">
+              <TableHead className="w-12">
                 <Checkbox 
-                  checked={selectedIds.includes(itinerary.id)}
-                  onCheckedChange={() => toggleSelect(itinerary.id)}
+                  checked={selectedIds.length === itineraries.length && itineraries.length > 0}
+                  onCheckedChange={toggleSelectAll}
                   className="border-white/30 data-[state=checked]:bg-primary"
                 />
-                <GripVertical className="h-4 w-4 text-white/30 cursor-grab hidden md:block" />
-              </div>
-              
-              <div 
-                className="col-span-3 cursor-pointer"
-                onClick={() => navigate(`/itinerary?id=${itinerary.id}`)}
-              >
-                <p className="font-medium text-white hover:text-primary transition-colors line-clamp-1">
-                  {itinerary.itin_name || 'Untitled Trip'}
-                </p>
-                <p className="text-xs text-white/50 line-clamp-1 hidden md:block">
-                  {itinerary.itin_desc || 'No description'}
-                </p>
-              </div>
+              </TableHead>
+              <TableHead>
+                <button 
+                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  onClick={() => handleSort('name')}
+                >
+                  Name <SortIcon field="name" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button 
+                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  onClick={() => handleSort('date')}
+                >
+                  <Calendar className="h-3 w-3" />
+                  Dates <SortIcon field="date" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button 
+                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  onClick={() => handleSort('locations')}
+                >
+                  <MapPin className="h-3 w-3" />
+                  Locations <SortIcon field="locations" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button 
+                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  onClick={() => handleSort('attendees')}
+                >
+                  <Users className="h-3 w-3" />
+                  Attendees <SortIcon field="attendees" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button 
+                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  onClick={() => handleSort('spending')}
+                >
+                  <DollarSign className="h-3 w-3" />
+                  Spending <SortIcon field="spending" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button 
+                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  onClick={() => handleSort('status')}
+                >
+                  Status <SortIcon field="status" />
+                </button>
+              </TableHead>
+              <TableHead className="w-12"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedItineraries.map((itinerary, index) => {
+              const status = getStatus(itinerary);
+              const locations = itinerary.itin_locations?.slice(0, 2) || [];
+              const remainingLocations = (itinerary.itin_locations?.length || 0) - 2;
+              const attendeeCount = getAttendeeCount(itinerary);
+              const spending = getSpending(itinerary);
 
-              <div className="col-span-3 flex items-center gap-2 text-sm text-white/60">
-                <Calendar className="h-4 w-4 hidden md:block" />
-                <span className="text-xs md:text-sm">
-                  {itinerary.itin_date_start && itinerary.itin_date_end
-                    ? `${format(new Date(itinerary.itin_date_start), 'MMM d')} - ${format(new Date(itinerary.itin_date_end), 'MMM d, yyyy')}`
-                    : 'TBD'}
-                </span>
-              </div>
+              return (
+                <TableRow 
+                  key={itinerary.id}
+                  className={`border-white/10 hover:bg-[#252738] ${
+                    index % 2 === 0 ? 'bg-[#1a1c2e]' : 'bg-[#1e2030]'
+                  }`}
+                >
+                  <TableCell>
+                    <Checkbox 
+                      checked={selectedIds.includes(itinerary.id)}
+                      onCheckedChange={() => toggleSelect(itinerary.id)}
+                      className="border-white/30 data-[state=checked]:bg-primary"
+                    />
+                  </TableCell>
+                  
+                  <TableCell 
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/itinerary?id=${itinerary.id}`)}
+                  >
+                    <p className="font-medium text-white hover:text-primary transition-colors line-clamp-1">
+                      {itinerary.itin_name || 'Untitled Trip'}
+                    </p>
+                    <p className="text-xs text-white/50 line-clamp-1">
+                      {itinerary.itin_desc || 'No description'}
+                    </p>
+                  </TableCell>
 
-              <div className="col-span-2 flex items-center gap-1 text-sm">
-                <MapPin className="h-4 w-4 text-white/40 hidden md:block" />
-                <span className="text-white/60 line-clamp-1 text-xs md:text-sm">
-                  {locations.join(', ')}
-                  {remainingLocations > 0 && ` +${remainingLocations}`}
-                </span>
-              </div>
+                  <TableCell className="text-white/60 text-sm whitespace-nowrap">
+                    {itinerary.itin_date_start && itinerary.itin_date_end
+                      ? `${format(new Date(itinerary.itin_date_start), 'MMM d')} - ${format(new Date(itinerary.itin_date_end), 'MMM d, yyyy')}`
+                      : 'TBD'}
+                  </TableCell>
 
-              <div className="col-span-2 flex items-center gap-1 text-sm text-white/60">
-                <Users className="h-4 w-4 text-white/40" />
-                <span>{attendeeCount}</span>
-              </div>
+                  <TableCell className="text-white/60 text-sm">
+                    <span className="line-clamp-1">
+                      {locations.join(', ')}
+                      {remainingLocations > 0 && ` +${remainingLocations}`}
+                    </span>
+                  </TableCell>
 
-              <div className="col-span-2 text-sm">
-                <span className={`font-medium ${spending > 0 ? 'text-[#ffce87]' : 'text-white/40'}`}>
-                  {spending > 0 ? formatCurrency(spending) : '-'}
-                </span>
-              </div>
+                  <TableCell className="text-white/60 text-sm">
+                    {attendeeCount}
+                  </TableCell>
 
-              <div className="col-span-2">
-                <StatusBadge status={status} />
-              </div>
+                  <TableCell>
+                    <span className={`font-medium text-sm ${spending > 0 ? 'text-[#ffce87]' : 'text-white/40'}`}>
+                      {spending > 0 ? formatCurrency(spending) : '-'}
+                    </span>
+                  </TableCell>
 
-              <div className="col-span-1 flex justify-end">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/itinerary?id=${itinerary.id}`)}>
-                      View Details
-                    </DropdownMenuItem>
-                    {onAddToCollection && (
-                      <DropdownMenuItem onClick={() => onAddToCollection(itinerary.id)}>
-                        Add to Collection
-                      </DropdownMenuItem>
-                    )}
-                    {collectionId && onRemoveFromCollection && (
-                      <DropdownMenuItem onClick={() => onRemoveFromCollection(itinerary.id)}>
-                        Remove from Collection
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          );
-        })}
+                  <TableCell>
+                    <StatusBadge status={status} />
+                  </TableCell>
+
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/itinerary?id=${itinerary.id}`)}>
+                          View Details
+                        </DropdownMenuItem>
+                        {onAddToCollection && (
+                          <DropdownMenuItem onClick={() => onAddToCollection(itinerary.id)}>
+                            Add to Collection
+                          </DropdownMenuItem>
+                        )}
+                        {collectionId && onRemoveFromCollection && (
+                          <DropdownMenuItem onClick={() => onRemoveFromCollection(itinerary.id)}>
+                            Remove from Collection
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
