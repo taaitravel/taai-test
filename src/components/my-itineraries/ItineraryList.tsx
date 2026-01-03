@@ -256,8 +256,12 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
           <TableBody>
             {sortedItineraries.map((itinerary, index) => {
               const status = getStatus(itinerary);
-              const locations = itinerary.itin_locations?.slice(0, 2) || [];
-              const remainingLocations = (itinerary.itin_locations?.length || 0) - 2;
+              const locations = itinerary.itin_locations?.slice(0, 3) || [];
+              const hasMoreLocations = (itinerary.itin_locations?.length || 0) > 3;
+              const descriptionWords = (itinerary.itin_desc || 'No description').split(' ');
+              const truncatedDesc = descriptionWords.length > 10 
+                ? descriptionWords.slice(0, 10).join(' ') + '...'
+                : descriptionWords.join(' ');
               const attendeeCount = getAttendeeCount(itinerary);
               const spending = getSpending(itinerary);
 
@@ -284,7 +288,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
                       {itinerary.itin_name || 'Untitled Trip'}
                     </p>
                     <p className="text-xs text-white/50 line-clamp-1">
-                      {itinerary.itin_desc || 'No description'}
+                      {truncatedDesc}
                     </p>
                   </TableCell>
 
@@ -297,7 +301,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
                   <TableCell className="text-white/60 text-sm">
                     <span className="line-clamp-1">
                       {locations.join(', ')}
-                      {remainingLocations > 0 && ` +${remainingLocations}`}
+                      {hasMoreLocations && '...'}
                     </span>
                   </TableCell>
 
