@@ -164,7 +164,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, metadata: any) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // After email confirmation, redirect to terms page
+    const redirectUrl = `${window.location.origin}/terms?fromSignup=true`;
     
     const { error } = await supabase.auth.signUp({
       email,

@@ -34,6 +34,7 @@ const Signup = () => {
   });
   const [loading, setLoading] = useState(false);
   const [captchaValid, setCaptchaValid] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -142,12 +143,7 @@ const Signup = () => {
           variant: "destructive"
         });
       } else {
-        toast({
-          title: "Account Created Successfully!",
-          description: "Please check your email to verify your account.",
-          variant: "success"
-        });
-        navigate('/terms', { state: { fromSignup: true } });
+        setShowEmailConfirmation(true);
       }
     } catch (error) {
       toast({
@@ -159,6 +155,56 @@ const Signup = () => {
       setLoading(false);
     }
   };
+
+  // Show email confirmation screen
+  if (showEmailConfirmation) {
+    return (
+      <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+        <Card className="w-full max-w-md shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex items-center justify-center">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[150px] w-auto" />
+            </div>
+            <div className="w-16 h-16 mx-auto bg-white/10 rounded-full flex items-center justify-center">
+              <Plane className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl text-white">Check Your Email</CardTitle>
+            <CardDescription className="text-white/70 text-base">
+              We've sent a verification link to <strong className="text-white">{formData.email}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 text-center">
+            <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2">
+              <p className="text-white/80 text-sm">
+                Click the link in your email to verify your account and complete registration.
+              </p>
+              <p className="text-white/60 text-xs">
+                Don't see it? Check your spam folder.
+              </p>
+            </div>
+            <Separator className="bg-white/30" />
+            <div className="space-y-3">
+              <Button 
+                variant="outline"
+                className="w-full border-white/30 text-white hover:bg-white/10"
+                onClick={() => navigate('/login')}
+              >
+                Go to Login
+              </Button>
+              <Button 
+                variant="ghost"
+                className="w-full text-white/60 hover:text-white hover:bg-white/5"
+                onClick={() => setShowEmailConfirmation(false)}
+              >
+                Use a different email
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
