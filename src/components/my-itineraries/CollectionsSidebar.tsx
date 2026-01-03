@@ -1,9 +1,10 @@
 import React from 'react';
-import { Folder, FolderPlus, Settings, Globe } from 'lucide-react';
+import { FolderPlus, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collection } from '@/hooks/useItineraryCollections';
 import { cn } from '@/lib/utils';
+import { DroppableCollection } from './DroppableCollection';
 
 interface CollectionsSidebarProps {
   collections: Collection[];
@@ -60,39 +61,13 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
 
           {/* Collections */}
           {collections.map((collection) => (
-            <div
+            <DroppableCollection
               key={collection.id}
-              className={cn(
-                "group flex items-center gap-3 p-3 rounded-lg transition-colors",
-                selectedCollectionId === collection.id
-                  ? "bg-primary/20 text-primary"
-                  : "hover:bg-white/10 text-white/80"
-              )}
-            >
-              <button
-                className="flex-1 flex items-center gap-3 text-left min-w-0"
-                onClick={() => onSelectCollection(collection.id)}
-              >
-                <Folder className="h-5 w-5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{collection.name}</p>
-                  <p className="text-xs text-white/50">
-                    {collection.itinerary_count || 0} itinerary{(collection.itinerary_count || 0) !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-white/60 hover:text-white hover:bg-white/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditCollection(collection);
-                }}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
+              collection={collection}
+              isSelected={selectedCollectionId === collection.id}
+              onSelect={() => onSelectCollection(collection.id)}
+              onEdit={() => onEditCollection(collection)}
+            />
           ))}
 
           {collections.length === 0 && (
