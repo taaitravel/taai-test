@@ -28,7 +28,7 @@ export const ItineraryGrid: React.FC<ItineraryGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center md:justify-items-start">
       {itineraries.map((itinerary) => (
         <DraggableItineraryCard
           key={itinerary.id}
