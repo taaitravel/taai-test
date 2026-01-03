@@ -1,24 +1,26 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, FileText, Shield } from "lucide-react";
+import { ArrowLeft, FileText, Shield, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Terms = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, loading: authLoading } = useAuth();
   
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const isSignupFlow = location.state?.fromSignup;
+  // Check both state and URL params for signup flow
+  const isSignupFlow = location.state?.fromSignup || searchParams.get('fromSignup') === 'true';
   const isLoginRequired = location.state?.requireAcceptance;
 
   const handleAcceptance = async () => {
@@ -28,6 +30,16 @@ const Terms = () => {
         description: "Please accept both the Terms of Service and Privacy Policy to continue.",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please verify your email and log in first.",
+        variant: "destructive"
+      });
+      navigate('/login');
       return;
     }
 
@@ -42,9 +54,10 @@ const Terms = () => {
       });
 
       if (error) {
+        console.error('Error saving terms acceptance:', error);
         toast({
           title: "Error",
-          description: "Failed to save your acceptance. Please try again.",
+          description: error.message || "Failed to save your acceptance. Please try again.",
           variant: "destructive"
         });
         return;
@@ -71,6 +84,49 @@ const Terms = () => {
       setLoading(false);
     }
   };
+
+  // Show loading state while auth is initializing
+  if (authLoading && (isSignupFlow || isLoginRequired)) {
+    return (
+      <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+        <Card className="w-full max-w-md shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md">
+          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+            <Loader2 className="h-8 w-8 text-white animate-spin" />
+            <p className="text-white/70">Verifying your account...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // If user needs to accept terms but isn't logged in
+  if ((isSignupFlow || isLoginRequired) && !user && !authLoading) {
+    return (
+      <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+        <Card className="w-full max-w-md shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex items-center justify-center">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[120px] w-auto" />
+            </div>
+            <CardTitle className="text-xl text-white">Session Expired</CardTitle>
+            <CardDescription className="text-white/70">
+              Please log in to accept the terms and continue.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+              onClick={() => navigate('/login')}
+            >
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#171821] p-4">
