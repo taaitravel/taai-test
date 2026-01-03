@@ -37,66 +37,65 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/profile-setup" element={
-              <ProtectedRoute>
-                <ProfileSetup />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/create-itinerary" element={
-              <ProtectedRoute>
-                <CreateItinerary />
-              </ProtectedRoute>
-            } />
-            <Route path="/create-manual-itinerary" element={
-              <ProtectedRoute>
-                <CreateManualItinerary />
-              </ProtectedRoute>
-            } />
-            <Route path="/itinerary" element={
-              <ProtectedRoute>
-                <Itinerary />
-              </ProtectedRoute>
-            } />
-            <Route path="/edit-itinerary" element={
-              <ProtectedRoute>
-                <EditItinerary />
-              </ProtectedRoute>
-            } />
-            <Route path="/what-we-do" element={<WhatWeDo />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/subscription" element={<Subscription />} />
-            <Route path="/subscription-success" element={<SubscriptionSuccess />} />
-            <Route path="/admin/roles" element={
-              <ProtectedRoute>
-                <AdminRoles />
-              </ProtectedRoute>
-            } />
-            <Route path="/search" element={
-              <ProtectedRoute>
-                <Search />
-              </ProtectedRoute>
-            } />
-            <Route path="/my-itineraries" element={
-              <ProtectedRoute>
-                <MyItineraries />
-              </ProtectedRoute>
-            } />
-          
-          <Route path="/admin" element={<AdminDashboard />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/profile-setup" element={
+                <ProtectedRoute>
+                  <ProfileSetup />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/create-itinerary" element={
+                <ProtectedRoute>
+                  <CreateItinerary />
+                </ProtectedRoute>
+              } />
+              <Route path="/create-manual-itinerary" element={
+                <ProtectedRoute>
+                  <CreateManualItinerary />
+                </ProtectedRoute>
+              } />
+              <Route path="/itinerary" element={
+                <ProtectedRoute>
+                  <Itinerary />
+                </ProtectedRoute>
+              } />
+              <Route path="/edit-itinerary" element={
+                <ProtectedRoute>
+                  <EditItinerary />
+                </ProtectedRoute>
+              } />
+              <Route path="/what-we-do" element={<WhatWeDo />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/subscription-success" element={<SubscriptionSuccess />} />
+              <Route path="/admin/roles" element={
+                <ProtectedRoute>
+                  <AdminRoles />
+                </ProtectedRoute>
+              } />
+              <Route path="/search" element={
+                <ProtectedRoute>
+                  <Search />
+                </ProtectedRoute>
+              } />
+              <Route path="/my-itineraries" element={
+                <ProtectedRoute>
+                  <MyItineraries />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={<AdminDashboard />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
         </ExpediaSwipeProvider>
       </AuthProvider>
     </TooltipProvider>
