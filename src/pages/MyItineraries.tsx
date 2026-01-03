@@ -11,6 +11,7 @@ import { ItineraryMapView } from '@/components/my-itineraries/ItineraryMapView';
 import { CollectionDialog } from '@/components/my-itineraries/CollectionDialog';
 import { AddToCollectionDialog } from '@/components/my-itineraries/AddToCollectionDialog';
 import { ItineraryCard } from '@/components/my-itineraries/ItineraryCard';
+import { GridFilters, GridSortField, GridSortDirection } from '@/components/my-itineraries/GridFilters';
 import { useItineraryCollections, Collection } from '@/hooks/useItineraryCollections';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +32,10 @@ const MyItineraries = () => {
   const [selectedItineraryIds, setSelectedItineraryIds] = useState<number[]>([]);
   const [collectionItineraryIds, setCollectionItineraryIds] = useState<number[]>([]);
   const [draggingItinerary, setDraggingItinerary] = useState<ItineraryData | null>(null);
+  
+  // Grid sorting state
+  const [gridSortField, setGridSortField] = useState<GridSortField>('date');
+  const [gridSortDirection, setGridSortDirection] = useState<GridSortDirection>('desc');
 
   const { 
     collections, 
@@ -58,7 +63,7 @@ const MyItineraries = () => {
     fetchCollectionItineraries();
   }, [selectedCollectionId, getCollectionItineraries, collections]);
 
-  // Filter and sort itineraries based on selected collection
+  // Filter and sort itineraries based on selected collection and grid sort
   const filteredItineraries = useMemo(() => {
     let result = activeItineraries;
     
@@ -66,13 +71,35 @@ const MyItineraries = () => {
       result = activeItineraries.filter(it => collectionItineraryIds.includes(it.id));
     }
     
-    // Sort by date (newest first)
+    // Sort based on grid sort settings
     return result.sort((a, b) => {
-      const dateA = new Date(a.itin_date_start || 0).getTime();
-      const dateB = new Date(b.itin_date_start || 0).getTime();
-      return dateB - dateA;
+      let comparison = 0;
+      
+      switch (gridSortField) {
+        case 'date':
+          const dateA = new Date(a.itin_date_start || 0).getTime();
+          const dateB = new Date(b.itin_date_start || 0).getTime();
+          comparison = dateA - dateB;
+          break;
+        case 'spending':
+          comparison = (a.spending || 0) - (b.spending || 0);
+          break;
+        case 'name':
+          comparison = (a.itin_name || '').localeCompare(b.itin_name || '');
+          break;
+        case 'attendees':
+          comparison = (a.attendees?.length || 1) - (b.attendees?.length || 1);
+          break;
+      }
+      
+      return gridSortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [activeItineraries, selectedCollectionId, collectionItineraryIds]);
+  }, [activeItineraries, selectedCollectionId, collectionItineraryIds, gridSortField, gridSortDirection]);
+
+  const handleGridSortChange = (field: GridSortField, direction: GridSortDirection) => {
+    setGridSortField(field);
+    setGridSortDirection(direction);
+  };
 
   const handleCreateCollection = () => {
     setEditingCollection(null);
@@ -289,12 +316,19 @@ const MyItineraries = () => {
             ) : (
               <>
                 {viewMode === 'grid' && (
-                  <ItineraryGrid
-                    itineraries={filteredItineraries}
-                    onAddToCollection={handleAddToCollection}
-                    onRemoveFromCollection={selectedCollectionId ? handleRemoveFromCollection : undefined}
-                    collectionId={selectedCollectionId || undefined}
-                  />
+                  <>
+                    <GridFilters
+                      sortField={gridSortField}
+                      sortDirection={gridSortDirection}
+                      onSortChange={handleGridSortChange}
+                    />
+                    <ItineraryGrid
+                      itineraries={filteredItineraries}
+                      onAddToCollection={handleAddToCollection}
+                      onRemoveFromCollection={selectedCollectionId ? handleRemoveFromCollection : undefined}
+                      collectionId={selectedCollectionId || undefined}
+                    />
+                  </>
                 )}
                 {viewMode === 'map' && (
                   <div className="flex flex-col h-full">

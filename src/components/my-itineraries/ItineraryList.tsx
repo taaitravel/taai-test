@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { GripVertical, MapPin, Calendar, Users, MoreVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { GripVertical, MapPin, Calendar, Users, MoreVertical, ChevronUp, ChevronDown, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,7 +21,7 @@ interface ItineraryListProps {
   collectionId?: string;
 }
 
-type SortField = 'name' | 'date' | 'status';
+type SortField = 'name' | 'date' | 'status' | 'attendees' | 'spending';
 type SortDirection = 'asc' | 'desc';
 
 export const ItineraryList: React.FC<ItineraryListProps> = ({
@@ -46,6 +46,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
     return 'completed';
   };
 
+  const getAttendeeCount = (itinerary: ItineraryData) => {
+    return itinerary.attendees?.length || 1;
+  };
+
+  const getSpending = (itinerary: ItineraryData) => {
+    return itinerary.spending || 0;
+  };
+
   const sortedItineraries = [...itineraries].sort((a, b) => {
     let comparison = 0;
     
@@ -59,6 +67,12 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
       case 'status':
         const statusOrder = { upcoming: 0, active: 1, completed: 2 };
         comparison = statusOrder[getStatus(a)] - statusOrder[getStatus(b)];
+        break;
+      case 'attendees':
+        comparison = getAttendeeCount(a) - getAttendeeCount(b);
+        break;
+      case 'spending':
+        comparison = getSpending(a) - getSpending(b);
         break;
     }
     
@@ -109,6 +123,15 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
     );
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   if (itineraries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -149,9 +172,9 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
       )}
 
       {/* List Table */}
-      <div className="rounded-lg border border-white/10 overflow-hidden">
+      <div className="rounded-lg border border-white/10 overflow-hidden overflow-x-auto">
         {/* Header */}
-        <div className="grid grid-cols-12 gap-4 p-4 bg-[#12131a] border-b border-white/10 text-sm font-medium text-white/60">
+        <div className="grid grid-cols-16 gap-2 md:gap-4 p-4 bg-[#12131a] border-b border-white/10 text-sm font-medium text-white/60 min-w-[800px]">
           <div className="col-span-1 flex items-center">
             <Checkbox 
               checked={selectedIds.length === itineraries.length && itineraries.length > 0}
@@ -174,6 +197,20 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
           <div className="col-span-2">Locations</div>
           <button 
             className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left"
+            onClick={() => handleSort('attendees')}
+          >
+            <Users className="h-3 w-3" />
+            Attendees <SortIcon field="attendees" />
+          </button>
+          <button 
+            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left"
+            onClick={() => handleSort('spending')}
+          >
+            <DollarSign className="h-3 w-3" />
+            Spending <SortIcon field="spending" />
+          </button>
+          <button 
+            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left"
             onClick={() => handleSort('status')}
           >
             Status <SortIcon field="status" />
@@ -186,11 +223,13 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
           const status = getStatus(itinerary);
           const locations = itinerary.itin_locations?.slice(0, 2) || [];
           const remainingLocations = (itinerary.itin_locations?.length || 0) - 2;
+          const attendeeCount = getAttendeeCount(itinerary);
+          const spending = getSpending(itinerary);
 
           return (
             <div 
               key={itinerary.id}
-              className={`grid grid-cols-12 gap-4 p-4 border-b border-white/10 last:border-b-0 hover:bg-[#252738] transition-colors items-center ${
+              className={`grid grid-cols-16 gap-2 md:gap-4 p-4 border-b border-white/10 last:border-b-0 hover:bg-[#252738] transition-colors items-center min-w-[800px] ${
                 index % 2 === 0 ? 'bg-[#1a1c2e]' : 'bg-[#1e2030]'
               }`}
             >
@@ -200,7 +239,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
                   onCheckedChange={() => toggleSelect(itinerary.id)}
                   className="border-white/30 data-[state=checked]:bg-primary"
                 />
-                <GripVertical className="h-4 w-4 text-white/30 cursor-grab" />
+                <GripVertical className="h-4 w-4 text-white/30 cursor-grab hidden md:block" />
               </div>
               
               <div 
@@ -210,14 +249,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
                 <p className="font-medium text-white hover:text-primary transition-colors line-clamp-1">
                   {itinerary.itin_name || 'Untitled Trip'}
                 </p>
-                <p className="text-xs text-white/50 line-clamp-1">
+                <p className="text-xs text-white/50 line-clamp-1 hidden md:block">
                   {itinerary.itin_desc || 'No description'}
                 </p>
               </div>
 
               <div className="col-span-3 flex items-center gap-2 text-sm text-white/60">
-                <Calendar className="h-4 w-4" />
-                <span>
+                <Calendar className="h-4 w-4 hidden md:block" />
+                <span className="text-xs md:text-sm">
                   {itinerary.itin_date_start && itinerary.itin_date_end
                     ? `${format(new Date(itinerary.itin_date_start), 'MMM d')} - ${format(new Date(itinerary.itin_date_end), 'MMM d, yyyy')}`
                     : 'TBD'}
@@ -225,10 +264,21 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               </div>
 
               <div className="col-span-2 flex items-center gap-1 text-sm">
-                <MapPin className="h-4 w-4 text-white/40" />
-                <span className="text-white/60 line-clamp-1">
+                <MapPin className="h-4 w-4 text-white/40 hidden md:block" />
+                <span className="text-white/60 line-clamp-1 text-xs md:text-sm">
                   {locations.join(', ')}
                   {remainingLocations > 0 && ` +${remainingLocations}`}
+                </span>
+              </div>
+
+              <div className="col-span-2 flex items-center gap-1 text-sm text-white/60">
+                <Users className="h-4 w-4 text-white/40" />
+                <span>{attendeeCount}</span>
+              </div>
+
+              <div className="col-span-2 text-sm">
+                <span className={`font-medium ${spending > 0 ? 'text-[#ffce87]' : 'text-white/40'}`}>
+                  {spending > 0 ? formatCurrency(spending) : '-'}
                 </span>
               </div>
 
