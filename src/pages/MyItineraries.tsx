@@ -16,6 +16,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { ItineraryData } from '@/types/itinerary';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'grid' | 'map' | 'list';
 
@@ -157,6 +158,49 @@ const MyItineraries = () => {
   };
 
   const loading = collectionsLoading || itinerariesLoading;
+  const isMobile = useIsMobile();
+
+  // Mobile collections component (horizontal scroll)
+  const MobileCollections = () => (
+    <div className="w-full bg-[#12131a] border-b border-white/10 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-white text-sm">Collections</h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2 text-white/60 hover:text-white hover:bg-white/10"
+          onClick={handleCreateCollection}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <button
+          className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm transition-colors ${
+            selectedCollectionId === null
+              ? 'bg-primary/20 text-primary'
+              : 'bg-white/10 text-white/80 hover:bg-white/20'
+          }`}
+          onClick={() => setSelectedCollectionId(null)}
+        >
+          All ({activeItineraries.length})
+        </button>
+        {collections.map((collection) => (
+          <button
+            key={collection.id}
+            className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm transition-colors ${
+              selectedCollectionId === collection.id
+                ? 'bg-primary/20 text-primary'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+            onClick={() => setSelectedCollectionId(collection.id)}
+          >
+            {collection.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <DndContext
@@ -164,22 +208,24 @@ const MyItineraries = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="min-h-screen bg-[#171821] flex">
-        {/* Sidebar */}
-        <CollectionsSidebar
-          collections={collections}
-          selectedCollectionId={selectedCollectionId}
-          onSelectCollection={setSelectedCollectionId}
-          onCreateCollection={handleCreateCollection}
-          onEditCollection={handleEditCollection}
-          totalItineraries={activeItineraries.length}
-        />
+      <div className="min-h-screen bg-[#171821] flex flex-col md:flex-row">
+        {/* Desktop Sidebar - hidden on mobile */}
+        {!isMobile && (
+          <CollectionsSidebar
+            collections={collections}
+            selectedCollectionId={selectedCollectionId}
+            onSelectCollection={setSelectedCollectionId}
+            onCreateCollection={handleCreateCollection}
+            onEditCollection={handleEditCollection}
+            totalItineraries={activeItineraries.length}
+          />
+        )}
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="border-b border-white/10 px-6 py-4">
-            <div className="flex items-center justify-between">
+          <header className="border-b border-white/10 px-4 md:px-6 py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <Button 
                   variant="ghost" 
@@ -190,7 +236,7 @@ const MyItineraries = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">
+                  <h1 className="text-xl md:text-2xl font-bold text-white">
                     {selectedCollectionId 
                       ? collections.find(c => c.id === selectedCollectionId)?.name || 'Collection'
                       : 'All Itineraries'
@@ -202,39 +248,42 @@ const MyItineraries = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-4">
                 {/* View Toggle */}
                 <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
                   <TabsList className="bg-white/10">
-                    <TabsTrigger value="grid" className="gap-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
+                    <TabsTrigger value="grid" className="gap-1 sm:gap-2 px-2 sm:px-3 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
                       <LayoutGrid className="h-4 w-4" />
-                      Grid
+                      <span className="hidden sm:inline">Grid</span>
                     </TabsTrigger>
-                    <TabsTrigger value="map" className="gap-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
+                    <TabsTrigger value="map" className="gap-1 sm:gap-2 px-2 sm:px-3 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
                       <Map className="h-4 w-4" />
-                      Map
+                      <span className="hidden sm:inline">Map</span>
                     </TabsTrigger>
-                    <TabsTrigger value="list" className="gap-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
+                    <TabsTrigger value="list" className="gap-1 sm:gap-2 px-2 sm:px-3 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
                       <List className="h-4 w-4" />
-                      List
+                      <span className="hidden sm:inline">List</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
 
-                <Button onClick={() => navigate('/create-itinerary')} className="gap-2">
+                <Button onClick={() => navigate('/create-itinerary')} className="gap-2" size={isMobile ? 'icon' : 'default'}>
                   <Plus className="h-4 w-4" />
-                  New Itinerary
+                  <span className="hidden sm:inline">New Itinerary</span>
                 </Button>
               </div>
             </div>
           </header>
 
+          {/* Mobile Collections - shown above content on mobile for grid/list views */}
+          {isMobile && viewMode !== 'map' && <MobileCollections />}
+
           {/* Content */}
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-4 md:p-6 overflow-auto">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton key={i} className="w-[255px] h-[375px] rounded-lg bg-white/10" />
+                  <Skeleton key={i} className="w-full aspect-[255/375] rounded-lg bg-white/10" />
                 ))}
               </div>
             ) : (
@@ -248,7 +297,14 @@ const MyItineraries = () => {
                   />
                 )}
                 {viewMode === 'map' && (
-                  <ItineraryMapView itineraries={filteredItineraries} />
+                  <div className="flex flex-col h-full">
+                    {/* Map takes full width on mobile */}
+                    <div className="w-full h-[50vh] md:h-[calc(100vh-200px)] rounded-lg overflow-hidden">
+                      <ItineraryMapView itineraries={filteredItineraries} />
+                    </div>
+                    {/* Collections below map on mobile */}
+                    {isMobile && <MobileCollections />}
+                  </div>
                 )}
                 {viewMode === 'list' && (
                   <ItineraryList
