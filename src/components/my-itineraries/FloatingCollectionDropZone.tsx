@@ -32,18 +32,18 @@ const DroppableCircle: React.FC<DroppableCircleProps> = ({ id, label, initial, i
           <div
             ref={setNodeRef}
             className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer",
+              "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg",
               isCreateNew
-                ? "border-2 border-dashed border-white/30 bg-white/5 hover:bg-white/10"
-                : "border-2 bg-[#1a1c2e] border-white/20 hover:border-white/40",
-              isOver && "bg-[#ffce87]/20 border-[#ffce87] scale-110"
+                ? "border-2 border-dashed border-[#ffce87]/40 bg-[#ffce87]/10 hover:bg-[#ffce87]/20"
+                : "border-2 bg-[#1a1c2e] border-white/30 hover:border-[#ffce87]/60",
+              isOver && "bg-[#ffce87]/30 border-[#ffce87] scale-110 shadow-[0_0_12px_rgba(255,206,135,0.4)]"
             )}
           >
             {isCreateNew ? (
-              <Plus className={cn("h-4 w-4 text-white/60", isOver && "text-[#ffce87]")} />
+              <Plus className={cn("h-5 w-5 text-[#ffce87]", isOver && "text-[#ffce87]")} />
             ) : (
               <span className={cn(
-                "text-sm font-semibold text-white/80",
+                "text-sm font-bold text-white",
                 isOver && "text-[#ffce87]"
               )}>
                 {initial}
@@ -75,9 +75,9 @@ export const FloatingCollectionDropZone: React.FC<FloatingCollectionDropZoneProp
   return (
     <div
       className={cn(
-        "fixed right-4 top-1/2 -translate-y-1/2 z-50",
-        "flex flex-col gap-3 p-2 rounded-full",
-        "bg-[#12131a]/95 backdrop-blur-sm border border-white/10 shadow-xl",
+        "fixed right-16 top-1/2 -translate-y-1/2 z-50",
+        "flex flex-col gap-3 p-3 rounded-2xl",
+        "bg-[#12131a]/95 backdrop-blur-md border border-[#ffce87]/20 shadow-2xl",
         "animate-in slide-in-from-right duration-200"
       )}
     >

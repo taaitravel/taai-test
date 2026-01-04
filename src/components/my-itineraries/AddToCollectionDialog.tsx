@@ -62,9 +62,9 @@ export const AddToCollectionDialog: React.FC<AddToCollectionDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[400px] bg-[#12131a] border-[#ffce87]/30">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-white">
             Add {itineraryCount} itinerary{itineraryCount !== 1 ? 's' : ''} to collection
           </DialogTitle>
         </DialogHeader>
@@ -77,22 +77,31 @@ export const AddToCollectionDialog: React.FC<AddToCollectionDialogProps> = ({
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Collection name..."
                 autoFocus
+                className="bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-[#ffce87]/50"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleCreateNew();
                   if (e.key === 'Escape') setShowNewInput(false);
                 }}
               />
-              <Button onClick={handleCreateNew} disabled={!newName.trim() || saving}>
+              <Button 
+                onClick={handleCreateNew} 
+                disabled={!newName.trim() || saving}
+                className="bg-[#ffce87] text-[#12131a] hover:bg-[#ffce87]/80"
+              >
                 Add
               </Button>
-              <Button variant="ghost" onClick={() => setShowNewInput(false)}>
+              <Button 
+                variant="ghost" 
+                onClick={() => setShowNewInput(false)}
+                className="text-white/60 hover:text-white hover:bg-white/10"
+              >
                 Cancel
               </Button>
             </div>
           ) : (
             <Button
               variant="outline"
-              className="w-full justify-start gap-2"
+              className="w-full justify-start gap-2 border-[#ffce87]/40 text-[#ffce87] hover:bg-[#ffce87]/10 hover:border-[#ffce87]/60"
               onClick={() => setShowNewInput(true)}
             >
               <Plus className="h-4 w-4" />
@@ -106,21 +115,21 @@ export const AddToCollectionDialog: React.FC<AddToCollectionDialogProps> = ({
                 {collections.map((collection) => (
                   <button
                     key={collection.id}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-colors text-left"
                     onClick={() => handleSelect(collection.id)}
                     disabled={saving}
                   >
-                    <Folder className="h-5 w-5 text-primary" />
+                    <Folder className="h-5 w-5 text-[#ffce87]" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">
+                      <p className="font-medium text-white truncate">
                         {collection.name}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-[#ffce87]/70">
                         {collection.itinerary_count || 0} itinerary{(collection.itinerary_count || 0) !== 1 ? 's' : ''}
                       </p>
                     </div>
                     {selectedId === collection.id && (
-                      <Check className="h-5 w-5 text-primary animate-pulse" />
+                      <Check className="h-5 w-5 text-[#ffce87] animate-pulse" />
                     )}
                   </button>
                 ))}
@@ -129,14 +138,18 @@ export const AddToCollectionDialog: React.FC<AddToCollectionDialogProps> = ({
           )}
 
           {collections.length === 0 && !showNewInput && (
-            <p className="text-center text-muted-foreground py-4">
+            <p className="text-center text-white/50 py-4">
               No collections yet. Create one to get started!
             </p>
           )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="text-white/60 hover:text-white hover:bg-white/10"
+          >
             Cancel
           </Button>
         </DialogFooter>
