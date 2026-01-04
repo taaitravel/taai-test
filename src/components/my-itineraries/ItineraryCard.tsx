@@ -74,7 +74,7 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
   return (
     <Card 
-      className="w-[165px] h-[230px] sm:w-[191px] sm:h-[281px] lg:w-[255px] lg:h-[375px] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
+      className="w-[165px] h-[243px] sm:w-[191px] sm:h-[281px] lg:w-[255px] lg:h-[375px] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
       onClick={handleClick}
     >
       <CardContent className="p-2 sm:p-3 lg:p-4 h-full flex flex-col justify-between relative">
