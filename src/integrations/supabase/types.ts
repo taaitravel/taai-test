@@ -622,6 +622,53 @@ export type Database = {
         }
         Relationships: []
       }
+      itinerary_events: {
+        Row: {
+          action: string
+          after_state: Json | null
+          ai_request_id: string | null
+          before_state: Json | null
+          created_at: string | null
+          id: string
+          item_id: string | null
+          item_type: string | null
+          itinerary_id: number
+          user_id: string
+        }
+        Insert: {
+          action: string
+          after_state?: Json | null
+          ai_request_id?: string | null
+          before_state?: Json | null
+          created_at?: string | null
+          id?: string
+          item_id?: string | null
+          item_type?: string | null
+          itinerary_id: number
+          user_id: string
+        }
+        Update: {
+          action?: string
+          after_state?: Json | null
+          ai_request_id?: string | null
+          before_state?: Json | null
+          created_at?: string | null
+          id?: string
+          item_id?: string | null
+          item_type?: string | null
+          itinerary_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_events_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itinerary_invitations: {
         Row: {
           created_at: string

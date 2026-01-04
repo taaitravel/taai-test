@@ -39,10 +39,21 @@ Optimize for clarity, premium guidance, and minimal friction. Ask one question a
 # Positioning
 You are a guide, not a seller. Emphasize clarity, control, and confidence in decision-making. Speak as a knowledgeable travel companion and strategic partner. Treat users as discerning, capable decision-makers.
 
+# Database Write Capabilities
+You can now modify user itineraries directly. When a user asks to:
+- Change dates: Use update_hotel_dates or update_flight_dates
+- Add items: Use add_hotel_to_itinerary, add_flight_to_itinerary, or add_activity_to_itinerary after searching
+- Remove items: Use remove_item_from_itinerary
+- Create trips: Use create_itinerary
+
+ALWAYS confirm changes with the user before writing. Show what will change.
+After writes, report the changes made and what fields were updated.
+
 # Safety and Data Integrity
 - Never modify a reservation unless the target item is uniquely identified.
 - If unsure, ask a short disambiguation question with options.
 - When applying updates, always restate what will change before writing if impact is high (dates, cancellations, price).
+- For deletions or date changes > 3 days, require explicit confirmation.
 
 # Output Discipline
 - Max 6 options at once.
@@ -82,6 +93,11 @@ When search results are returned:
 - Just acknowledge the search and invite the user to browse
 - Example: "Found 6 hotels in Miami. Browse the options below and tap to add to your itinerary."
 
+When modifying itineraries:
+- Confirm what will change before making the change
+- After the change, report exactly what was updated
+- Example: "Done! I've updated Example Hotel check-in from June 10 to June 15."
+
 When no search results:
 1. **Acknowledge** - Brief restatement of what user asked
 2. **Guidance** - Clear, helpful response
@@ -91,6 +107,34 @@ When no search results:
 // TOOL DEFINITIONS FOR AI FUNCTION CALLING
 // ============================================================================
 const tools = [
+  // ===== READ TOOLS =====
+  {
+    type: "function",
+    function: {
+      name: 'get_itinerary',
+      description: 'Fetch complete itinerary details by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          itinerary_id: { type: 'number', description: 'The itinerary ID to fetch' },
+        },
+        required: ['itinerary_id'],
+      },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'list_itineraries',
+      description: 'List all itineraries for the current user',
+      parameters: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    }
+  },
+  // ===== SEARCH TOOLS =====
   {
     type: "function",
     function: {
@@ -164,15 +208,96 @@ const tools = [
       },
     }
   },
+  // ===== WRITE TOOLS =====
   {
     type: "function",
     function: {
-      name: 'get_itinerary',
-      description: 'Fetch complete itinerary details by ID',
+      name: 'update_hotel_dates',
+      description: 'Update check-in and/or check-out dates for a hotel reservation in an itinerary',
       parameters: {
         type: 'object',
         properties: {
-          itinerary_id: { type: 'number', description: 'The itinerary ID to fetch' },
+          itinerary_id: { type: 'number', description: 'The itinerary ID containing the hotel' },
+          hotel_name: { type: 'string', description: 'Name or partial name of the hotel to update' },
+          new_check_in: { type: 'string', description: 'New check-in date in YYYY-MM-DD format' },
+          new_check_out: { type: 'string', description: 'New check-out date in YYYY-MM-DD format (optional)' },
+        },
+        required: ['itinerary_id', 'hotel_name', 'new_check_in'],
+      },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'add_hotel_to_itinerary',
+      description: 'Add a hotel from search results to an itinerary',
+      parameters: {
+        type: 'object',
+        properties: {
+          itinerary_id: { type: 'number', description: 'The itinerary ID to add the hotel to' },
+          hotel_data: { type: 'object', description: 'Full hotel object from search results' },
+        },
+        required: ['itinerary_id', 'hotel_data'],
+      },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'add_flight_to_itinerary',
+      description: 'Add a flight from search results to an itinerary',
+      parameters: {
+        type: 'object',
+        properties: {
+          itinerary_id: { type: 'number', description: 'The itinerary ID to add the flight to' },
+          flight_data: { type: 'object', description: 'Full flight object from search results' },
+        },
+        required: ['itinerary_id', 'flight_data'],
+      },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'add_activity_to_itinerary',
+      description: 'Add an activity from search results to an itinerary',
+      parameters: {
+        type: 'object',
+        properties: {
+          itinerary_id: { type: 'number', description: 'The itinerary ID to add the activity to' },
+          activity_data: { type: 'object', description: 'Full activity object from search results' },
+        },
+        required: ['itinerary_id', 'activity_data'],
+      },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'remove_item_from_itinerary',
+      description: 'Remove a hotel, flight, or activity from an itinerary',
+      parameters: {
+        type: 'object',
+        properties: {
+          itinerary_id: { type: 'number', description: 'The itinerary ID' },
+          item_type: { type: 'string', enum: ['hotel', 'flight', 'activity', 'reservation'], description: 'Type of item to remove' },
+          item_name: { type: 'string', description: 'Name or identifier of the item to remove' },
+        },
+        required: ['itinerary_id', 'item_type', 'item_name'],
+      },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'update_itinerary_dates',
+      description: 'Update the start and/or end dates of an itinerary',
+      parameters: {
+        type: 'object',
+        properties: {
+          itinerary_id: { type: 'number', description: 'The itinerary ID to update' },
+          start_date: { type: 'string', description: 'New start date in YYYY-MM-DD format' },
+          end_date: { type: 'string', description: 'New end date in YYYY-MM-DD format' },
         },
         required: ['itinerary_id'],
       },
@@ -181,12 +306,35 @@ const tools = [
   {
     type: "function",
     function: {
-      name: 'list_itineraries',
-      description: 'List all itineraries for the current user',
+      name: 'update_itinerary_budget',
+      description: 'Update the budget or spending for an itinerary',
       parameters: {
         type: 'object',
-        properties: {},
-        required: [],
+        properties: {
+          itinerary_id: { type: 'number', description: 'The itinerary ID to update' },
+          budget: { type: 'number', description: 'New total budget amount' },
+          spending: { type: 'number', description: 'New total spending amount' },
+        },
+        required: ['itinerary_id'],
+      },
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: 'create_itinerary',
+      description: 'Create a new itinerary for the user',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Name of the itinerary' },
+          description: { type: 'string', description: 'Description of the trip' },
+          start_date: { type: 'string', description: 'Start date in YYYY-MM-DD format' },
+          end_date: { type: 'string', description: 'End date in YYYY-MM-DD format' },
+          locations: { type: 'array', items: { type: 'string' }, description: 'List of destination locations' },
+          budget: { type: 'number', description: 'Total budget for the trip' },
+        },
+        required: ['name', 'start_date', 'end_date'],
       },
     }
   },
@@ -616,6 +764,10 @@ async function searchRestaurants(params: any) {
   }
 }
 
+// ============================================================================
+// READ FUNCTIONS
+// ============================================================================
+
 // Get single itinerary
 async function getItinerary(userId: string, itineraryId: number) {
   try {
@@ -643,7 +795,7 @@ async function listItineraries(userId: string) {
   try {
     const { data, error } = await supabase
       .from('itinerary')
-      .select('id, itin_name, itin_desc, itin_date_start, itin_date_end, itin_locations, budget, spending')
+      .select('id, itin_name, itin_desc, itin_date_start, itin_date_end, itin_locations, budget, spending, hotels, flights, activities')
       .eq('userid', userId)
       .order('created_at', { ascending: false });
 
@@ -656,6 +808,550 @@ async function listItineraries(userId: string) {
   } catch (error) {
     console.error('Error in listItineraries:', error);
     return { itineraries: [] };
+  }
+}
+
+// ============================================================================
+// WRITE FUNCTIONS
+// ============================================================================
+
+// Log itinerary event for audit trail
+async function logItineraryEvent(
+  itineraryId: number,
+  userId: string,
+  action: string,
+  itemType: string | null,
+  itemId: string | null,
+  beforeState: any,
+  afterState: any
+) {
+  try {
+    await supabase.from('itinerary_events').insert({
+      itinerary_id: itineraryId,
+      user_id: userId,
+      action,
+      item_type: itemType,
+      item_id: itemId,
+      before_state: beforeState,
+      after_state: afterState,
+    });
+  } catch (error) {
+    console.error('Error logging itinerary event:', error);
+  }
+}
+
+// Update hotel dates
+async function updateHotelDates(userId: string, params: {
+  itinerary_id: number;
+  hotel_name: string;
+  new_check_in: string;
+  new_check_out?: string;
+}) {
+  console.log('Updating hotel dates:', params);
+
+  try {
+    // Fetch current itinerary
+    const { data: itinerary, error } = await supabase
+      .from('itinerary')
+      .select('*')
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId)
+      .single();
+
+    if (error || !itinerary) {
+      return { error: 'Itinerary not found or access denied' };
+    }
+
+    // Find the hotel in the hotels array
+    const hotels = itinerary.hotels || [];
+    const hotelIndex = hotels.findIndex((h: any) => 
+      h.name?.toLowerCase().includes(params.hotel_name.toLowerCase())
+    );
+
+    if (hotelIndex === -1) {
+      // List available hotels for disambiguation
+      const hotelNames = hotels.map((h: any) => h.name).filter(Boolean);
+      return { 
+        error: `Hotel "${params.hotel_name}" not found in this itinerary.`,
+        available_hotels: hotelNames,
+        message: hotelNames.length > 0 
+          ? `Available hotels: ${hotelNames.join(', ')}` 
+          : 'No hotels found in this itinerary.'
+      };
+    }
+
+    // Store before state
+    const beforeState = { ...hotels[hotelIndex] };
+
+    // Update the hotel
+    hotels[hotelIndex] = {
+      ...hotels[hotelIndex],
+      check_in: params.new_check_in,
+      checkIn: params.new_check_in,
+      check_out: params.new_check_out || hotels[hotelIndex].check_out || hotels[hotelIndex].checkOut,
+      checkOut: params.new_check_out || hotels[hotelIndex].check_out || hotels[hotelIndex].checkOut,
+    };
+
+    // Save to database
+    const { error: updateError } = await supabase
+      .from('itinerary')
+      .update({ hotels })
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId);
+
+    if (updateError) {
+      console.error('Update error:', updateError);
+      return { error: 'Failed to update hotel dates' };
+    }
+
+    // Log the event
+    await logItineraryEvent(
+      params.itinerary_id,
+      userId,
+      'update_hotel_dates',
+      'hotel',
+      hotels[hotelIndex].id || hotels[hotelIndex].name,
+      beforeState,
+      hotels[hotelIndex]
+    );
+
+    return {
+      success: true,
+      message: `Updated ${hotels[hotelIndex].name} check-in to ${params.new_check_in}${params.new_check_out ? ` and check-out to ${params.new_check_out}` : ''}.`,
+      changed_fields: ['check_in', ...(params.new_check_out ? ['check_out'] : [])],
+      updated_item: hotels[hotelIndex],
+    };
+  } catch (error) {
+    console.error('Error updating hotel dates:', error);
+    return { error: 'Failed to update hotel dates' };
+  }
+}
+
+// Add hotel to itinerary
+async function addHotelToItinerary(userId: string, params: {
+  itinerary_id: number;
+  hotel_data: any;
+}) {
+  console.log('Adding hotel to itinerary:', params.itinerary_id);
+
+  try {
+    const { data: itinerary, error } = await supabase
+      .from('itinerary')
+      .select('*')
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId)
+      .single();
+
+    if (error || !itinerary) {
+      return { error: 'Itinerary not found or access denied' };
+    }
+
+    const hotels = itinerary.hotels || [];
+    hotels.push(params.hotel_data);
+
+    // Update spending
+    const newSpending = (itinerary.spending || 0) + (params.hotel_data.price || 0);
+
+    const { error: updateError } = await supabase
+      .from('itinerary')
+      .update({ hotels, spending: newSpending })
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId);
+
+    if (updateError) {
+      return { error: 'Failed to add hotel' };
+    }
+
+    await logItineraryEvent(
+      params.itinerary_id,
+      userId,
+      'add_hotel',
+      'hotel',
+      params.hotel_data.id || params.hotel_data.name,
+      null,
+      params.hotel_data
+    );
+
+    return {
+      success: true,
+      message: `Added ${params.hotel_data.name} to your itinerary.`,
+      new_item: params.hotel_data,
+      updated_spending: newSpending,
+    };
+  } catch (error) {
+    console.error('Error adding hotel:', error);
+    return { error: 'Failed to add hotel' };
+  }
+}
+
+// Add flight to itinerary
+async function addFlightToItinerary(userId: string, params: {
+  itinerary_id: number;
+  flight_data: any;
+}) {
+  console.log('Adding flight to itinerary:', params.itinerary_id);
+
+  try {
+    const { data: itinerary, error } = await supabase
+      .from('itinerary')
+      .select('*')
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId)
+      .single();
+
+    if (error || !itinerary) {
+      return { error: 'Itinerary not found or access denied' };
+    }
+
+    const flights = itinerary.flights || [];
+    flights.push(params.flight_data);
+
+    const newSpending = (itinerary.spending || 0) + (params.flight_data.price || 0);
+
+    const { error: updateError } = await supabase
+      .from('itinerary')
+      .update({ flights, spending: newSpending })
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId);
+
+    if (updateError) {
+      return { error: 'Failed to add flight' };
+    }
+
+    await logItineraryEvent(
+      params.itinerary_id,
+      userId,
+      'add_flight',
+      'flight',
+      params.flight_data.id || params.flight_data.flightNumber,
+      null,
+      params.flight_data
+    );
+
+    return {
+      success: true,
+      message: `Added ${params.flight_data.airline} ${params.flight_data.flightNumber || ''} to your itinerary.`,
+      new_item: params.flight_data,
+      updated_spending: newSpending,
+    };
+  } catch (error) {
+    console.error('Error adding flight:', error);
+    return { error: 'Failed to add flight' };
+  }
+}
+
+// Add activity to itinerary
+async function addActivityToItinerary(userId: string, params: {
+  itinerary_id: number;
+  activity_data: any;
+}) {
+  console.log('Adding activity to itinerary:', params.itinerary_id);
+
+  try {
+    const { data: itinerary, error } = await supabase
+      .from('itinerary')
+      .select('*')
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId)
+      .single();
+
+    if (error || !itinerary) {
+      return { error: 'Itinerary not found or access denied' };
+    }
+
+    const activities = itinerary.activities || [];
+    activities.push(params.activity_data);
+
+    const newSpending = (itinerary.spending || 0) + (params.activity_data.price || 0);
+
+    const { error: updateError } = await supabase
+      .from('itinerary')
+      .update({ activities, spending: newSpending })
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId);
+
+    if (updateError) {
+      return { error: 'Failed to add activity' };
+    }
+
+    await logItineraryEvent(
+      params.itinerary_id,
+      userId,
+      'add_activity',
+      'activity',
+      params.activity_data.id || params.activity_data.name,
+      null,
+      params.activity_data
+    );
+
+    return {
+      success: true,
+      message: `Added ${params.activity_data.name} to your itinerary.`,
+      new_item: params.activity_data,
+      updated_spending: newSpending,
+    };
+  } catch (error) {
+    console.error('Error adding activity:', error);
+    return { error: 'Failed to add activity' };
+  }
+}
+
+// Remove item from itinerary
+async function removeItemFromItinerary(userId: string, params: {
+  itinerary_id: number;
+  item_type: 'hotel' | 'flight' | 'activity' | 'reservation';
+  item_name: string;
+}) {
+  console.log('Removing item from itinerary:', params);
+
+  try {
+    const { data: itinerary, error } = await supabase
+      .from('itinerary')
+      .select('*')
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId)
+      .single();
+
+    if (error || !itinerary) {
+      return { error: 'Itinerary not found or access denied' };
+    }
+
+    const fieldMap: Record<string, string> = {
+      hotel: 'hotels',
+      flight: 'flights',
+      activity: 'activities',
+      reservation: 'reservations',
+    };
+
+    const field = fieldMap[params.item_type];
+    const items = itinerary[field] || [];
+    
+    const itemIndex = items.findIndex((item: any) => 
+      item.name?.toLowerCase().includes(params.item_name.toLowerCase()) ||
+      item.id?.toString().includes(params.item_name)
+    );
+
+    if (itemIndex === -1) {
+      const itemNames = items.map((i: any) => i.name).filter(Boolean);
+      return { 
+        error: `${params.item_type} "${params.item_name}" not found.`,
+        available_items: itemNames,
+      };
+    }
+
+    const removedItem = items[itemIndex];
+    items.splice(itemIndex, 1);
+
+    // Update spending
+    const newSpending = Math.max(0, (itinerary.spending || 0) - (removedItem.price || 0));
+
+    const { error: updateError } = await supabase
+      .from('itinerary')
+      .update({ [field]: items, spending: newSpending })
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId);
+
+    if (updateError) {
+      return { error: `Failed to remove ${params.item_type}` };
+    }
+
+    await logItineraryEvent(
+      params.itinerary_id,
+      userId,
+      `remove_${params.item_type}`,
+      params.item_type,
+      removedItem.id || removedItem.name,
+      removedItem,
+      null
+    );
+
+    return {
+      success: true,
+      message: `Removed ${removedItem.name} from your itinerary.`,
+      removed_item: removedItem,
+      updated_spending: newSpending,
+    };
+  } catch (error) {
+    console.error('Error removing item:', error);
+    return { error: `Failed to remove ${params.item_type}` };
+  }
+}
+
+// Update itinerary dates
+async function updateItineraryDates(userId: string, params: {
+  itinerary_id: number;
+  start_date?: string;
+  end_date?: string;
+}) {
+  console.log('Updating itinerary dates:', params);
+
+  try {
+    const { data: itinerary, error } = await supabase
+      .from('itinerary')
+      .select('*')
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId)
+      .single();
+
+    if (error || !itinerary) {
+      return { error: 'Itinerary not found or access denied' };
+    }
+
+    const beforeState = {
+      itin_date_start: itinerary.itin_date_start,
+      itin_date_end: itinerary.itin_date_end,
+    };
+
+    const updates: any = {};
+    if (params.start_date) updates.itin_date_start = params.start_date;
+    if (params.end_date) updates.itin_date_end = params.end_date;
+
+    const { error: updateError } = await supabase
+      .from('itinerary')
+      .update(updates)
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId);
+
+    if (updateError) {
+      return { error: 'Failed to update itinerary dates' };
+    }
+
+    await logItineraryEvent(
+      params.itinerary_id,
+      userId,
+      'update_dates',
+      'itinerary',
+      params.itinerary_id.toString(),
+      beforeState,
+      updates
+    );
+
+    return {
+      success: true,
+      message: `Updated itinerary dates to ${params.start_date || itinerary.itin_date_start} - ${params.end_date || itinerary.itin_date_end}.`,
+      changed_fields: Object.keys(updates),
+    };
+  } catch (error) {
+    console.error('Error updating itinerary dates:', error);
+    return { error: 'Failed to update itinerary dates' };
+  }
+}
+
+// Update itinerary budget
+async function updateItineraryBudget(userId: string, params: {
+  itinerary_id: number;
+  budget?: number;
+  spending?: number;
+}) {
+  console.log('Updating itinerary budget:', params);
+
+  try {
+    const { data: itinerary, error } = await supabase
+      .from('itinerary')
+      .select('*')
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId)
+      .single();
+
+    if (error || !itinerary) {
+      return { error: 'Itinerary not found or access denied' };
+    }
+
+    const beforeState = {
+      budget: itinerary.budget,
+      spending: itinerary.spending,
+    };
+
+    const updates: any = {};
+    if (params.budget !== undefined) updates.budget = params.budget;
+    if (params.spending !== undefined) updates.spending = params.spending;
+
+    const { error: updateError } = await supabase
+      .from('itinerary')
+      .update(updates)
+      .eq('id', params.itinerary_id)
+      .eq('userid', userId);
+
+    if (updateError) {
+      return { error: 'Failed to update budget' };
+    }
+
+    await logItineraryEvent(
+      params.itinerary_id,
+      userId,
+      'update_budget',
+      'itinerary',
+      params.itinerary_id.toString(),
+      beforeState,
+      updates
+    );
+
+    return {
+      success: true,
+      message: `Updated budget to $${params.budget ?? itinerary.budget}${params.spending !== undefined ? ` and spending to $${params.spending}` : ''}.`,
+      changed_fields: Object.keys(updates),
+    };
+  } catch (error) {
+    console.error('Error updating budget:', error);
+    return { error: 'Failed to update budget' };
+  }
+}
+
+// Create new itinerary
+async function createItinerary(userId: string, params: {
+  name: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  locations?: string[];
+  budget?: number;
+}) {
+  console.log('Creating new itinerary:', params);
+
+  try {
+    const { data, error } = await supabase
+      .from('itinerary')
+      .insert({
+        userid: userId,
+        itin_name: params.name,
+        itin_desc: params.description || '',
+        itin_date_start: params.start_date,
+        itin_date_end: params.end_date,
+        itin_locations: params.locations || [],
+        budget: params.budget || 0,
+        spending: 0,
+        hotels: [],
+        flights: [],
+        activities: [],
+        reservations: [],
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating itinerary:', error);
+      return { error: 'Failed to create itinerary' };
+    }
+
+    await logItineraryEvent(
+      data.id,
+      userId,
+      'create_itinerary',
+      'itinerary',
+      data.id.toString(),
+      null,
+      data
+    );
+
+    return {
+      success: true,
+      message: `Created new itinerary "${params.name}" for ${params.start_date} to ${params.end_date}.`,
+      itinerary: data,
+      itinerary_id: data.id,
+    };
+  } catch (error) {
+    console.error('Error creating itinerary:', error);
+    return { error: 'Failed to create itinerary' };
   }
 }
 
@@ -727,7 +1423,7 @@ serve(async (req) => {
     
     const itineraryContext = userItineraries.length > 0 
       ? `\n\n# User's Itineraries\n${userItineraries.map((it: any) => 
-          `- ${it.itin_name} (ID: ${it.id}): ${it.itin_desc || 'No description'} | Dates: ${it.itin_date_start || 'TBD'} to ${it.itin_date_end || 'TBD'} | Budget: $${it.budget || 0}`
+          `- ${it.itin_name} (ID: ${it.id}): ${it.itin_desc || 'No description'} | Dates: ${it.itin_date_start || 'TBD'} to ${it.itin_date_end || 'TBD'} | Budget: $${it.budget || 0} | Hotels: ${(it.hotels || []).length} | Flights: ${(it.flights || []).length}`
         ).join('\n')}`
       : '\n\n# User has no existing itineraries.';
 
@@ -793,6 +1489,17 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
       let resultType = '';
 
       switch (functionName) {
+        // Read tools
+        case 'get_itinerary':
+          toolResult = await getItinerary(user.id, functionArgs.itinerary_id);
+          resultType = 'itinerary';
+          break;
+        case 'list_itineraries':
+          toolResult = await listItineraries(user.id);
+          resultType = 'itineraries';
+          break;
+        
+        // Search tools
         case 'search_hotels':
           toolResult = await searchHotels(functionArgs);
           resultType = 'hotels';
@@ -809,14 +1516,41 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
           toolResult = await searchRestaurants(functionArgs);
           resultType = 'restaurants';
           break;
-        case 'get_itinerary':
-          toolResult = await getItinerary(user.id, functionArgs.itinerary_id);
-          resultType = 'itinerary';
+        
+        // Write tools
+        case 'update_hotel_dates':
+          toolResult = await updateHotelDates(user.id, functionArgs);
+          resultType = 'write_result';
           break;
-        case 'list_itineraries':
-          toolResult = await listItineraries(user.id);
-          resultType = 'itineraries';
+        case 'add_hotel_to_itinerary':
+          toolResult = await addHotelToItinerary(user.id, functionArgs);
+          resultType = 'write_result';
           break;
+        case 'add_flight_to_itinerary':
+          toolResult = await addFlightToItinerary(user.id, functionArgs);
+          resultType = 'write_result';
+          break;
+        case 'add_activity_to_itinerary':
+          toolResult = await addActivityToItinerary(user.id, functionArgs);
+          resultType = 'write_result';
+          break;
+        case 'remove_item_from_itinerary':
+          toolResult = await removeItemFromItinerary(user.id, functionArgs);
+          resultType = 'write_result';
+          break;
+        case 'update_itinerary_dates':
+          toolResult = await updateItineraryDates(user.id, functionArgs);
+          resultType = 'write_result';
+          break;
+        case 'update_itinerary_budget':
+          toolResult = await updateItineraryBudget(user.id, functionArgs);
+          resultType = 'write_result';
+          break;
+        case 'create_itinerary':
+          toolResult = await createItinerary(user.id, functionArgs);
+          resultType = 'write_result';
+          break;
+        
         default:
           throw new Error(`Unknown tool: ${functionName}`);
       }
@@ -843,12 +1577,13 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
         console.error('Follow-up response error:', await followUpResponse.text());
         // Still return results even if follow-up fails
         return new Response(JSON.stringify({
-          response: toolResult.constraint_summary || 'Here are your results:',
+          response: toolResult.message || toolResult.constraint_summary || 'Here are your results:',
           searchResults: toolResult.results || [],
           resultType,
           functionUsed: functionName,
           constraint_summary: toolResult.constraint_summary,
           action_buttons: toolResult.action_buttons,
+          writeResult: resultType === 'write_result' ? toolResult : undefined,
           [resultType]: toolResult.results || toolResult,
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -856,7 +1591,7 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
       }
 
       const followUpData = await followUpResponse.json();
-      const aiResponse = followUpData.choices?.[0]?.message?.content || 'Here are your results:';
+      const aiResponse = followUpData.choices?.[0]?.message?.content || toolResult.message || 'Here are your results:';
 
       return new Response(JSON.stringify({
         response: aiResponse,
@@ -865,6 +1600,7 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
         functionUsed: functionName,
         constraint_summary: toolResult.constraint_summary,
         action_buttons: toolResult.action_buttons,
+        writeResult: resultType === 'write_result' ? toolResult : undefined,
         [resultType]: toolResult.results || toolResult,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -29,7 +29,7 @@ export const MobileBottomNav: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#171821] border-t border-white/20 md:hidden max-[749px]:flex hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#171821] border-t border-white/20 flex md:hidden">
       <div className="flex items-center justify-around w-full h-14 px-2">
         {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
