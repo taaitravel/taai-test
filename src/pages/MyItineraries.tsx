@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
-import { LayoutGrid, Map, List, Plus, ArrowLeft } from 'lucide-react';
+import { LayoutGrid, Map, List, Plus, ArrowLeft, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CollectionsSidebar } from '@/components/my-itineraries/CollectionsSidebar';
@@ -187,44 +187,57 @@ const MyItineraries = () => {
   const loading = collectionsLoading || itinerariesLoading;
   const isMobile = useIsMobile();
 
-  // Mobile collections component (horizontal scroll)
+  // Mobile collections component (circular avatars)
   const MobileCollections = () => (
     <div className="w-full bg-[#12131a] border-b border-white/10 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-white text-sm">Collections</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 px-2 text-white/60 hover:text-white hover:bg-white/10"
-          onClick={handleCreateCollection}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide justify-start">
+        {/* All Itineraries */}
         <button
-          className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm transition-colors ${
-            selectedCollectionId === null
-              ? 'bg-primary/20 text-primary'
-              : 'bg-white/10 text-white/80 hover:bg-white/20'
-          }`}
+          className="flex flex-col items-center gap-1.5 flex-shrink-0"
           onClick={() => setSelectedCollectionId(null)}
         >
-          All ({activeItineraries.length})
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${
+            selectedCollectionId === null
+              ? 'bg-primary/20 border-[#ffce87]'
+              : 'bg-white/10 border-transparent hover:bg-white/20'
+          }`}>
+            <Globe className={`h-6 w-6 ${selectedCollectionId === null ? 'text-[#ffce87]' : 'text-white/80'}`} />
+          </div>
+          <span className="text-xs text-white/60 max-w-[56px] truncate">All</span>
         </button>
+
+        {/* User Collections */}
         {collections.map((collection) => (
           <button
             key={collection.id}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm transition-colors ${
-              selectedCollectionId === collection.id
-                ? 'bg-primary/20 text-primary'
-                : 'bg-white/10 text-white/80 hover:bg-white/20'
-            }`}
+            className="flex flex-col items-center gap-1.5 flex-shrink-0"
             onClick={() => setSelectedCollectionId(collection.id)}
           >
-            {collection.name}
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${
+              selectedCollectionId === collection.id
+                ? 'bg-primary/20 border-[#ffce87]'
+                : 'bg-white/10 border-transparent hover:bg-white/20'
+            }`}>
+              <span className={`text-lg font-semibold ${
+                selectedCollectionId === collection.id ? 'text-[#ffce87]' : 'text-white/80'
+              }`}>
+                {collection.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <span className="text-xs text-white/60 max-w-[56px] truncate">{collection.name}</span>
           </button>
         ))}
+
+        {/* New Collection */}
+        <button
+          className="flex flex-col items-center gap-1.5 flex-shrink-0"
+          onClick={handleCreateCollection}
+        >
+          <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-dashed border-white/30 flex items-center justify-center hover:bg-white/20 transition-all">
+            <Plus className="h-6 w-6 text-white/60" />
+          </div>
+          <span className="text-xs text-white/60">New</span>
+        </button>
       </div>
     </div>
   );
