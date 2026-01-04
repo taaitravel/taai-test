@@ -162,9 +162,9 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
       <div ref={mapContainer} className="absolute inset-0" />
       
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm rounded-lg p-3 border border-border">
-        <p className="text-xs font-medium text-foreground mb-2">Itineraries</p>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="absolute bottom-4 left-4 bg-[#12131a]/95 backdrop-blur-sm rounded-lg p-3 border border-white/10">
+        <p className="text-xs font-medium text-white mb-2">Itineraries</p>
+        <div className="flex items-center gap-2 text-xs text-slate-300">
           <div className="w-4 h-4 rounded-full bg-[#ffce87] border-2 border-[#1a1c2e]" />
           <span>{itineraries.length} trip{itineraries.length !== 1 ? 's' : ''}</span>
         </div>
