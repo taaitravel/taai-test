@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ExpediaSwipeProvider } from "@/components/swipe/ExpediaSwipeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
 import Index from "./pages/Index";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -95,6 +96,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <MobileBottomNav />
           </BrowserRouter>
         </ExpediaSwipeProvider>
       </AuthProvider>
