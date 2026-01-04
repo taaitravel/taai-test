@@ -353,7 +353,7 @@ const MyItineraries = () => {
                   </>
                 )}
                 {viewMode === 'map' && (
-                  <div className="flex flex-col h-full">
+                  <div className="flex flex-col gap-4">
                     {/* Map takes full width on mobile */}
                     <div className="w-full h-[50vh] md:h-[calc(100vh-200px)] rounded-lg overflow-hidden">
                       <ItineraryMapView itineraries={filteredItineraries} />

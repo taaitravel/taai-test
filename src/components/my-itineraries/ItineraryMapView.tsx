@@ -158,7 +158,7 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
   }
 
   return (
-    <div className="relative h-[600px] rounded-lg overflow-hidden border border-border">
+    <div className="relative h-full rounded-lg overflow-hidden">
       <div ref={mapContainer} className="absolute inset-0" />
       
       {/* Legend */}
