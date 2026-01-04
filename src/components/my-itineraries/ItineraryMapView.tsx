@@ -89,15 +89,47 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
         el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
         el.innerHTML = `<span style="font-size: 14px;">✈️</span>`;
 
+        // Determine status based on dates
+        const now = new Date();
+        const startDate = itinerary.itin_date_start ? new Date(itinerary.itin_date_start) : null;
+        const endDate = itinerary.itin_date_end ? new Date(itinerary.itin_date_end) : null;
+        
+        let status = 'Draft';
+        let statusColor = '#6b7280'; // gray
+        if (startDate && endDate) {
+          if (now > endDate) {
+            status = 'Completed';
+            statusColor = '#22c55e'; // green
+          } else if (now >= startDate && now <= endDate) {
+            status = 'In Progress';
+            statusColor = '#3b82f6'; // blue
+          } else if (now < startDate) {
+            status = 'Upcoming';
+            statusColor = '#ffce87'; // gold
+          }
+        }
+
+        // Format dates
+        const formatDate = (date: Date | null) => {
+          if (!date) return '';
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        };
+        const dateRange = startDate && endDate 
+          ? `${formatDate(startDate)} - ${formatDate(endDate)}`
+          : 'Dates not set';
+
         // Create popup
         const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
           .setHTML(`
-            <div style="padding: 12px; max-width: 200px;">
-              <h4 style="font-weight: 600; margin-bottom: 4px; color: #1a1c2e;">${itinerary.itin_name || 'Untitled Trip'}</h4>
-              <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${location.city}</p>
+            <div style="padding: 16px; max-width: 220px; text-align: center;">
+              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #1a1c2e;">${itinerary.itin_name || 'Untitled Trip'}</h3>
+              <p style="font-size: 11px; color: #666; margin-bottom: 10px;">${dateRange}</p>
+              <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; color: ${status === 'Upcoming' ? '#1a1c2e' : 'white'}; background: ${statusColor}; margin-bottom: 12px;">
+                ${status}
+              </span>
               <button 
-                id="view-${itinerary.id}" 
-                style="background: #1a1c2e; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer; width: 100%;"
+                id="view-${itinerary.id}-${location.lat}" 
+                style="display: block; width: 100%; background: #1a1c2e; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; border: none; cursor: pointer;"
               >
                 View Itinerary
               </button>
@@ -111,7 +143,7 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
 
         // Add click handler for popup button
         popup.on('open', () => {
-          const btn = document.getElementById(`view-${itinerary.id}`);
+          const btn = document.getElementById(`view-${itinerary.id}-${location.lat}`);
           if (btn) {
             btn.addEventListener('click', () => {
               navigate(`/itinerary?id=${itinerary.id}`);
