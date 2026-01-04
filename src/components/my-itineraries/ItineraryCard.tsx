@@ -74,10 +74,10 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
   return (
     <Card 
-      className="w-[255px] h-[375px] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
+      className="w-[127px] h-[187px] sm:w-[191px] sm:h-[281px] lg:w-[255px] lg:h-[375px] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
       onClick={handleClick}
     >
-      <CardContent className="p-4 h-full flex flex-col justify-between relative">
+      <CardContent className="p-2 sm:p-3 lg:p-4 h-full flex flex-col justify-between relative">
         {/* Collection Menu */}
         {showCollectionActions && (
           <div className="absolute top-2 right-2 z-10">
@@ -105,39 +105,39 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
         {/* Top Content */}
         <div>
-          <div className="text-2xl mb-2 opacity-60">{getEmoji()}</div>
-        <h4 className="font-bold text-black text-base mb-1 line-clamp-2 group-hover:text-white transition-colors">
-          {itinerary.itin_name || 'Untitled Trip'}
-        </h4>
-          <p className="text-white/50 text-sm mb-2">{formatDates()}</p>
-          <div className="flex flex-wrap gap-1 mb-2">
-            {locations.map((location, idx) => (
+          <div className="text-base sm:text-xl lg:text-2xl mb-1 sm:mb-2 opacity-60">{getEmoji()}</div>
+          <h4 className="font-bold text-black text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 group-hover:text-white transition-colors">
+            {itinerary.itin_name || 'Untitled Trip'}
+          </h4>
+          <p className="text-white/50 text-xs sm:text-sm mb-1 sm:mb-2">{formatDates()}</p>
+          <div className="flex flex-wrap gap-0.5 sm:gap-1 mb-1 sm:mb-2">
+            {locations.slice(0, 1).map((location, idx) => (
               <Badge 
                 key={idx} 
                 variant="secondary" 
-                className="text-sm bg-white/10 text-white/60 border-white/20"
+                className="text-[10px] sm:text-xs lg:text-sm bg-white/10 text-white/60 border-white/20 px-1 sm:px-2"
               >
                 {location}
               </Badge>
             ))}
-            {(itinerary.itin_locations?.length || 0) > 2 && (
+            {(itinerary.itin_locations?.length || 0) > 1 && (
               <Badge 
                 variant="secondary" 
-                className="text-sm bg-white/10 text-white/60 border-white/20"
+                className="text-[10px] sm:text-xs lg:text-sm bg-white/10 text-white/60 border-white/20 px-1 sm:px-2"
               >
-                +{(itinerary.itin_locations?.length || 0) - 2} more
+                +{(itinerary.itin_locations?.length || 0) - 1}
               </Badge>
             )}
           </div>
         </div>
 
         {/* Bottom Content */}
-        <div className="space-y-2">
-          <div className="flex items-center text-sm text-white/50">
-            <Users className="h-3 w-3 mr-1" />
-            {itinerary.attendees?.length || 1} people
+        <div className="space-y-1 sm:space-y-2">
+          <div className="flex items-center text-xs sm:text-sm text-white/50">
+            <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+            {itinerary.attendees?.length || 1}
           </div>
-          <Badge className="text-sm bg-white/10 text-white/60 border-white/20">
+          <Badge className="text-[10px] sm:text-xs lg:text-sm bg-white/10 text-white/60 border-white/20 px-1 sm:px-2">
             {status}
           </Badge>
         </div>
