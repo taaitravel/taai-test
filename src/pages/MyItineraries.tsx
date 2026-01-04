@@ -12,6 +12,7 @@ import { CollectionDialog } from '@/components/my-itineraries/CollectionDialog';
 import { AddToCollectionDialog } from '@/components/my-itineraries/AddToCollectionDialog';
 import { ItineraryCard } from '@/components/my-itineraries/ItineraryCard';
 import { GridFilters, GridSortField, GridSortDirection } from '@/components/my-itineraries/GridFilters';
+import { FloatingCollectionDropZone } from '@/components/my-itineraries/FloatingCollectionDropZone';
 import { useItineraryCollections, Collection } from '@/hooks/useItineraryCollections';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -171,8 +172,16 @@ const MyItineraries = () => {
     // Check if dropped on a collection
     const overId = over.id.toString();
     if (overId.startsWith('collection-') && active.data.current?.type === 'itinerary') {
-      const collectionId = overId.replace('collection-', '');
       const itinerary = active.data.current.itinerary as ItineraryData;
+      
+      // Handle "Create new collection" drop
+      if (overId === 'collection-new') {
+        setSelectedItineraryIds([itinerary.id]);
+        setAddToCollectionOpen(true);
+        return;
+      }
+      
+      const collectionId = overId.replace('collection-', '');
       const collection = collections.find(c => c.id === collectionId);
       
       await addToCollection(collectionId, [itinerary.id]);
@@ -383,6 +392,13 @@ const MyItineraries = () => {
           onSelectCollection={handleSelectCollectionForAdd}
           onCreateNew={handleCreateAndAdd}
           itineraryCount={selectedItineraryIds.length}
+        />
+
+        {/* Floating Collection Drop Zone - appears during drag */}
+        <FloatingCollectionDropZone
+          collections={collections}
+          isVisible={draggingItinerary !== null}
+          onCreateCollection={handleCreateCollection}
         />
 
         {/* Drag Overlay for visual feedback */}
