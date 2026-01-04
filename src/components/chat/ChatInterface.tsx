@@ -7,7 +7,8 @@ import { MessageCircle, Send, Bot, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ChatResultsCarousel } from '@/components/chat/ChatResultsCarousel';
-
+import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 interface Message {
   id: string;
   content: string;
@@ -40,6 +41,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -197,7 +200,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   // Floating mode behavior (original)
+  // Hide floating chat button on mobile when user is authenticated (bottom nav handles chat)
   if (!isOpen) {
+    if (isMobile && user) {
+      return null; // Don't show floating button on mobile when logged in
+    }
+    
     return (
       <Button
         onClick={() => setIsOpen(true)}
