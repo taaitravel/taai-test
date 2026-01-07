@@ -59,8 +59,8 @@ export const ItineraryStackedSection = ({
       </div>
       
       {items.length > 0 ? (
-        <div className="relative flex justify-center">
-          <div className="relative w-[255px] h-[375px]">
+        <div className="flex flex-col items-center">
+          <div className="relative w-[255px] h-[375px] mb-10">
             {items.slice(0, 3).map((item, stackIndex) => {
               const actualIndex = (currentIndex + stackIndex) % items.length;
               const displayItem = items[actualIndex];
@@ -124,31 +124,47 @@ export const ItineraryStackedSection = ({
                 </Card>
               );
             })}
-            
-            {items.length > 1 && (
-              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 flex gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handlePrev}
-                  className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="flex items-center text-xs text-white/60">
-                  {currentIndex + 1} / {items.length}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleNext}
-                  className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
           </div>
+          
+          {items.length > 1 && (
+            <div className="flex gap-3 items-center">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePrev}
+                className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="flex items-center text-xs text-white/60">
+                {currentIndex + 1} / {items.length}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNext}
+                className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          
+          {/* Mobile Add Button - Below Cards */}
+          {typeof (onAddClick) !== 'undefined' && (
+            <div className="flex justify-center mt-6 lg:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={`Add ${title}`}
+                onClick={onAddClick}
+                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 px-6"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add {title}
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-8 text-white/50">
@@ -170,22 +186,6 @@ export const ItineraryStackedSection = ({
               </Button>
             </div>
           )}
-        </div>
-      )}
-      
-      {/* Mobile Add Button - Below Cards */}
-      {typeof (onAddClick) !== 'undefined' && items.length > 0 && (
-        <div className="flex justify-center mt-16 lg:hidden">
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-label={`Add ${title}`}
-            onClick={onAddClick}
-            className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 px-6"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add {title}
-          </Button>
         </div>
       )}
     </div>
