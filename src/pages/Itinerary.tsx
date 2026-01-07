@@ -170,7 +170,7 @@ const Itinerary = () => {
   return (
     <div className="min-h-screen bg-[#171821]">
       <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <ItineraryHeader itineraryId={itineraryData.id} />
+        <ItineraryHeader itineraryId={itineraryData.id} itineraryData={itineraryData} />
       </div>
       
       <ItineraryContent
