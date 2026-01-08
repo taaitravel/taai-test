@@ -21,15 +21,13 @@ interface BudgetPieChartProps {
   refreshTrigger?: number; // Add this to force refresh when itinerary changes
 }
 
-const COLORS = [
-  'hsl(351, 85%, 75%)',  // Primary coral pink
-  'hsl(15, 80%, 70%)',   // Orange
-  'hsl(25, 75%, 65%)',   // Peach
-  'hsl(335, 85%, 75%)',  // Hot pink
-  'hsl(10, 85%, 75%)',   // Red-orange
-  'hsl(20, 80%, 70%)',   // Golden orange
-  'hsl(30, 75%, 70%)',   // Light orange
-];
+const CATEGORY_COLORS: Record<string, string> = {
+  'Flights': '#ff849c',        // Pink
+  'Accommodation': '#ffce87',  // Gold
+  'Activities': '#00ffff',     // Cyan
+  'Dining': '#adf000',         // Lime Green
+  'Transportation': '#a855f7', // Purple
+};
 
 export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, totalSpent: totalSpentProp, refreshTrigger }: BudgetPieChartProps) => {
   const [budgetData, setBudgetData] = useState<BudgetCategory[]>([]);
@@ -330,11 +328,11 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
   // Filter to categories with actual spending for the pie chart
   const chartData = budgetData
     .filter(item => item.spent_amount > 0)
-    .map((item, index) => ({
+    .map((item) => ({
       name: item.category,
       budgeted: item.budgeted_amount,
       spent: item.spent_amount,
-      fill: COLORS[index % COLORS.length]
+      fill: CATEGORY_COLORS[item.category] || '#6b7280'
     }));
 
   const totalBudgetFromBreakdown = budgetData.reduce((sum, item) => sum + item.budgeted_amount, 0);
