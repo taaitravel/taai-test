@@ -6,8 +6,8 @@ import { format } from 'date-fns';
 const TYPE_COLORS = {
   flight: '#ff849c',      // Pink
   hotel: '#ffce87',       // Gold
-  activity: '#ff0744',    // Red
-  reservation: '#ff8411', // Orange
+  activity: '#00ffff',    // Cyan
+  reservation: '#adf000', // Lime Green
 };
 
 // Define styles for the PDF
