@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
 import { LayoutGrid, Map, List, Plus, ArrowLeft, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,9 +24,24 @@ type ViewMode = 'grid' | 'map' | 'list';
 
 const MyItineraries = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(
+    searchParams.get('collection')
+  );
+
+  // Sync URL with selected collection
+  useEffect(() => {
+    const collectionFromUrl = searchParams.get('collection');
+    if (collectionFromUrl !== selectedCollectionId) {
+      if (selectedCollectionId) {
+        setSearchParams({ collection: selectedCollectionId });
+      } else {
+        setSearchParams({});
+      }
+    }
+  }, [selectedCollectionId, searchParams, setSearchParams]);
   const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [addToCollectionOpen, setAddToCollectionOpen] = useState(false);

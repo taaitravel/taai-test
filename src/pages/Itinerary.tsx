@@ -2,6 +2,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
 import { ItineraryContent } from "@/components/itinerary/ItineraryContent";
+import { ItineraryBreadcrumb } from "@/components/itinerary/ItineraryBreadcrumb";
 import { AttendeesSection } from "@/components/itinerary/AttendeesSection";
 import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingState";
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
@@ -171,6 +172,13 @@ const Itinerary = () => {
     <div className="min-h-screen bg-[#171821]">
       <div className="px-4 sm:px-6 lg:px-8 py-4">
         <ItineraryHeader itineraryId={itineraryData.id} itineraryData={itineraryData} />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ItineraryBreadcrumb
+          itineraryId={itineraryData.id}
+          itineraryName={itineraryData.itin_name || 'Untitled Trip'}
+        />
       </div>
       
       <ItineraryContent
