@@ -56,7 +56,7 @@ setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost
           setForm({ name: '', city: baseCity, date: '', cost: '', duration: '', link_url: '', location: null });
           break;
         case 'reservations':
-          setForm({ type: 'restaurant', name: '', city: baseCity, date: '', time: '', party_size: 2, link_url: '', location: null });
+          setForm({ type: 'restaurant', name: '', city: baseCity, date: '', time: '', party_size: 2, cost: '', link_url: '', location: null });
           break;
       }
       setErrors({});
@@ -89,7 +89,7 @@ setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost
     const numberFields: string[] = [];
     if (type === 'hotels') numberFields.push('cost', 'nights', 'rating');
     if (type === 'activities') numberFields.push('cost');
-    if (type === 'reservations') numberFields.push('party_size');
+    if (type === 'reservations') numberFields.push('party_size', 'cost');
 
     numberFields.forEach((f) => {
       const v = form[f];
@@ -336,6 +336,10 @@ if (type === 'hotels') {
             <div>
               <Label htmlFor="party_size">Party size</Label>
               <Input id="party_size" type="number" min="1" value={form.party_size || 2} onChange={(e) => handleChange('party_size', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <Label htmlFor="cost">Estimated Cost (USD)</Label>
+              <Input id="cost" type="number" min="0" placeholder="e.g., 150" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
             </div>
             <div className="sm:col-span-2">
               <Label htmlFor="link_url">Link (optional)</Label>
