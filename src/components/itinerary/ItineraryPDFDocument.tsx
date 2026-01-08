@@ -4,10 +4,10 @@ import { format } from 'date-fns';
 
 // Type colors for left borders and badges
 const TYPE_COLORS = {
-  flight: '#3b82f6',
-  hotel: '#8b5cf6',
-  activity: '#f59e0b',
-  reservation: '#22c55e',
+  flight: '#ff849c',      // Pink
+  hotel: '#ffce87',       // Gold
+  activity: '#ff0744',    // Red
+  reservation: '#ff8411', // Orange
 };
 
 // Define styles for the PDF
@@ -303,7 +303,52 @@ interface TimelineItem {
   data: any;
 }
 
-// Budget Chart Component
+// Pie Chart Segment Component - creates a colored wedge
+const PieSegment = ({ 
+  startAngle, 
+  endAngle, 
+  color, 
+  size 
+}: { 
+  startAngle: number; 
+  endAngle: number; 
+  color: string; 
+  size: number;
+}) => {
+  // Create segments using multiple thin slices for smooth appearance
+  const segments = [];
+  const segmentAngle = 5; // degrees per segment
+  
+  for (let angle = startAngle; angle < endAngle; angle += segmentAngle) {
+    const currentEndAngle = Math.min(angle + segmentAngle, endAngle);
+    const midAngle = (angle + currentEndAngle) / 2;
+    
+    // Calculate position for the segment
+    const radians = (midAngle - 90) * (Math.PI / 180);
+    const radius = size / 4;
+    const x = Math.cos(radians) * radius + size / 2 - 4;
+    const y = Math.sin(radians) * radius + size / 2 - 4;
+    
+    segments.push(
+      <View
+        key={angle}
+        style={{
+          position: 'absolute',
+          left: x,
+          top: y,
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: color,
+        }}
+      />
+    );
+  }
+  
+  return <>{segments}</>;
+};
+
+// Budget Chart Component with Pie Chart
 const BudgetChart = ({ data }: { data: ItineraryData }) => {
   const flights = data.flights || [];
   const hotels = data.hotels || [];
@@ -322,26 +367,109 @@ const BudgetChart = ({ data }: { data: ItineraryData }) => {
 
   const categories = [
     { label: 'Flights', amount: flightSpending, color: TYPE_COLORS.flight },
-    { label: 'Hotels', amount: hotelSpending, color: TYPE_COLORS.hotel },
+    { label: 'Accommodations', amount: hotelSpending, color: TYPE_COLORS.hotel },
     { label: 'Activities', amount: activitySpending, color: TYPE_COLORS.activity },
     { label: 'Dining', amount: diningSpending, color: TYPE_COLORS.reservation },
-  ];
+  ].filter(cat => cat.amount > 0);
+
+  // Calculate percentages for pie chart
+  const chartSize = 80;
+  let currentAngle = 0;
 
   return (
     <View style={styles.budgetSection}>
-      <Text style={[styles.sectionHeader, { marginBottom: 8, borderBottomWidth: 0 }]}>
+      <Text style={[styles.sectionHeader, { marginBottom: 12, borderBottomWidth: 0 }]}>
         BUDGET BREAKDOWN
       </Text>
       
-      {/* Budget summary */}
-      <View style={styles.budgetHeader}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        {/* Pie Chart */}
+        <View style={{ width: chartSize, height: chartSize, marginRight: 20 }}>
+          {/* Background circle */}
+          <View style={{
+            position: 'absolute',
+            width: chartSize,
+            height: chartSize,
+            borderRadius: chartSize / 2,
+            backgroundColor: '#e5e7eb',
+          }} />
+          
+          {/* Colored segments */}
+          {categories.map((cat, idx) => {
+            const percentage = totalSpending > 0 ? (cat.amount / totalSpending) * 100 : 0;
+            const angleSpan = (percentage / 100) * 360;
+            const startAngle = currentAngle;
+            const endAngle = currentAngle + angleSpan;
+            currentAngle = endAngle;
+            
+            return (
+              <PieSegment
+                key={idx}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                color={cat.color}
+                size={chartSize}
+              />
+            );
+          })}
+          
+          {/* Center donut hole */}
+          <View style={{
+            position: 'absolute',
+            left: chartSize / 4,
+            top: chartSize / 4,
+            width: chartSize / 2,
+            height: chartSize / 2,
+            borderRadius: chartSize / 4,
+            backgroundColor: '#f9fafb',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <Text style={{ fontSize: 8, color: '#666666' }}>
+              {Math.round((totalSpending / budget) * 100)}%
+            </Text>
+            <Text style={{ fontSize: 6, color: '#9ca3af' }}>spent</Text>
+          </View>
+        </View>
+        
+        {/* Legend */}
+        <View style={{ flex: 1 }}>
+          {categories.map((cat, idx) => {
+            const percentage = totalSpending > 0 ? (cat.amount / totalSpending) * 100 : 0;
+            return (
+              <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                <View style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: cat.color,
+                  marginRight: 8,
+                }} />
+                <Text style={{ fontSize: 9, color: '#1a1c2e', flex: 1 }}>{cat.label}</Text>
+                <Text style={{ fontSize: 8, color: '#666666' }}>
+                  {formatCurrency(cat.amount)} ({Math.round(percentage)}%)
+                </Text>
+              </View>
+            );
+          })}
+          
+          {categories.length === 0 && (
+            <Text style={{ fontSize: 9, color: '#9ca3af', fontStyle: 'italic' }}>
+              No spending recorded
+            </Text>
+          )}
+        </View>
+      </View>
+      
+      {/* Budget summary row */}
+      <View style={[styles.budgetHeader, { marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#e5e7eb' }]}>
         <View style={styles.budgetStat}>
           <Text style={styles.budgetStatLabel}>Total Budget</Text>
           <Text style={styles.budgetStatValue}>{formatCurrency(budget)}</Text>
         </View>
         <View style={styles.budgetStat}>
           <Text style={styles.budgetStatLabel}>Total Spent</Text>
-          <Text style={[styles.budgetStatValue, { color: '#22c55e' }]}>{formatCurrency(totalSpending)}</Text>
+          <Text style={[styles.budgetStatValue, { color: '#1a1c2e' }]}>{formatCurrency(totalSpending)}</Text>
         </View>
         <View style={styles.budgetStat}>
           <Text style={styles.budgetStatLabel}>Remaining</Text>
@@ -350,27 +478,6 @@ const BudgetChart = ({ data }: { data: ItineraryData }) => {
           </Text>
         </View>
       </View>
-
-      {/* Category bars */}
-      {categories.map((cat, idx) => {
-        const percentage = budget > 0 ? Math.min((cat.amount / budget) * 100, 100) : 0;
-        return (
-          <View key={idx} style={styles.budgetBarRow}>
-            <Text style={styles.budgetBarLabel}>{cat.label}</Text>
-            <View style={styles.budgetBarContainer}>
-              <View
-                style={[
-                  styles.budgetBarFill,
-                  { width: `${percentage}%`, backgroundColor: cat.color },
-                ]}
-              />
-            </View>
-            <Text style={styles.budgetBarAmount}>
-              {formatCurrency(cat.amount)} ({Math.round(percentage)}%)
-            </Text>
-          </View>
-        );
-      })}
     </View>
   );
 };
