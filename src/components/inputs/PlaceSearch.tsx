@@ -127,17 +127,14 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       const token = tokenResp?.token;
       if (!token) throw new Error("No Mapbox token");
 
-      // Use only the user query; bias via proximity when available
-      const effectiveQuery = q;
       const proximity = biasCoords
         ? `&proximity=${biasCoords.lng},${biasCoords.lat}`
         : "";
 
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(effectiveQuery)}.json?types=${types}&limit=8${proximity}&access_token=${token}`;
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?types=${types}&limit=8${proximity}&access_token=${token}`;
       const resp = await fetch(url);
       const json = await resp.json();
       const items: PlaceResult[] = (json.features || []).map((f: any) => {
-        // Extract place type from Mapbox feature ID (e.g., "poi.12345" -> "poi")
         const placeType = f.id?.split('.')?.[0] || f.place_type?.[0] || 'place';
         return {
           id: f.id,
@@ -145,15 +142,43 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
           lat: f.center?.[1],
           lng: f.center?.[0],
           address: f.place_name,
-          source: "mapbox",
+          source: "mapbox" as const,
           placeType,
         };
       });
       return items;
     };
 
-    // Note: Expedia doesn't have a destination search endpoint
-    // We use Mapbox exclusively for location autocomplete
+    const fetchYelp = async (q: string) => {
+      try {
+        const body: Record<string, unknown> = { term: q };
+        if (biasCoords) {
+          body.latitude = biasCoords.lat;
+          body.longitude = biasCoords.lng;
+        } else if (locationBias?.city) {
+          body.location = locationBias.city;
+        }
+        
+        const { data, error } = await supabase.functions.invoke('search-yelp-businesses', { body });
+        if (error) throw error;
+        
+        const items: PlaceResult[] = (data?.businesses || []).map((b: any) => ({
+          id: b.id,
+          name: b.name,
+          lat: b.coordinates?.latitude,
+          lng: b.coordinates?.longitude,
+          address: b.location?.display_address?.join(', '),
+          source: "yelp" as const,
+          url: b.url,
+          rating: b.rating,
+          category: b.categories?.[0]?.title,
+        }));
+        return items;
+      } catch (e) {
+        console.error('Yelp search error', e);
+        return [];
+      }
+    };
 
     const fetchResults = async () => {
       setLoading(true);
@@ -161,14 +186,23 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
         let items: PlaceResult[] = [];
 
         if (mode === "hotel") {
-          // For hotel search, treat input as a city/region rather than a specific POI
-          // so users can type destinations like "London" and get valid results.
           items = await fetchMapbox(query.trim(), "place,region,locality");
           setResults(items);
         } else if (mode === "activity") {
-          // For activities, only use Mapbox for location search
-          // Actual activity search happens later via Amadeus using coordinates
           items = await fetchMapbox(query, "place,region");
+          setResults(items);
+        } else if (mode === "restaurant") {
+          // Use Yelp for restaurant/venue searches, with Mapbox fallback
+          const yelpResults = await fetchYelp(query);
+          const mapboxResults = await fetchMapbox(query, "poi,place");
+          // Yelp first (better for businesses), then Mapbox
+          items = [...yelpResults, ...mapboxResults.slice(0, 3)];
+          setResults(items);
+        } else if (mode === "poi") {
+          // For general POI (stadiums, venues, etc.), try Yelp first then Mapbox
+          const yelpResults = await fetchYelp(query);
+          const mapboxResults = await fetchMapbox(query, "poi,place,region");
+          items = [...yelpResults, ...mapboxResults];
           setResults(items);
         } else {
           const typesParam = mode === "city" ? "place,region" : "poi,place,region";
@@ -190,7 +224,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [query, mode]);
+  }, [query, mode, biasCoords, locationBias?.city]);
 
   return (
     <div ref={containerRef} className="relative">

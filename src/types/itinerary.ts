@@ -59,6 +59,7 @@ export interface ItineraryData {
     date: string; 
     time: string; 
     party_size: number;
+    cost?: number;
     images?: string[];
     booking_status?: string;
     location?: string;

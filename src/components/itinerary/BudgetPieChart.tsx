@@ -108,10 +108,8 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       
       const diningCostFromJSON = itinerary.reservations ? 
         (itinerary.reservations as any[]).reduce((sum: number, reservation: any) => {
-          if (reservation.type === 'restaurant') {
-            return sum + (reservation.estimated_cost || reservation.cost || 0);
-          }
-          return sum;
+          // Include all reservations with cost in dining category
+          return sum + (reservation.cost || reservation.estimated_cost || 0);
         }, 0) : 0;
 
       // Combine cart and JSON costs
