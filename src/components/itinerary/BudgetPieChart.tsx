@@ -329,8 +329,9 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
     setEditData(newEditData);
   };
 
+  // Filter to categories with actual spending for the pie chart
   const chartData = budgetData
-    .filter(item => item.budgeted_amount > 0)
+    .filter(item => item.spent_amount > 0)
     .map((item, index) => ({
       name: item.category,
       budgeted: item.budgeted_amount,
@@ -504,7 +505,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
                   innerRadius={104}
                   outerRadius={130}
                   fill="#8884d8"
-                  dataKey="budgeted"
+                  dataKey="spent"
                   stroke="#0a0b14"
                   strokeWidth={2}
                 >
