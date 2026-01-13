@@ -23,7 +23,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/home');
     }
   }, [user, navigate]);
 
@@ -58,7 +58,7 @@ const Login = () => {
           description: "Successfully logged in to TAAI Travel.",
           variant: "success"
         });
-        navigate('/dashboard');
+        navigate('/home');
       }
     } catch (error) {
       toast({

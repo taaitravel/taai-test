@@ -33,11 +33,12 @@ const Index = () => {
   const getMenuItems = () => {
     if (user) {
       return [
-        { label: "Dashboard", path: "/dashboard" },
-        { label: "Create AI Trip", path: "/create-itinerary" },
-        { label: "Create Manual Trip", path: "/create-manual-itinerary" },
+        { label: "Home", path: "/home" },
+        { label: "Itineraries", path: "/itineraries" },
+        { label: "New Itinerary", path: "/new-itinerary" },
+        { label: "Manual Itinerary", path: "/new-manual-itinerary" },
         { label: "Subscription", path: "/subscription" },
-        { label: "Profile", path: "/profile-setup" },
+        { label: "Profile & Settings", path: "/profile-setup" },
         { label: "Contact Us", path: "/contact" }
       ];
     } else {
@@ -213,7 +214,7 @@ const Index = () => {
                   variant="ghost"
                   size="sm"
                   className="text-white hover:bg-white/10 p-2 rounded-full"
-                  onClick={() => isRouterReady && navigate('/dashboard')}
+                  onClick={() => isRouterReady && navigate('/home')}
                 >
                   <User className="h-6 w-6" />
                 </Button>

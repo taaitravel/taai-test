@@ -72,7 +72,7 @@ const EditItinerary = () => {
     } catch (error) {
       console.error('Error loading itinerary:', error);
       toast.error('Failed to load itinerary');
-      navigate('/dashboard');
+      navigate('/home');
     } finally {
       setLoading(false);
     }

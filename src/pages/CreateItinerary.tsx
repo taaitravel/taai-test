@@ -98,8 +98,8 @@ const CreateItinerary = () => {
       <MobileNavigation 
         travelerLevel="Master Traveler"
         showBackButton={true}
-        backPath="/dashboard"
-        backLabel="Back to Dashboard"
+        backPath="/home"
+        backLabel="Back to Home"
         showProfileButton={true}
         showTripButtons={false}
       />

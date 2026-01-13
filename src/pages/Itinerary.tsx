@@ -18,8 +18,8 @@ const Itinerary = () => {
   // Redirect to dashboard if no itinerary ID is provided
   useEffect(() => {
     if (!itineraryId) {
-      console.log('No itinerary ID provided, redirecting to dashboard');
-      navigate('/dashboard');
+      console.log('No itinerary ID provided, redirecting to home');
+      navigate('/home');
     }
   }, [itineraryId, navigate]);
   

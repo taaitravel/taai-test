@@ -295,7 +295,7 @@ const MyItineraries = () => {
                   variant="ghost" 
                   size="icon"
                   className="text-white/60 hover:text-white hover:bg-white/10"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/home')}
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
@@ -331,7 +331,7 @@ const MyItineraries = () => {
                   </TabsList>
                 </Tabs>
 
-                <Button onClick={() => navigate('/create-itinerary')} className="gap-2" size={isMobile ? 'icon' : 'default'}>
+                <Button onClick={() => navigate('/new-itinerary')} className="gap-2" size={isMobile ? 'icon' : 'default'}>
                   <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">New Itinerary</span>
                 </Button>

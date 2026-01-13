@@ -46,7 +46,7 @@ export const ItineraryHeader = ({ itineraryId, itineraryData }: ItineraryHeaderP
       <MobileNavigation 
         travelerLevel="Master Traveler"
         showBackButton={true}
-        backPath="/my-itineraries"
+        backPath="/itineraries"
         backLabel="Back to Itineraries"
         showProfileButton={false}
         showTripButtons={false}

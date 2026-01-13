@@ -19,13 +19,13 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
     {
       icon: Sparkles,
       label: "AI Trip",
-      onClick: () => navigate('/create-itinerary'),
+      onClick: () => navigate('/new-itinerary'),
       className: "gold-gradient text-[#171821] hover:opacity-90"
     },
     {
       icon: Plus,
       label: "Manual",
-      onClick: () => navigate('/create-manual-itinerary'),
+      onClick: () => navigate('/new-manual-itinerary'),
       className: "border-white/30 text-white hover:bg-white/10 bg-transparent"
     },
     {

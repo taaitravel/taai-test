@@ -1,18 +1,18 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, List, Plane, MessageCircle, Settings } from 'lucide-react';
+import { Home, Briefcase, Search, Sparkles, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { icon: BarChart3, label: 'Analytics', path: '/dashboard' },
-  { icon: List, label: 'Itineraries', path: '/my-itineraries' },
-  { icon: Plane, label: 'Search', path: '/search' },
-  { icon: MessageCircle, label: 'Messages', path: '/create-itinerary' },
-  { icon: Settings, label: 'Settings', path: '/profile-setup' },
+  { icon: Home, label: 'Home', path: '/home' },
+  { icon: Briefcase, label: 'Itineraries', path: '/itineraries' },
+  { icon: Search, label: 'Search', path: '/search' },
+  { icon: Sparkles, label: 'New Itinerary', path: '/new-itinerary' },
+  { icon: User, label: 'Profile', path: '/profile-setup' },
 ];
 
-const HIDDEN_ROUTES = ['/signup', '/login', '/terms'];
+const HIDDEN_ROUTES = ['/signup', '/login', '/terms', '/'];
 
 export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
@@ -29,8 +29,8 @@ export const MobileBottomNav: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#171821] border-t border-white/20 flex md:hidden">
-      <div className="flex items-center justify-around w-full h-14 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#171821] border-t border-white/20 flex md:hidden h-[64px]">
+      <div className="flex items-center justify-around w-full h-full px-2 py-2">
         {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
           
