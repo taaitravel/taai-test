@@ -125,8 +125,8 @@ const CreateManualItinerary = () => {
       <MobileNavigation 
         travelerLevel="Master Traveler"
         showBackButton={true}
-        backPath="/dashboard"
-        backLabel="Back to Dashboard"
+        backPath="/home"
+        backLabel="Back to Home"
         showProfileButton={true}
         showTripButtons={false}
       />
@@ -259,7 +259,7 @@ const CreateManualItinerary = () => {
 
             <div className="text-center text-sm text-white/70">
               Need help planning? Try our{" "}
-              <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/create-itinerary')}>
+              <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/new-itinerary')}>
                 AI Assistant
               </Button>
             </div>

@@ -87,7 +87,7 @@ const WhatWeDo = () => {
             <div className="flex items-center space-x-4">
               {user ? (
                 <Button 
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/home')}
                   className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
                 >
                   Dashboard

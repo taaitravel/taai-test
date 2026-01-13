@@ -34,7 +34,7 @@ export const UpcomingTravel = ({ nextTrip }: UpcomingTravelProps) => {
   }, []);
 
   const handlePlaneTripClick = () => {
-    navigate('/create-itinerary', { state: { prefilledMessage: 'surprise me' } });
+    navigate('/new-itinerary', { state: { prefilledMessage: 'surprise me' } });
   };
 
   return (

@@ -144,7 +144,7 @@ const SubscriptionSuccess = () => {
                   ? 'gold-gradient hover:opacity-90 text-[#171821] font-semibold shadow-lg hover:shadow-xl' 
                   : 'gold-gradient hover:opacity-90 text-[#171821] font-semibold'
               }`}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/home')}
             >
               {isPremiumTier ? 'Start Planning Your Next Adventure' : 'Go to Dashboard'}
             </Button>

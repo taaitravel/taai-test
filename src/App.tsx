@@ -48,17 +48,17 @@ const App = () => (
                   <ProfileSetup />
                 </ProtectedRoute>
               } />
-              <Route path="/dashboard" element={
+              <Route path="/home" element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
               } />
-              <Route path="/create-itinerary" element={
+              <Route path="/new-itinerary" element={
                 <ProtectedRoute>
                   <CreateItinerary />
                 </ProtectedRoute>
               } />
-              <Route path="/create-manual-itinerary" element={
+              <Route path="/new-manual-itinerary" element={
                 <ProtectedRoute>
                   <CreateManualItinerary />
                 </ProtectedRoute>
@@ -87,7 +87,7 @@ const App = () => (
                   <Search />
                 </ProtectedRoute>
               } />
-              <Route path="/my-itineraries" element={
+              <Route path="/itineraries" element={
                 <ProtectedRoute>
                   <MyItineraries />
                 </ProtectedRoute>

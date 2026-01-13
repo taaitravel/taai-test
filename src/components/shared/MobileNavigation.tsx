@@ -23,8 +23,8 @@ interface MobileNavigationProps {
 export const MobileNavigation = ({ 
   travelerLevel = "Master Traveler",
   showBackButton = false,
-  backPath = "/dashboard",
-  backLabel = "Back to Dashboard",
+  backPath = "/home",
+  backLabel = "Back to Home",
   showProfileButton = true,
   showTripButtons = true,
   customActions
@@ -35,11 +35,12 @@ export const MobileNavigation = ({
   const { signOut, userProfile } = useAuth();
 
   const menuItems = [
-    { label: "Dashboard", path: "/dashboard" },
-    { label: "Create AI Trip", path: "/create-itinerary" },
-    { label: "Create Manual Trip", path: "/create-manual-itinerary" },
+    { label: "Home", path: "/home" },
+    { label: "Itineraries", path: "/itineraries" },
+    { label: "New Itinerary", path: "/new-itinerary" },
+    { label: "Manual Itinerary", path: "/new-manual-itinerary" },
     { label: "Subscription", path: "/subscription" },
-    { label: "Profile", path: "/profile-setup" },
+    { label: "Profile & Settings", path: "/profile-setup" },
   ];
 
   const handleSignOut = async () => {
@@ -159,14 +160,14 @@ export const MobileNavigation = ({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-[#171821] border-white/30 text-white">
                       <DropdownMenuItem 
-                        onClick={() => navigate('/create-itinerary')}
+                        onClick={() => navigate('/new-itinerary')}
                         className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         AI Trip
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => navigate('/create-manual-itinerary')}
+                        onClick={() => navigate('/new-manual-itinerary')}
                         className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
                       >
                         <Plus className="h-4 w-4 mr-2" />

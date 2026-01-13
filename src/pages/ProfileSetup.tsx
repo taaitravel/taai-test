@@ -155,7 +155,7 @@ const ProfileSetup = () => {
           description: "Your adventure begins now. Let's plan your next trip!",
           variant: "success"
         });
-        navigate('/dashboard');
+        navigate('/home');
       } catch (error) {
         console.error('Error saving profile:', error);
         toast({

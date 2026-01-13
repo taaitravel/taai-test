@@ -72,7 +72,7 @@ const Terms = () => {
       if (isSignupFlow) {
         navigate('/profile-setup');
       } else {
-        navigate('/dashboard');
+        navigate('/home');
       }
     } catch (error) {
       toast({

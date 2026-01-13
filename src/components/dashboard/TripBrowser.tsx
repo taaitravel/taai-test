@@ -110,7 +110,7 @@ export const TripBrowser = ({
                     <div className="flex space-x-2">
                       <Button 
                         className="flex-1 gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-                        onClick={() => navigate('/create-itinerary')}
+                        onClick={() => navigate('/new-itinerary')}
                       >
                         <MessageCircle className="h-4 w-4 mr-2" />
                         Edit Trip
