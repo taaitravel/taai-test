@@ -26,8 +26,6 @@ export const DraggableItineraryCard: React.FC<DraggableItineraryCardProps> = ({
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.7 : 1,
-    cursor: isDragging ? 'grabbing' : 'grab',
     zIndex: isDragging ? 1000 : 'auto',
   };
 
@@ -37,7 +35,9 @@ export const DraggableItineraryCard: React.FC<DraggableItineraryCardProps> = ({
       style={style}
       {...listeners}
       {...attributes}
-      className={`transition-shadow duration-200 ${isDragging ? 'shadow-xl shadow-[#ffce87]/30 scale-105' : ''}`}
+      className={`transition-all duration-200 cursor-grab active:cursor-grabbing ${
+        isDragging ? 'opacity-30 scale-95' : ''
+      }`}
     >
       <ItineraryCard itinerary={itinerary} {...props} />
     </div>
