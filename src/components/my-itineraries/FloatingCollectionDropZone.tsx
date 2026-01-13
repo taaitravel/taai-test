@@ -32,18 +32,26 @@ const DroppableCircle: React.FC<DroppableCircleProps> = ({ id, label, initial, i
           <div
             ref={setNodeRef}
             className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg",
+              "relative w-16 h-16 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer",
               isCreateNew
                 ? "border-2 border-dashed border-[#ffce87]/40 bg-[#ffce87]/10 hover:bg-[#ffce87]/20"
-                : "border-2 bg-[#1a1c2e] border-white/30 hover:border-[#ffce87]/60",
-              isOver && "bg-[#ffce87]/30 border-[#ffce87] scale-110 shadow-[0_0_12px_rgba(255,206,135,0.4)]"
+                : "border-2 bg-[#1a1c2e] border-white/20 hover:border-[#ffce87]/40",
+              isOver && "scale-125 border-[#ffce87] bg-[#ffce87]/20 deck-slot-active"
             )}
           >
+            {/* Stacked "cards behind" visual - deck effect */}
+            {!isCreateNew && (
+              <>
+                <div className="absolute inset-0 bg-white/5 rounded-xl -z-10 translate-y-1 translate-x-0.5" />
+                <div className="absolute inset-0 bg-white/[0.03] rounded-xl -z-20 translate-y-2 translate-x-1" />
+              </>
+            )}
+            
             {isCreateNew ? (
-              <Plus className={cn("h-5 w-5 text-[#ffce87]", isOver && "text-[#ffce87]")} />
+              <Plus className={cn("h-6 w-6 text-[#ffce87]", isOver && "text-white")} />
             ) : (
               <span className={cn(
-                "text-sm font-bold text-white",
+                "text-lg font-bold text-white transition-colors",
                 isOver && "text-[#ffce87]"
               )}>
                 {initial}

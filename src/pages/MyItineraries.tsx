@@ -416,10 +416,10 @@ const MyItineraries = () => {
           onCreateCollection={handleCreateCollection}
         />
 
-        {/* Drag Overlay for visual feedback */}
-        <DragOverlay>
+        {/* Drag Overlay - shrunk card like placing into a deck */}
+        <DragOverlay dropAnimation={null}>
           {draggingItinerary ? (
-            <div className="opacity-90 rotate-3">
+            <div className="scale-[0.4] rotate-[8deg] origin-center pointer-events-none drop-shadow-2xl opacity-95">
               <ItineraryCard itinerary={draggingItinerary} />
             </div>
           ) : null}
