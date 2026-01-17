@@ -41,6 +41,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<{ error: any }>;
+  resendVerificationEmail: (email: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -203,6 +204,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserProfile(null);
   };
 
+  const resendVerificationEmail = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/terms?fromSignup=true`;
+    
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
+    
+    return { error };
+  };
+
   const value = {
     user,
     userProfile,
@@ -211,7 +226,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signOut,
-    updateUserProfile
+    updateUserProfile,
+    resendVerificationEmail
   };
 
   return (

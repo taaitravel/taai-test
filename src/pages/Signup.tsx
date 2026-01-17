@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Users, Building2, ArrowLeft } from "lucide-react";
+import { Plane, Users, Building2, ArrowLeft, Mail, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Captcha } from '@/components/ui/captcha';
@@ -16,7 +15,7 @@ const Signup = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signUp, user } = useAuth();
+  const { signUp, resendVerificationEmail, user } = useAuth();
   const userType = location.state?.userType || 'individual';
   
   const [formData, setFormData] = useState({
@@ -35,12 +34,47 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [captchaValid, setCaptchaValid] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     if (user) {
       navigate('/home');
     }
   }, [user, navigate]);
+
+  // Cooldown timer for resend button
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  const handleResendEmail = useCallback(async () => {
+    if (resendCooldown > 0 || resending) return;
+    
+    setResending(true);
+    try {
+      const { error } = await resendVerificationEmail(formData.email);
+      
+      if (error) {
+        toast({
+          title: "Failed to resend",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Email sent!",
+          description: "Check your inbox (and spam folder) for the verification link.",
+        });
+        setResendCooldown(60); // 60 second cooldown
+      }
+    } finally {
+      setResending(false);
+    }
+  }, [resendCooldown, resending, formData.email, resendVerificationEmail, toast]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -166,8 +200,8 @@ const Signup = () => {
             <div className="flex items-center justify-center">
               <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[150px] w-auto" />
             </div>
-            <div className="w-16 h-16 mx-auto bg-white/10 rounded-full flex items-center justify-center">
-              <Plane className="h-8 w-8 text-white" />
+            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
+              <Mail className="h-8 w-8 text-[#171821]" />
             </div>
             <CardTitle className="text-2xl text-white">Check Your Email</CardTitle>
             <CardDescription className="text-white/70 text-base">
@@ -175,14 +209,41 @@ const Signup = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 text-center">
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2">
+            <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
               <p className="text-white/80 text-sm">
                 Click the link in your email to verify your account and complete registration.
               </p>
-              <p className="text-white/60 text-xs">
-                Don't see it? Check your spam folder.
-              </p>
+              <div className="flex items-center justify-center gap-2 text-amber-400/80 text-xs">
+                <span>💡</span>
+                <span>Can't find it? Check your <strong>spam</strong> or <strong>promotions</strong> folder.</span>
+              </div>
             </div>
+            
+            {/* Resend Email Button */}
+            <Button 
+              variant="outline"
+              className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-50"
+              onClick={handleResendEmail}
+              disabled={resendCooldown > 0 || resending}
+            >
+              {resending ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : resendCooldown > 0 ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Resend in {resendCooldown}s
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Resend Verification Email
+                </>
+              )}
+            </Button>
+            
             <Separator className="bg-white/30" />
             <div className="space-y-3">
               <Button 
