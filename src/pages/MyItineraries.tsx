@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
-import { LayoutGrid, Map, List, Plus, ArrowLeft, Globe } from 'lucide-react';
+import { LayoutGrid, Map, List, Plus, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MobileNavigation } from '@/components/shared/MobileNavigation';
 import { CollectionsSidebar } from '@/components/my-itineraries/CollectionsSidebar';
 import { ItineraryGrid } from '@/components/my-itineraries/ItineraryGrid';
 import { ItineraryList } from '@/components/my-itineraries/ItineraryList';
@@ -266,41 +267,60 @@ const MyItineraries = () => {
     </div>
   );
 
+  // Custom actions for the navigation header
+  const navCustomActions = (
+    <div className="flex items-center gap-2">
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+        <TabsList className="bg-white/10 h-9">
+          <TabsTrigger value="grid" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+            <LayoutGrid className="h-4 w-4" />
+          </TabsTrigger>
+          <TabsTrigger value="map" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+            <Map className="h-4 w-4" />
+          </TabsTrigger>
+          <TabsTrigger value="list" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+            <List className="h-4 w-4" />
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </div>
+  );
+
   return (
     <DndContext
       collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="min-h-screen bg-[#171821] flex flex-col md:flex-row">
-        {/* Desktop Sidebar - hidden on mobile */}
-        {!isMobile && (
-          <CollectionsSidebar
-            collections={collections}
-            selectedCollectionId={selectedCollectionId}
-            onSelectCollection={setSelectedCollectionId}
-            onCreateCollection={handleCreateCollection}
-            onEditCollection={handleEditCollection}
-            totalItineraries={activeItineraries.length}
-          />
-        )}
+      <div className="min-h-screen bg-[#171821] flex flex-col">
+        {/* Consistent Navigation Header */}
+        <MobileNavigation 
+          showBackButton={true}
+          backPath="/home"
+          backLabel="← Back"
+          customActions={navCustomActions}
+        />
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="border-b border-white/10 px-4 md:px-6 py-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="text-white/60 hover:text-white hover:bg-white/10"
-                  onClick={() => navigate('/home')}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
+        <div className="flex flex-1 flex-col md:flex-row">
+          {/* Desktop Sidebar - hidden on mobile */}
+          {!isMobile && (
+            <CollectionsSidebar
+              collections={collections}
+              selectedCollectionId={selectedCollectionId}
+              onSelectCollection={setSelectedCollectionId}
+              onCreateCollection={handleCreateCollection}
+              onEditCollection={handleEditCollection}
+              totalItineraries={activeItineraries.length}
+            />
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col">
+            {/* Sub-header with collection name and count */}
+            <header className="border-b border-white/10 px-4 md:px-6 py-3">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-bold text-white">
+                  <h1 className="text-lg md:text-xl font-bold text-white">
                     {selectedCollectionId 
                       ? collections.find(c => c.id === selectedCollectionId)?.name || 'Collection'
                       : 'All Itineraries'
@@ -310,34 +330,12 @@ const MyItineraries = () => {
                     {filteredItineraries.length} itinerary{filteredItineraries.length !== 1 ? 's' : ''}
                   </p>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2 sm:gap-4">
-                {/* View Toggle */}
-                <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                  <TabsList className="bg-white/10">
-                    <TabsTrigger value="grid" className="gap-1 sm:gap-2 px-2 sm:px-3 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
-                      <LayoutGrid className="h-4 w-4" />
-                      <span className="hidden sm:inline">Grid</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="map" className="gap-1 sm:gap-2 px-2 sm:px-3 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
-                      <Map className="h-4 w-4" />
-                      <span className="hidden sm:inline">Map</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="list" className="gap-1 sm:gap-2 px-2 sm:px-3 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60">
-                      <List className="h-4 w-4" />
-                      <span className="hidden sm:inline">List</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                <Button onClick={() => navigate('/new-itinerary')} className="gap-2" size={isMobile ? 'icon' : 'default'}>
+                <Button onClick={() => navigate('/new-itinerary')} className="gap-2" size={isMobile ? 'sm' : 'default'}>
                   <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">New Itinerary</span>
                 </Button>
               </div>
-            </div>
-          </header>
+            </header>
 
           {/* Mobile Collections - shown above content on mobile for grid/list views */}
           {isMobile && viewMode !== 'map' && <MobileCollections />}
@@ -390,8 +388,9 @@ const MyItineraries = () => {
             )}
           </main>
         </div>
+      </div>
 
-        {/* Dialogs */}
+      {/* Dialogs */}
         <CollectionDialog
           open={collectionDialogOpen}
           onOpenChange={setCollectionDialogOpen}

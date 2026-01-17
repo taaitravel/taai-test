@@ -43,7 +43,11 @@ const Search = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f1221] via-[#1a1c2e] to-[#0f1221]">
-      <MobileNavigation />
+      <MobileNavigation 
+        showBackButton={true}
+        backPath="/home"
+        backLabel="← Back"
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Search Form */}
