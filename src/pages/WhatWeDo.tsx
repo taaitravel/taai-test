@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Plane, Map, Calendar, BarChart3, MessageCircle, Users, Zap, Globe, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { PublicNavigation } from "@/components/shared/PublicNavigation";
 
 const WhatWeDo = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const features = [
     {
@@ -68,42 +67,7 @@ const WhatWeDo = () => {
 
   return (
     <div className="min-h-screen bg-[#171821]">
-      {/* Navigation */}
-      <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Button 
-              variant="ghost" 
-              className="text-white hover:text-white hover:bg-white/10"
-              onClick={() => navigate('/')}
-            >
-              ← Back to Home
-            </Button>
-            
-            <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <Button 
-                  onClick={() => navigate('/home')}
-                  className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-                >
-                  Dashboard
-                </Button>
-              ) : (
-                <Button 
-                  onClick={() => navigate('/signup')}
-                  className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
-                >
-                  Get Started
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <PublicNavigation />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4">

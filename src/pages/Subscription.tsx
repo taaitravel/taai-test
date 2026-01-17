@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { type BillingFrequency } from '@/lib/stripeConfig';
 import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
 import { individualTiers, corporateTiers } from '@/components/subscription/TierDefinitions';
+import { MobileNavigation } from '@/components/shared/MobileNavigation';
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -84,6 +85,12 @@ const Subscription = () => {
 
   return (
     <div className="min-h-screen bg-[#171821]">
+      <MobileNavigation 
+        showBackButton={true}
+        backPath="/home"
+        backLabel="← Back"
+        showTripButtons={false}
+      />
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <Badge className="mb-6 bg-white/20 text-white hover:bg-white/30 border-white/30" variant="secondary">

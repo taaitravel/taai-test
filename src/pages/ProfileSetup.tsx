@@ -10,6 +10,7 @@ import { Plane, Users, MapPin, Calendar, ArrowRight, ArrowLeft, Globe, Plus, Min
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { MobileNavigation } from "@/components/shared/MobileNavigation";
 
 const ProfileSetup = () => {
   const location = useLocation();
@@ -476,59 +477,60 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
-      <Card className="w-full max-w-lg shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
+    <div className="min-h-screen bg-[#171821] flex flex-col">
+      <MobileNavigation 
+        showBackButton={true}
+        backPath={currentStep > 1 ? undefined : "/signup"}
+        backLabel="← Back"
+        showTripButtons={false}
+        showProfileButton={false}
+      />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none"></div>
+        <Card className="w-full max-w-lg shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
+          
         <CardHeader className="text-center space-y-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleBack}
-            className="absolute top-4 left-4 text-white bg-black/30 hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          
-          <div className="flex items-center justify-center">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px] w-auto" />
-          </div>
-          
-          <div className="space-y-2">
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-              Step {currentStep} of {totalSteps}
-            </Badge>
-            <CardTitle className="text-2xl text-white">Profile Setup</CardTitle>
-            <CardDescription className="text-white/70">
-              Help us personalize your travel experience
-            </CardDescription>
-          </div>
-          
-          <Progress value={progress} className="w-full" />
-        </CardHeader>
-
-        <CardContent className="space-y-6">
-          {renderStepContent()}
-          
-          <div className="flex justify-between pt-4">
-            <Button 
-              variant="outline" 
-              onClick={handleBack}
-              className="flex items-center space-x-2 bg-[#171821] border-white/50 text-white hover:bg-white/10 hover:border-white"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back</span>
-            </Button>
+            <div className="flex items-center justify-center">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px] w-auto" />
+            </div>
             
-            <Button 
-              onClick={handleNext}
-              className="gold-gradient hover:opacity-90 text-[#171821] font-semibold flex items-center space-x-2"
-            >
-              <span>{currentStep === totalSteps ? 'Complete Setup' : 'Next'}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="space-y-2">
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                Step {currentStep} of {totalSteps}
+              </Badge>
+              <CardTitle className="text-2xl text-white">Profile Setup</CardTitle>
+              <CardDescription className="text-white/70">
+                Help us personalize your travel experience
+              </CardDescription>
+            </div>
+            
+            <Progress value={progress} className="w-full" />
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {renderStepContent()}
+            
+            <div className="flex justify-between pt-4">
+              <Button 
+                variant="outline" 
+                onClick={handleBack}
+                className="flex items-center space-x-2 bg-[#171821] border-white/50 text-white hover:bg-white/10 hover:border-white"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back</span>
+              </Button>
+              
+              <Button 
+                onClick={handleNext}
+                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold flex items-center space-x-2"
+              >
+                <span>{currentStep === totalSteps ? 'Complete Setup' : 'Next'}</span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
