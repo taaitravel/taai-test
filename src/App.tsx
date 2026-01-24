@@ -92,6 +92,11 @@ const App = () => (
                   <MyItineraries />
                 </ProtectedRoute>
               } />
+              <Route path="/my-itineraries" element={
+                <ProtectedRoute>
+                  <MyItineraries />
+                </ProtectedRoute>
+              } />
               <Route path="/admin" element={<AdminDashboard />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
