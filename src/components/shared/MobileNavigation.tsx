@@ -158,7 +158,7 @@ export const MobileNavigation = ({
                         <Plus className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[#171821] border-white/30 text-white">
+                    <DropdownMenuContent className="bg-card border-border text-card-foreground">
                       <DropdownMenuItem 
                         onClick={() => navigate('/new-itinerary')}
                         className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
