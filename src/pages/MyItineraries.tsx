@@ -271,14 +271,14 @@ const MyItineraries = () => {
   const navCustomActions = (
     <div className="flex items-center gap-2">
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-        <TabsList className="bg-white/10 h-9">
-          <TabsTrigger value="grid" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+        <TabsList className="bg-muted h-9">
+          <TabsTrigger value="grid" className="gap-1 px-2 data-[state=active]:bg-accent data-[state=active]:text-foreground text-muted-foreground h-7">
             <LayoutGrid className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="map" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+          <TabsTrigger value="map" className="gap-1 px-2 data-[state=active]:bg-accent data-[state=active]:text-foreground text-muted-foreground h-7">
             <Map className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="list" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+          <TabsTrigger value="list" className="gap-1 px-2 data-[state=active]:bg-accent data-[state=active]:text-foreground text-muted-foreground h-7">
             <List className="h-4 w-4" />
           </TabsTrigger>
         </TabsList>
