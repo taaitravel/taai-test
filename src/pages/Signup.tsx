@@ -205,7 +205,7 @@ const Signup = () => {
             </div>
             <CardTitle className="text-2xl text-card-foreground">Check Your Email</CardTitle>
             <CardDescription className="text-muted-foreground text-base">
-              We've sent a verification link to <strong className="text-white">{formData.email}</strong>
+              We've sent a verification link to <strong className="text-foreground">{formData.email}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 text-center">
