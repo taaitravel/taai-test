@@ -115,7 +115,7 @@ const Index = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-white hover:bg-white/10 p-2 rounded-full"
+                          className="text-foreground hover:bg-accent p-2 rounded-full"
                           onClick={() => setIsMenuOpen(false)}
                         >
                           <X className="h-6 w-6" />
