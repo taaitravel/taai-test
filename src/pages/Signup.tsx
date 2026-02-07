@@ -276,7 +276,7 @@ const Signup = () => {
             variant="ghost" 
             size="sm" 
             onClick={() => navigate('/')}
-            className="absolute top-4 left-4 text-white bg-black/30 hover:text-white hover:bg-white/10"
+            className="absolute top-4 left-4 text-foreground bg-accent/30 hover:text-foreground hover:bg-accent"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
