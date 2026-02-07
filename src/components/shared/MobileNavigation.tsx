@@ -153,7 +153,7 @@ export const MobileNavigation = ({
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
-                        className="gold-gradient hover:opacity-90 text-[#171821] font-semibold p-2 rounded-full w-10 h-10"
+                        className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold p-2 rounded-full w-10 h-10"
                       >
                         <Plus className="h-5 w-5" />
                       </Button>
