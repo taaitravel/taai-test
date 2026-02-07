@@ -152,14 +152,14 @@ const Index = () => {
                     <>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/what-we-do')}
                       >
                         What We Do
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/subscription')}
                       >
                         Subscription
