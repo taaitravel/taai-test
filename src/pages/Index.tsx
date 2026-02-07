@@ -239,7 +239,7 @@ const Index = () => {
               Travel Companion
             </span>
           </h1>
-          <p className="text-xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
             Experience the future of travel planning with AI-driven itineraries, 
             real-time booking, and intelligent budget tracking all in one luxurious platform.
           </p>
