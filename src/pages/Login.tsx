@@ -90,8 +90,8 @@ const Login = () => {
           </div>
           
           <div className="space-y-2">
-            <CardTitle className="text-2xl text-white">Welcome Back</CardTitle>
-            <CardDescription className="text-white/70">
+            <CardTitle className="text-2xl text-card-foreground">Welcome Back</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Sign in to continue your travel planning journey
             </CardDescription>
           </div>
