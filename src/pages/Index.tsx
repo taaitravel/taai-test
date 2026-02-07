@@ -279,7 +279,7 @@ const Index = () => {
 
           <Button 
             size="lg" 
-            className="gold-gradient hover:opacity-90 text-[#171821] px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+            className="gold-gradient hover:opacity-90 text-primary-foreground px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
             disabled={!userType}
             onClick={() => isRouterReady && navigate('/signup', { state: { userType } })}
           >
