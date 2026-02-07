@@ -327,13 +327,13 @@ const Signup = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="userName" className="text-white">Username</Label>
+                  <Label htmlFor="userName" className="text-card-foreground">Username</Label>
                   <Input
                     id="userName"
                     placeholder="johndoe"
                     value={formData.userName}
                     onChange={(e) => handleInputChange('userName', e.target.value)}
-                    className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                 </div>
               </div>
