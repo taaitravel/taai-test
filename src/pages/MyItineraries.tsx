@@ -292,7 +292,7 @@ const MyItineraries = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="min-h-screen bg-[#171821] flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         {/* Consistent Navigation Header */}
         <MobileNavigation 
           showBackButton={true}
@@ -317,16 +317,16 @@ const MyItineraries = () => {
           {/* Main Content */}
           <div className="flex-1 flex flex-col">
             {/* Sub-header with collection name and count */}
-            <header className="border-b border-white/10 px-4 md:px-6 py-3">
+            <header className="border-b border-border px-4 md:px-6 py-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-lg md:text-xl font-bold text-white">
+                  <h1 className="text-lg md:text-xl font-bold text-foreground">
                     {selectedCollectionId 
                       ? collections.find(c => c.id === selectedCollectionId)?.name || 'Collection'
                       : 'All Itineraries'
                     }
                   </h1>
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-muted-foreground">
                     {filteredItineraries.length} itinerary{filteredItineraries.length !== 1 ? 's' : ''}
                   </p>
                 </div>
