@@ -269,10 +269,10 @@ const Index = () => {
             >
               <CardHeader className="text-center pb-2">
                 <div className="mx-auto w-16 h-16 gold-gradient rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <BarChart3 className="h-8 w-8 text-[#171821]" />
+                  <BarChart3 className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <CardTitle className="text-xl text-white">Corporate Travel</CardTitle>
-                <CardDescription className="text-white/70">Streamlined solutions for business travel</CardDescription>
+                <CardTitle className="text-xl text-card-foreground">Corporate Travel</CardTitle>
+                <CardDescription className="text-muted-foreground">Streamlined solutions for business travel</CardDescription>
               </CardHeader>
             </Card>
           </div>
