@@ -168,7 +168,7 @@ export const MobileNavigation = ({
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => navigate('/new-manual-itinerary')}
-                        className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+                        className="cursor-pointer hover:bg-accent focus:bg-accent"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Manual Trip

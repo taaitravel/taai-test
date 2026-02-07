@@ -448,9 +448,9 @@ const Signup = () => {
             {loading ? "Creating Account..." : "Create Account"}
           </Button>
 
-          <div className="text-center text-sm text-white/70">
+          <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/login')}>
+            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80" onClick={() => navigate('/login')}>
               Sign in here
             </Button>
           </div>

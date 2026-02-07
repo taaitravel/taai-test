@@ -136,15 +136,15 @@ const Login = () => {
             {loading ? "Signing In..." : "Sign In"}
           </Button>
 
-          <Separator className="bg-white/30" />
+          <Separator className="bg-border" />
 
-          <div className="text-center text-sm text-white/70">
+          <div className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/signup')}>
+            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80" onClick={() => navigate('/signup')}>
               Sign up here
             </Button>
             {" | "}
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/terms')}>
+            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80" onClick={() => navigate('/terms')}>
               Terms & Privacy
             </Button>
           </div>
