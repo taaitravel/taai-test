@@ -107,9 +107,9 @@ export const MobileNavigation = ({
                     </div>
                     
                     {/* Footer with traveler level and sign out */}
-                    <div className="p-6 border-t border-white/10 space-y-4">
-                      <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
-                        {travelerLevel}
+                      <div className="p-6 border-t border-border space-y-4">
+                        <Badge className="bg-accent text-foreground border-border text-lg px-4 py-2">
+                          {travelerLevel}
                       </Badge>
                       <Button
                         onClick={handleSignOut}
