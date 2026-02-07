@@ -200,10 +200,10 @@ const Signup = () => {
             <div className="flex items-center justify-center">
               <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[150px] w-auto" />
             </div>
-            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
-              <Mail className="h-8 w-8 text-[#171821]" />
+            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
+              <Mail className="h-8 w-8 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl text-white">Check Your Email</CardTitle>
+            <CardTitle className="text-2xl text-card-foreground">Check Your Email</CardTitle>
             <CardDescription className="text-white/70 text-base">
               We've sent a verification link to <strong className="text-white">{formData.email}</strong>
             </CardDescription>
