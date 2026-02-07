@@ -85,9 +85,9 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#171821]">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+      <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 relative">
             {/* Left side - Mobile Menu or Desktop Navigation */}
@@ -98,15 +98,15 @@ const Index = () => {
                     <Button 
                       variant="ghost"
                       size="sm"
-                      className="text-white hover:bg-white/10 p-2 rounded-full"
+                    className="text-foreground hover:bg-accent p-2 rounded-full"
                     >
                       <Menu className="h-6 w-6" />
                     </Button>
                   </DrawerTrigger>
-                  <DrawerContent className="h-screen bg-[#171821]/95 backdrop-blur-md border-none">
+                  <DrawerContent className="h-screen bg-background/95 backdrop-blur-md border-none">
                     <div className="flex flex-col h-full">
                       {/* Header with close button */}
-                      <div className="flex justify-between items-center p-6 border-b border-white/10">
+                      <div className="flex justify-between items-center p-6 border-b border-border">
                         <img 
                           src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
                           alt="TAAI Travel" 
@@ -115,7 +115,7 @@ const Index = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-white hover:bg-white/10 p-2 rounded-full"
+                          className="text-foreground hover:bg-accent p-2 rounded-full"
                           onClick={() => setIsMenuOpen(false)}
                         >
                           <X className="h-6 w-6" />
@@ -128,7 +128,7 @@ const Index = () => {
                           <button
                             key={item.path}
                             onClick={() => handleMenuItemClick(item.path)}
-                            className="text-white text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
+                            className="text-foreground text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
                           >
                             {item.label}
                           </button>
@@ -136,11 +136,11 @@ const Index = () => {
                       </div>
                       
                       {/* Footer with traveler level for logged in users */}
-                      {user && (
-                        <div className="p-6 border-t border-white/10">
-                          <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
-                            Master Traveler
-                          </Badge>
+                        {user && (
+                          <div className="p-6 border-t border-border">
+                            <Badge className="bg-accent text-foreground border-border text-lg px-4 py-2">
+                              Master Traveler
+                            </Badge>
                         </div>
                       )}
                     </div>
@@ -152,21 +152,21 @@ const Index = () => {
                     <>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/what-we-do')}
                       >
                         What We Do
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/subscription')}
                       >
                         Subscription
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/contact')}
                       >
                         Contact Us
@@ -174,7 +174,7 @@ const Index = () => {
                       <Button 
                         onClick={() => isRouterReady && navigate('/login')}
                         variant="outline" 
-                        className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
+                        className="bg-card text-foreground border-border hover:bg-primary hover:text-primary-foreground transition-all duration-300"
                       >
                         Sign In
                       </Button>
@@ -184,14 +184,14 @@ const Index = () => {
                     <>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/subscription')}
                       >
                         Subscription
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/contact')}
                       >
                         Contact Us
@@ -213,7 +213,7 @@ const Index = () => {
                 <Button 
                   variant="ghost"
                   size="sm"
-                  className="text-white hover:bg-white/10 p-2 rounded-full"
+                  className="text-foreground hover:bg-accent p-2 rounded-full"
                   onClick={() => isRouterReady && navigate('/home')}
                 >
                   <User className="h-6 w-6" />
@@ -230,16 +230,16 @@ const Index = () => {
       <section className="relative overflow-hidden py-20 px-4">
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
         <div className="max-w-7xl mx-auto text-center relative">
-          <Badge className="mb-6 bg-white/20 text-white hover:bg-white/30 border-white/30" variant="secondary">
+          <Badge className="mb-6 bg-accent text-foreground hover:bg-accent/80 border-border" variant="secondary">
             AI-Powered Travel Planning
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6">
             Your Ultimate
             <span className="luxury-text-gradient block">
               Travel Companion
             </span>
           </h1>
-          <p className="text-xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
             Experience the future of travel planning with AI-driven itineraries, 
             real-time booking, and intelligent budget tracking all in one luxurious platform.
           </p>
@@ -247,39 +247,39 @@ const Index = () => {
           {/* User Type Selection */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
             <Card 
-              className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-white/25 hover:scale-105 bg-[#171821]/80 border-white/30 ${
-                userType === 'individual' ? 'ring-2 ring-white shadow-lg shadow-white/30' : ''
+              className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 bg-card/80 border-border ${
+                userType === 'individual' ? 'ring-2 ring-primary shadow-lg' : ''
               }`}
               onClick={() => setUserType('individual')}
             >
               <CardHeader className="text-center pb-2">
                 <div className="mx-auto w-16 h-16 gold-gradient rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <Users className="h-8 w-8 text-[#171821]" />
+                  <Users className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <CardTitle className="text-xl text-white">Individual Travel</CardTitle>
-                <CardDescription className="text-white/70">Perfect for personal trips and adventures</CardDescription>
+                <CardTitle className="text-xl text-card-foreground">Individual Travel</CardTitle>
+                <CardDescription className="text-muted-foreground">Perfect for personal trips and adventures</CardDescription>
               </CardHeader>
             </Card>
             
             <Card 
-              className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-white/25 hover:scale-105 bg-[#171821]/80 border-white/30 ${
-                userType === 'company' ? 'ring-2 ring-white shadow-lg shadow-white/30' : ''
+              className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 bg-card/80 border-border ${
+                userType === 'company' ? 'ring-2 ring-primary shadow-lg' : ''
               }`}
               onClick={() => setUserType('company')}
             >
               <CardHeader className="text-center pb-2">
                 <div className="mx-auto w-16 h-16 gold-gradient rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <BarChart3 className="h-8 w-8 text-[#171821]" />
+                  <BarChart3 className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <CardTitle className="text-xl text-white">Corporate Travel</CardTitle>
-                <CardDescription className="text-white/70">Streamlined solutions for business travel</CardDescription>
+                <CardTitle className="text-xl text-card-foreground">Corporate Travel</CardTitle>
+                <CardDescription className="text-muted-foreground">Streamlined solutions for business travel</CardDescription>
               </CardHeader>
             </Card>
           </div>
 
           <Button 
             size="lg" 
-            className="gold-gradient hover:opacity-90 text-[#171821] px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+            className="gold-gradient hover:opacity-90 text-primary-foreground px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
             disabled={!userType}
             onClick={() => isRouterReady && navigate('/signup', { state: { userType } })}
           >
@@ -290,13 +290,13 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-[#171821] to-[#2d2a1f]">
+      <section className="py-20 px-4 bg-gradient-to-b from-background to-secondary">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
               Everything You Need for Perfect Travel
             </h2>
-            <p className="text-xl text-white/80 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               From AI-powered recommendations to real-time budget tracking, 
               TAAI Travel revolutionizes how you plan and manage your trips.
             </p>
@@ -304,15 +304,15 @@ const Index = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="group hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/60 border-white/20 hover:border-white/40">
+              <Card key={index} className="group hover:shadow-2xl transition-all duration-300 bg-card/60 border-border hover:border-primary/40">
                 <CardContent className="p-6">
                   <div className="mb-4 group-hover:scale-105 transition-all duration-300 transform-gpu perspective-1000 group-hover:translate-z-2">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-card-foreground mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-white/70">
+                  <p className="text-muted-foreground">
                     {feature.description}
                   </p>
                 </CardContent>
@@ -325,16 +325,16 @@ const Index = () => {
       {/* CTA Section */}
       <section className="py-20 px-4 gold-gradient-flowing">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-[#171821] mb-6">
+          <h2 className="text-4xl font-bold text-primary-foreground mb-6">
             Ready to Transform Your Travel Experience?
           </h2>
-          <p className="text-xl text-[#171821]/80 mb-8">
+          <p className="text-xl text-primary-foreground/80 mb-8">
             Join thousands of travelers who've discovered smarter, more efficient trip planning.
           </p>
           <Button 
             size="lg" 
             variant="secondary"
-            className="bg-[#171821] text-white hover:bg-[#171821]/90 border-2 border-[#171821] px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-background text-foreground hover:bg-background/90 border-2 border-background px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             onClick={() => isRouterReady && navigate('/signup')}
           >
             Get Started Today
@@ -343,30 +343,30 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#171821] text-white py-12 px-4 border-t border-white/20">
+      <footer className="bg-background text-foreground py-12 px-4 border-t border-border">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center mb-4">
             <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="max-h-8" />
           </div>
-          <p className="text-white/70 mb-4">
+          <p className="text-muted-foreground mb-4">
             Revolutionizing travel planning with artificial intelligence
           </p>
-          <div className="flex justify-center space-x-6 text-sm text-white/70">
+          <div className="flex justify-center space-x-6 text-sm text-muted-foreground">
             <Button 
               variant="link" 
-              className="p-0 h-auto font-normal text-white/70 hover:text-white transition-colors"
+              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => isRouterReady && navigate('/terms')}
             >
               Privacy Policy
             </Button>
             <Button 
               variant="link" 
-              className="p-0 h-auto font-normal text-white/70 hover:text-white transition-colors"
+              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => isRouterReady && navigate('/terms')}
             >
               Terms of Service
             </Button>
-            <a href="mailto:support@taai.travel" className="hover:text-white transition-colors">Contact</a>
+            <a href="mailto:support@taai.travel" className="hover:text-foreground transition-colors">Contact</a>
           </div>
         </div>
       </footer>

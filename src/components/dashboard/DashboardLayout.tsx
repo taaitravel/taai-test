@@ -6,7 +6,7 @@ export const DashboardLayout = () => {
   const { fullUserStats } = useDashboard();
 
   return (
-    <div className="min-h-screen bg-[#171821]">
+    <div className="min-h-screen bg-background">
       <DashboardNavigation travelerLevel={fullUserStats.travelerLevel} />
       <DashboardContent />
     </div>

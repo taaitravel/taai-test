@@ -58,7 +58,7 @@ export const MobileNavigation = ({
   };
 
   return (
-    <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+    <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left Side - Mobile Menu or Back Button */}
@@ -69,15 +69,15 @@ export const MobileNavigation = ({
                   <Button 
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/10 p-2 rounded-full"
+                    className="text-foreground hover:bg-accent p-2 rounded-full"
                   >
                     <Menu className="h-6 w-6" />
                   </Button>
                 </DrawerTrigger>
-                <DrawerContent className="h-screen bg-[#171821]/95 backdrop-blur-md border-none">
+                <DrawerContent className="h-screen bg-background/95 backdrop-blur-md border-none">
                   <div className="flex flex-col h-full">
                     {/* Header with close button */}
-                    <div className="flex justify-between items-center p-6 border-b border-white/10">
+                    <div className="flex justify-between items-center p-6 border-b border-border">
                       <img 
                         src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
                         alt="TAAI Travel" 
@@ -86,7 +86,7 @@ export const MobileNavigation = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-white hover:bg-white/10 p-2 rounded-full"
+                        className="text-foreground hover:bg-accent p-2 rounded-full"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <X className="h-6 w-6" />
@@ -99,7 +99,7 @@ export const MobileNavigation = ({
                         <button
                           key={item.path}
                           onClick={() => handleMenuItemClick(item.path)}
-                          className="text-white text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
+                          className="text-foreground text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
                         >
                           {item.label}
                         </button>
@@ -107,14 +107,14 @@ export const MobileNavigation = ({
                     </div>
                     
                     {/* Footer with traveler level and sign out */}
-                    <div className="p-6 border-t border-white/10 space-y-4">
-                      <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
-                        {travelerLevel}
+                      <div className="p-6 border-t border-border space-y-4">
+                        <Badge className="bg-accent text-foreground border-border text-lg px-4 py-2">
+                          {travelerLevel}
                       </Badge>
                       <Button
                         onClick={handleSignOut}
                         variant="ghost"
-                        className="w-full text-white hover:bg-white/10 justify-start"
+                        className="w-full text-foreground hover:bg-accent justify-start"
                       >
                         <LogOut className="h-4 w-4 mr-2" />
                         Sign Out
@@ -129,7 +129,7 @@ export const MobileNavigation = ({
                   variant="ghost" 
                   size="sm" 
                   onClick={() => navigate(backPath)}
-                  className="text-white hover:bg-white/10"
+                  className="text-foreground hover:bg-accent"
                 >
                   {backLabel}
                 </Button>
@@ -146,29 +146,29 @@ export const MobileNavigation = ({
           <div className="flex items-center space-x-4">
             {!isMobile ? (
               <>
-                <Badge className="bg-white/20 text-white border-white/30">
+                <Badge className="bg-accent text-foreground border-border">
                   {travelerLevel}
                 </Badge>
                 {showTripButtons && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
-                        className="gold-gradient hover:opacity-90 text-[#171821] font-semibold p-2 rounded-full w-10 h-10"
+                        className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold p-2 rounded-full w-10 h-10"
                       >
                         <Plus className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[#171821] border-white/30 text-white">
+                    <DropdownMenuContent className="bg-card border-border text-card-foreground">
                       <DropdownMenuItem 
                         onClick={() => navigate('/new-itinerary')}
-                        className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+                        className="cursor-pointer hover:bg-accent focus:bg-accent"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         AI Trip
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => navigate('/new-manual-itinerary')}
-                        className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+                        className="cursor-pointer hover:bg-accent focus:bg-accent"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Manual Trip

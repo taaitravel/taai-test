@@ -72,15 +72,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
-      <Card className="w-full max-w-md shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/5"></div>
+      <Card className="w-full max-w-md shadow-2xl border-border bg-card/95 backdrop-blur-md relative">
         <CardHeader className="text-center space-y-2">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => navigate('/')}
-            className="absolute top-4 left-4 text-white hover:text-white hover:bg-white/10"
+            className="absolute top-4 left-4 text-foreground hover:text-foreground hover:bg-accent"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -90,8 +90,8 @@ const Login = () => {
           </div>
           
           <div className="space-y-2">
-            <CardTitle className="text-2xl text-white">Welcome Back</CardTitle>
-            <CardDescription className="text-white/70">
+            <CardTitle className="text-2xl text-card-foreground">Welcome Back</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Sign in to continue your travel planning journey
             </CardDescription>
           </div>
@@ -99,52 +99,52 @@ const Login = () => {
 
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-card-foreground">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">Password</Label>
+            <Label htmlFor="password" className="text-card-foreground">Password</Label>
             <Input
               id="password"
               type="password"
               placeholder="Enter your password"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
 
           <div className="text-right">
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white text-sm">
+            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80 text-sm">
               Forgot password?
             </Button>
           </div>
 
           <Button 
-            className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+            className="w-full gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
             onClick={handleLogin}
             disabled={loading}
           >
             {loading ? "Signing In..." : "Sign In"}
           </Button>
 
-          <Separator className="bg-white/30" />
+          <Separator className="bg-border" />
 
-          <div className="text-center text-sm text-white/70">
+          <div className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/signup')}>
+            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80" onClick={() => navigate('/signup')}>
               Sign up here
             </Button>
             {" | "}
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/terms')}>
+            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80" onClick={() => navigate('/terms')}>
               Terms & Privacy
             </Button>
           </div>

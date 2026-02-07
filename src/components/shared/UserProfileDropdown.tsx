@@ -4,6 +4,7 @@ import { User, Settings, LogOut, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "./ThemeToggle";
 
 export const UserProfileDropdown = () => {
   const navigate = useNavigate();
@@ -37,13 +38,13 @@ export const UserProfileDropdown = () => {
         <Button 
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/10 p-2 rounded-full transition-all duration-200 hover:scale-105"
+          className="text-foreground hover:bg-accent p-2 rounded-full transition-all duration-200 hover:scale-105"
         >
           <User className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
-        className="w-56 bg-[#171821]/95 backdrop-blur-md border-white/20 text-white" 
+        className="w-56 bg-card/95 backdrop-blur-md border-border text-card-foreground" 
         align="end"
         sideOffset={5}
       >
@@ -51,28 +52,33 @@ export const UserProfileDropdown = () => {
           <p className="text-sm font-medium">
             {userProfile?.first_name || userProfile?.username || "User"}
           </p>
-          <p className="text-xs text-white/60">
+          <p className="text-xs text-muted-foreground">
             {userProfile?.email}
           </p>
         </div>
-        <DropdownMenuSeparator className="bg-white/20" />
+        <DropdownMenuSeparator className="bg-border" />
+        <div className="px-3 py-2">
+          <p className="text-xs text-muted-foreground mb-2">Appearance</p>
+          <ThemeToggle />
+        </div>
+        <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuItem 
           onClick={() => navigate("/subscription")}
-          className="cursor-pointer hover:bg-white/10 focus:bg-white/10 transition-colors"
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
         >
           <CreditCard className="h-4 w-4 mr-2" />
           Subscription
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={handleEditProfile}
-          className="cursor-pointer hover:bg-white/10 focus:bg-white/10 transition-colors"
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
         >
           <Settings className="h-4 w-4 mr-2" />
           Edit Profile
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={handleSignOut}
-          className="cursor-pointer hover:bg-white/10 focus:bg-white/10 transition-colors text-red-300 hover:text-red-200"
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors text-destructive hover:text-destructive"
         >
           <LogOut className="h-4 w-4 mr-2" />
           Sign Out

@@ -6,100 +6,104 @@
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
+  /* Light Mode (default) - Elegant warm off-white with dark text */
   :root {
-    --background: 240 16% 11%;
-    --foreground: 45 42 35;
+    --background: 40 20% 97%;        /* #f8f7f5 - warm off-white */
+    --foreground: 240 16% 11%;       /* #171821 - dark text */
 
-    --card: 23 24 33;
-    --card-foreground: 351 85% 75%;
+    --card: 0 0% 100%;               /* pure white cards */
+    --card-foreground: 240 16% 15%;  /* dark text */
 
-    --popover: 23 24 33;
-    --popover-foreground: 351 85% 75%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 16% 15%;
 
-    --primary: 351 85% 75%;
-    --primary-foreground: 23 24 33;
+    --primary: 351 85% 65%;          /* slightly deeper rose for contrast */
+    --primary-foreground: 0 0% 100%; /* white text on primary */
 
-    --secondary: 45 42 35;
-    --secondary-foreground: 351 85% 75%;
+    --secondary: 40 30% 92%;         /* warm light gray */
+    --secondary-foreground: 240 16% 15%;
 
-    --muted: 45 42 35;
-    --muted-foreground: 184 134 11;
+    --muted: 40 20% 94%;
+    --muted-foreground: 240 10% 40%;
 
-    --accent: 45 42 35;
-    --accent-foreground: 351 85% 75%;
+    --accent: 40 30% 90%;
+    --accent-foreground: 240 16% 15%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 45 42 35;
-    --input: 45 42 35;
-    --ring: 351 85% 75%;
+    --border: 40 20% 88%;
+    --input: 40 20% 92%;
+    --ring: 351 85% 65%;
 
-    --contrast: 0 0% 0%;
-    --contrast-foreground: 0 0% 100%;
+    --contrast: 0 0% 100%;
+    --contrast-foreground: 240 16% 11%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 23 24 33;
-    --sidebar-foreground: 351 85% 75%;
-    --sidebar-primary: 351 85% 75%;
-    --sidebar-primary-foreground: 23 24 33;
-    --sidebar-accent: 45 42 35;
-    --sidebar-accent-foreground: 351 85% 75%;
-    --sidebar-border: 45 42 35;
-    --sidebar-ring: 351 85% 75%;
+    /* Sidebar - Light Mode */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 16% 15%;
+    --sidebar-primary: 351 85% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 30% 94%;
+    --sidebar-accent-foreground: 240 16% 15%;
+    --sidebar-border: 40 20% 88%;
+    --sidebar-ring: 351 85% 65%;
 
-    /* Map marker semantic tokens */
-    --marker-activity: 36 100% 76%; /* #ffce87 */
-    --marker-hotel: 348 100% 76%;    /* #ff849c */
-    --marker-reservation: 0 0% 100%; /* #ffffff */
-    --marker-outline: 0 0% 0%;
+    /* Map marker semantic tokens - Light Mode */
+    --marker-activity: 36 100% 50%;
+    --marker-hotel: 348 100% 60%;
+    --marker-reservation: 240 16% 15%;
+    --marker-outline: 0 0% 100%;
   }
 
+  /* Dark Mode - Current luxury dark theme */
   .dark {
-    --background: 240 16% 11%;
-    --foreground: 351 85% 75%;
+    --background: 240 16% 11%;       /* #171821 */
+    --foreground: 351 85% 75%;       /* rose/coral text */
 
-    --card: 23 24 33;
+    --card: 23 24% 11%;              /* #171821 cards */
     --card-foreground: 351 85% 75%;
 
-    --popover: 23 24 33;
+    --popover: 23 24% 11%;
     --popover-foreground: 351 85% 75%;
 
     --primary: 351 85% 75%;
-    --primary-foreground: 23 24 33;
+    --primary-foreground: 23 24% 11%;
 
-    --secondary: 45 42 35;
+    --secondary: 45 42% 14%;
     --secondary-foreground: 351 85% 75%;
 
-    --muted: 45 42 35;
-    --muted-foreground: 184 134 11;
+    --muted: 45 42% 14%;
+    --muted-foreground: 40 30% 50%;
 
-    --accent: 45 42 35;
+    --accent: 45 42% 14%;
     --accent-foreground: 351 85% 75%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 45 42 35;
-    --input: 45 42 35;
+    --border: 45 42% 20%;
+    --input: 45 42% 14%;
     --ring: 351 85% 75%;
     
     --contrast: 0 0% 0%;
     --contrast-foreground: 0 0% 100%;
     
-    --sidebar-background: 23 24 33;
+    /* Sidebar - Dark Mode */
+    --sidebar-background: 23 24% 11%;
     --sidebar-foreground: 351 85% 75%;
     --sidebar-primary: 351 85% 75%;
-    --sidebar-primary-foreground: 23 24 33;
-    --sidebar-accent: 45 42 35;
+    --sidebar-primary-foreground: 23 24% 11%;
+    --sidebar-accent: 45 42% 14%;
     --sidebar-accent-foreground: 351 85% 75%;
-    --sidebar-border: 45 42 35;
+    --sidebar-border: 45 42% 20%;
     --sidebar-ring: 351 85% 75%;
 
-    /* Map marker semantic tokens */
+    /* Map marker semantic tokens - Dark Mode */
     --marker-activity: 36 100% 76%; /* #ffce87 */
-    --marker-hotel: 348 100% 76%;    /* #ff849c */
+    --marker-hotel: 348 100% 76%;   /* #ff849c */
     --marker-reservation: 0 0% 100%; /* #ffffff */
     --marker-outline: 0 0% 0%;
   }
@@ -115,16 +119,30 @@
   }
 }
 
-/* Custom luxury gradients */
+/* Custom luxury gradients - Theme Aware */
 .luxury-gradient {
+  background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(40 20% 90%) 50%, hsl(var(--background)) 100%);
+}
+
+.dark .luxury-gradient {
   background: linear-gradient(135deg, #171821 0%, #2d2a1f 50%, #171821 100%);
 }
 
 .gold-gradient {
+  background: linear-gradient(135deg, hsl(351, 85%, 65%) 0%, hsl(15, 80%, 60%) 50%, hsl(25, 75%, 55%) 100%);
+}
+
+.dark .gold-gradient {
   background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%);
 }
 
 .gold-gradient-flowing {
+  background: linear-gradient(135deg, hsl(351, 85%, 65%) 0%, hsl(15, 80%, 60%) 25%, hsl(25, 75%, 55%) 50%, hsl(351, 85%, 65%) 75%, hsl(15, 80%, 60%) 100%);
+  background-size: 300% 300%;
+  animation: gradient-flow 6s ease-in-out infinite;
+}
+
+.dark .gold-gradient-flowing {
   background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 25%, hsl(25, 75%, 65%) 50%, hsl(351, 85%, 75%) 75%, hsl(15, 80%, 70%) 100%);
   background-size: 300% 300%;
   animation: gradient-flow 6s ease-in-out infinite;
@@ -139,9 +157,9 @@
   }
 }
 
-/* Trip Browser Card Styles */
+/* Trip Browser Card Styles - Theme Aware */
 .trip-browser-upcoming {
-  background: #171821;
+  background: hsl(var(--card));
   border: 5px solid transparent;
   position: relative;
 }
@@ -153,17 +171,21 @@
   left: -5px;
   right: -5px;
   bottom: -5px;
-  background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 25%, hsl(25, 75%, 65%) 50%, hsl(351, 85%, 75%) 75%, hsl(15, 80%, 70%) 100%);
+  background: linear-gradient(135deg, hsl(351, 85%, 65%) 0%, hsl(15, 80%, 60%) 25%, hsl(25, 75%, 55%) 50%, hsl(351, 85%, 65%) 75%, hsl(15, 80%, 60%) 100%);
   background-size: 300% 300%;
   animation: gradient-border 4s ease-in-out infinite;
   border-radius: 12px;
   z-index: -1;
 }
 
+.dark .trip-browser-upcoming::before {
+  background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 25%, hsl(25, 75%, 65%) 50%, hsl(351, 85%, 75%) 75%, hsl(15, 80%, 70%) 100%);
+}
+
 .trip-browser-past {
-  background: #171821;
+  background: hsl(var(--card));
   border: 5px solid;
-  border-image: linear-gradient(135deg, #ffffff 0%, #666666 25%, #333333 50%, #000000 75%, #ffffff 100%) 1;
+  border-image: linear-gradient(135deg, hsl(var(--muted-foreground)) 0%, hsl(var(--border)) 50%, hsl(var(--muted)) 100%) 1;
 }
 
 /* Trip card animations and styles */
@@ -186,10 +208,14 @@
 }
 
 .trip-card-upcoming {
-  background: #171821;
+  background: hsl(var(--card));
   border: 1px solid transparent;
   animation: breathe 4s ease-in-out infinite;
   position: relative;
+  box-shadow: 0 0 0 2px hsl(351, 85%, 65%), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .trip-card-upcoming {
   box-shadow: 0 0 0 2px hsl(351, 85%, 75%), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -200,7 +226,7 @@
   left: -3px;
   right: -3px;
   bottom: -3px;
-  background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 25%, hsl(25, 75%, 65%) 50%, hsl(351, 85%, 75%) 75%, hsl(15, 80%, 70%) 100%);
+  background: linear-gradient(135deg, hsl(351, 85%, 65%) 0%, hsl(15, 80%, 60%) 25%, hsl(25, 75%, 55%) 50%, hsl(351, 85%, 65%) 75%, hsl(15, 80%, 60%) 100%);
   background-size: 300% 300%;
   animation: gradient-border 6s ease-in-out infinite;
   border-radius: 12px;
@@ -208,31 +234,59 @@
   opacity: 0.8;
 }
 
+.dark .trip-card-upcoming::before {
+  background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 25%, hsl(25, 75%, 65%) 50%, hsl(351, 85%, 75%) 75%, hsl(15, 80%, 70%) 100%);
+}
+
 .trip-card-past {
-  background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, hsl(351, 85%, 65%) 0%, hsl(15, 80%, 60%) 50%, hsl(25, 75%, 55%) 100%);
+  border: 1px solid hsl(var(--border) / 0.3);
   opacity: 1;
 }
 
+.dark .trip-card-past {
+  background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
 .luxury-text-gradient {
+  background: linear-gradient(135deg, hsl(351, 85%, 65%) 0%, hsl(15, 80%, 60%) 50%, hsl(25, 75%, 55%) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .luxury-text-gradient {
   background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Toast and Notification Styles */
+/* Toast and Notification Styles - Theme Aware */
 .toast-success {
+  background: linear-gradient(135deg, 
+    hsl(351, 85%, 65%) 0%, 
+    hsl(15, 80%, 60%) 25%, 
+    hsl(25, 75%, 55%) 50%, 
+    hsl(351, 85%, 65%) 75%, 
+    hsl(15, 80%, 60%) 100%);
+  background-size: 300% 300%;
+  animation: toast-flow 4s ease-in-out infinite;
+  border: 1px solid hsl(var(--border) / 0.2);
+  backdrop-filter: blur(10px);
+  color: hsl(var(--card-foreground));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 
+              0 0 0 1px hsl(var(--border) / 0.1);
+}
+
+.dark .toast-success {
   background: linear-gradient(135deg, 
     hsl(351, 85%, 75%) 0%, 
     hsl(15, 80%, 70%) 25%, 
     hsl(25, 75%, 65%) 50%, 
     hsl(351, 85%, 75%) 75%, 
     hsl(15, 80%, 70%) 100%);
-  background-size: 300% 300%;
-  animation: toast-flow 4s ease-in-out infinite;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
   color: hsl(23, 24%, 13%);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
               0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -241,20 +295,42 @@
 .toast-error {
   background: linear-gradient(135deg, 
     hsl(0, 84%, 60%) 0%, 
-    hsl(351, 85%, 75%) 25%, 
-    hsl(15, 80%, 70%) 50%, 
+    hsl(351, 85%, 65%) 25%, 
+    hsl(15, 80%, 60%) 50%, 
     hsl(0, 84%, 60%) 75%, 
-    hsl(351, 85%, 75%) 100%);
+    hsl(351, 85%, 65%) 100%);
   background-size: 300% 300%;
   animation: toast-flow 3s ease-in-out infinite;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid hsl(var(--border) / 0.2);
   backdrop-filter: blur(10px);
   color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 
+              0 0 0 1px hsl(var(--border) / 0.1);
+}
+
+.dark .toast-error {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
               0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .toast-default {
+  background: linear-gradient(135deg, 
+    hsl(var(--card)) 0%, 
+    hsl(351, 85%, 65%) 15%, 
+    hsl(15, 80%, 60%) 35%, 
+    hsl(25, 75%, 55%) 55%, 
+    hsl(351, 85%, 65%) 75%, 
+    hsl(var(--card)) 100%);
+  background-size: 400% 400%;
+  animation: toast-flow 5s ease-in-out infinite;
+  border: 1px solid hsl(var(--border) / 0.3);
+  backdrop-filter: blur(12px);
+  color: hsl(var(--foreground));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 
+              0 0 0 1px hsl(var(--border) / 0.15);
+}
+
+.dark .toast-default {
   background: linear-gradient(135deg, 
     hsl(23, 24%, 13%) 0%, 
     hsl(351, 85%, 75%) 15%, 
@@ -262,10 +338,6 @@
     hsl(25, 75%, 65%) 55%, 
     hsl(351, 85%, 75%) 75%, 
     hsl(23, 24%, 13%) 100%);
-  background-size: 400% 400%;
-  animation: toast-flow 5s ease-in-out infinite;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(12px);
   color: white;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
               0 0 0 1px rgba(255, 255, 255, 0.15);
@@ -330,33 +402,44 @@
 @keyframes notification-pulse {
   0%, 100% {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
-                0 0 0 1px rgba(255, 255, 255, 0.15),
-                0 0 20px rgba(254, 178, 178, 0.3);
+                0 0 0 1px hsl(var(--border) / 0.15),
+                0 0 20px hsl(351 85% 75% / 0.3);
   }
   50% {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
-                0 0 0 1px rgba(255, 255, 255, 0.15),
-                0 0 30px rgba(254, 178, 178, 0.6);
+                0 0 0 1px hsl(var(--border) / 0.15),
+                0 0 30px hsl(351 85% 75% / 0.6);
   }
 }
 
-/* Mapbox popup overrides for dark theme */
+/* Mapbox popup overrides - Theme Aware */
 .mapboxgl-popup-content {
-  background: #1a1c2e !important;
+  background: hsl(var(--card)) !important;
   padding: 0 !important;
   border-radius: 12px !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
   overflow: hidden;
 }
 
+.dark .mapboxgl-popup-content {
+  background: #1a1c2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
 .mapboxgl-popup-tip {
+  border-top-color: hsl(var(--card)) !important;
+  border-bottom-color: hsl(var(--card)) !important;
+}
+
+.dark .mapboxgl-popup-tip {
   border-top-color: #1a1c2e !important;
   border-bottom-color: #1a1c2e !important;
 }
 
 .mapboxgl-popup-close-button {
-  color: white !important;
+  color: hsl(var(--foreground)) !important;
   font-size: 18px !important;
   padding: 4px 8px !important;
   right: 2px !important;
@@ -364,19 +447,27 @@
   z-index: 10;
 }
 
+.dark .mapboxgl-popup-close-button {
+  color: white !important;
+}
+
 .mapboxgl-popup-close-button:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: hsl(var(--accent)) !important;
   border-radius: 4px;
+}
+
+.dark .mapboxgl-popup-close-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Deck slot animation for drag-and-drop */
 @keyframes deck-pulse {
   0%, 100% { 
-    box-shadow: 0 0 12px rgba(255, 206, 135, 0.4), 
+    box-shadow: 0 0 12px hsl(36 100% 76% / 0.4), 
                 0 4px 16px rgba(0, 0, 0, 0.3); 
   }
   50% { 
-    box-shadow: 0 0 24px rgba(255, 206, 135, 0.7), 
+    box-shadow: 0 0 24px hsl(36 100% 76% / 0.7), 
                 0 8px 24px rgba(0, 0, 0, 0.4); 
   }
 }

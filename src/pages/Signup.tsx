@@ -193,27 +193,27 @@ const Signup = () => {
   // Show email confirmation screen
   if (showEmailConfirmation) {
     return (
-      <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
-        <Card className="w-full max-w-md shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/5"></div>
+        <Card className="w-full max-w-md shadow-2xl border-border bg-card/95 backdrop-blur-md relative">
           <CardHeader className="text-center space-y-4">
             <div className="flex items-center justify-center">
               <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[150px] w-auto" />
             </div>
-            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
-              <Mail className="h-8 w-8 text-[#171821]" />
+            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
+              <Mail className="h-8 w-8 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl text-white">Check Your Email</CardTitle>
-            <CardDescription className="text-white/70 text-base">
-              We've sent a verification link to <strong className="text-white">{formData.email}</strong>
+            <CardTitle className="text-2xl text-card-foreground">Check Your Email</CardTitle>
+            <CardDescription className="text-muted-foreground text-base">
+              We've sent a verification link to <strong className="text-foreground">{formData.email}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 text-center">
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
-              <p className="text-white/80 text-sm">
+            <div className="bg-accent/50 border border-border rounded-lg p-4 space-y-3">
+              <p className="text-muted-foreground text-sm">
                 Click the link in your email to verify your account and complete registration.
               </p>
-              <div className="flex items-center justify-center gap-2 text-amber-400/80 text-xs">
+              <div className="flex items-center justify-center gap-2 text-primary/80 text-xs">
                 <span>💡</span>
                 <span>Can't find it? Check your <strong>spam</strong> or <strong>promotions</strong> folder.</span>
               </div>
@@ -222,7 +222,7 @@ const Signup = () => {
             {/* Resend Email Button */}
             <Button 
               variant="outline"
-              className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-50"
+              className="w-full border-primary/50 text-primary hover:bg-primary/10 hover:text-primary disabled:opacity-50"
               onClick={handleResendEmail}
               disabled={resendCooldown > 0 || resending}
             >
@@ -244,18 +244,18 @@ const Signup = () => {
               )}
             </Button>
             
-            <Separator className="bg-white/30" />
+            <Separator className="bg-border" />
             <div className="space-y-3">
               <Button 
                 variant="outline"
-                className="w-full border-white/30 text-white hover:bg-white/10"
+                className="w-full border-border text-foreground hover:bg-accent"
                 onClick={() => navigate('/login')}
               >
                 Go to Login
               </Button>
               <Button 
                 variant="ghost"
-                className="w-full text-white/60 hover:text-white hover:bg-white/5"
+                className="w-full text-muted-foreground hover:text-foreground hover:bg-accent/50"
                 onClick={() => setShowEmailConfirmation(false)}
               >
                 Use a different email
@@ -268,15 +268,15 @@ const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#171821] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
-      <Card className="w-full max-w-md shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/5"></div>
+      <Card className="w-full max-w-md shadow-2xl border-border bg-card/95 backdrop-blur-md relative">
         <CardHeader className="text-center space-y-2">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => navigate('/')}
-            className="absolute top-4 left-4 text-white bg-black/30 hover:text-white hover:bg-white/10"
+            className="absolute top-4 left-4 text-foreground bg-accent/30 hover:text-foreground hover:bg-accent"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -288,7 +288,7 @@ const Signup = () => {
           <div className="space-y-2">
             <Badge 
               variant="secondary" 
-              className={`${userType === 'individual' ? 'bg-white/20 text-white border-white/30' : 'bg-white/20 text-white border-white/30'}`}
+              className="bg-accent text-foreground border-border"
             >
               {userType === 'individual' ? (
                 <>
@@ -302,9 +302,9 @@ const Signup = () => {
                 </>
               )}
             </Badge>
-            <CardTitle className="text-2xl text-white">Create Your Account</CardTitle>
-            <CardDescription className="text-white/70">
-              {userType === 'individual' 
+            <CardTitle className="text-2xl text-card-foreground">Create Your Account</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              {userType === 'individual'
                 ? "Join thousands of travelers planning smarter trips"
                 : "Streamline your corporate travel management"
               }
@@ -317,140 +317,140 @@ const Signup = () => {
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-white">First Name</Label>
+                  <Label htmlFor="firstName" className="text-card-foreground">First Name</Label>
                   <Input
                     id="firstName"
                     placeholder="John"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="userName" className="text-white">Username</Label>
+                  <Label htmlFor="userName" className="text-card-foreground">Username</Label>
                   <Input
                     id="userName"
                     placeholder="johndoe"
                     value={formData.userName}
                     onChange={(e) => handleInputChange('userName', e.target.value)}
-                    className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-white">Phone Number</Label>
+                <Label htmlFor="phone" className="text-card-foreground">Phone Number</Label>
                 <Input
                   id="phone"
                   placeholder="+1 (555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
             </>
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="companyName" className="text-white">Company Name</Label>
+                <Label htmlFor="companyName" className="text-card-foreground">Company Name</Label>
                 <Input
                   id="companyName"
                   placeholder="Acme Corporation"
                   value={formData.companyName}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="adminName" className="text-white">Admin Contact Name</Label>
+                <Label htmlFor="adminName" className="text-card-foreground">Admin Contact Name</Label>
                 <Input
                   id="adminName"
                   placeholder="Jane Smith"
                   value={formData.adminName}
                   onChange={(e) => handleInputChange('adminName', e.target.value)}
-                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="registeredAddress" className="text-white">Registered Address</Label>
+                <Label htmlFor="registeredAddress" className="text-card-foreground">Registered Address</Label>
                 <Input
                   id="registeredAddress"
                   placeholder="123 Business Ave, City, State 12345"
                   value={formData.registeredAddress}
                   onChange={(e) => handleInputChange('registeredAddress', e.target.value)}
-                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-white">Phone Number</Label>
+                <Label htmlFor="phone" className="text-card-foreground">Phone Number</Label>
                 <Input
                   id="phone"
                   placeholder="+1 (555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
             </>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-card-foreground">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">Password</Label>
+            <Label htmlFor="password" className="text-card-foreground">Password</Label>
             <Input
               id="password"
               type="password"
               placeholder="Create a strong password"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+            <Label htmlFor="confirmPassword" className="text-card-foreground">Confirm Password</Label>
             <Input
               id="confirmPassword"
               type="password"
               placeholder="Confirm your password"
               value={formData.confirmPassword}
               onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
 
-          <Separator className="bg-white/30" />
+          <Separator className="bg-border" />
 
           <div className="space-y-2">
-            <Label className="text-white">Verification</Label>
+            <Label className="text-card-foreground">Verification</Label>
             <Captcha onVerify={(isValid) => setCaptchaValid(isValid)} />
           </div>
 
           <Button 
-            className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+            className="w-full gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
             onClick={handleSignup}
             disabled={loading || !captchaValid}
           >
             {loading ? "Creating Account..." : "Create Account"}
           </Button>
 
-          <div className="text-center text-sm text-white/70">
+          <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white" onClick={() => navigate('/login')}>
+            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80" onClick={() => navigate('/login')}>
               Sign in here
             </Button>
           </div>
