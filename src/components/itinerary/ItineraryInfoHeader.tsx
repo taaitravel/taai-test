@@ -10,8 +10,8 @@ export const ItineraryInfoHeader = ({ itineraryData }: ItineraryInfoHeaderProps)
 
   return (
     <div className="text-center mb-8">
-      <h1 className="text-4xl font-bold text-white mb-2">{itineraryData.itin_name}</h1>
-      <div className="flex justify-center items-center space-x-6 text-white/70 flex-wrap gap-2">
+      <h1 className="text-4xl font-bold text-foreground mb-2">{itineraryData.itin_name}</h1>
+      <div className="flex justify-center items-center space-x-6 text-muted-foreground flex-wrap gap-2">
         <div className="flex items-center space-x-2">
           <Calendar className="h-4 w-4" />
           <span>

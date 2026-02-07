@@ -35,14 +35,14 @@ export const TripsFilter = ({
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">Your Trips</h2>
+        <h2 className="text-xl font-bold text-foreground">Your Trips</h2>
         <div className="flex items-center space-x-2">
           {hasActiveFilters && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onClearFilters}
-              className="text-white/70 hover:text-white hover:bg-white/10"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               <X className="h-4 w-4 mr-1" />
               Clear
@@ -51,7 +51,7 @@ export const TripsFilter = ({
           <Button 
             size="sm" 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="bg-[#1f1f27] border-white/30 text-white hover:bg-white/10 border"
+            className="bg-secondary border-border text-foreground hover:bg-accent border"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filter & Sort
@@ -65,29 +65,29 @@ export const TripsFilter = ({
       </div>
 
       {isFilterOpen && (
-        <Card className="mt-4 bg-white/10 backdrop-blur-md border-white/30">
+        <Card className="mt-4 bg-muted backdrop-blur-md border-border">
           <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Sort By */}
               <div>
-                <label className="text-sm font-medium text-white/80 mb-2 block">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   Sort By
                 </label>
                 <Select value={sortBy} onValueChange={(value: SortOption) => onSortChange(value)}>
-                  <SelectTrigger className="bg-white/10 border-white/30 text-white">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#171821] border-white/30 text-white z-50">
-                    <SelectItem value="start_date" className="focus:bg-white/10 focus:text-white">Trip Start Date</SelectItem>
-                    <SelectItem value="end_date" className="focus:bg-white/10 focus:text-white">Trip End Date</SelectItem>
-                    <SelectItem value="created_at" className="focus:bg-white/10 focus:text-white">Date Created</SelectItem>
+                  <SelectContent className="bg-background border-border text-foreground z-50">
+                    <SelectItem value="start_date" className="focus:bg-accent focus:text-foreground">Trip Start Date</SelectItem>
+                    <SelectItem value="end_date" className="focus:bg-accent focus:text-foreground">Trip End Date</SelectItem>
+                    <SelectItem value="created_at" className="focus:bg-accent focus:text-foreground">Date Created</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Date From */}
               <div>
-                <label className="text-sm font-medium text-white/80 mb-2 block">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   From Date
                 </label>
                 <Popover>
@@ -95,15 +95,15 @@ export const TripsFilter = ({
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal bg-white/10 border-white/30 text-white hover:bg-white/15",
-                        !dateFrom && "text-white/50"
+                        "w-full justify-start text-left font-normal bg-background border-border text-foreground hover:bg-accent",
+                        !dateFrom && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateFrom ? format(dateFrom, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-[#171821] border-white/30" align="start">
+                  <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
                     <Calendar
                       mode="single"
                       selected={dateFrom}
@@ -117,7 +117,7 @@ export const TripsFilter = ({
 
               {/* Date To */}
               <div>
-                <label className="text-sm font-medium text-white/80 mb-2 block">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   To Date
                 </label>
                 <Popover>
@@ -125,15 +125,15 @@ export const TripsFilter = ({
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal bg-white/10 border-white/30 text-white hover:bg-white/15",
-                        !dateTo && "text-white/50"
+                        "w-full justify-start text-left font-normal bg-background border-border text-foreground hover:bg-accent",
+                        !dateTo && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateTo ? format(dateTo, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-[#171821] border-white/30" align="start">
+                  <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
                     <Calendar
                       mode="single"
                       selected={dateTo}

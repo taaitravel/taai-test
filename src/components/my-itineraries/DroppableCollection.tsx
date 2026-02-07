@@ -33,8 +33,8 @@ export const DroppableCollection: React.FC<DroppableCollectionProps> = ({
         "group flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
         isSelected
           ? "bg-primary/20 text-primary"
-          : "hover:bg-white/10 text-white/80",
-        isOver && "bg-[#ffce87]/20 border-2 border-[#ffce87] scale-[1.02]"
+          : "hover:bg-accent text-muted-foreground",
+        isOver && "bg-primary/20 border-2 border-primary scale-[1.02]"
       )}
     >
       <button
@@ -43,16 +43,16 @@ export const DroppableCollection: React.FC<DroppableCollectionProps> = ({
       >
         <Folder className={cn(
           "h-5 w-5 shrink-0 transition-colors",
-          isOver && "text-[#ffce87]"
+          isOver && "text-primary"
         )} />
         <div className="flex-1 min-w-0">
           <p className={cn(
             "font-medium truncate",
-            isOver && "text-[#ffce87]"
+            isOver && "text-primary"
           )}>
             {collection.name}
           </p>
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-muted-foreground">
             {collection.itinerary_count || 0} itinerary{(collection.itinerary_count || 0) !== 1 ? 's' : ''}
           </p>
         </div>
@@ -60,7 +60,7 @@ export const DroppableCollection: React.FC<DroppableCollectionProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-white/60 hover:text-white hover:bg-white/10"
+        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent"
         onClick={(e) => {
           e.stopPropagation();
           onEdit();

@@ -20,37 +20,37 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       icon: Sparkles,
       label: "AI Trip",
       onClick: () => navigate('/new-itinerary'),
-      className: "gold-gradient text-[#171821] hover:opacity-90"
+      className: "gold-gradient text-background hover:opacity-90"
     },
     {
       icon: Plus,
       label: "Manual",
       onClick: () => navigate('/new-manual-itinerary'),
-      className: "border-white/30 text-white hover:bg-white/10 bg-transparent"
+      className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
       icon: Plane,
       label: "Flights",
       onClick: () => navigate('/search?tab=flights'),
-      className: "border-white/30 text-white hover:bg-white/10 bg-transparent"
+      className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
       icon: Building2,
       label: "Hotels",
       onClick: () => navigate('/search?tab=hotels'),
-      className: "border-white/30 text-white hover:bg-white/10 bg-transparent"
+      className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
       icon: Car,
       label: "Cars",
       onClick: () => navigate('/search?tab=cars'),
-      className: "border-white/30 text-white hover:bg-white/10 bg-transparent"
+      className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
       icon: MapPin,
       label: "Activities",
       onClick: () => navigate('/search?tab=activities'),
-      className: "border-white/30 text-white hover:bg-white/10 bg-transparent"
+      className: "border-border text-foreground hover:bg-accent bg-transparent"
     }
   ];
 
@@ -64,12 +64,12 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
     <div className="w-full space-y-3">
       {/* Compact Header with Browse */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-white/80">Quick Actions</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
         <Button
           size="sm"
           variant="ghost"
           onClick={onBrowseTrips}
-          className="h-7 text-white/60 hover:text-white hover:bg-white/10 gap-1.5 text-xs px-2"
+          className="h-7 text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 text-xs px-2"
         >
           <FolderOpen className="h-3.5 w-3.5" />
           {upcomingCount} upcoming · {completedCount} past
@@ -93,11 +93,11 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       </div>
 
       {/* Inline Recent Activity */}
-      <div className="flex items-center gap-3 text-xs text-white/50 pt-1">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
         <Clock className="h-3 w-3 shrink-0" />
         {recentActivities.map((activity, index) => (
           <span key={index} className="shrink-0">
-            {activity.action} <span className="text-white/30">({activity.time})</span>
+            {activity.action} <span className="text-muted-foreground/50">({activity.time})</span>
             {index < recentActivities.length - 1 && <span className="ml-3">·</span>}
           </span>
         ))}

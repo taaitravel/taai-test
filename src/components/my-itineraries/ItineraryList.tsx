@@ -126,9 +126,9 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
 
   const StatusBadge = ({ status }: { status: string }) => {
     const variants = {
-      upcoming: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      active: 'bg-green-500/20 text-green-400 border-green-500/30',
-      completed: 'bg-white/10 text-white/60 border-white/20'
+      upcoming: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30',
+      active: 'bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30',
+      completed: 'bg-muted text-muted-foreground border-border'
     };
     
     return (
@@ -150,11 +150,11 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
   if (itineraries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <span className="text-2xl">✈️</span>
         </div>
-        <h3 className="text-lg font-medium text-white mb-2">No itineraries found</h3>
-        <p className="text-white/60">Create a new itinerary to get started</p>
+        <h3 className="text-lg font-medium text-foreground mb-2">No itineraries found</h3>
+        <p className="text-muted-foreground">Create a new itinerary to get started</p>
       </div>
     );
   }
@@ -164,12 +164,12 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
       {/* Bulk Actions */}
       {selectedIds.length > 0 && (
         <div className="flex items-center gap-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-          <span className="text-sm font-medium text-white">{selectedIds.length} selected</span>
+          <span className="text-sm font-medium text-foreground">{selectedIds.length} selected</span>
           {onBulkAddToCollection && (
             <Button 
               size="sm" 
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-border text-foreground hover:bg-accent"
               onClick={() => onBulkAddToCollection(selectedIds)}
             >
               Add to Collection
@@ -178,7 +178,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
           <Button 
             size="sm" 
             variant="ghost"
-            className="text-white/60 hover:text-white hover:bg-white/10"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent"
             onClick={() => setSelectedIds([])}
           >
             Clear Selection
@@ -187,20 +187,20 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
       )}
 
       {/* Table */}
-      <div className="rounded-lg border border-white/10 overflow-hidden">
+      <div className="rounded-lg border border-border overflow-hidden">
         <Table>
-          <TableHeader className="bg-[#12131a]">
-            <TableRow className="border-white/10 hover:bg-transparent">
+          <TableHeader className="bg-secondary">
+            <TableRow className="border-border hover:bg-transparent">
               <TableHead className="w-12">
                 <Checkbox 
                   checked={selectedIds.length === itineraries.length && itineraries.length > 0}
                   onCheckedChange={toggleSelectAll}
-                  className="border-white/30 data-[state=checked]:bg-primary"
+                  className="border-border data-[state=checked]:bg-primary"
                 />
               </TableHead>
               <TableHead>
                 <button 
-                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  className="flex items-center gap-1 hover:text-foreground transition-colors text-muted-foreground"
                   onClick={() => handleSort('name')}
                 >
                   Name <SortIcon field="name" />
@@ -208,7 +208,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               </TableHead>
               <TableHead>
                 <button 
-                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  className="flex items-center gap-1 hover:text-foreground transition-colors text-muted-foreground"
                   onClick={() => handleSort('date')}
                 >
                   <Calendar className="h-3 w-3" />
@@ -217,7 +217,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               </TableHead>
               <TableHead>
                 <button 
-                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  className="flex items-center gap-1 hover:text-foreground transition-colors text-muted-foreground"
                   onClick={() => handleSort('locations')}
                 >
                   <MapPin className="h-3 w-3" />
@@ -226,7 +226,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               </TableHead>
               <TableHead>
                 <button 
-                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  className="flex items-center gap-1 hover:text-foreground transition-colors text-muted-foreground"
                   onClick={() => handleSort('attendees')}
                 >
                   <Users className="h-3 w-3" />
@@ -235,7 +235,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               </TableHead>
               <TableHead>
                 <button 
-                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  className="flex items-center gap-1 hover:text-foreground transition-colors text-muted-foreground"
                   onClick={() => handleSort('spending')}
                 >
                   <DollarSign className="h-3 w-3" />
@@ -244,7 +244,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               </TableHead>
               <TableHead>
                 <button 
-                  className="flex items-center gap-1 hover:text-white transition-colors text-white/60"
+                  className="flex items-center gap-1 hover:text-foreground transition-colors text-muted-foreground"
                   onClick={() => handleSort('status')}
                 >
                   Status <SortIcon field="status" />
@@ -268,15 +268,15 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
               return (
                 <TableRow 
                   key={itinerary.id}
-                  className={`border-white/10 hover:bg-[#252738] ${
-                    index % 2 === 0 ? 'bg-[#1a1c2e]' : 'bg-[#1e2030]'
+                  className={`border-border hover:bg-accent ${
+                    index % 2 === 0 ? 'bg-card' : 'bg-muted/50'
                   }`}
                 >
                   <TableCell>
                     <Checkbox 
                       checked={selectedIds.includes(itinerary.id)}
                       onCheckedChange={() => toggleSelect(itinerary.id)}
-                      className="border-white/30 data-[state=checked]:bg-primary"
+                      className="border-border data-[state=checked]:bg-primary"
                     />
                   </TableCell>
                   
@@ -284,33 +284,33 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
                     className="cursor-pointer"
                     onClick={() => navigate(`/itinerary?id=${itinerary.id}`)}
                   >
-                    <p className="font-medium text-white hover:text-primary transition-colors line-clamp-1">
+                    <p className="font-medium text-foreground hover:text-primary transition-colors line-clamp-1">
                       {itinerary.itin_name || 'Untitled Trip'}
                     </p>
-                    <p className="text-xs text-white/50 line-clamp-1">
+                    <p className="text-xs text-muted-foreground line-clamp-1">
                       {truncatedDesc}
                     </p>
                   </TableCell>
 
-                  <TableCell className="text-white/60 text-sm whitespace-nowrap">
+                  <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                     {itinerary.itin_date_start && itinerary.itin_date_end
                       ? `${format(new Date(itinerary.itin_date_start), 'MMM d')} - ${format(new Date(itinerary.itin_date_end), 'MMM d, yyyy')}`
                       : 'TBD'}
                   </TableCell>
 
-                  <TableCell className="text-white/60 text-sm">
+                  <TableCell className="text-muted-foreground text-sm">
                     <span className="line-clamp-1">
                       {locations.join(', ')}
                       {hasMoreLocations && '...'}
                     </span>
                   </TableCell>
 
-                  <TableCell className="text-white/60 text-sm">
+                  <TableCell className="text-muted-foreground text-sm">
                     {attendeeCount}
                   </TableCell>
 
                   <TableCell>
-                    <span className={`font-medium text-sm ${spending > 0 ? 'text-[#ffce87]' : 'text-white/40'}`}>
+                    <span className={`font-medium text-sm ${spending > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
                       {spending > 0 ? formatCurrency(spending) : '-'}
                     </span>
                   </TableCell>
@@ -322,7 +322,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>

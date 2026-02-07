@@ -214,7 +214,7 @@ const MyItineraries = () => {
 
   // Mobile collections component (circular avatars)
   const MobileCollections = () => (
-    <div className="w-full bg-[#12131a] border-b border-white/10 p-4">
+    <div className="w-full bg-secondary border-b border-border p-4">
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide justify-start">
         {/* All Itineraries */}
         <button
@@ -223,12 +223,12 @@ const MyItineraries = () => {
         >
           <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${
             selectedCollectionId === null
-              ? 'bg-primary/20 border-[#ffce87]'
-              : 'bg-white/10 border-transparent hover:bg-white/20'
+              ? 'bg-primary/20 border-primary'
+              : 'bg-muted border-transparent hover:bg-accent'
           }`}>
-            <Globe className={`h-6 w-6 ${selectedCollectionId === null ? 'text-[#ffce87]' : 'text-white/80'}`} />
+            <Globe className={`h-6 w-6 ${selectedCollectionId === null ? 'text-primary' : 'text-muted-foreground'}`} />
           </div>
-          <span className="text-xs text-white/60 max-w-[56px] truncate">All</span>
+          <span className="text-xs text-muted-foreground max-w-[56px] truncate">All</span>
         </button>
 
         {/* User Collections */}
@@ -240,16 +240,16 @@ const MyItineraries = () => {
           >
             <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${
               selectedCollectionId === collection.id
-                ? 'bg-primary/20 border-[#ffce87]'
-                : 'bg-white/10 border-transparent hover:bg-white/20'
+                ? 'bg-primary/20 border-primary'
+                : 'bg-muted border-transparent hover:bg-accent'
             }`}>
               <span className={`text-lg font-semibold ${
-                selectedCollectionId === collection.id ? 'text-[#ffce87]' : 'text-white/80'
+                selectedCollectionId === collection.id ? 'text-primary' : 'text-muted-foreground'
               }`}>
                 {collection.name.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span className="text-xs text-white/60 max-w-[56px] truncate">{collection.name}</span>
+            <span className="text-xs text-muted-foreground max-w-[56px] truncate">{collection.name}</span>
           </button>
         ))}
 
@@ -258,10 +258,10 @@ const MyItineraries = () => {
           className="flex flex-col items-center gap-1.5 flex-shrink-0"
           onClick={handleCreateCollection}
         >
-          <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-dashed border-white/30 flex items-center justify-center hover:bg-white/20 transition-all">
-            <Plus className="h-6 w-6 text-white/60" />
+          <div className="w-14 h-14 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center hover:bg-accent transition-all">
+            <Plus className="h-6 w-6 text-muted-foreground" />
           </div>
-          <span className="text-xs text-white/60">New</span>
+          <span className="text-xs text-muted-foreground">New</span>
         </button>
       </div>
     </div>
@@ -271,14 +271,14 @@ const MyItineraries = () => {
   const navCustomActions = (
     <div className="flex items-center gap-2">
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-        <TabsList className="bg-white/10 h-9">
-          <TabsTrigger value="grid" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+        <TabsList className="bg-muted h-9">
+          <TabsTrigger value="grid" className="gap-1 px-2 data-[state=active]:bg-accent data-[state=active]:text-foreground text-muted-foreground h-7">
             <LayoutGrid className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="map" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+          <TabsTrigger value="map" className="gap-1 px-2 data-[state=active]:bg-accent data-[state=active]:text-foreground text-muted-foreground h-7">
             <Map className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="list" className="gap-1 px-2 data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/60 h-7">
+          <TabsTrigger value="list" className="gap-1 px-2 data-[state=active]:bg-accent data-[state=active]:text-foreground text-muted-foreground h-7">
             <List className="h-4 w-4" />
           </TabsTrigger>
         </TabsList>
@@ -292,7 +292,7 @@ const MyItineraries = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="min-h-screen bg-[#171821] flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         {/* Consistent Navigation Header */}
         <MobileNavigation 
           showBackButton={true}
@@ -317,16 +317,16 @@ const MyItineraries = () => {
           {/* Main Content */}
           <div className="flex-1 flex flex-col">
             {/* Sub-header with collection name and count */}
-            <header className="border-b border-white/10 px-4 md:px-6 py-3">
+            <header className="border-b border-border px-4 md:px-6 py-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-lg md:text-xl font-bold text-white">
+                  <h1 className="text-lg md:text-xl font-bold text-foreground">
                     {selectedCollectionId 
                       ? collections.find(c => c.id === selectedCollectionId)?.name || 'Collection'
                       : 'All Itineraries'
                     }
                   </h1>
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-muted-foreground">
                     {filteredItineraries.length} itinerary{filteredItineraries.length !== 1 ? 's' : ''}
                   </p>
                 </div>
@@ -345,7 +345,7 @@ const MyItineraries = () => {
             {loading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton key={i} className="w-full aspect-[255/375] rounded-lg bg-white/10" />
+                  <Skeleton key={i} className="w-full aspect-[255/375] rounded-lg bg-muted" />
                 ))}
               </div>
             ) : (

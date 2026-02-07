@@ -37,14 +37,14 @@ export const GridFilters: React.FC<GridFiltersProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-3 mb-4 p-3 bg-[#12131a] rounded-lg border border-white/10">
-      <span className="text-sm font-medium text-white/60">Sort by:</span>
+    <div className="flex items-center gap-3 mb-4 p-3 bg-secondary rounded-lg border border-border">
+      <span className="text-sm font-medium text-muted-foreground">Sort by:</span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+            className="gap-2 border-border bg-muted text-foreground hover:bg-accent hover:text-foreground"
           >
             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
             {currentOption?.label}: {currentLabel}
