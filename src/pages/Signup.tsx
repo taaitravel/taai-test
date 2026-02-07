@@ -374,13 +374,13 @@ const Signup = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="registeredAddress" className="text-white">Registered Address</Label>
+                <Label htmlFor="registeredAddress" className="text-card-foreground">Registered Address</Label>
                 <Input
                   id="registeredAddress"
                   placeholder="123 Business Ave, City, State 12345"
                   value={formData.registeredAddress}
                   onChange={(e) => handleInputChange('registeredAddress', e.target.value)}
-                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
               
