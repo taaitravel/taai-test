@@ -166,7 +166,7 @@ const Index = () => {
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/contact')}
                       >
                         Contact Us
@@ -174,7 +174,7 @@ const Index = () => {
                       <Button 
                         onClick={() => isRouterReady && navigate('/login')}
                         variant="outline" 
-                        className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
+                        className="bg-card text-foreground border-border hover:bg-primary hover:text-primary-foreground transition-all duration-300"
                       >
                         Sign In
                       </Button>
