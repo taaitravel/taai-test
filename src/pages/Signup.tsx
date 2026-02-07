@@ -255,7 +255,7 @@ const Signup = () => {
               </Button>
               <Button 
                 variant="ghost"
-                className="w-full text-white/60 hover:text-white hover:bg-white/5"
+                className="w-full text-muted-foreground hover:text-foreground hover:bg-accent/50"
                 onClick={() => setShowEmailConfirmation(false)}
               >
                 Use a different email
