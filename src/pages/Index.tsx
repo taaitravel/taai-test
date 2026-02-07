@@ -334,7 +334,7 @@ const Index = () => {
           <Button 
             size="lg" 
             variant="secondary"
-            className="bg-[#171821] text-white hover:bg-[#171821]/90 border-2 border-[#171821] px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-background text-foreground hover:bg-background/90 border-2 border-background px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             onClick={() => isRouterReady && navigate('/signup')}
           >
             Get Started Today
