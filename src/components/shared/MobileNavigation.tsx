@@ -129,7 +129,7 @@ export const MobileNavigation = ({
                   variant="ghost" 
                   size="sm" 
                   onClick={() => navigate(backPath)}
-                  className="text-white hover:bg-white/10"
+                  className="text-foreground hover:bg-accent"
                 >
                   {backLabel}
                 </Button>
