@@ -248,7 +248,7 @@ const Signup = () => {
             <div className="space-y-3">
               <Button 
                 variant="outline"
-                className="w-full border-white/30 text-white hover:bg-white/10"
+                className="w-full border-border text-foreground hover:bg-accent"
                 onClick={() => navigate('/login')}
               >
                 Go to Login
