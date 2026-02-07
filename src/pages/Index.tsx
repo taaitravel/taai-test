@@ -293,10 +293,10 @@ const Index = () => {
       <section className="py-20 px-4 bg-gradient-to-b from-background to-secondary">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
               Everything You Need for Perfect Travel
             </h2>
-            <p className="text-xl text-white/80 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               From AI-powered recommendations to real-time budget tracking, 
               TAAI Travel revolutionizes how you plan and manage your trips.
             </p>
