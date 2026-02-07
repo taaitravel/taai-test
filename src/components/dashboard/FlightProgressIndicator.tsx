@@ -49,15 +49,15 @@ export const FlightProgressIndicator = ({
       {/* Header with plane icon */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Plane className="h-5 w-5 text-white/70" />
-          <span className="text-sm font-medium text-white/70">Flight Progress</span>
+          <Plane className="h-5 w-5 text-muted-foreground" />
+          <span className="text-sm font-medium text-muted-foreground">Flight Progress</span>
         </div>
-        <span className="font-bold text-white text-4xl">{currentFlights}</span>
+        <span className="font-bold text-foreground text-4xl">{currentFlights}</span>
       </div>
 
       {/* Progress Bar */}
       <div className="space-y-2">
-        <div className="w-full bg-white/20 rounded-full h-3">
+        <div className="w-full bg-muted rounded-full h-3">
           <div className="h-3 rounded-full transition-all duration-700 ease-out" style={{
           width: `${progress}%`,
           background: 'linear-gradient(90deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%)'
@@ -65,7 +65,7 @@ export const FlightProgressIndicator = ({
         </div>
         
         {/* Progress labels */}
-        <div className="flex justify-between text-xs text-white/60">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <span>0</span>
           <span>{levelInfo.threshold}</span>
         </div>
@@ -74,20 +74,20 @@ export const FlightProgressIndicator = ({
       {/* Level and Progress Info */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-white">Current Level</span>
-          <span className="text-sm font-bold text-white bg-white/20 px-2 py-1 rounded">
+          <span className="text-sm font-medium text-foreground">Current Level</span>
+          <span className="text-sm font-bold text-foreground bg-muted px-2 py-1 rounded">
             {currentLevel}
           </span>
         </div>
         
         {!isMaxLevel && <div className="text-center">
-            <div className="text-sm text-white/70">
-              {levelInfo.threshold - levelInfo.current} more flights to reach <span className="font-semibold text-white">{levelInfo.next}</span>
+            <div className="text-sm text-muted-foreground">
+              {levelInfo.threshold - levelInfo.current} more flights to reach <span className="font-semibold text-foreground">{levelInfo.next}</span>
             </div>
           </div>}
         
         {isMaxLevel && <div className="text-center">
-            <div className="text-sm text-green-400 font-medium">
+            <div className="text-sm text-green-600 dark:text-green-400 font-medium">
               ✨ Maximum level achieved!
             </div>
           </div>}
