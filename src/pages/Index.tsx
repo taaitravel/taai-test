@@ -103,7 +103,7 @@ const Index = () => {
                       <Menu className="h-6 w-6" />
                     </Button>
                   </DrawerTrigger>
-                  <DrawerContent className="h-screen bg-[#171821]/95 backdrop-blur-md border-none">
+                  <DrawerContent className="h-screen bg-background/95 backdrop-blur-md border-none">
                     <div className="flex flex-col h-full">
                       {/* Header with close button */}
                       <div className="flex justify-between items-center p-6 border-b border-white/10">
