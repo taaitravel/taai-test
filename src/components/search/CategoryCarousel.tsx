@@ -138,7 +138,7 @@ export const CategoryCarousel = ({
         </div>
 
         {/* Navigation Controls */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <Button
             variant="outline"
             size="icon"
