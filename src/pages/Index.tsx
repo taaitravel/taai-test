@@ -106,7 +106,7 @@ const Index = () => {
                   <DrawerContent className="h-screen bg-background/95 backdrop-blur-md border-none">
                     <div className="flex flex-col h-full">
                       {/* Header with close button */}
-                      <div className="flex justify-between items-center p-6 border-b border-white/10">
+                      <div className="flex justify-between items-center p-6 border-b border-border">
                         <img 
                           src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
                           alt="TAAI Travel" 
