@@ -302,9 +302,9 @@ const Signup = () => {
                 </>
               )}
             </Badge>
-            <CardTitle className="text-2xl text-white">Create Your Account</CardTitle>
-            <CardDescription className="text-white/70">
-              {userType === 'individual' 
+            <CardTitle className="text-2xl text-card-foreground">Create Your Account</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              {userType === 'individual'
                 ? "Join thousands of travelers planning smarter trips"
                 : "Streamline your corporate travel management"
               }
