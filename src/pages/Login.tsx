@@ -123,7 +123,7 @@ const Login = () => {
           </div>
 
           <div className="text-right">
-            <Button variant="link" className="p-0 h-auto font-normal text-white hover:text-white text-sm">
+            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80 text-sm">
               Forgot password?
             </Button>
           </div>
