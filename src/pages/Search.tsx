@@ -42,7 +42,7 @@ const Search = () => {
   const displayResults = searchType === 'hotels' ? filteredResults : results;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f1221] via-[#1a1c2e] to-[#0f1221]">
+    <div className="min-h-screen bg-background">
       <MobileNavigation 
         showBackButton={true}
         backPath="/home"
@@ -50,8 +50,8 @@ const Search = () => {
       />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* Search Form */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-lg px-5 py-0 border border-white/10">
+        {/* Search Form - Keep dark theme */}
+        <div className="bg-[#0f1221] backdrop-blur-sm rounded-lg px-5 py-0 border border-white/10">
           <AdaptiveSearchForm onSearch={handleSearch} />
         </div>
 
@@ -81,7 +81,7 @@ const Search = () => {
                   </SheetContent>
                 </Sheet>
               )}
-              <p className="text-white/70 text-sm">
+              <p className="text-muted-foreground text-sm">
                 {displayResults.length} result{displayResults.length !== 1 ? 's' : ''} found
               </p>
             </div>

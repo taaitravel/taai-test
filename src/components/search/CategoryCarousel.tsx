@@ -58,9 +58,9 @@ export const CategoryCarousel = ({
     }
     const IconComponent = iconMap[categoryIcon.toLowerCase()];
     if (IconComponent) {
-      return <IconComponent className="h-4 w-4 text-white/80" />;
+      return <IconComponent className="h-4 w-4 text-foreground/80" />;
     }
-    return <Star className="h-4 w-4 text-white/80" />;
+    return <Star className="h-4 w-4 text-foreground/80" />;
   };
 
   const handleNext = () => {
@@ -103,7 +103,7 @@ export const CategoryCarousel = ({
     <div className="mb-12">
       {/* Category Header */}
       <div className="flex items-center justify-center mb-6">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2 truncate">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 truncate">
           {renderIcon()}
           <span className="truncate" title={capitalizeTitle(categoryName)}>
             {capitalizeTitle(categoryName)}
@@ -144,12 +144,12 @@ export const CategoryCarousel = ({
             size="icon"
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className="h-10 w-10 rounded-full bg-white/10 border-white/20 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="h-10 w-10 rounded-full bg-muted border-border hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
 
-          <span className="text-white/70 text-sm font-medium min-w-[60px] text-center">
+          <span className="text-muted-foreground text-sm font-medium min-w-[60px] text-center">
             {currentIndex + 1} / {validItems.length}
           </span>
 
@@ -158,7 +158,7 @@ export const CategoryCarousel = ({
             size="icon"
             onClick={handleNext}
             disabled={currentIndex === validItems.length - 1}
-            className="h-10 w-10 rounded-full bg-white/10 border-white/20 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="h-10 w-10 rounded-full bg-muted border-border hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>

@@ -20,7 +20,7 @@ export const SearchResultsTree = ({
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-3 text-white">Organizing results with AI...</span>
+        <span className="ml-3 text-foreground">Organizing results with AI...</span>
       </div>
     );
   }
@@ -28,8 +28,8 @@ export const SearchResultsTree = ({
   if (categories.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-white/60 text-lg">Unable to categorize results</p>
-        <p className="text-white/40 text-sm mt-2">Try the Grid or Map view instead</p>
+        <p className="text-muted-foreground text-lg">Unable to categorize results</p>
+        <p className="text-muted-foreground/60 text-sm mt-2">Try the Grid or Map view instead</p>
       </div>
     );
   }
