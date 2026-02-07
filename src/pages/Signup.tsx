@@ -222,7 +222,7 @@ const Signup = () => {
             {/* Resend Email Button */}
             <Button 
               variant="outline"
-              className="w-full border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-50"
+              className="w-full border-primary/50 text-primary hover:bg-primary/10 hover:text-primary disabled:opacity-50"
               onClick={handleResendEmail}
               disabled={resendCooldown > 0 || resending}
             >
