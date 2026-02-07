@@ -55,7 +55,7 @@ export const ItineraryHeader = ({ itineraryId, itineraryData }: ItineraryHeaderP
             <Button 
               variant="outline" 
               size="sm" 
-              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
+              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-card text-foreground border-border hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
               onClick={handleExportPDF}
               disabled={isGenerating || !itineraryData}
               title="Download PDF"
@@ -69,7 +69,7 @@ export const ItineraryHeader = ({ itineraryId, itineraryData }: ItineraryHeaderP
             <Button 
               variant="outline" 
               size="sm" 
-              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
+              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-card text-foreground border-border hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
               onClick={() => setDialogOpen(true)}
             >
               <FolderPlus className="h-4 w-4" />
@@ -77,13 +77,13 @@ export const ItineraryHeader = ({ itineraryId, itineraryData }: ItineraryHeaderP
             <Button 
               variant="outline" 
               size="sm" 
-              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
+              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-card text-foreground border-border hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
             >
               <Share2 className="h-4 w-4" />
             </Button>
             <Button 
               size="sm" 
-              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full gold-gradient hover:opacity-90 text-background font-semibold"
               onClick={() => navigate(`/edit-itinerary?id=${itineraryId}`)}
             >
               <Edit className="h-4 w-4" />
