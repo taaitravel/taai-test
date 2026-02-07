@@ -257,7 +257,7 @@ const Index = () => {
                   <Users className="h-8 w-8 text-primary-foreground" />
                 </div>
                 <CardTitle className="text-xl text-card-foreground">Individual Travel</CardTitle>
-                <CardDescription className="text-white/70">Perfect for personal trips and adventures</CardDescription>
+                <CardDescription className="text-muted-foreground">Perfect for personal trips and adventures</CardDescription>
               </CardHeader>
             </Card>
             
