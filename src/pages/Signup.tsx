@@ -204,7 +204,7 @@ const Signup = () => {
               <Mail className="h-8 w-8 text-primary-foreground" />
             </div>
             <CardTitle className="text-2xl text-card-foreground">Check Your Email</CardTitle>
-            <CardDescription className="text-white/70 text-base">
+            <CardDescription className="text-muted-foreground text-base">
               We've sent a verification link to <strong className="text-white">{formData.email}</strong>
             </CardDescription>
           </CardHeader>
