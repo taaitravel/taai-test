@@ -161,7 +161,7 @@ export const MobileNavigation = ({
                     <DropdownMenuContent className="bg-card border-border text-card-foreground">
                       <DropdownMenuItem 
                         onClick={() => navigate('/new-itinerary')}
-                        className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+                        className="cursor-pointer hover:bg-accent focus:bg-accent"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         AI Trip
