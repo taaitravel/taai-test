@@ -58,9 +58,9 @@ export const CategoryCarousel = ({
     }
     const IconComponent = iconMap[categoryIcon.toLowerCase()];
     if (IconComponent) {
-      return <IconComponent className="h-4 w-4 text-white/80" />;
+      return <IconComponent className="h-4 w-4 text-foreground/80" />;
     }
-    return <Star className="h-4 w-4 text-white/80" />;
+    return <Star className="h-4 w-4 text-foreground/80" />;
   };
 
   const handleNext = () => {
