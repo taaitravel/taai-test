@@ -209,11 +209,11 @@ const Signup = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 text-center">
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
-              <p className="text-white/80 text-sm">
+            <div className="bg-accent/50 border border-border rounded-lg p-4 space-y-3">
+              <p className="text-muted-foreground text-sm">
                 Click the link in your email to verify your account and complete registration.
               </p>
-              <div className="flex items-center justify-center gap-2 text-amber-400/80 text-xs">
+              <div className="flex items-center justify-center gap-2 text-primary/80 text-xs">
                 <span>💡</span>
                 <span>Can't find it? Check your <strong>spam</strong> or <strong>promotions</strong> folder.</span>
               </div>
