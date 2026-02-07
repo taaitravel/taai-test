@@ -983,6 +983,7 @@ export type Database = {
           taai_rating_text: string | null
           terms_accepted_at: string | null
           terms_version: string | null
+          theme_preference: string | null
           user_type: string | null
           userid: string
           username: string | null
@@ -1012,6 +1013,7 @@ export type Database = {
           taai_rating_text?: string | null
           terms_accepted_at?: string | null
           terms_version?: string | null
+          theme_preference?: string | null
           user_type?: string | null
           userid: string
           username?: string | null
@@ -1041,6 +1043,7 @@ export type Database = {
           taai_rating_text?: string | null
           terms_accepted_at?: string | null
           terms_version?: string | null
+          theme_preference?: string | null
           user_type?: string | null
           userid?: string
           username?: string | null
