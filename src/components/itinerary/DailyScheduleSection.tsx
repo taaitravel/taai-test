@@ -105,10 +105,10 @@ const reservationEvents: EventItem[] = (reservations || []).map((r: any, idx: nu
 
   return (
     <div className="lg:col-span-2">
-      <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+      <Card className="bg-card/80 border-border backdrop-blur-md">
         <CardHeader>
-          <CardTitle className="text-white">Daily Schedule</CardTitle>
-          <CardDescription className="text-white/70">
+          <CardTitle className="text-foreground">Daily Schedule</CardTitle>
+          <CardDescription className="text-muted-foreground">
             Your day-by-day travel plan
           </CardDescription>
         </CardHeader>
@@ -120,12 +120,12 @@ const reservationEvents: EventItem[] = (reservations || []).map((r: any, idx: nu
               const destination = destinations[index % destinations.length];
               
               return (
-                <div key={index} className="border-l-2 border-white/30 pl-4 pb-4">
+                <div key={index} className="border-l-2 border-border pl-4 pb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-white">
+                    <h4 className="font-semibold text-foreground">
                       Day {index + 1} - {currentDate.toLocaleDateString()}
                     </h4>
-                    <Badge className="bg-white/20 text-white border-white/30">
+                    <Badge className="bg-muted text-foreground border-border">
                       {destination}
                     </Badge>
                   </div>
@@ -135,15 +135,15 @@ const reservationEvents: EventItem[] = (reservations || []).map((r: any, idx: nu
                     return (
                       <div className="space-y-2">
                         {events.map((e, i) => (
-                          <div key={i} className="rounded-md border border-white/20 p-3 bg-white/5">
+                          <div key={i} className="rounded-md border border-border p-3 bg-muted/50">
 <div className="flex items-center justify-between">
   <div className="flex items-center gap-2">
-    <Badge className="bg-white/20 text-white border-white/30 capitalize">{e.type.replace('-', ' ')}</Badge>
-    <span className="text-white font-medium">{e.title}</span>
+    <Badge className="bg-muted text-foreground border-border capitalize">{e.type.replace('-', ' ')}</Badge>
+    <span className="text-foreground font-medium">{e.title}</span>
   </div>
   <div className="flex items-center gap-2">
     {e.datetime && (
-      <span className="text-xs text-white/70">
+      <span className="text-xs text-muted-foreground">
         {e.datetime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
       </span>
     )}
@@ -151,7 +151,7 @@ const reservationEvents: EventItem[] = (reservations || []).map((r: any, idx: nu
                       <button
                         aria-label="View details"
                         onClick={() => onViewItem(e.group as 'flights' | 'hotels' | 'activities' | 'reservations', e.index)}
-                        className="w-6 h-6 rounded-full border border-white/30 hover:border-white/50 transition-colors duration-200"
+                        className="w-6 h-6 rounded-full border border-border hover:border-primary transition-colors duration-200"
                         style={{
                           backgroundColor: 'transparent',
                           '--hover-bg': e.type === 'flight' ? 'hsl(351, 85%, 75%)' : 
@@ -170,7 +170,7 @@ const reservationEvents: EventItem[] = (reservations || []).map((r: any, idx: nu
                     )}
   </div>
 </div>
-{e.subtitle && <div className="text-xs text-white/70 mt-1">{e.subtitle}</div>}
+{e.subtitle && <div className="text-xs text-muted-foreground mt-1">{e.subtitle}</div>}
                           </div>
                         ))}
                       </div>

@@ -106,7 +106,7 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
         {/* Top Content */}
         <div>
           <div className="text-base sm:text-xl lg:text-2xl mb-1 sm:mb-2 opacity-60">{getEmoji()}</div>
-          <h4 className="font-bold text-foreground text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+          <h4 className="font-bold text-foreground text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 group-hover:text-white transition-colors">
             {itinerary.itin_name || 'Untitled Trip'}
           </h4>
           <p className="text-muted-foreground text-xs sm:text-sm mb-1 sm:mb-2">{formatDates()}</p>

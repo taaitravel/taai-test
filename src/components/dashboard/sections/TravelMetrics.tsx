@@ -119,6 +119,12 @@ export const TravelMetrics = ({
                 <span className="text-sm text-muted-foreground">Flights YTD</span>
                 <span className="font-bold text-foreground text-2xl">{Number(userStats.flightsThisYear)}</span>
               </div>
+              <div className="flex items-center justify-between pb-3 border-b border-border">
+                <span className="text-sm text-muted-foreground">Upcoming Trips</span>
+                <span className="font-bold text-foreground text-2xl">
+                  {(activeItineraries || []).filter(trip => trip.itin_date_start && new Date(trip.itin_date_start) > new Date()).length}
+                </span>
+              </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Traveler Level</span>
                 <span className="text-sm font-bold text-foreground bg-muted px-2 py-1 rounded">

@@ -50,11 +50,11 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
   };
 
   return (
-    <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md mb-8">
+    <Card className="bg-card/80 border-border backdrop-blur-md mb-8">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white flex items-center space-x-2">
-            <Users className="h-5 w-5 text-white" />
+          <CardTitle className="text-foreground flex items-center space-x-2">
+            <Users className="h-5 w-5 text-foreground" />
             <span>Trip Attendees ({attendees.length})</span>
           </CardTitle>
           <InviteAttendeesDialog itineraryId={itineraryId} />
@@ -71,7 +71,7 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
             return (
               <div
                 key={attendee.id}
-                className="flex items-center justify-between p-3 bg-white/10 rounded-lg border border-white/20 hover:bg-white/15 transition-colors"
+                className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border hover:bg-accent transition-colors"
               >
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
                   <Avatar className="h-10 w-10 flex-shrink-0">
@@ -80,8 +80,8 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white text-sm truncate">{userName}</p>
-                    <p className="text-xs text-white/60 truncate">{attendee.users?.email || ''}</p>
+                    <p className="font-medium text-foreground text-sm truncate">{userName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{attendee.users?.email || ''}</p>
                   </div>
                 </div>
 
@@ -92,7 +92,7 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
                   </Badge>
 
                   {attendee.status === 'pending' && (
-                    <Badge variant="secondary" className="bg-white/20 text-white text-xs px-2 py-0.5">
+                    <Badge variant="secondary" className="bg-muted text-foreground text-xs px-2 py-0.5">
                       Pending
                     </Badge>
                   )}
@@ -100,15 +100,15 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
                   {!isOwner && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-foreground">
                           •••
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-[#171821] border-white/30">
+                      <DropdownMenuContent align="end" className="bg-card border-border">
                         {attendee.role !== 'editor' && (
                           <DropdownMenuItem 
                             onClick={() => updateAttendeeRole(attendee.id, 'editor')}
-                            className="text-white hover:bg-white/10 cursor-pointer"
+                            className="text-foreground hover:bg-accent cursor-pointer"
                           >
                             Make Editor
                           </DropdownMenuItem>
@@ -116,14 +116,14 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
                         {attendee.role !== 'viewer' && (
                           <DropdownMenuItem 
                             onClick={() => updateAttendeeRole(attendee.id, 'viewer')}
-                            className="text-white hover:bg-white/10 cursor-pointer"
+                            className="text-foreground hover:bg-accent cursor-pointer"
                           >
                             Make Viewer
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem 
                           onClick={() => removeAttendee(attendee.id)}
-                          className="text-destructive hover:bg-white/10 cursor-pointer"
+                          className="text-destructive hover:bg-accent cursor-pointer"
                         >
                           <UserMinus className="h-4 w-4 mr-2" />
                           Remove
