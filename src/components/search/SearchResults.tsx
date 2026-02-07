@@ -25,7 +25,7 @@ export const SearchResults = ({
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-3 text-white">Searching for the best options...</span>
+        <span className="ml-3 text-foreground">Searching for the best options...</span>
       </div>
     );
   }
@@ -33,8 +33,8 @@ export const SearchResults = ({
   if (results.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-white/60 text-lg">No results found</p>
-        <p className="text-white/40 text-sm mt-2">Try adjusting your search criteria</p>
+        <p className="text-muted-foreground text-lg">No results found</p>
+        <p className="text-muted-foreground/60 text-sm mt-2">Try adjusting your search criteria</p>
       </div>
     );
   }

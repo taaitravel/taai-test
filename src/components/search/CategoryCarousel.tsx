@@ -144,12 +144,12 @@ export const CategoryCarousel = ({
             size="icon"
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className="h-10 w-10 rounded-full bg-white/10 border-white/20 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="h-10 w-10 rounded-full bg-muted border-border hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
 
-          <span className="text-white/70 text-sm font-medium min-w-[60px] text-center">
+          <span className="text-muted-foreground text-sm font-medium min-w-[60px] text-center">
             {currentIndex + 1} / {validItems.length}
           </span>
 
@@ -158,7 +158,7 @@ export const CategoryCarousel = ({
             size="icon"
             onClick={handleNext}
             disabled={currentIndex === validItems.length - 1}
-            className="h-10 w-10 rounded-full bg-white/10 border-white/20 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="h-10 w-10 rounded-full bg-muted border-border hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>

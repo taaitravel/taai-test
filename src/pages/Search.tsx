@@ -81,7 +81,7 @@ const Search = () => {
                   </SheetContent>
                 </Sheet>
               )}
-              <p className="text-white/70 text-sm">
+              <p className="text-muted-foreground text-sm">
                 {displayResults.length} result{displayResults.length !== 1 ? 's' : ''} found
               </p>
             </div>
