@@ -99,14 +99,14 @@ const Login = () => {
 
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-card-foreground">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
 
