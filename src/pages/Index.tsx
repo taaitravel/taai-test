@@ -128,7 +128,7 @@ const Index = () => {
                           <button
                             key={item.path}
                             onClick={() => handleMenuItemClick(item.path)}
-                            className="text-white text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
+                            className="text-foreground text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
                           >
                             {item.label}
                           </button>
