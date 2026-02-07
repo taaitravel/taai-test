@@ -309,10 +309,10 @@ const Index = () => {
                   <div className="mb-4 group-hover:scale-105 transition-all duration-300 transform-gpu perspective-1000 group-hover:translate-z-2">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-card-foreground mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-white/70">
+                  <p className="text-muted-foreground">
                     {feature.description}
                   </p>
                 </CardContent>
