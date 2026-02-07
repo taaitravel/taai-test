@@ -184,14 +184,14 @@ const Index = () => {
                     <>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/subscription')}
                       >
                         Subscription
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="text-white hover:text-white hover:bg-white/10"
+                        className="text-foreground hover:text-foreground hover:bg-accent"
                         onClick={() => isRouterReady && navigate('/contact')}
                       >
                         Contact Us
