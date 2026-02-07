@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ExpediaSwipeProvider } from "@/components/swipe/ExpediaSwipeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
@@ -34,9 +35,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <ExpediaSwipeProvider>
-          <Toaster />
-          <Sonner />
+        <ThemeProvider defaultTheme="dark" storageKey="taai-theme">
+          <ExpediaSwipeProvider>
+            <Toaster />
+            <Sonner />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
