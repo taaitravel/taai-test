@@ -244,7 +244,7 @@ const Signup = () => {
               )}
             </Button>
             
-            <Separator className="bg-white/30" />
+            <Separator className="bg-border" />
             <div className="space-y-3">
               <Button 
                 variant="outline"
