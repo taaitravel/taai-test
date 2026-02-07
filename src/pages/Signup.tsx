@@ -410,14 +410,14 @@ const Signup = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">Password</Label>
+            <Label htmlFor="password" className="text-card-foreground">Password</Label>
             <Input
               id="password"
               type="password"
               placeholder="Create a strong password"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
 
