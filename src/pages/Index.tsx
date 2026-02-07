@@ -254,9 +254,9 @@ const Index = () => {
             >
               <CardHeader className="text-center pb-2">
                 <div className="mx-auto w-16 h-16 gold-gradient rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <Users className="h-8 w-8 text-[#171821]" />
+                  <Users className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <CardTitle className="text-xl text-white">Individual Travel</CardTitle>
+                <CardTitle className="text-xl text-card-foreground">Individual Travel</CardTitle>
                 <CardDescription className="text-white/70">Perfect for personal trips and adventures</CardDescription>
               </CardHeader>
             </Card>
