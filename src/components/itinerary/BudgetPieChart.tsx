@@ -365,8 +365,8 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
                 className="w-3 h-3 rounded-full" 
                 style={{ backgroundColor: entry.color }}
               />
-              <IconComponent className="w-3 h-3 text-white/70" />
-              <span className="text-xs text-white/70">{percentage}%</span>
+              <IconComponent className="w-3 h-3 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">{percentage}%</span>
             </div>
           );
         })}
@@ -378,24 +378,24 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-[#0a0b14] border border-white/20 rounded-lg p-3 shadow-2xl backdrop-blur-xl">
-          <p className="text-white font-bold text-xs mb-2">{label}</p>
+        <div className="bg-card border border-border rounded-lg p-3 shadow-2xl backdrop-blur-xl">
+          <p className="text-foreground font-bold text-xs mb-2">{label}</p>
           <div className="space-y-1">
             <p className="text-xs">
-              <span className="text-white/60">Budgeted:</span>
+              <span className="text-muted-foreground">Budgeted:</span>
               <span className="text-[hsl(351,85%,75%)] font-semibold ml-2">
                 ${data.budgeted.toLocaleString()}
               </span>
             </p>
             <p className="text-xs">
-              <span className="text-white/60">Spent:</span>
+              <span className="text-muted-foreground">Spent:</span>
               <span className="text-[hsl(15,80%,70%)] font-semibold ml-2">
                 ${data.spent.toLocaleString()}
               </span>
             </p>
             <p className="text-xs">
-              <span className="text-white/60">Remaining:</span>
-              <span className="text-white font-semibold ml-2">
+              <span className="text-muted-foreground">Remaining:</span>
+              <span className="text-foreground font-semibold ml-2">
                 ${(data.budgeted - data.spent).toLocaleString()}
               </span>
             </p>
@@ -408,9 +408,9 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
 
   if (loading) {
     return (
-      <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md">
+      <Card className="bg-card/80 border-border backdrop-blur-md">
         <CardContent className="p-6">
-          <div className="text-center text-white/70">Loading budget data...</div>
+          <div className="text-center text-muted-foreground">Loading budget data...</div>
         </CardContent>
       </Card>
     );
