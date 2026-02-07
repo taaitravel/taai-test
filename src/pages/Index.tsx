@@ -230,10 +230,10 @@ const Index = () => {
       <section className="relative overflow-hidden py-20 px-4">
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
         <div className="max-w-7xl mx-auto text-center relative">
-          <Badge className="mb-6 bg-white/20 text-white hover:bg-white/30 border-white/30" variant="secondary">
+          <Badge className="mb-6 bg-accent text-foreground hover:bg-accent/80 border-border" variant="secondary">
             AI-Powered Travel Planning
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6">
             Your Ultimate
             <span className="luxury-text-gradient block">
               Travel Companion
