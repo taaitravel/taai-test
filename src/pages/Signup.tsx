@@ -288,7 +288,7 @@ const Signup = () => {
           <div className="space-y-2">
             <Badge 
               variant="secondary" 
-              className={`${userType === 'individual' ? 'bg-white/20 text-white border-white/30' : 'bg-white/20 text-white border-white/30'}`}
+              className="bg-accent text-foreground border-border"
             >
               {userType === 'individual' ? (
                 <>
