@@ -317,13 +317,13 @@ const Signup = () => {
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-white">First Name</Label>
+                  <Label htmlFor="firstName" className="text-card-foreground">First Name</Label>
                   <Input
                     id="firstName"
                     placeholder="John"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                 </div>
                 <div className="space-y-2">
