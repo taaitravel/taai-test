@@ -136,11 +136,11 @@ const Index = () => {
                       </div>
                       
                       {/* Footer with traveler level for logged in users */}
-                      {user && (
-                        <div className="p-6 border-t border-white/10">
-                          <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
-                            Master Traveler
-                          </Badge>
+                        {user && (
+                          <div className="p-6 border-t border-border">
+                            <Badge className="bg-accent text-foreground border-border text-lg px-4 py-2">
+                              Master Traveler
+                            </Badge>
                         </div>
                       )}
                     </div>
