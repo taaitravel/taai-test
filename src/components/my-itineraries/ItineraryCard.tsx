@@ -74,7 +74,7 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
   return (
     <Card 
-      className="w-[165px] h-[243px] sm:w-[191px] sm:h-[281px] lg:w-[255px] lg:h-[375px] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 group"
+      className="w-[165px] h-[243px] sm:w-[191px] sm:h-[281px] lg:w-[255px] lg:h-[375px] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-foreground/5 transition-all duration-300 group"
       onClick={handleClick}
     >
       <CardContent className="p-2 sm:p-3 lg:p-4 h-full flex flex-col justify-between relative">
@@ -83,8 +83,8 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
           <div className="absolute top-2 right-2 z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-6 w-6 bg-white/10 hover:bg-white/20">
-                  <MoreVertical className="h-3 w-3 text-white/60" />
+                <Button variant="ghost" size="icon" className="h-6 w-6 bg-muted hover:bg-accent">
+                  <MoreVertical className="h-3 w-3 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
@@ -106,16 +106,16 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
         {/* Top Content */}
         <div>
           <div className="text-base sm:text-xl lg:text-2xl mb-1 sm:mb-2 opacity-60">{getEmoji()}</div>
-          <h4 className="font-bold text-black text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 group-hover:text-white transition-colors">
+          <h4 className="font-bold text-foreground text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 group-hover:text-primary transition-colors">
             {itinerary.itin_name || 'Untitled Trip'}
           </h4>
-          <p className="text-white/50 text-xs sm:text-sm mb-1 sm:mb-2">{formatDates()}</p>
+          <p className="text-muted-foreground text-xs sm:text-sm mb-1 sm:mb-2">{formatDates()}</p>
           <div className="flex flex-wrap gap-0.5 sm:gap-1 mb-1 sm:mb-2">
             {locations.slice(0, 1).map((location, idx) => (
               <Badge 
                 key={idx} 
                 variant="secondary" 
-                className="text-[10px] sm:text-xs lg:text-sm bg-white/10 text-white/60 border-white/20 px-1 sm:px-2"
+                className="text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2"
               >
                 {location}
               </Badge>
@@ -123,7 +123,7 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
             {(itinerary.itin_locations?.length || 0) > 1 && (
               <Badge 
                 variant="secondary" 
-                className="text-[10px] sm:text-xs lg:text-sm bg-white/10 text-white/60 border-white/20 px-1 sm:px-2"
+                className="text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2"
               >
                 +{(itinerary.itin_locations?.length || 0) - 1}
               </Badge>
@@ -133,11 +133,11 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
         {/* Bottom Content */}
         <div className="space-y-1 sm:space-y-2">
-          <div className="flex items-center text-xs sm:text-sm text-white/50">
+          <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
             <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
             {itinerary.attendees?.length || 1}
           </div>
-          <Badge className="text-[10px] sm:text-xs lg:text-sm bg-white/10 text-white/60 border-white/20 px-1 sm:px-2">
+          <Badge className="text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2">
             {status}
           </Badge>
         </div>

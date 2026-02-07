@@ -24,13 +24,13 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
   totalItineraries
 }) => {
   return (
-    <div className="w-64 bg-[#12131a] border-r border-white/10 flex flex-col h-full">
-      <div className="p-4 border-b border-white/10">
-        <h3 className="font-semibold text-white mb-2">Collections</h3>
+    <div className="w-64 bg-secondary border-r border-border flex flex-col h-full">
+      <div className="p-4 border-b border-border">
+        <h3 className="font-semibold text-foreground mb-2">Collections</h3>
         <Button
           variant="outline"
           size="sm"
-          className="w-full justify-start gap-2 border-white/20 text-white/80 hover:bg-white/10 hover:text-white"
+          className="w-full justify-start gap-2 border-border text-muted-foreground hover:bg-accent hover:text-foreground"
           onClick={onCreateCollection}
         >
           <FolderPlus className="h-4 w-4" />
@@ -46,14 +46,14 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
               "w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left",
               selectedCollectionId === null
                 ? "bg-primary/20 text-primary"
-                : "hover:bg-white/10 text-white/80"
+                : "hover:bg-accent text-muted-foreground"
             )}
             onClick={() => onSelectCollection(null)}
           >
             <Globe className="h-5 w-5" />
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">All Itineraries</p>
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-muted-foreground">
                 {totalItineraries} total
               </p>
             </div>
@@ -71,7 +71,7 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
           ))}
 
           {collections.length === 0 && (
-            <p className="text-center text-white/50 text-sm py-8 px-4">
+            <p className="text-center text-muted-foreground text-sm py-8 px-4">
               Create collections to organize your itineraries
             </p>
           )}

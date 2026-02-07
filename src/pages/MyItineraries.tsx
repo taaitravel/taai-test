@@ -345,7 +345,7 @@ const MyItineraries = () => {
             {loading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton key={i} className="w-full aspect-[255/375] rounded-lg bg-white/10" />
+                  <Skeleton key={i} className="w-full aspect-[255/375] rounded-lg bg-muted" />
                 ))}
               </div>
             ) : (
