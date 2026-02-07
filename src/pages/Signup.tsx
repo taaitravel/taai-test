@@ -433,10 +433,10 @@ const Signup = () => {
             />
           </div>
 
-          <Separator className="bg-white/30" />
+          <Separator className="bg-border" />
 
           <div className="space-y-2">
-            <Label className="text-white">Verification</Label>
+            <Label className="text-card-foreground">Verification</Label>
             <Captcha onVerify={(isValid) => setCaptchaValid(isValid)} />
           </div>
 
