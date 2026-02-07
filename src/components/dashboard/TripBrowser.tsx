@@ -54,21 +54,21 @@ export const TripBrowser = ({
                 <div className="text-6xl mb-4 text-center">
                   {activeItineraries[currentTripIndex]?.image || '✈️'}
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2 text-center">
+                <h2 className="text-2xl font-bold text-foreground mb-2 text-center">
                   {activeItineraries[currentTripIndex]?.name}
                 </h2>
-                <p className="text-white/70 text-center mb-4">
+                <p className="text-muted-foreground text-center mb-4">
                   {activeItineraries[currentTripIndex]?.dates}
                 </p>
                 
                 <div className="space-y-3 mb-6">
-                  <div className="flex items-center text-white/70">
+                  <div className="flex items-center text-muted-foreground">
                     <Map className="h-4 w-4 mr-2" />
                     <span className="text-sm">
                       {activeItineraries[currentTripIndex]?.locations.join(" → ") || "Destinations TBD"}
                     </span>
                   </div>
-                  <div className="flex items-center text-white/70">
+                  <div className="flex items-center text-muted-foreground">
                     <Users className="h-4 w-4 mr-2" />
                     <span className="text-sm">
                       {activeItineraries[currentTripIndex]?.people} {activeItineraries[currentTripIndex]?.people === 1 ? 'person' : 'people'}
@@ -79,8 +79,8 @@ export const TripBrowser = ({
                 {activeItineraries[currentTripIndex]?.budget > 0 && (
                   <div className="mb-6">
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-white/70">Budget</span>
-                      <span className="font-medium text-white">
+                      <span className="text-muted-foreground">Budget</span>
+                      <span className="font-medium text-foreground">
                         ${activeItineraries[currentTripIndex]?.spent.toLocaleString()} / ${activeItineraries[currentTripIndex]?.budget.toLocaleString()}
                       </span>
                     </div>
@@ -93,10 +93,10 @@ export const TripBrowser = ({
 
                 <Badge 
                   className={`${
-                    activeItineraries[currentTripIndex]?.status === 'active' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                    activeItineraries[currentTripIndex]?.status === 'upcoming' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                    activeItineraries[currentTripIndex]?.status === 'planning' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
-                    'bg-white/20 text-white/60 border-white/30'
+                    activeItineraries[currentTripIndex]?.status === 'active' ? 'bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30' :
+                    activeItineraries[currentTripIndex]?.status === 'upcoming' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30' :
+                    activeItineraries[currentTripIndex]?.status === 'planning' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30' :
+                    'bg-muted text-muted-foreground border-border'
                   }`}
                 >
                   {activeItineraries[currentTripIndex]?.status}
@@ -109,21 +109,21 @@ export const TripBrowser = ({
                   <>
                     <div className="flex space-x-2">
                       <Button 
-                        className="flex-1 gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                        className="flex-1 gold-gradient hover:opacity-90 text-background font-semibold"
                         onClick={() => navigate('/new-itinerary')}
                       >
                         <MessageCircle className="h-4 w-4 mr-2" />
                         Edit Trip
                       </Button>
                       <Button 
-                        className="flex-1 gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                        className="flex-1 gold-gradient hover:opacity-90 text-background font-semibold"
                         onClick={() => navigate(`/itinerary?id=${activeItineraries[currentTripIndex]?.id}`)}
                       >
                         View Details
                       </Button>
                     </div>
                     <Button 
-                      className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                      className="w-full gold-gradient hover:opacity-90 text-background font-semibold"
                       onClick={() => {/* TODO: Implement invite functionality */}}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
@@ -132,7 +132,7 @@ export const TripBrowser = ({
                   </>
                 ) : (
                   <Button 
-                    className="w-full bg-white/10 hover:bg-white/15 text-white/70 border-white/20"
+                    className="w-full bg-muted hover:bg-accent text-muted-foreground border-border"
                     onClick={() => navigate(`/itinerary?id=${activeItineraries[currentTripIndex]?.id}`)}
                   >
                     View Memories

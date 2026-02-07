@@ -34,22 +34,22 @@ export const TravelMetrics = ({
     const year = String(date.getFullYear()).slice(-2);
     return `${month}/${year}`;
   };
-  return <Card className="border-white/30 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 bg-[#171821]/80 backdrop-blur-md p-5">
+  return <Card className="border-border hover:shadow-xl hover:shadow-foreground/5 transition-all duration-300 bg-card/80 backdrop-blur-md p-5">
       <div className="flex justify-between items-center mb-5">
-        <h2 className="text-xl font-bold text-white">Travel Metrics</h2>
-        <Button size="sm" className="gold-gradient hover:opacity-90 text-[#171821] font-semibold">
+        <h2 className="text-xl font-bold text-foreground">Travel Metrics</h2>
+        <Button size="sm" className="gold-gradient hover:opacity-90 text-background font-semibold">
           View Metrics
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         {/* Flight Progress Indicator */}
-        <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
+        <Card className="border-border bg-secondary/60 backdrop-blur-sm">
           <CardContent className="p-4 min-h-[250px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm font-medium text-white/70 mb-1">Flight Progress</p>
-                <p className="text-xs text-white/50">Track your journey to the next level</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Flight Progress</p>
+                <p className="text-xs text-muted-foreground">Track your journey to the next level</p>
               </div>
             </div>
             <div className="flex justify-center">
@@ -59,14 +59,14 @@ export const TravelMetrics = ({
         </Card>
 
         {/* Countries Map */}
-        <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
+        <Card className="border-border bg-secondary/60 backdrop-blur-sm">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-medium text-white/70 mb-1">Countries Visited</p>
-                <p className="font-bold text-white text-4xl">{visitedCountries.length}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Countries Visited</p>
+                <p className="font-bold text-foreground text-4xl">{visitedCountries.length}</p>
               </div>
-              <Map className="h-6 w-6 text-white/70" />
+              <Map className="h-6 w-6 text-muted-foreground" />
             </div>
             <div className="h-[250px]">
               <CountriesMap visitedCountries={visitedCountries} />
@@ -77,26 +77,26 @@ export const TravelMetrics = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Top Spending Trips */}
-        <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm">
+        <Card className="border-border bg-secondary/60 backdrop-blur-sm">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-medium text-white/70 mb-1">Lifetime Total Spent</p>
-                <p className="text-white font-sans font-bold text-4xl">${userStats.totalSpent.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Lifetime Total Spent</p>
+                <p className="text-foreground font-sans font-bold text-4xl">${userStats.totalSpent.toLocaleString()}</p>
               </div>
-              <BarChart3 className="h-6 w-6 text-white/70" />
+              <BarChart3 className="h-6 w-6 text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              {rankedTrips.length > 0 ? rankedTrips.map((trip, index) => <div key={index} className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+              {rankedTrips.length > 0 ? rankedTrips.map((trip, index) => <div key={index} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted hover:bg-accent transition-colors">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="text-xs font-bold text-white/50 w-4">#{index + 1}</span>
-                      <span className="text-sm text-white/90 truncate">{trip.name}</span>
+                      <span className="text-xs font-bold text-muted-foreground w-4">#{index + 1}</span>
+                      <span className="text-sm text-foreground truncate">{trip.name}</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs text-white/60">{formatMonthYear(trip.date)}</span>
-                      <span className="text-sm font-bold text-white">${trip.spending.toLocaleString()}</span>
+                      <span className="text-xs text-muted-foreground">{formatMonthYear(trip.date)}</span>
+                      <span className="text-sm font-bold text-foreground">${trip.spending.toLocaleString()}</span>
                     </div>
-                  </div>) : <div className="text-center py-8 text-white/50 text-sm">
+                  </div>) : <div className="text-center py-8 text-muted-foreground text-sm">
                   No trip spending data yet
                 </div>}
             </div>
@@ -104,24 +104,24 @@ export const TravelMetrics = ({
         </Card>
 
         {/* Stats Table */}
-        <Card className="border-white/20 bg-[#171821]/60 backdrop-blur-sm hidden md:block">
+        <Card className="border-border bg-secondary/60 backdrop-blur-sm hidden md:block">
           <CardContent className="p-3">
             <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 rounded-2xl">
-                <span className="text-sm text-white/70">Total Trips</span>
-                <span className="font-bold text-white text-2xl">{userStats.totalTrips}</span>
+              <div className="flex items-center justify-between pb-3 border-b border-border rounded-2xl">
+                <span className="text-sm text-muted-foreground">Total Trips</span>
+                <span className="font-bold text-foreground text-2xl">{userStats.totalTrips}</span>
               </div>
-              <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                <span className="text-sm text-white/70">Cities Visited</span>
-                <span className="text-white font-bold text-2xl">{userStats.citiesVisited}</span>
+              <div className="flex items-center justify-between pb-3 border-b border-border">
+                <span className="text-sm text-muted-foreground">Cities Visited</span>
+                <span className="text-foreground font-bold text-2xl">{userStats.citiesVisited}</span>
               </div>
-              <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                <span className="text-sm text-white/70">Flights YTD</span>
-                <span className="font-bold text-white text-2xl">{Number(userStats.flightsThisYear)}</span>
+              <div className="flex items-center justify-between pb-3 border-b border-border">
+                <span className="text-sm text-muted-foreground">Flights YTD</span>
+                <span className="font-bold text-foreground text-2xl">{Number(userStats.flightsThisYear)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-white/70">Traveler Level</span>
-                <span className="text-sm font-bold text-white bg-white/20 px-2 py-1 rounded">
+                <span className="text-sm text-muted-foreground">Traveler Level</span>
+                <span className="text-sm font-bold text-foreground bg-muted px-2 py-1 rounded">
                   {userStats.travelerLevel}
                 </span>
               </div>
