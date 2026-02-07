@@ -343,12 +343,12 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#171821] text-white py-12 px-4 border-t border-white/20">
+      <footer className="bg-background text-foreground py-12 px-4 border-t border-border">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center mb-4">
             <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="max-h-8" />
           </div>
-          <p className="text-white/70 mb-4">
+          <p className="text-muted-foreground mb-4">
             Revolutionizing travel planning with artificial intelligence
           </p>
           <div className="flex justify-center space-x-6 text-sm text-white/70">
