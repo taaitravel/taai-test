@@ -4,6 +4,7 @@ import { User, Settings, LogOut, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "./ThemeToggle";
 
 export const UserProfileDropdown = () => {
   const navigate = useNavigate();
@@ -31,6 +32,61 @@ export const UserProfileDropdown = () => {
     navigate("/profile-setup");
   };
 
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="ghost"
+          size="sm"
+          className="text-foreground hover:bg-accent p-2 rounded-full transition-all duration-200 hover:scale-105"
+        >
+          <User className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        className="w-56 bg-card/95 backdrop-blur-md border-border text-card-foreground" 
+        align="end"
+        sideOffset={5}
+      >
+        <div className="px-3 py-2">
+          <p className="text-sm font-medium">
+            {userProfile?.first_name || userProfile?.username || "User"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {userProfile?.email}
+          </p>
+        </div>
+        <DropdownMenuSeparator className="bg-border" />
+        <div className="px-3 py-2">
+          <p className="text-xs text-muted-foreground mb-2">Appearance</p>
+          <ThemeToggle />
+        </div>
+        <DropdownMenuSeparator className="bg-border" />
+        <DropdownMenuItem 
+          onClick={() => navigate("/subscription")}
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
+        >
+          <CreditCard className="h-4 w-4 mr-2" />
+          Subscription
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={handleEditProfile}
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Edit Profile
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={handleSignOut}
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors text-destructive hover:text-destructive"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
