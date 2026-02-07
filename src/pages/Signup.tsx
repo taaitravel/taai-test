@@ -441,7 +441,7 @@ const Signup = () => {
           </div>
 
           <Button 
-            className="w-full gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+            className="w-full gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
             onClick={handleSignup}
             disabled={loading || !captchaValid}
           >
