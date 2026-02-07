@@ -385,13 +385,13 @@ const Signup = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-white">Phone Number</Label>
+                <Label htmlFor="phone" className="text-card-foreground">Phone Number</Label>
                 <Input
                   id="phone"
                   placeholder="+1 (555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
             </>
