@@ -214,7 +214,7 @@ const MyItineraries = () => {
 
   // Mobile collections component (circular avatars)
   const MobileCollections = () => (
-    <div className="w-full bg-[#12131a] border-b border-white/10 p-4">
+    <div className="w-full bg-secondary border-b border-border p-4">
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide justify-start">
         {/* All Itineraries */}
         <button
@@ -223,12 +223,12 @@ const MyItineraries = () => {
         >
           <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${
             selectedCollectionId === null
-              ? 'bg-primary/20 border-[#ffce87]'
-              : 'bg-white/10 border-transparent hover:bg-white/20'
+              ? 'bg-primary/20 border-primary'
+              : 'bg-muted border-transparent hover:bg-accent'
           }`}>
-            <Globe className={`h-6 w-6 ${selectedCollectionId === null ? 'text-[#ffce87]' : 'text-white/80'}`} />
+            <Globe className={`h-6 w-6 ${selectedCollectionId === null ? 'text-primary' : 'text-muted-foreground'}`} />
           </div>
-          <span className="text-xs text-white/60 max-w-[56px] truncate">All</span>
+          <span className="text-xs text-muted-foreground max-w-[56px] truncate">All</span>
         </button>
 
         {/* User Collections */}
@@ -240,16 +240,16 @@ const MyItineraries = () => {
           >
             <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${
               selectedCollectionId === collection.id
-                ? 'bg-primary/20 border-[#ffce87]'
-                : 'bg-white/10 border-transparent hover:bg-white/20'
+                ? 'bg-primary/20 border-primary'
+                : 'bg-muted border-transparent hover:bg-accent'
             }`}>
               <span className={`text-lg font-semibold ${
-                selectedCollectionId === collection.id ? 'text-[#ffce87]' : 'text-white/80'
+                selectedCollectionId === collection.id ? 'text-primary' : 'text-muted-foreground'
               }`}>
                 {collection.name.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span className="text-xs text-white/60 max-w-[56px] truncate">{collection.name}</span>
+            <span className="text-xs text-muted-foreground max-w-[56px] truncate">{collection.name}</span>
           </button>
         ))}
 
@@ -258,10 +258,10 @@ const MyItineraries = () => {
           className="flex flex-col items-center gap-1.5 flex-shrink-0"
           onClick={handleCreateCollection}
         >
-          <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-dashed border-white/30 flex items-center justify-center hover:bg-white/20 transition-all">
-            <Plus className="h-6 w-6 text-white/60" />
+          <div className="w-14 h-14 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center hover:bg-accent transition-all">
+            <Plus className="h-6 w-6 text-muted-foreground" />
           </div>
-          <span className="text-xs text-white/60">New</span>
+          <span className="text-xs text-muted-foreground">New</span>
         </button>
       </div>
     </div>
