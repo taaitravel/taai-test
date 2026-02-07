@@ -106,6 +106,7 @@ const App = () => (
             <MobileBottomNav />
           </BrowserRouter>
         </ExpediaSwipeProvider>
+        </ThemeProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
