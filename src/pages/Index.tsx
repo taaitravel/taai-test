@@ -247,8 +247,8 @@ const Index = () => {
           {/* User Type Selection */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
             <Card 
-              className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-white/25 hover:scale-105 bg-[#171821]/80 border-white/30 ${
-                userType === 'individual' ? 'ring-2 ring-white shadow-lg shadow-white/30' : ''
+              className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 bg-card/80 border-border ${
+                userType === 'individual' ? 'ring-2 ring-primary shadow-lg' : ''
               }`}
               onClick={() => setUserType('individual')}
             >
