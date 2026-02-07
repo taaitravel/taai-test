@@ -328,7 +328,7 @@ const Index = () => {
           <h2 className="text-4xl font-bold text-primary-foreground mb-6">
             Ready to Transform Your Travel Experience?
           </h2>
-          <p className="text-xl text-[#171821]/80 mb-8">
+          <p className="text-xl text-primary-foreground/80 mb-8">
             Join thousands of travelers who've discovered smarter, more efficient trip planning.
           </p>
           <Button 
