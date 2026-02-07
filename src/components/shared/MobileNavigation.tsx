@@ -114,7 +114,7 @@ export const MobileNavigation = ({
                       <Button
                         onClick={handleSignOut}
                         variant="ghost"
-                        className="w-full text-white hover:bg-white/10 justify-start"
+                        className="w-full text-foreground hover:bg-accent justify-start"
                       >
                         <LogOut className="h-4 w-4 mr-2" />
                         Sign Out
