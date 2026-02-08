@@ -132,18 +132,18 @@ export const ItineraryStackedSection = ({
                 variant="outline"
                 size="icon"
                 onClick={handlePrev}
-                className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
+                className="h-8 w-8 rounded-full bg-muted border-border hover:bg-muted/80"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="flex items-center text-xs text-white/60">
+              <span className="flex items-center text-xs text-muted-foreground">
                 {currentIndex + 1} / {items.length}
               </span>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleNext}
-                className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
+                className="h-8 w-8 rounded-full bg-muted border-border hover:bg-muted/80"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
