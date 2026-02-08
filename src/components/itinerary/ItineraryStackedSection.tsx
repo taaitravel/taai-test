@@ -167,7 +167,7 @@ export const ItineraryStackedSection = ({
           )}
         </div>
       ) : (
-        <div className="text-center py-8 text-white/50">
+        <div className="text-center py-8 text-muted-foreground">
           <Icon className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">{emptyMessage}</p>
           
@@ -179,7 +179,7 @@ export const ItineraryStackedSection = ({
                 size="sm"
                 aria-label={`Add ${title}`}
                 onClick={onAddClick}
-                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 px-6"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted border border-border px-6"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add {title}
