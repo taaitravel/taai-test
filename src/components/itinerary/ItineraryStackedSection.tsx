@@ -41,7 +41,7 @@ export const ItineraryStackedSection = ({
   return (
     <div className="mb-8">
       <div className="flex flex-col items-center lg:flex-row lg:items-center lg:justify-between mb-4 gap-2">
-        <h3 className="text-lg font-semibold text-white flex items-center">
+        <h3 className="text-lg font-semibold text-foreground flex items-center">
           <Icon className="h-5 w-5 mr-2" />
           {title}
         </h3>
@@ -51,7 +51,7 @@ export const ItineraryStackedSection = ({
             size="icon"
             aria-label={`Add ${title}`}
             onClick={onAddClick}
-            className="hidden lg:flex text-white/80 hover:text-white hover:bg-white/10 border border-white/10"
+            className="hidden lg:flex text-muted-foreground hover:text-foreground hover:bg-muted border border-border"
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -132,18 +132,18 @@ export const ItineraryStackedSection = ({
                 variant="outline"
                 size="icon"
                 onClick={handlePrev}
-                className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
+                className="h-8 w-8 rounded-full bg-muted border-border hover:bg-muted/80"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="flex items-center text-xs text-white/60">
+              <span className="flex items-center text-xs text-muted-foreground">
                 {currentIndex + 1} / {items.length}
               </span>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleNext}
-                className="h-8 w-8 rounded-full bg-white/10 border-white/20 hover:bg-white/20"
+                className="h-8 w-8 rounded-full bg-muted border-border hover:bg-muted/80"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -158,7 +158,7 @@ export const ItineraryStackedSection = ({
                 size="sm"
                 aria-label={`Add ${title}`}
                 onClick={onAddClick}
-                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 px-6"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted border border-border px-6"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add {title}
@@ -167,7 +167,7 @@ export const ItineraryStackedSection = ({
           )}
         </div>
       ) : (
-        <div className="text-center py-8 text-white/50">
+        <div className="text-center py-8 text-muted-foreground">
           <Icon className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">{emptyMessage}</p>
           
@@ -179,7 +179,7 @@ export const ItineraryStackedSection = ({
                 size="sm"
                 aria-label={`Add ${title}`}
                 onClick={onAddClick}
-                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 px-6"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted border border-border px-6"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add {title}
