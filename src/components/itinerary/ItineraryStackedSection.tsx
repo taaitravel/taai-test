@@ -41,7 +41,7 @@ export const ItineraryStackedSection = ({
   return (
     <div className="mb-8">
       <div className="flex flex-col items-center lg:flex-row lg:items-center lg:justify-between mb-4 gap-2">
-        <h3 className="text-lg font-semibold text-white flex items-center">
+        <h3 className="text-lg font-semibold text-foreground flex items-center">
           <Icon className="h-5 w-5 mr-2" />
           {title}
         </h3>
@@ -51,7 +51,7 @@ export const ItineraryStackedSection = ({
             size="icon"
             aria-label={`Add ${title}`}
             onClick={onAddClick}
-            className="hidden lg:flex text-white/80 hover:text-white hover:bg-white/10 border border-white/10"
+            className="hidden lg:flex text-muted-foreground hover:text-foreground hover:bg-muted border border-border"
           >
             <Plus className="h-4 w-4" />
           </Button>
