@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.chat-with-gpt]
 verify_jwt = true
+
+[functions.get-payment-info]
+verify_jwt = false
