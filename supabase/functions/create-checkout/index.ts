@@ -182,9 +182,7 @@ serve(async (req) => {
       logStep("No existing customer found, will create during checkout");
     }
 
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : userEmail,
+    const sessionParams: any = {
       line_items: [
         {
           price: priceId,
@@ -195,17 +193,23 @@ serve(async (req) => {
       success_url: `${req.headers.get("origin")}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/subscription`,
       automatic_tax: {
-        enabled: true, // Enable automatic tax calculation
-      },
-      customer_update: {
-        address: "auto", // Collect address for tax calculation
+        enabled: true,
       },
       metadata: {
         tier: tier,
         billing: billing,
         user_id: user?.id || 'guest'
       }
-    });
+    };
+
+    if (customerId) {
+      sessionParams.customer = customerId;
+      sessionParams.customer_update = { address: "auto" };
+    } else {
+      sessionParams.customer_email = userEmail;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     logStep("Checkout session created successfully", { sessionId: session.id, url: session.url });
 
