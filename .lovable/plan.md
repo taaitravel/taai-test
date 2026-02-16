@@ -1,22 +1,35 @@
 
 
-## Apply Tab Styling Globally via Base Component
+## Theme-Wide Dark Mode Fixes
 
-Rather than patching every individual tab usage, the fix goes into the base `src/components/ui/tabs.tsx` component so **all tabs across the app** automatically get the correct dark mode styling.
+Two changes applied at the CSS variable / component level so they propagate everywhere automatically.
 
-### What Changes
+### Change 1: Remove Secondary Opacity
 
-**File: `src/components/ui/tabs.tsx`**
+Replace all `bg-secondary/60` with `bg-secondary` (full opacity white) across:
 
-1. **TabsList (line 15)**: Add `dark:bg-white` to ensure solid white background in dark mode (the current `bg-muted` resolves to white but some overrides use opacity variants).
+- `src/pages/Subscription.tsx` (line 78) -- billing toggle container
+- `src/components/dashboard/sections/TravelMetrics.tsx` (lines 47, 62, 80, 107) -- metric cards
 
-2. **TabsTrigger (line 30)**: Add dark mode overrides:
-   - `dark:text-[#171822]` -- inactive tab text is dark navy
-   - `dark:data-[state=active]:text-white` -- active tab text is white
-   - `dark:data-[state=active]:bg-primary` -- active tab gets a visible background in dark mode
+### Change 2: Darken Muted Foreground in Dark Mode
 
-This single change propagates to every tabs instance: Subscription page, My Itineraries view toggle, Booking API test, Expedia API test, and Adaptive Search Form. The Subscription page's existing per-component overrides will still layer on top (gold-gradient) without conflict.
+**File: `src/index.css`** (line 79 in the `.dark` block)
+
+Change:
+```css
+--muted-foreground: 0 0% 64%;    /* #a3a3a3 medium grey */
+```
+To:
+```css
+--muted-foreground: 240 16% 11%; /* #171821 dark navy */
+```
+
+This affects all 1,024 uses of `text-muted-foreground` across 65 files -- labels, descriptions, timestamps, icons, placeholders, etc.
+
+**Important caveat**: This will make muted text nearly invisible on the dark navy background (`--background` is also `240 16% 11%`). It will only be legible on white/light surfaces (cards with `bg-secondary`, tabs, toggles, etc.). Elements sitting directly on the dark page background will need individual fixes in follow-up passes.
 
 ### Files to Modify
-- `src/components/ui/tabs.tsx` (TabsList + TabsTrigger default classes)
+1. `src/index.css` -- `--muted-foreground` in `.dark` block
+2. `src/pages/Subscription.tsx` -- `bg-secondary/60` to `bg-secondary`
+3. `src/components/dashboard/sections/TravelMetrics.tsx` -- 4 instances of `bg-secondary/60` to `bg-secondary`
 
