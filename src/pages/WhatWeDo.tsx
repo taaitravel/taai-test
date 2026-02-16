@@ -128,7 +128,7 @@ const WhatWeDo = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-[#171821] to-[#2d2a1f]">
+      <section className="py-20 px-4 bg-gradient-to-b from-[#171821] to-[#171820]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
