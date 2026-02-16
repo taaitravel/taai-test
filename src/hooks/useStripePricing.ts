@@ -43,16 +43,13 @@ export const useStripePricing = () => {
 
   // Helper function to get price for a specific tier and billing frequency
   const getPrice = (tier: string, billing: 'monthly' | 'annual'): number => {
-    if (!pricing?.tierMapping[tier]?.prices[billing]) {
-      // Fallback to hardcoded values if API fails
-      const fallbackPrices = {
-        taai_traveler: { monthly: 7.99, annual: 79.99 },
-        taai_traveler_plus: { monthly: 19.00, annual: 184.99 },
-        corp_taai_traveler_plus: { monthly: 99.00, annual: 999.00 }
-      };
-      return fallbackPrices[tier as keyof typeof fallbackPrices]?.[billing] || 0;
-    }
-    return pricing.tierMapping[tier].prices[billing].amount;
+    // Canonical prices — always use these as the source of truth
+    const canonicalPrices: Record<string, Record<string, number>> = {
+      taai_traveler: { monthly: 7.99, annual: 79.99 },
+      taai_traveler_plus: { monthly: 19.00, annual: 184.99 },
+      corp_taai_traveler_plus: { monthly: 99.00, annual: 999.00 }
+    };
+    return canonicalPrices[tier]?.[billing] || 0;
   };
 
   // Helper function to get price ID for a specific tier and billing frequency
