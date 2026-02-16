@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { X, ChevronLeft, ChevronRight, Map, Users, MessageCircle, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 
 interface TripBrowserProps {
   isOpen: boolean;
@@ -22,12 +23,24 @@ export const TripBrowser = ({
 }: TripBrowserProps) => {
   const navigate = useNavigate();
 
-  if (!isOpen) return null;
+  if (!isOpen || activeItineraries.length === 0) return null;
+
+  const trip = activeItineraries[currentTripIndex];
+  if (!trip) return null;
+
+  const isUpcoming = !trip.itin_date_start || new Date(trip.itin_date_start) >= new Date();
+  const locations = trip.itin_locations || [];
+  const people = trip.attendees?.length || 1;
+  const formatDates = () => {
+    if (!trip.itin_date_start) return 'No dates set';
+    const s = format(new Date(trip.itin_date_start), 'MMM d');
+    if (!trip.itin_date_end) return s;
+    return `${s} - ${format(new Date(trip.itin_date_end), 'MMM d, yyyy')}`;
+  };
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="relative w-full max-w-md">
-        {/* Close Button */}
         <Button
           variant="ghost"
           size="sm"
@@ -37,113 +50,101 @@ export const TripBrowser = ({
           <X className="h-5 w-5" />
         </Button>
 
-        {/* Trip Counter */}
         <div className="absolute -top-12 left-0 text-white/70 text-sm">
           {currentTripIndex + 1} of {activeItineraries.length}
         </div>
 
-        {/* Main Trip Card */}
-        {activeItineraries.length > 0 && (
-          <Card className={`w-full aspect-[3/4] animate-scale-in ${
-            activeItineraries[currentTripIndex]?.status === 'completed' 
-              ? 'trip-browser-past' 
-              : 'trip-browser-upcoming'
-          }`}>
-            <CardContent className="p-6 h-full flex flex-col justify-between">
-              <div>
-                <div className="text-6xl mb-4 text-center">
-                  {activeItineraries[currentTripIndex]?.image || '✈️'}
-                </div>
-                <h2 className="text-2xl font-bold text-foreground mb-2 text-center">
-                  {activeItineraries[currentTripIndex]?.name}
-                </h2>
-                <p className="text-muted-foreground text-center mb-4">
-                  {activeItineraries[currentTripIndex]?.dates}
-                </p>
-                
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center text-muted-foreground">
-                    <Map className="h-4 w-4 mr-2" />
-                    <span className="text-sm">
-                      {activeItineraries[currentTripIndex]?.locations.join(" → ") || "Destinations TBD"}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-muted-foreground">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span className="text-sm">
-                      {activeItineraries[currentTripIndex]?.people} {activeItineraries[currentTripIndex]?.people === 1 ? 'person' : 'people'}
-                    </span>
-                  </div>
-                </div>
-                
-                {activeItineraries[currentTripIndex]?.budget > 0 && (
-                  <div className="mb-6">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Budget</span>
-                      <span className="font-medium text-foreground">
-                        ${activeItineraries[currentTripIndex]?.spent.toLocaleString()} / ${activeItineraries[currentTripIndex]?.budget.toLocaleString()}
-                      </span>
-                    </div>
-                    <Progress 
-                      value={activeItineraries[currentTripIndex]?.budget > 0 ? (activeItineraries[currentTripIndex]?.spent / activeItineraries[currentTripIndex]?.budget) * 100 : 0} 
-                      className="h-2" 
-                    />
-                  </div>
-                )}
-
-                <Badge 
-                  className={`${
-                    activeItineraries[currentTripIndex]?.status === 'active' ? 'bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30' :
-                    activeItineraries[currentTripIndex]?.status === 'upcoming' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30' :
-                    activeItineraries[currentTripIndex]?.status === 'planning' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30' :
-                    'bg-muted text-muted-foreground border-border'
-                  }`}
-                >
-                  {activeItineraries[currentTripIndex]?.status}
-                </Badge>
+        <Card className={`w-full aspect-[3/4] animate-scale-in ${
+          isUpcoming ? 'trip-browser-upcoming' : 'trip-browser-past'
+        }`}>
+          <CardContent className="p-6 h-full flex flex-col justify-between">
+            <div>
+              <div className="text-6xl mb-4 text-center">
+                {isUpcoming ? '✈️' : '📸'}
               </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2 text-center">
+                {trip.itin_name || 'Untitled Trip'}
+              </h2>
+              <p className="text-muted-foreground text-center mb-4">
+                {formatDates()}
+              </p>
+              
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center text-muted-foreground">
+                  <Map className="h-4 w-4 mr-2" />
+                  <span className="text-sm">
+                    {locations.length > 0 ? locations.join(" → ") : "Destinations TBD"}
+                  </span>
+                </div>
+                <div className="flex items-center text-muted-foreground">
+                  <Users className="h-4 w-4 mr-2" />
+                  <span className="text-sm">
+                    {people} {people === 1 ? 'person' : 'people'}
+                  </span>
+                </div>
+              </div>
+              
+              {trip.budget > 0 && (
+                <div className="mb-6">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Budget</span>
+                    <span className="font-medium text-foreground">
+                      ${(trip.spending || 0).toLocaleString()} / ${trip.budget.toLocaleString()}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={trip.budget > 0 ? ((trip.spending || 0) / trip.budget) * 100 : 0} 
+                    className="h-2" 
+                  />
+                </div>
+              )}
 
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                {activeItineraries[currentTripIndex]?.status !== 'completed' ? (
-                  <>
-                    <div className="flex space-x-2">
-                      <Button 
-                        className="flex-1 gold-gradient hover:opacity-90 text-background font-semibold"
-                        onClick={() => navigate('/new-itinerary')}
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Edit Trip
-                      </Button>
-                      <Button 
-                        className="flex-1 gold-gradient hover:opacity-90 text-background font-semibold"
-                        onClick={() => navigate(`/itinerary?id=${activeItineraries[currentTripIndex]?.id}`)}
-                      >
-                        View Details
-                      </Button>
-                    </div>
+              <Badge className={`${
+                isUpcoming
+                  ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                  : 'bg-muted text-muted-foreground border-border'
+              }`}>
+                {isUpcoming ? 'Upcoming' : 'Past'}
+              </Badge>
+            </div>
+
+            <div className="space-y-3">
+              {isUpcoming ? (
+                <>
+                  <div className="flex space-x-2">
                     <Button 
-                      className="w-full gold-gradient hover:opacity-90 text-background font-semibold"
-                      onClick={() => {/* TODO: Implement invite functionality */}}
+                      className="flex-1 gold-gradient hover:opacity-90 text-background font-semibold"
+                      onClick={() => navigate(`/itinerary?id=${trip.id}`)}
                     >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Invite
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Edit Trip
                     </Button>
-                  </>
-                ) : (
+                    <Button 
+                      className="flex-1 gold-gradient hover:opacity-90 text-background font-semibold"
+                      onClick={() => navigate(`/itinerary?id=${trip.id}`)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
                   <Button 
-                    className="w-full bg-muted hover:bg-accent text-muted-foreground border-border"
-                    onClick={() => navigate(`/itinerary?id=${activeItineraries[currentTripIndex]?.id}`)}
+                    className="w-full gold-gradient hover:opacity-90 text-background font-semibold"
                   >
-                    View Memories
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Invite
                   </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </>
+              ) : (
+                <Button 
+                  className="w-full bg-muted hover:bg-accent text-muted-foreground border-border"
+                  onClick={() => navigate(`/itinerary?id=${trip.id}`)}
+                >
+                  View Memories
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Navigation Controls */}
         <div className="flex justify-center space-x-4 mt-6">
           <Button
             variant="ghost"
@@ -154,7 +155,6 @@ export const TripBrowser = ({
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          
           <Button
             variant="ghost"
             size="sm"
@@ -166,7 +166,6 @@ export const TripBrowser = ({
           </Button>
         </div>
 
-        {/* Swipe Indicators */}
         <div className="flex justify-center space-x-2 mt-4">
           {activeItineraries.map((_, index) => (
             <button
