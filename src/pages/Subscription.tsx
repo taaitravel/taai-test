@@ -149,7 +149,7 @@ const Subscription = () => {
 
         {user && subscriptionData && (
           <div className="mt-12 max-w-2xl mx-auto">
-            <UsageDashboard userId={user.id} subscriptionData={subscriptionData} />
+            <UsageDashboard userId={user.id} subscriptionData={subscriptionData} openCustomerPortal={openCustomerPortal} />
           </div>
         )}
       </div>
