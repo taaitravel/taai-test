@@ -1,23 +1,94 @@
 
-## Make Dashboard Trip Cards Match Itinerary Page Cards
 
-The trip cards in `TripsSection.tsx` on the home/dashboard page are currently using plain `bg-card` styling, while the `ItineraryCard` component on the My Itineraries page uses the branded `trip-card-past` gradient background, responsive sizing, hover effects, location-based emojis, and status badges. This plan will align them.
+## Subscription Page Enhancements
 
-### What Changes
+This plan covers 4 areas: a larger billing toggle, pricing correction for taaiTraveler+ annual, and a completely revamped "Current Usage" section with real data comparisons.
 
-**File: `src/components/dashboard/TripsSection.tsx`**
+---
 
-1. **Card class**: Replace `bg-card border-border` with `trip-card-past` to get the same rose/coral/gold gradient background
-2. **Title hover**: Add `group-hover:text-white transition-colors` to the trip name heading
-3. **Emoji logic**: Port the location-based emoji function from `ItineraryCard` (e.g., Japan = noodles, Paris = tower, beach = palm tree) instead of hardcoded emojis
-4. **Location badges**: Match the pattern from ItineraryCard -- show first location + "+N more" badge instead of up to 2 full locations
-5. **Status badge**: Add a status badge at the bottom (upcoming/active/completed) matching the ItineraryCard pattern
-6. **Badge styling**: Match the exact badge classes: `text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2`
-7. **Responsive text sizes**: Match ItineraryCard sizes for emoji (`text-base sm:text-xl lg:text-2xl`), title (`text-sm sm:text-base`), dates (`text-xs sm:text-sm`), and attendee icon (`h-2.5 w-2.5 sm:h-3 sm:w-3`)
+### 1. Larger Monthly/Annual Toggle
 
-### Technical Details
+**File: `src/pages/Subscription.tsx`**
 
-- The `trip-card-past` CSS class is defined in `src/index.css` and provides the branded gradient background with light/dark mode variants
-- The emoji and status logic will be extracted as helper functions within the component, mirroring the `getEmoji()` and `getStatus()` methods from `ItineraryCard`
-- The stacked card layout (absolute positioning with translateY/translateX offsets) will remain unchanged
-- The responsive container size `w-[255px] h-[375px]` already matches the ItineraryCard's largest breakpoint
+Replace the small icon-based toggle (ToggleLeft/ToggleRight at h-8 w-8) with a large pill-style toggle similar to the tabs pattern:
+- A rounded-full container (~280px wide, ~48px tall) with `bg-white/10` backdrop
+- Two clickable halves: "Monthly" and "Annual"
+- The active side gets a solid `bg-white/20` highlight with bold white text
+- The inactive side stays `text-white/60`
+- The "Save up to 19%" badge remains next to it when annual is selected
+- Text size bumped to `text-base font-semibold`
+
+---
+
+### 2. taaiTraveler+ Annual Price Update
+
+**File: `src/components/subscription/TierDefinitions.tsx`**
+
+- Change `annualPrice` from `192.00` to `184.99`
+- Change `priceText.annual` from `'$192.00/yr'` to `'$184.99/yr'`
+
+**File: `src/lib/stripeConfig.ts`**
+
+- Update the fallback annual price for `taai_traveler_plus` from `192.00` to `184.99`
+
+The savings percentage will auto-calculate: ($19 x 12 = $228; savings = ($228 - $184.99) / $228 = ~19%).
+
+---
+
+### 3. Dynamic "Current Usage" Section
+
+**File: `src/pages/Subscription.tsx`**
+
+Replace the static 3-column usage card with a detailed usage dashboard containing:
+
+**a) Member Since**
+- Query the `users` table for the user's `created_at` field and display as "Member since Month Year"
+
+**b) Itineraries: Used vs Allowed**
+- Count the user's itineraries from the `itinerary` table
+- Compare against `subscriptionData.max_itineraries`
+- Display as "14 / 3" with the difference shown
+- If over limit: show "-11" in red with a warning that excess itineraries will be deleted at end of month
+- If under/at limit: show remaining in green
+
+**c) Sharing (PDF Exports)**
+- Count total rows in `usage_tracking` where `usage_type = 'pdf_export'` for the user
+- Compare against `subscriptionData.max_shared_friends` (repurposed as sharing/export limit)
+- Same red/green over/under display logic
+
+**d) Credit Utilization**
+- Count total searches from `search_history` for the user
+- Each search = 0.25 credits
+- Total credit cost = search_count x 0.25
+- Compare against `subscriptionData.credits_remaining`
+- Show usage vs allowed, with red if over
+
+**e) Warning Banner**
+- If any metric is over limit, show a warning card: "You have exceeded your plan limits. Itineraries over your limit will be removed at the end of each billing cycle."
+
+**Layout**: A styled card with 4 rows, each showing: icon, metric name, usage bar or fraction, and delta (green/red).
+
+---
+
+### 4. Data Fetching
+
+**File: `src/pages/Subscription.tsx`**
+
+Add queries on mount (alongside subscription check):
+- `supabase.from('itinerary').select('id', { count: 'exact' }).eq('user_id', user.id)` -- get itinerary count
+- `supabase.from('usage_tracking').select('id', { count: 'exact' }).eq('user_id', user.id).eq('usage_type', 'pdf_export')` -- get PDF export count
+- `supabase.from('search_history').select('id', { count: 'exact' }).eq('user_id', user.id)` -- get search count
+- `supabase.from('users').select('created_at').eq('userid', user.id).single()` -- get member since date
+
+No new tables or migrations needed -- all data sources already exist.
+
+---
+
+### Technical Summary
+
+| File | Change |
+|------|--------|
+| `src/pages/Subscription.tsx` | Large toggle, revamped usage section with real queries |
+| `src/components/subscription/TierDefinitions.tsx` | Annual price 192.00 -> 184.99 |
+| `src/lib/stripeConfig.ts` | Fallback price 192.00 -> 184.99 |
+
