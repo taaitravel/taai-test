@@ -1,26 +1,35 @@
 
 
-## Replace Warm Brown Tones with Cool Dark Navy (#171820)
+## Replace Warm Olive with White (#ffffff) in Dark Mode
 
-The warm brownish backgrounds (`#2d2a1f` and the `--card` HSL value) will be replaced with `#171820`, a cool dark navy that matches the `--background` color in dark mode.
+The HSL value `45 42% 14%` appears in 5 dark mode CSS variables. Changing them to `0 0% 100%` (#ffffff) and switching text to dark colors for readability.
 
-### Changes
+### Changes (all in `src/index.css`, dark mode block)
 
-**1. CSS Variables (src/index.css)**
+**Background variables -- change from `45 42% 14%` to `0 0% 100%`:**
 
-Update the dark mode `--card` variable from warm brown to match the background navy:
-- `--card: 23 24% 11%` changes to `--card: 240 14% 11%` (which is `#171820`)
-- Replace `#2d2a1f` in `.dark .luxury-gradient` with `#171820`
+| Variable | Role |
+|----------|------|
+| `--secondary` | Secondary backgrounds (tab bars, badges) |
+| `--muted` | Muted/subtle backgrounds |
+| `--accent` | Accent backgrounds (hover states) |
+| `--input` | Input field backgrounds |
+| `--sidebar-accent` | Sidebar hover/active backgrounds |
 
-**2. Hardcoded References (3 files)**
+**Border variables -- change from `45 42% 20%` to `0 0% 80%` (light gray border for definition on white):**
+- `--border`
+- `--sidebar-border`
 
-| File | Current | Replacement |
-|------|---------|-------------|
-| `src/pages/WhatWeDo.tsx` | `to-[#2d2a1f]` | `to-[#171820]` |
-| `src/pages/ProfileSetup.tsx` | `bg-[#2d2a1f]/30` | `bg-[#171820]/30` |
-| `src/components/WorldMap.tsx` | `bg-[#2d2a1f]` (3 instances) | `bg-[#171820]` |
+**Foreground/text variables -- switch to dark text for contrast on white:**
+
+| Variable | Current | New | Reason |
+|----------|---------|-----|--------|
+| `--secondary-foreground` | `351 85% 75%` (rose) | `240 16% 11%` (dark navy) | Readable on white |
+| `--accent-foreground` | `351 85% 75%` (rose) | `240 16% 11%` (dark navy) | Readable on white |
+| `--muted-foreground` | `40 30% 50%` (warm gray) | `240 10% 40%` (cool gray) | Subtle but readable on white |
+| `--sidebar-accent-foreground` | `351 85% 75%` (rose) | `240 16% 11%` (dark navy) | Readable on white |
 
 ### Result
 
-All dark mode surfaces shift from warm brown to cool dark navy, giving a consistent, on-brand dark aesthetic across cards, gradients, and map containers.
+All dark mode surfaces that were warm olive-brown become white, with dark navy text for readability. This affects tab bars, input fields, sidebar highlights, badges, and muted containers.
 
