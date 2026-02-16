@@ -58,7 +58,7 @@ export const getAnnualSavings = (tier: TierType, monthlyPrice?: number, annualPr
   
   const annualPrices = {
     taai_traveler: annualPrice || 79.99,
-    taai_traveler_plus: annualPrice || 192.00,
+    taai_traveler_plus: annualPrice || 184.99,
     corp_taai_traveler_plus: annualPrice || 999.00
   };
   
