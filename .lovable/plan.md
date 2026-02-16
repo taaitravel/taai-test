@@ -1,35 +1,21 @@
 
 
-## Replace Warm Olive with White (#ffffff) in Dark Mode
+## Fix Tab Styling in Dark Mode
 
-The HSL value `45 42% 14%` appears in 5 dark mode CSS variables. Changing them to `0 0% 100%` (#ffffff) and switching text to dark colors for readability.
+### Issues
+1. **Tab bar background looks grey** -- `bg-secondary/60` applies 60% opacity to white, making it appear grey against the dark background.
+2. **Inactive tab text color** -- Currently a medium grey (`#a3a3a3`). Needs to be `#171822` (dark navy).
+3. **Active tab text color** -- Currently dark navy via `text-background`. Needs to be white.
 
-### Changes (all in `src/index.css`, dark mode block)
+### Changes
 
-**Background variables -- change from `45 42% 14%` to `0 0% 100%`:**
+**File: `src/pages/Subscription.tsx` (lines 124-127)**
 
-| Variable | Role |
-|----------|------|
-| `--secondary` | Secondary backgrounds (tab bars, badges) |
-| `--muted` | Muted/subtle backgrounds |
-| `--accent` | Accent backgrounds (hover states) |
-| `--input` | Input field backgrounds |
-| `--sidebar-accent` | Sidebar hover/active backgrounds |
+1. TabsList: Change `bg-secondary/60` to `bg-secondary` (full white, no opacity)
+2. TabsTrigger (both): Change `data-[state=active]:text-background` to `data-[state=active]:text-white`
+3. TabsTrigger (both): Add `text-[#171822]` for inactive state text color
 
-**Border variables -- change from `45 42% 20%` to `0 0% 80%` (light gray border for definition on white):**
-- `--border`
-- `--sidebar-border`
+### Technical Detail
 
-**Foreground/text variables -- switch to dark text for contrast on white:**
-
-| Variable | Current | New | Reason |
-|----------|---------|-----|--------|
-| `--secondary-foreground` | `351 85% 75%` (rose) | `240 16% 11%` (dark navy) | Readable on white |
-| `--accent-foreground` | `351 85% 75%` (rose) | `240 16% 11%` (dark navy) | Readable on white |
-| `--muted-foreground` | `40 30% 50%` (warm gray) | `240 10% 40%` (cool gray) | Subtle but readable on white |
-| `--sidebar-accent-foreground` | `351 85% 75%` (rose) | `240 16% 11%` (dark navy) | Readable on white |
-
-### Result
-
-All dark mode surfaces that were warm olive-brown become white, with dark navy text for readability. This affects tab bars, input fields, sidebar highlights, badges, and muted containers.
+The inactive text override (`text-[#171822]`) ensures the non-selected tab label is dark navy on the white tab bar. The active override (`text-white`) ensures the selected label is white on the gold gradient. These are scoped only to this component's tabs so they won't affect other tab instances.
 
