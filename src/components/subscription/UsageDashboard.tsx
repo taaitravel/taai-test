@@ -248,9 +248,9 @@ const UsageDashboard: React.FC<UsageDashboardProps> = ({ userId, subscriptionDat
       </Card>
 
       {isOverAny && (
-        <Card className="p-3 bg-destructive/40 border-destructive/70 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
-          <p className="text-sm text-destructive font-semibold">
+        <Card className="p-3 bg-destructive/70 border-destructive flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-destructive-foreground shrink-0" />
+          <p className="text-sm text-destructive-foreground font-semibold">
             You have exceeded your plan limits. Upgrade before excess trips are removed (each billing cycle).
           </p>
         </Card>
