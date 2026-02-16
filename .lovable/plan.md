@@ -1,79 +1,23 @@
-# Theme-Aware Text Colors & Styling - Implementation Progress
 
-## ✅ COMPLETED
+## Make Dashboard Trip Cards Match Itinerary Page Cards
 
-### Phase 1: My Itineraries Components
-- [x] src/pages/MyItineraries.tsx
-- [x] src/components/my-itineraries/CollectionsSidebar.tsx
-- [x] src/components/my-itineraries/ItineraryCard.tsx
-- [x] src/components/my-itineraries/ItineraryGrid.tsx
-- [x] src/components/my-itineraries/GridFilters.tsx
-- [x] src/components/my-itineraries/ItineraryList.tsx
-- [x] src/components/my-itineraries/FloatingCollectionDropZone.tsx
-- [x] src/components/my-itineraries/DroppableCollection.tsx
+The trip cards in `TripsSection.tsx` on the home/dashboard page are currently using plain `bg-card` styling, while the `ItineraryCard` component on the My Itineraries page uses the branded `trip-card-past` gradient background, responsive sizing, hover effects, location-based emojis, and status badges. This plan will align them.
 
-### Phase 2: Dashboard Components
-- [x] src/components/dashboard/sections/TravelMetrics.tsx
-- [x] src/components/dashboard/sections/UpcomingTravel.tsx
-- [x] src/components/dashboard/sections/HeroWelcome.tsx
-- [x] src/components/dashboard/TripsSection.tsx
-- [x] src/components/dashboard/TripBrowser.tsx
-- [x] src/components/dashboard/TripsFilter.tsx
-- [x] src/components/dashboard/HeroSection.tsx
-- [x] src/components/dashboard/FlightProgressIndicator.tsx
-- [x] src/components/dashboard/sections/TravelHub.tsx
-- [x] src/components/itinerary/ItineraryInfoHeader.tsx
+### What Changes
 
-## 🔄 IN PROGRESS
+**File: `src/components/dashboard/TripsSection.tsx`**
 
-### Phase 3: Itinerary Detail Components
-- [ ] src/components/itinerary/ItineraryContent.tsx
-- [ ] src/components/itinerary/ItineraryHeader.tsx
-- [ ] src/components/itinerary/ItinerarySidebar.tsx
-- [ ] src/components/itinerary/TripOverviewSection.tsx
-- [ ] src/components/itinerary/BudgetPieChart.tsx
-- [ ] src/components/itinerary/AttendeesSection.tsx
-- [ ] src/components/itinerary/DailyScheduleSection.tsx
+1. **Card class**: Replace `bg-card border-border` with `trip-card-past` to get the same rose/coral/gold gradient background
+2. **Title hover**: Add `group-hover:text-white transition-colors` to the trip name heading
+3. **Emoji logic**: Port the location-based emoji function from `ItineraryCard` (e.g., Japan = noodles, Paris = tower, beach = palm tree) instead of hardcoded emojis
+4. **Location badges**: Match the pattern from ItineraryCard -- show first location + "+N more" badge instead of up to 2 full locations
+5. **Status badge**: Add a status badge at the bottom (upcoming/active/completed) matching the ItineraryCard pattern
+6. **Badge styling**: Match the exact badge classes: `text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2`
+7. **Responsive text sizes**: Match ItineraryCard sizes for emoji (`text-base sm:text-xl lg:text-2xl`), title (`text-sm sm:text-base`), dates (`text-xs sm:text-sm`), and attendee icon (`h-2.5 w-2.5 sm:h-3 sm:w-3`)
 
-## 📋 PENDING
+### Technical Details
 
-### Phase 4: Search Components
-- [ ] src/components/search/SearchResults.tsx
-- [ ] src/components/search/SearchResultsGrid.tsx
-- [ ] src/components/search/cards/HotelResultCard.tsx
-- [ ] src/components/search/cards/FlightResultCard.tsx
-- [ ] src/components/search/cards/ActivityResultCard.tsx
-
-### Phase 5: Additional Pages
-- [ ] src/pages/Subscription.tsx
-- [ ] src/pages/ProfileSetup.tsx
-- [ ] src/pages/CreateItinerary.tsx
-- [ ] src/pages/Search.tsx
-- [ ] src/pages/Contact.tsx
-- [ ] src/pages/WhatWeDo.tsx
-- [ ] src/pages/Terms.tsx
-
-### Phase 6: Shared UI Components
-- [ ] src/components/chat/ChatInterface.tsx
-- [ ] src/components/booking/BookingCart.tsx
-- [ ] Other UI components
-
----
-
-## Color Mapping Reference
-
-| Hardcoded Class | Theme-Aware Replacement |
-|----------------|------------------------|
-| `text-white` | `text-foreground` |
-| `text-white/70` | `text-muted-foreground` |
-| `text-white/50` | `text-muted-foreground` |
-| `text-white/60` | `text-muted-foreground` |
-| `bg-[#171821]` | `bg-background` |
-| `bg-[#12131a]` | `bg-secondary` |
-| `bg-[#1f1f27]` | `bg-secondary` |
-| `bg-[#1a1c2e]` | `bg-card` |
-| `bg-white/10` | `bg-muted` |
-| `border-white/20` | `border-border` |
-| `text-[#171821]` | `text-background` |
-| `text-black` | `text-foreground` |
-
+- The `trip-card-past` CSS class is defined in `src/index.css` and provides the branded gradient background with light/dark mode variants
+- The emoji and status logic will be extracted as helper functions within the component, mirroring the `getEmoji()` and `getStatus()` methods from `ItineraryCard`
+- The stacked card layout (absolute positioning with translateY/translateX offsets) will remain unchanged
+- The responsive container size `w-[255px] h-[375px]` already matches the ItineraryCard's largest breakpoint
