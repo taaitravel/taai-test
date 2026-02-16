@@ -80,7 +80,7 @@ const Subscription = () => {
                 onClick={() => setBillingFrequency('monthly')}
                 className={`px-8 py-3 rounded-full text-base font-semibold transition-all duration-200 ${
                   billingFrequency === 'monthly'
-                    ? 'bg-primary text-primary-foreground shadow-md'
+                    ? 'gold-gradient text-background shadow-md'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -90,7 +90,7 @@ const Subscription = () => {
                 onClick={() => setBillingFrequency('annual')}
                 className={`px-8 py-3 rounded-full text-base font-semibold transition-all duration-200 ${
                   billingFrequency === 'annual'
-                    ? 'bg-primary text-primary-foreground shadow-md'
+                    ? 'gold-gradient text-background shadow-md'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -126,8 +126,8 @@ const Subscription = () => {
 
         <Tabs defaultValue="individual" className="max-w-7xl mx-auto">
           <TabsList className="grid w-full grid-cols-2 mb-8 bg-secondary/60 border-border">
-            <TabsTrigger value="individual" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Individual Plans</TabsTrigger>
-            <TabsTrigger value="corporate" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Corporate Plans</TabsTrigger>
+            <TabsTrigger value="individual" className="data-[state=active]:gold-gradient data-[state=active]:text-background">Individual Plans</TabsTrigger>
+            <TabsTrigger value="corporate" className="data-[state=active]:gold-gradient data-[state=active]:text-background">Corporate Plans</TabsTrigger>
           </TabsList>
 
           <TabsContent value="individual">
