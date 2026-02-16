@@ -1,21 +1,22 @@
 
 
-## Fix Tab Styling in Dark Mode
+## Apply Tab Styling Globally via Base Component
 
-### Issues
-1. **Tab bar background looks grey** -- `bg-secondary/60` applies 60% opacity to white, making it appear grey against the dark background.
-2. **Inactive tab text color** -- Currently a medium grey (`#a3a3a3`). Needs to be `#171822` (dark navy).
-3. **Active tab text color** -- Currently dark navy via `text-background`. Needs to be white.
+Rather than patching every individual tab usage, the fix goes into the base `src/components/ui/tabs.tsx` component so **all tabs across the app** automatically get the correct dark mode styling.
 
-### Changes
+### What Changes
 
-**File: `src/pages/Subscription.tsx` (lines 124-127)**
+**File: `src/components/ui/tabs.tsx`**
 
-1. TabsList: Change `bg-secondary/60` to `bg-secondary` (full white, no opacity)
-2. TabsTrigger (both): Change `data-[state=active]:text-background` to `data-[state=active]:text-white`
-3. TabsTrigger (both): Add `text-[#171822]` for inactive state text color
+1. **TabsList (line 15)**: Add `dark:bg-white` to ensure solid white background in dark mode (the current `bg-muted` resolves to white but some overrides use opacity variants).
 
-### Technical Detail
+2. **TabsTrigger (line 30)**: Add dark mode overrides:
+   - `dark:text-[#171822]` -- inactive tab text is dark navy
+   - `dark:data-[state=active]:text-white` -- active tab text is white
+   - `dark:data-[state=active]:bg-primary` -- active tab gets a visible background in dark mode
 
-The inactive text override (`text-[#171822]`) ensures the non-selected tab label is dark navy on the white tab bar. The active override (`text-white`) ensures the selected label is white on the gold gradient. These are scoped only to this component's tabs so they won't affect other tab instances.
+This single change propagates to every tabs instance: Subscription page, My Itineraries view toggle, Booking API test, Expedia API test, and Adaptive Search Form. The Subscription page's existing per-component overrides will still layer on top (gold-gradient) without conflict.
+
+### Files to Modify
+- `src/components/ui/tabs.tsx` (TabsList + TabsTrigger default classes)
 
