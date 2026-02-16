@@ -47,7 +47,7 @@ export const useStripePricing = () => {
       // Fallback to hardcoded values if API fails
       const fallbackPrices = {
         taai_traveler: { monthly: 7.99, annual: 79.99 },
-        taai_traveler_plus: { monthly: 19.00, annual: 192.00 },
+        taai_traveler_plus: { monthly: 19.00, annual: 184.99 },
         corp_taai_traveler_plus: { monthly: 99.00, annual: 999.00 }
       };
       return fallbackPrices[tier as keyof typeof fallbackPrices]?.[billing] || 0;
