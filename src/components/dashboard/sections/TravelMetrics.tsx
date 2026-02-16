@@ -44,7 +44,7 @@ export const TravelMetrics = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         {/* Flight Progress Indicator */}
-        <Card className="border-border bg-secondary/60 backdrop-blur-sm">
+        <Card className="border-border bg-secondary backdrop-blur-sm">
           <CardContent className="p-4 min-h-[250px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -59,7 +59,7 @@ export const TravelMetrics = ({
         </Card>
 
         {/* Countries Map */}
-        <Card className="border-border bg-secondary/60 backdrop-blur-sm">
+        <Card className="border-border bg-secondary backdrop-blur-sm">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -77,7 +77,7 @@ export const TravelMetrics = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Top Spending Trips */}
-        <Card className="border-border bg-secondary/60 backdrop-blur-sm">
+        <Card className="border-border bg-secondary backdrop-blur-sm">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -104,7 +104,7 @@ export const TravelMetrics = ({
         </Card>
 
         {/* Stats Table */}
-        <Card className="border-border bg-secondary/60 backdrop-blur-sm hidden md:block">
+        <Card className="border-border bg-secondary backdrop-blur-sm hidden md:block">
           <CardContent className="p-3">
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border rounded-2xl">
