@@ -131,7 +131,7 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
 
   if (error) {
     return (
-      <div className="h-48 flex items-center justify-center bg-[#2d2a1f] rounded-lg border border-yellow-500/20">
+      <div className="h-48 flex items-center justify-center bg-[#171820] rounded-lg border border-yellow-500/20">
         <div className="text-center">
           <div className="text-yellow-400 text-sm">{error}</div>
           {visitedCountries.length > 0 && (
@@ -150,7 +150,7 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
 
   if (isLoading) {
     return (
-      <div className="h-48 flex items-center justify-center bg-[#2d2a1f] rounded-lg border border-yellow-500/20">
+      <div className="h-48 flex items-center justify-center bg-[#171820] rounded-lg border border-yellow-500/20">
         <div className="text-center">
           <div className="text-yellow-200 text-sm animate-pulse">Loading Map...</div>
         </div>
@@ -159,7 +159,7 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
   }
 
   return (
-    <div className="relative w-full h-48 bg-[#2d2a1f] rounded-lg overflow-hidden">
+    <div className="relative w-full h-48 bg-[#171820] rounded-lg overflow-hidden">
       <div ref={mapContainer} className="w-full h-full" />
     </div>
   );

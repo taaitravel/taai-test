@@ -63,7 +63,7 @@
     --background: 240 16% 11%;       /* #171821 */
     --foreground: 351 85% 75%;       /* rose/coral text */
 
-    --card: 23 24% 11%;              /* #171821 cards */
+    --card: 240 14% 11%;             /* #171820 cards */
     --card-foreground: 351 85% 75%;
 
     --popover: 23 24% 11%;
@@ -125,7 +125,7 @@
 }
 
 .dark .luxury-gradient {
-  background: linear-gradient(135deg, #171821 0%, #2d2a1f 50%, #171821 100%);
+  background: linear-gradient(135deg, #171821 0%, #171820 50%, #171821 100%);
 }
 
 .gold-gradient {

@@ -450,7 +450,7 @@ const ProfileSetup = () => {
             </div>
 
             {/* Call to Action */}
-            <div className="bg-[#2d2a1f]/30 p-4 rounded-lg border border-white/20 text-center">
+            <div className="bg-[#171820]/30 p-4 rounded-lg border border-white/20 text-center">
               <h5 className="font-semibold text-white mb-2">Ready for Your Next Adventure?</h5>
               <p className="text-sm text-white/70 mb-3">
                 Your personalized travel profile is ready. Let's start planning your next unforgettable trip!
