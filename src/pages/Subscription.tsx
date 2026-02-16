@@ -75,7 +75,7 @@ const Subscription = () => {
 
           {/* Large Billing Toggle */}
           <div className="mt-8 flex items-center justify-center gap-4">
-            <div className="inline-flex rounded-full bg-secondary/60 p-1 border border-border">
+            <div className="inline-flex rounded-full bg-secondary p-1 border border-border">
               <button
                 onClick={() => setBillingFrequency('monthly')}
                 className={`px-8 py-3 rounded-full text-base font-semibold transition-all duration-200 ${
