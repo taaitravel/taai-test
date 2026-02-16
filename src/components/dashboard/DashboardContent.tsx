@@ -45,18 +45,6 @@ export const DashboardContent = () => {
       {/* Enhanced Stats Cards with Charts */}
       <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} activeItineraries={activeItineraries} />
 
-      {/* My Itineraries Button */}
-      <div className="flex justify-center mb-8">
-        <Button
-          onClick={() => navigate('/my-itineraries')}
-          size="lg"
-          className="gap-2 px-8"
-        >
-          <FolderOpen className="h-5 w-5" />
-          My Itineraries
-        </Button>
-      </div>
-
       {/* Trips Filter */}
       <TripsFilter
         sortBy={sortBy}
@@ -83,6 +71,18 @@ export const DashboardContent = () => {
             onBrowseTrips={openTripBrowser}
           />
         </div>
+      </div>
+
+      {/* My Itineraries Button - below trips */}
+      <div className="flex justify-center mt-8 mb-8">
+        <Button
+          onClick={() => navigate('/my-itineraries')}
+          size="lg"
+          className="gap-2 px-8"
+        >
+          <FolderOpen className="h-5 w-5" />
+          My Itineraries
+        </Button>
       </div>
 
       {/* Trip Browser Modal */}
