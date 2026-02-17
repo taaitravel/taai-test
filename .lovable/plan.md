@@ -1,35 +1,89 @@
 
 
-## Theme-Wide Dark Mode Fixes
+## Add Dining Search Tab with Reservation Deep-Links
 
-Two changes applied at the CSS variable / component level so they propagate everywhere automatically.
+### Overview
+Add a "Dining" tab to the /search page that searches for restaurants via the existing Yelp API edge function (`search-yelp-businesses`), and generates OpenTable/Resy deep-links so users can book reservations directly.
 
-### Change 1: Remove Secondary Opacity
+### Changes
 
-Replace all `bg-secondary/60` with `bg-secondary` (full opacity white) across:
+#### 1. Update SearchType to include "dining"
 
-- `src/pages/Subscription.tsx` (line 78) -- billing toggle container
-- `src/components/dashboard/sections/TravelMetrics.tsx` (lines 47, 62, 80, 107) -- metric cards
+**Files:** `src/components/search/AdaptiveSearchForm.tsx`, `src/hooks/useSearchOrchestrator.ts`
 
-### Change 2: Darken Muted Foreground in Dark Mode
+- Add `'dining'` to the `SearchType` union: `'flights' | 'hotels' | 'cars' | 'activities' | 'packages' | 'dining'`
 
-**File: `src/index.css`** (line 79 in the `.dark` block)
+#### 2. Create DiningSearchFields component
 
-Change:
-```css
---muted-foreground: 0 0% 64%;    /* #a3a3a3 medium grey */
-```
-To:
-```css
---muted-foreground: 240 16% 11%; /* #171821 dark navy */
-```
+**New file:** `src/components/search/fields/DiningSearchFields.tsx`
 
-This affects all 1,024 uses of `text-muted-foreground` across 65 files -- labels, descriptions, timestamps, icons, placeholders, etc.
+Fields:
+- Location (reuse PlaceSearch in `restaurant` mode)
+- Date (calendar picker)
+- Time (select: common dinner slots like 6:00 PM, 7:00 PM, etc.)
+- Party size (select: 1-10)
+- Cuisine type (optional select: Italian, Japanese, Mexican, American, etc.)
 
-**Important caveat**: This will make muted text nearly invisible on the dark navy background (`--background` is also `240 16% 11%`). It will only be legible on white/light surfaces (cards with `bg-secondary`, tabs, toggles, etc.). Elements sitting directly on the dark page background will need individual fixes in follow-up passes.
+#### 3. Add Dining tab to AdaptiveSearchForm
 
-### Files to Modify
-1. `src/index.css` -- `--muted-foreground` in `.dark` block
-2. `src/pages/Subscription.tsx` -- `bg-secondary/60` to `bg-secondary`
-3. `src/components/dashboard/sections/TravelMetrics.tsx` -- 4 instances of `bg-secondary/60` to `bg-secondary`
+**File:** `src/components/search/AdaptiveSearchForm.tsx`
+
+- Import `UtensilsCrossed` icon from lucide-react
+- Add state for dining fields (location, date, time, partySize, cuisine)
+- Add 6th TabsTrigger for "Dining" -- update grid from `grid-cols-5` to `grid-cols-6`
+- Add TabsContent rendering DiningSearchFields
+- Add dining case to `handleSubmit`, `isFormValid`, and `getSearchButtonText`
+
+#### 4. Add dining search to orchestrator
+
+**File:** `src/hooks/useSearchOrchestrator.ts`
+
+- Add `case 'dining'` that:
+  1. Geocodes the location using `search-cities` edge function (to get lat/lon)
+  2. Calls the existing `search-yelp-businesses` edge function with `{ term: cuisine or "restaurant", latitude, longitude, location }`
+  3. Maps Yelp results to a normalized format including name, rating, price level, image, address, phone, coordinates, and reservation links
+
+#### 5. Generate reservation deep-links
+
+In the orchestrator's dining result mapping, generate:
+- **OpenTable link:** `https://www.opentable.com/s?term={restaurant_name}&covers={party_size}&dateTime={date}T{time}`
+- **Resy link:** `https://resy.com/cities/{city}?query={restaurant_name}&date={date}&seats={party_size}`
+- **Google Maps link:** `https://www.google.com/maps/search/?api=1&query={restaurant_name}+{address}`
+
+These links open in a new browser tab for direct booking.
+
+#### 6. Create DiningResultCard component
+
+**New file:** `src/components/search/cards/DiningResultCard.tsx`
+
+Display:
+- Restaurant image (from Yelp)
+- Name, rating (stars), price level ($ signs), cuisine categories
+- Address
+- "Reserve on OpenTable" and "Reserve on Resy" buttons (open deep-links in new tab)
+- "View on Google Maps" secondary link
+
+#### 7. Wire up result rendering
+
+**Files:** `src/components/search/SearchResultsGrid.tsx`, `src/components/search/SearchResultsTree.tsx`
+
+- Add `dining` case to render `DiningResultCard` for each result
+- Enable map view for dining results (restaurants have lat/lon from Yelp)
+
+#### 8. Update SearchResults and Search page
+
+**File:** `src/components/search/SearchResults.tsx`
+
+- Allow `showMapView` for dining type
+
+**File:** `src/pages/Search.tsx`
+
+- Update `showMapView` condition to include `'dining'`
+
+### Technical Details
+
+- No new edge functions needed -- reuses existing `search-yelp-businesses`
+- No new API keys needed -- Yelp API key is already configured
+- Deep-links to OpenTable/Resy are URL-based and require no API access
+- The Yelp API returns up to 8 businesses per search (current limit in the edge function)
 
