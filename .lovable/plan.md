@@ -1,32 +1,41 @@
 
 
-# Lifetime Total Spent -- Layout + Data Changes
+# Restructure Stats Row -- Consistent Layout, Remove Icons
 
-## Changes
+## Changes in `src/components/dashboard/HeroSection.tsx`
 
-### 1. `src/components/dashboard/HeroSection.tsx` -- Redesign the center stat
-- Remove the `DollarSign` icon entirely
-- Make the dollar amount the hero element (large, prominent)
-- Move "Lifetime Total Spent" label below the amount
-- Show trip count in parentheses next to "Lifetime Total Spent", e.g. `Lifetime Total Spent (14 trips)`
-- Combine `totalSpent + projectedSpend` into one total so it reflects all spending across the user's lifetime (past + active + future)
-- Remove `DollarSign` from imports
+### Next Travel (left) -- Remove Calendar icon
+- Delete the `Calendar` icon
+- Keep the same content and left-aligned layout: date, trip name, "X days away" badge
+- Remove the `Award` and `Calendar` imports entirely
 
-### 2. `src/lib/dashboardUtils.ts` -- Add combined lifetime total
-- Add a new `lifetimeTotal` field to the return object: `totalSpent + projectedSpend`
-- This gives a single realistic number covering all trips ever
+### Lifetime Total Spent (center) -- Reorder to Amount / Label / Trips
+Current order: Amount, then "Lifetime Total Spent (X trips)"
 
-### 3. `src/hooks/useDashboard.ts` -- Pass `lifetimeTotal` through
-- Include `lifetimeTotal` in `fullUserStats`
-
-### 4. `src/components/dashboard/HeroSection.tsx` -- Update interface
-- Add `lifetimeTotal` to the `fullUserStats` type
-
-### Result
+New order:
 ```
-$64,481.76
-Lifetime Total Spent (14 trips)
+$69,591.74
+Lifetime Total Spent
+(14 trips completed)
 ```
+- Amount stays as the headline
+- "Lifetime Total Spent" on its own line
+- "(X trips completed)" on a separate line below
 
-No icon, amount is the headline, label + trip count below in parentheses, and the number includes all spending (completed + active + future).
+### Traveler Level (right) -- Reorder to Level / Label / Stats, remove icon
+Current order: Award icon, "Traveler Level" label, level name, stats
+
+New order:
+```
+Explorer
+Traveler Level
+17 countries · 24 flights
+```
+- Delete the `Award` icon
+- Level name as the headline (large, bold)
+- "Traveler Level" label below
+- Stats line stays at the bottom
+
+### Cleanup
+- Remove `Award, Calendar` from lucide-react imports (no icons left)
 
