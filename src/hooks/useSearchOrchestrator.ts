@@ -121,6 +121,9 @@ export const useSearchOrchestrator = () => {
           const checkoutDate = new Date(params.checkout);
           const nights = Math.ceil((checkoutDate.getTime() - checkinDate.getTime()) / (1000 * 60 * 60 * 24)) || 1;
           
+          // Rental-type keywords for categorization
+          const rentalKeywords = ['apartment', 'vacation home', 'villa', 'holiday home', 'homestay', 'hostel', 'guest house', 'cottage', 'cabin', 'chalet', 'bungalow', 'condo', 'townhouse'];
+          
           // Process Booking.com results
           const bookingHotels = bookingData ? await Promise.all(
             bookingData.hotels.map(async (hotel: any) => {
@@ -140,6 +143,10 @@ export const useSearchOrchestrator = () => {
                 }
               }
               
+              // Determine property category from accommodation type
+              const accommType = (hotel.property?.propertyType || hotel.property?.accommodationTypeName || hotel.property?.type || '').toLowerCase();
+              const isRental = rentalKeywords.some(kw => accommType.includes(kw));
+              
               return {
                 id: `booking-${hotel.hotel_id}`,
                 name: hotel.property?.name || hotel.accessibilityLabel?.split('.')[0] || 'Unknown Hotel',
@@ -155,6 +162,8 @@ export const useSearchOrchestrator = () => {
                 longitude: hotelLon,
                 bookingUrl: hotel.property?.url || `https://www.booking.com/hotel/us/${hotel.hotel_id}.html`,
                 source: 'Booking.com',
+                propertyCategory: isRental ? 'rental' : 'hotel',
+                providerTag: 'Booking.com',
               };
             })
           ) : [];
