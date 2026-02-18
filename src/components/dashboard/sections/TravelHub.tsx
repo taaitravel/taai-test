@@ -69,7 +69,7 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
           size="sm"
           variant="ghost"
           onClick={onBrowseTrips}
-          className="h-7 text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 text-xs px-2"
+          className="h-7 text-foreground/60 hover:text-foreground hover:bg-accent gap-1.5 text-xs px-2"
         >
           <FolderOpen className="h-3.5 w-3.5" />
           {upcomingCount} upcoming · {completedCount} past
