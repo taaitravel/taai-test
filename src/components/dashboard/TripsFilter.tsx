@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Filter, X } from "lucide-react";
+import { Calendar as CalendarIcon, Filter, X, FolderOpen } from "lucide-react";
 import type { SortOption } from "@/hooks/useDashboardData";
 
 interface TripsFilterProps {
@@ -35,7 +35,17 @@ export const TripsFilter = ({
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Your Trips</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-foreground">Your Trips</h2>
+          <Button
+            onClick={() => window.location.href = '/my-itineraries'}
+            size="sm"
+            className="gap-1.5"
+          >
+            <FolderOpen className="h-4 w-4" />
+            My Itineraries
+          </Button>
+        </div>
         <div className="flex items-center space-x-2">
           {hasActiveFilters && (
             <Button 
