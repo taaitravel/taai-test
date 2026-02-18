@@ -1008,13 +1008,16 @@ export type Database = {
       users: {
         Row: {
           address: string | null
+          avatar_url: string | null
           avg_spending: number | null
+          bio: string | null
           cell: number | null
           city: string | null
           comp_name: string | null
           countries_visited: Json | null
           country: string | null
           created_at: string | null
+          currency: string | null
           date_format: string | null
           email: string | null
           first_name: string | null
@@ -1039,13 +1042,16 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          avatar_url?: string | null
           avg_spending?: number | null
+          bio?: string | null
           cell?: number | null
           city?: string | null
           comp_name?: string | null
           countries_visited?: Json | null
           country?: string | null
           created_at?: string | null
+          currency?: string | null
           date_format?: string | null
           email?: string | null
           first_name?: string | null
@@ -1070,13 +1076,16 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          avatar_url?: string | null
           avg_spending?: number | null
+          bio?: string | null
           cell?: number | null
           city?: string | null
           comp_name?: string | null
           countries_visited?: Json | null
           country?: string | null
           created_at?: string | null
+          currency?: string | null
           date_format?: string | null
           email?: string | null
           first_name?: string | null

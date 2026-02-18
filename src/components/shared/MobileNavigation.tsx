@@ -40,7 +40,7 @@ export const MobileNavigation = ({
     { label: "New Itinerary", path: "/new-itinerary" },
     { label: "Manual Itinerary", path: "/new-manual-itinerary" },
     { label: "Subscription", path: "/subscription" },
-    { label: "Profile & Settings", path: "/profile-setup" },
+    { label: "Profile & Settings", path: "/profile" },
   ];
 
   const handleSignOut = async () => {

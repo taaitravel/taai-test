@@ -30,6 +30,9 @@ interface UserProfile {
   privacy_accepted_at: string | null;
   terms_version: string | null;
   date_format: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  currency: string | null;
   created_at: string;
 }
 

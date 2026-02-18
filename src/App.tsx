@@ -28,6 +28,7 @@ import AdminRoles from "./pages/AdminRoles";
 import Search from "./pages/Search";
 import MyItineraries from "./pages/MyItineraries";
 import AdminDashboard from "./pages/AdminDashboard";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +98,11 @@ const App = () => (
               <Route path="/my-itineraries" element={
                 <ProtectedRoute>
                   <MyItineraries />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={<AdminDashboard />} />
