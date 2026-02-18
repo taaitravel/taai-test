@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { format, differenceInDays } from "date-fns";
 import { TravelHub } from "./sections/TravelHub";
 import { useDashboardSections } from "@/hooks/useDashboardSections";
-import { Award, DollarSign, Calendar } from "lucide-react";
+import { Award, Calendar } from "lucide-react";
 
 interface HeroSectionProps {
   userProfile: any;
@@ -13,6 +13,7 @@ interface HeroSectionProps {
     citiesVisited: number;
     totalSpent: number;
     projectedSpend: number;
+    lifetimeTotal: number;
     flightsThisYear: number;
     travelerLevel: string;
   };
@@ -59,14 +60,12 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
         {/* Center: Lifetime Total Spent */}
         <div className="p-4">
           <div className="flex flex-col items-center gap-1 text-center">
-            <DollarSign className="h-5 w-5 text-foreground/60 shrink-0" />
-            <div>
-              <p className="text-xs text-foreground/60 mb-0.5">Lifetime Total Spent</p>
-              <p className="text-lg font-bold text-foreground leading-tight">
-                ${fullUserStats.totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs text-foreground/60">{fullUserStats.totalTrips} trips completed</p>
-            </div>
+            <p className="text-xl font-bold text-foreground leading-tight">
+              ${fullUserStats.lifetimeTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-foreground/60">
+              Lifetime Total Spent ({fullUserStats.totalTrips} trips)
+            </p>
           </div>
         </div>
 
