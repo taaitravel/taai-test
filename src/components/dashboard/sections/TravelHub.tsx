@@ -64,12 +64,12 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
     <div className="w-full space-y-3">
       {/* Compact Header with Browse */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
+        <h3 className="text-sm font-medium text-foreground/60">Quick Actions</h3>
         <Button
           size="sm"
           variant="ghost"
           onClick={onBrowseTrips}
-          className="h-7 text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 text-xs px-2"
+          className="h-7 text-foreground/60 hover:text-foreground hover:bg-accent gap-1.5 text-xs px-2"
         >
           <FolderOpen className="h-3.5 w-3.5" />
           {upcomingCount} upcoming · {completedCount} past
@@ -93,11 +93,11 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       </div>
 
       {/* Inline Recent Activity */}
-      <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
+      <div className="flex items-center gap-3 text-xs text-foreground/60 pt-1">
         <Clock className="h-3 w-3 shrink-0" />
         {recentActivities.map((activity, index) => (
           <span key={index} className="shrink-0">
-            {activity.action} <span className="text-muted-foreground/50">({activity.time})</span>
+            {activity.action} <span className="text-foreground/40">({activity.time})</span>
             {index < recentActivities.length - 1 && <span className="ml-3">·</span>}
           </span>
         ))}

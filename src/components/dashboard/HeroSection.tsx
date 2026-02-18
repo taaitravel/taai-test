@@ -26,14 +26,12 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
   return (
     <div className="mb-6 space-y-3">
       {/* Quick Actions Bar */}
-      <div className="bg-gradient-to-br from-foreground/10 via-foreground/5 to-transparent p-4 rounded-2xl border border-border backdrop-blur-md">
-        <TravelHub activeItineraries={activeItineraries} onBrowseTrips={onBrowseTrips} />
-      </div>
+      <TravelHub activeItineraries={activeItineraries} onBrowseTrips={onBrowseTrips} />
 
       {/* Compact 3-Column Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Left: Next Travel Date */}
-        <div className="bg-gradient-to-br from-foreground/10 via-foreground/5 to-transparent p-4 rounded-2xl border border-border backdrop-blur-md">
+        <div className="p-4">
           <div className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-foreground/60 shrink-0" />
             <div className="min-w-0">
@@ -59,7 +57,7 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
         </div>
 
         {/* Center: Lifetime Total Spent */}
-        <div className="bg-gradient-to-br from-foreground/10 via-foreground/5 to-transparent p-4 rounded-2xl border border-border backdrop-blur-md">
+        <div className="p-4">
           <div className="flex items-center gap-3">
             <DollarSign className="h-5 w-5 text-foreground/60 shrink-0" />
             <div>
@@ -73,7 +71,7 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
         </div>
 
         {/* Right: Traveler Badge */}
-        <div className="bg-gradient-to-br from-foreground/10 via-foreground/5 to-transparent p-4 rounded-2xl border border-border backdrop-blur-md">
+        <div className="p-4">
           <div className="flex items-center gap-3">
             <Award className="h-5 w-5 text-foreground/60 shrink-0" />
             <div>
