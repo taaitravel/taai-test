@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plane, Hotel, Car, Activity, Package, Search } from 'lucide-react';
+import { Plane, Hotel, Car, Activity, Package, Search, UtensilsCrossed } from 'lucide-react';
+import { DiningSearchFields } from './fields/DiningSearchFields';
 import { FlightSearchFields } from './fields/FlightSearchFields';
 import { HotelSearchFields } from './fields/HotelSearchFields';
 import { CarSearchFields } from './fields/CarSearchFields';
 import { ActivitySearchFields } from './fields/ActivitySearchFields';
 import { PackageSearchFields } from './fields/PackageSearchFields';
 
-export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages';
+export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages' | 'dining';
 
 interface AdaptiveSearchFormProps {
   onSearch: (type: SearchType, params: any) => void;
@@ -62,6 +63,13 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
   const [packageRooms, setPackageRooms] = useState(1);
   const [packageFlightClass, setPackageFlightClass] = useState('economy');
   const [includeCar, setIncludeCar] = useState(false);
+
+  // Dining fields
+  const [diningLocation, setDiningLocation] = useState('');
+  const [diningDate, setDiningDate] = useState<Date>();
+  const [diningTime, setDiningTime] = useState('19:00');
+  const [partySize, setPartySize] = useState(2);
+  const [cuisine, setCuisine] = useState('all');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,6 +148,20 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
           includeCar,
         };
         break;
+
+      case 'dining':
+        if (!diningLocation) {
+          alert('Please select a location');
+          return;
+        }
+        params = {
+          location: diningLocation,
+          date: diningDate ? format(diningDate, 'yyyy-MM-dd') : undefined,
+          time: diningTime,
+          partySize,
+          cuisine,
+        };
+        break;
     }
 
     onSearch(searchType, params);
@@ -157,6 +179,8 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
         return activityDestination && activityDate;
       case 'packages':
         return packageOrigin && packageDestination && packageDepartDate && packageReturnDate;
+      case 'dining':
+        return diningLocation && diningDate;
       default:
         return false;
     }
@@ -169,6 +193,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
       case 'cars': return 'Search Rental Cars';
       case 'activities': return 'Find Activities';
       case 'packages': return 'Search Package Deals';
+      case 'dining': return 'Find Restaurants';
       default: return 'Search';
     }
   };
@@ -176,7 +201,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
   return (
     <form onSubmit={handleSubmit} className="p-4">
       <Tabs value={searchType} onValueChange={(v) => setSearchType(v as SearchType)}>
-        <TabsList className="grid grid-cols-5 bg-[#1a1c2e] border border-white/10 mb-4 h-auto p-1">
+        <TabsList className="grid grid-cols-6 bg-[#1a1c2e] border border-white/10 mb-4 h-auto p-1">
           <TabsTrigger 
             value="hotels"
             className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
@@ -211,6 +236,13 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
           >
             <Package className="h-4 w-4" />
             <span>Packages</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="dining"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
+          >
+            <UtensilsCrossed className="h-4 w-4" />
+            <span>Dining</span>
           </TabsTrigger>
         </TabsList>
 
@@ -306,6 +338,21 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
             onRoomsChange={setPackageRooms}
             onFlightClassChange={setPackageFlightClass}
             onIncludeCarChange={setIncludeCar}
+          />
+        </TabsContent>
+
+        <TabsContent value="dining" className="mt-0">
+          <DiningSearchFields
+            location={diningLocation}
+            date={diningDate}
+            time={diningTime}
+            partySize={partySize}
+            cuisine={cuisine}
+            onLocationChange={setDiningLocation}
+            onDateChange={setDiningDate}
+            onTimeChange={setDiningTime}
+            onPartySizeChange={setPartySize}
+            onCuisineChange={setCuisine}
           />
         </TabsContent>
       </Tabs>

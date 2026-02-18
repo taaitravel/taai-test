@@ -46,7 +46,7 @@ const MARKER_CONFIG = {
 
 interface SearchResultsMapProps {
   results: any[];
-  searchType?: 'hotels' | 'flights' | 'activities' | 'cars' | 'packages';
+  searchType?: 'hotels' | 'flights' | 'activities' | 'cars' | 'packages' | 'dining';
 }
 
 // Get marker category from search type

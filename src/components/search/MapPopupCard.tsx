@@ -8,7 +8,7 @@ import { ItineraryMatcherModal } from './ItineraryMatcherModal';
 
 interface MapPopupCardProps {
   item: any;
-  searchType?: 'hotels' | 'flights' | 'activities' | 'cars' | 'packages';
+  searchType?: 'hotels' | 'flights' | 'activities' | 'cars' | 'packages' | 'dining';
   onClose?: () => void;
 }
 

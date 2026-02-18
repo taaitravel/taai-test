@@ -6,7 +6,7 @@ import { useAmadeusFlights } from './useAmadeusFlights';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages';
+export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages' | 'dining';
 
 // Calculate distance between two coordinates using Haversine formula
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -325,6 +325,85 @@ export const useSearchOrchestrator = () => {
             variant: 'default',
           });
           searchResults = [];
+          break;
+        }
+
+        case 'dining': {
+          console.log('🍽️ Searching restaurants via Yelp...');
+          try {
+            // Geocode the location
+            const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke(
+              'search-cities',
+              { body: { query: params.location } }
+            );
+
+            if (geocodeError || !geocodeData?.features?.length) {
+              throw new Error(`Could not find location "${params.location}"`);
+            }
+
+            const [lon, lat] = geocodeData.features[0].center;
+            const cityName = geocodeData.features[0].text || params.location;
+
+            // Search Yelp
+            const searchTerm = params.cuisine && params.cuisine !== 'all'
+              ? `${params.cuisine} restaurant`
+              : 'restaurant';
+
+            const { data: yelpData, error: yelpError } = await supabase.functions.invoke(
+              'search-yelp-businesses',
+              { body: { term: searchTerm, latitude: lat, longitude: lon, location: params.location } }
+            );
+
+            if (yelpError) throw new Error('Yelp search failed');
+
+            const dateStr = params.date || '';
+            const timeStr = params.time || '19:00';
+            const covers = params.partySize || 2;
+
+            searchResults = (yelpData?.businesses || []).map((biz: any) => {
+              const name = biz.name || 'Unknown Restaurant';
+              const address = biz.location?.display_address?.join(', ') || '';
+              const encodedName = encodeURIComponent(name);
+              const encodedAddress = encodeURIComponent(`${name} ${address}`);
+              const city = biz.location?.city?.toLowerCase() || cityName.toLowerCase();
+
+              return {
+                id: biz.id,
+                name,
+                image: biz.image_url || '',
+                rating: biz.rating,
+                reviewCount: biz.review_count,
+                priceLevel: biz.price || '',
+                categories: (biz.categories || []).map((c: any) => c.title),
+                address,
+                phone: biz.phone,
+                latitude: biz.coordinates?.latitude,
+                longitude: biz.coordinates?.longitude,
+                yelpUrl: biz.url,
+                openTableUrl: `https://www.opentable.com/s?term=${encodedName}&covers=${covers}&dateTime=${dateStr}T${timeStr}`,
+                resyUrl: `https://resy.com/cities/${encodeURIComponent(city)}?query=${encodedName}&date=${dateStr}&seats=${covers}`,
+                googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
+              };
+            });
+
+            console.log(`✅ Found ${searchResults.length} restaurants`);
+
+            if (searchResults.length === 0) {
+              toast({
+                title: 'No Restaurants Found',
+                description: 'Try adjusting your location or cuisine.',
+                variant: 'default',
+              });
+            }
+          } catch (err: any) {
+            console.error('❌ Dining search failed:', err);
+            toast({
+              title: 'Search Failed',
+              description: err.message || 'Unable to search restaurants.',
+              variant: 'destructive',
+            });
+            searchResults = [];
+          }
           break;
         }
       }

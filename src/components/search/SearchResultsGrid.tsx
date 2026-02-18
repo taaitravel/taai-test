@@ -5,6 +5,7 @@ import { FlightSearchCard } from './cards/FlightSearchCard';
 import { ActivitySearchCard } from './cards/ActivitySearchCard';
 import { CarSearchCard } from './cards/CarSearchCard';
 import { PackageSearchCard } from './cards/PackageSearchCard';
+import { DiningResultCard } from './cards/DiningResultCard';
 import { SearchType } from './AdaptiveSearchForm';
 
 interface SearchResultsGridProps {
@@ -47,6 +48,9 @@ export const SearchResultsGrid = ({ results, searchType, searchParams }: SearchR
               <PackageSearchCard 
                 package={result}
               />
+            )}
+            {searchType === 'dining' && (
+              <DiningResultCard restaurant={result} />
             )}
           </div>
         ))}
