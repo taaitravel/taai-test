@@ -119,7 +119,7 @@ export const DailyScheduleSection = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          <ScrollArea className="h-[1000px]">
+          <ScrollArea className="h-[1100px]">
             <div className="divide-y divide-border">
               {Array.from({ length: duration }, (_, index) => {
                 const currentDate = new Date(startDate);
