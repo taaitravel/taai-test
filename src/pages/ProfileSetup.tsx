@@ -183,7 +183,7 @@ const ProfileSetup = () => {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <h3 className="text-xl font-semibold text-foreground mb-2">Personal Information</h3>
-              <p className="text-muted-foreground">Let's complete your basic profile</p>
+              <p className="text-foreground/60">Let's complete your basic profile</p>
             </div>
             
             <div className="space-y-2">
@@ -246,7 +246,7 @@ const ProfileSetup = () => {
             <div className="text-center mb-6">
               <Globe className="h-12 w-12 text-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">Countries Visited</h3>
-              <p className="text-muted-foreground">Pop the bubbles to select countries you've visited!</p>
+              <p className="text-foreground/60">Pop the bubbles to select countries you've visited!</p>
               <Badge variant="secondary" className="mt-2 bg-accent text-foreground border-border">
                 {profileData.countriesVisited.length} countries visited
               </Badge>
@@ -276,7 +276,7 @@ const ProfileSetup = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedContinent(null)}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-foreground/60 hover:text-foreground"
                   >
                     Back to continents
                   </Button>
@@ -309,7 +309,7 @@ const ProfileSetup = () => {
             <div className="text-center mb-6">
               <Calendar className="h-12 w-12 text-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">Flight Frequency</h3>
-              <p className="text-muted-foreground">Click months to add flights (max 10 per month)</p>
+              <p className="text-foreground/60">Click months to add flights (max 10 per month)</p>
               <Badge variant="secondary" className="mt-2 bg-accent text-foreground border-border">
                 {Object.values(profileData.monthlyFlights).reduce((sum, flights) => sum + flights, 0)} total flights/year
               </Badge>
@@ -320,7 +320,7 @@ const ProfileSetup = () => {
                 const flightCount = profileData.monthlyFlights[index] || 0;
                 return (
                   <div key={month} className="text-center">
-                    <div className="text-xs text-muted-foreground mb-1">{month}</div>
+                    <div className="text-xs text-foreground/60 mb-1">{month}</div>
                     <div className={`border rounded-lg p-3 transition-colors ${
                       flightCount > 0 
                         ? 'border-primary hover:border-primary' 
@@ -347,7 +347,7 @@ const ProfileSetup = () => {
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
-                      <div className="text-xs text-muted-foreground">flights</div>
+                      <div className="text-xs text-foreground/60">flights</div>
                     </div>
                   </div>
                 );
@@ -366,7 +366,7 @@ const ProfileSetup = () => {
                 <Car className="h-8 w-8 text-foreground" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">Travel Preferences</h3>
-              <p className="text-muted-foreground">Select your preferred airlines, hotels, and car rentals</p>
+              <p className="text-foreground/60">Select your preferred airlines, hotels, and car rentals</p>
             </div>
             
             <div className="space-y-6">
@@ -443,7 +443,7 @@ const ProfileSetup = () => {
             <div className="text-center mb-6">
               <div className="text-4xl mb-4">🎉</div>
               <h3 className="text-xl font-semibold text-foreground mb-2">Profile Complete!</h3>
-              <p className="text-muted-foreground">You're all set to start your journey</p>
+              <p className="text-foreground/60">You're all set to start your journey</p>
             </div>
 
             <div className="bg-gradient-to-br from-accent/50 to-accent/10 p-6 rounded-lg border border-border text-center">
@@ -451,24 +451,24 @@ const ProfileSetup = () => {
               <h4 className="text-xl font-bold text-foreground mb-2">
                 Welcome, {travelerLevel.level}!
               </h4>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-foreground/60 mb-4">
                 {profileData.countriesVisited.length} countries explored • {Object.values(profileData.monthlyFlights).reduce((sum, flights) => sum + flights, 0)} flights per year
               </p>
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div className="bg-background/50 p-3 rounded-lg">
                   <div className="font-semibold text-foreground">{profileData.selectedAirlines.length}</div>
-                  <div className="text-muted-foreground">Preferred Airlines</div>
+                  <div className="text-foreground/60">Preferred Airlines</div>
                 </div>
                 <div className="bg-background/50 p-3 rounded-lg">
                   <div className="font-semibold text-foreground">{profileData.selectedHotels.length}</div>
-                  <div className="text-muted-foreground">Preferred Hotels</div>
+                  <div className="text-foreground/60">Preferred Hotels</div>
                 </div>
               </div>
             </div>
 
             <div className="bg-secondary/30 p-4 rounded-lg border border-border text-center">
               <h5 className="font-semibold text-foreground mb-2">Ready for Your Next Adventure?</h5>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-foreground/60 mb-3">
                 Your personalized travel profile is ready. Let's start planning your next unforgettable trip!
               </p>
               <div className="flex items-center justify-center space-x-2 text-foreground">
@@ -478,7 +478,7 @@ const ProfileSetup = () => {
             </div>
 
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-foreground/60">
                 Based on your profile, we'll recommend personalized destinations, 
                 optimize your loyalty programs, and find the best deals.
               </p>
@@ -514,7 +514,7 @@ const ProfileSetup = () => {
                 Step {currentStep} of {totalSteps}
               </Badge>
               <CardTitle className="text-2xl text-foreground">Profile Setup</CardTitle>
-              <CardDescription className="text-muted-foreground">
+              <CardDescription className="text-foreground/60">
                 Help us personalize your travel experience
               </CardDescription>
             </div>
