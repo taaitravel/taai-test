@@ -64,7 +64,7 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
     <div className="w-full space-y-3">
       {/* Compact Header with Browse */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
+        <h3 className="text-sm font-medium text-foreground/60">Quick Actions</h3>
         <Button
           size="sm"
           variant="ghost"
