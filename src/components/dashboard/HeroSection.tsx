@@ -26,9 +26,7 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
   return (
     <div className="mb-6 space-y-3">
       {/* Quick Actions Bar */}
-      <div className="bg-gradient-to-br from-foreground/10 via-foreground/5 to-transparent p-4 rounded-2xl border border-border backdrop-blur-md">
-        <TravelHub activeItineraries={activeItineraries} onBrowseTrips={onBrowseTrips} />
-      </div>
+      <TravelHub activeItineraries={activeItineraries} onBrowseTrips={onBrowseTrips} />
 
       {/* Compact 3-Column Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
