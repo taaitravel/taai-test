@@ -58,7 +58,7 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
 
         {/* Center: Lifetime Total Spent */}
         <div className="p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center gap-1 text-center">
             <DollarSign className="h-5 w-5 text-foreground/60 shrink-0" />
             <div>
               <p className="text-xs text-foreground/60 mb-0.5">Lifetime Total Spent</p>
