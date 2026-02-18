@@ -4,13 +4,15 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Star, Wifi, Car, Coffee, Waves, Utensils, Dumbbell, Wind } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Star, Wifi, Car, Coffee, Waves, Utensils, Dumbbell, Wind, Home } from 'lucide-react';
 
 export interface HotelFilterState {
   priceRange: [number, number];
   starRatings: number[];
   amenities: string[];
   guestRating: number;
+  propertyType: 'all' | 'hotel' | 'rental';
 }
 
 interface HotelFiltersProps {
@@ -35,34 +37,32 @@ const GUEST_RATINGS = [9, 8, 7, 6];
 export const HotelFilters = ({ filters, onFiltersChange, maxPrice = 1000 }: HotelFiltersProps) => {
   const [localFilters, setLocalFilters] = useState(filters);
 
-  const handlePriceChange = (value: number[]) => {
-    const newFilters = { ...localFilters, priceRange: [value[0], value[1]] as [number, number] };
+  const updateFilters = (partial: Partial<HotelFilterState>) => {
+    const newFilters = { ...localFilters, ...partial };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
+  };
+
+  const handlePriceChange = (value: number[]) => {
+    updateFilters({ priceRange: [value[0], value[1]] as [number, number] });
   };
 
   const handleStarRatingToggle = (rating: number) => {
     const newRatings = localFilters.starRatings.includes(rating)
       ? localFilters.starRatings.filter(r => r !== rating)
       : [...localFilters.starRatings, rating];
-    const newFilters = { ...localFilters, starRatings: newRatings };
-    setLocalFilters(newFilters);
-    onFiltersChange(newFilters);
+    updateFilters({ starRatings: newRatings });
   };
 
   const handleAmenityToggle = (amenity: string) => {
     const newAmenities = localFilters.amenities.includes(amenity)
       ? localFilters.amenities.filter(a => a !== amenity)
       : [...localFilters.amenities, amenity];
-    const newFilters = { ...localFilters, amenities: newAmenities };
-    setLocalFilters(newFilters);
-    onFiltersChange(newFilters);
+    updateFilters({ amenities: newAmenities });
   };
 
   const handleGuestRatingChange = (rating: number) => {
-    const newFilters = { ...localFilters, guestRating: rating };
-    setLocalFilters(newFilters);
-    onFiltersChange(newFilters);
+    updateFilters({ guestRating: rating });
   };
 
   const handleReset = () => {
@@ -71,6 +71,7 @@ export const HotelFilters = ({ filters, onFiltersChange, maxPrice = 1000 }: Hote
       starRatings: [],
       amenities: [],
       guestRating: 0,
+      propertyType: 'all',
     };
     setLocalFilters(resetFilters);
     onFiltersChange(resetFilters);
@@ -78,6 +79,35 @@ export const HotelFilters = ({ filters, onFiltersChange, maxPrice = 1000 }: Hote
 
   return (
     <Card className="bg-background/95 backdrop-blur-md border-border p-6 space-y-6">
+      {/* Property Type */}
+      <div className="space-y-3">
+        <Label className="text-foreground font-semibold">Property Type</Label>
+        <RadioGroup
+          value={localFilters.propertyType}
+          onValueChange={(val) => updateFilters({ propertyType: val as HotelFilterState['propertyType'] })}
+          className="space-y-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="all" id="pt-all" />
+            <label htmlFor="pt-all" className="text-sm cursor-pointer text-foreground">All Properties</label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="hotel" id="pt-hotel" />
+            <label htmlFor="pt-hotel" className="text-sm cursor-pointer text-foreground flex items-center gap-1.5">
+              🏨 Hotels Only
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="rental" id="pt-rental" />
+            <label htmlFor="pt-rental" className="text-sm cursor-pointer text-foreground flex items-center gap-1.5">
+              <Home className="h-3.5 w-3.5 text-rental" />
+              <span>Vacation Rentals</span>
+              <span className="inline-block w-2 h-2 rounded-full bg-rental" />
+            </label>
+          </div>
+        </RadioGroup>
+      </div>
+
       {/* Price Range */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -106,10 +136,7 @@ export const HotelFilters = ({ filters, onFiltersChange, maxPrice = 1000 }: Hote
                 checked={localFilters.starRatings.includes(rating)}
                 onCheckedChange={() => handleStarRatingToggle(rating)}
               />
-              <label
-                htmlFor={`star-${rating}`}
-                className="flex items-center gap-1 text-sm cursor-pointer text-foreground"
-              >
+              <label htmlFor={`star-${rating}`} className="flex items-center gap-1 text-sm cursor-pointer text-foreground">
                 {Array.from({ length: rating }).map((_, i) => (
                   <Star key={i} className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                 ))}
@@ -132,10 +159,7 @@ export const HotelFilters = ({ filters, onFiltersChange, maxPrice = 1000 }: Hote
                   checked={localFilters.amenities.includes(amenity.id)}
                   onCheckedChange={() => handleAmenityToggle(amenity.id)}
                 />
-                <label
-                  htmlFor={`amenity-${amenity.id}`}
-                  className="flex items-center gap-2 text-sm cursor-pointer text-foreground"
-                >
+                <label htmlFor={`amenity-${amenity.id}`} className="flex items-center gap-2 text-sm cursor-pointer text-foreground">
                   <Icon className="h-4 w-4 text-muted-foreground" />
                   {amenity.label}
                 </label>
@@ -156,10 +180,7 @@ export const HotelFilters = ({ filters, onFiltersChange, maxPrice = 1000 }: Hote
                 checked={localFilters.guestRating === rating}
                 onCheckedChange={() => handleGuestRatingChange(rating)}
               />
-              <label
-                htmlFor={`guest-${rating}`}
-                className="text-sm cursor-pointer text-foreground"
-              >
+              <label htmlFor={`guest-${rating}`} className="text-sm cursor-pointer text-foreground">
                 {rating}+ Excellent
               </label>
             </div>
@@ -178,11 +199,7 @@ export const HotelFilters = ({ filters, onFiltersChange, maxPrice = 1000 }: Hote
       </div>
 
       {/* Reset Button */}
-      <Button
-        variant="outline"
-        onClick={handleReset}
-        className="w-full bg-background hover:bg-muted"
-      >
+      <Button variant="outline" onClick={handleReset} className="w-full bg-background hover:bg-muted">
         Reset Filters
       </Button>
     </Card>
