@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronRight, CheckCircle2, Circle } from "lucide-react";
+import { ChevronRight, CheckCircle2, Circle, ExternalLink } from "lucide-react";
 import { ItineraryData } from "@/types/itinerary";
 import { getHoliday, formatDateByPreference, getAbbreviatedWeekday } from "@/lib/holidays";
 import { useAuth } from "@/contexts/AuthContext";
@@ -217,8 +217,10 @@ export const DailyScheduleSection = ({
                                       ev.stopPropagation();
                                       onViewItem(e.group as any, e.index);
                                     }}
-                                    className="w-5 h-5 rounded-full border border-border hover:border-primary hover:bg-primary/10 transition-colors"
-                                  />
+                                    className="w-5 h-5 flex items-center justify-center rounded-full border border-border hover:border-primary hover:bg-primary/10 transition-colors"
+                                  >
+                                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                                  </button>
                                 )}
                                 <button
                                   aria-label={completed ? 'Mark incomplete' : 'Mark complete'}
