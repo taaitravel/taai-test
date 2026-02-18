@@ -77,7 +77,7 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
         <CardContent className="p-2 sm:p-3 lg:p-4 h-full flex flex-col justify-between">
           <div>
             <div className="text-base sm:text-xl lg:text-2xl mb-1 sm:mb-2 opacity-60">{getEmoji(trip)}</div>
-            <h4 className="font-bold text-foreground text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 group-hover:text-white transition-colors">
+            <h4 className="font-bold text-foreground dark:text-[#171820] text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 group-hover:text-white transition-colors">
               {trip.itin_name || 'Untitled Trip'}
             </h4>
             <p className="text-muted-foreground text-xs sm:text-sm mb-1 sm:mb-2">
