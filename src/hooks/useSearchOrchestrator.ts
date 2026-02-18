@@ -65,7 +65,7 @@ export const useSearchOrchestrator = () => {
   const [searchType, setSearchType] = useState<SearchType | null>(null);
 
   const { searchHotels, searchDestinations } = useBookingAPI();
-  const { searchHotels: searchExpediaHotels } = useExpediaAPI();
+  const { callExpediaAPI } = useExpediaAPI();
   const { searchActivities: searchAmadeusActivities } = useAmadeusActivities();
   const { searchFlights: searchAmadeusFlights } = useAmadeusFlights();
   const { toast } = useToast();
