@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Plus, Plane, Building2, Car, MapPin, Sparkles, FolderOpen, Clock } from "lucide-react";
+import { Plus, Plane, Hotel, Car, Activity, Package, UtensilsCrossed, FolderOpen, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface TravelHubProps {
