@@ -6,7 +6,7 @@ import { ItineraryData } from '@/types/itinerary';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { getMapStyle, getMapFog, getPopupColors, getMarkerBorderColor } from '@/lib/mapStyles';
+import { getMapStyle, getMapFog, getPopupColors, getMarkerBorderColor, getMarkerDotColor } from '@/lib/mapStyles';
 
 interface ItineraryMapViewProps {
   itineraries: ItineraryData[];
@@ -92,7 +92,7 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
         el.className = 'flex items-center justify-center';
         el.style.width = '36px';
         el.style.height = '36px';
-        el.style.backgroundColor = '#ffce87';
+        el.style.backgroundColor = getMarkerDotColor(theme);
         el.style.borderRadius = '50%';
         el.style.border = `3px solid ${markerBorder}`;
         el.style.cursor = 'pointer';

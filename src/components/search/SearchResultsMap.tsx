@@ -7,7 +7,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { getMapStyle, getMarkerBorderColor } from '@/lib/mapStyles';
+import { getMapStyle, getMarkerBorderColor, getMarkerDotColor } from '@/lib/mapStyles';
 import { Loader2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MapLegend } from './MapLegend';
@@ -127,6 +127,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
     setLoading(true);
 
     const borderColor = getMarkerBorderColor(theme);
+    const dotColor = getMarkerDotColor(theme);
     
     mapboxgl.accessToken = mapboxToken;
     
@@ -141,9 +142,11 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
       attributionControl: false
     });
 
-    // Update marker border config for this theme
+    // Update marker config for this theme
     MARKER_CONFIG.cluster.borderColor = borderColor;
     MARKER_CONFIG.point.borderColor = borderColor;
+    MARKER_CONFIG.cluster.background = dotColor;
+    MARKER_CONFIG.point.background = dotColor;
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     map.current.scrollZoom.disable();
