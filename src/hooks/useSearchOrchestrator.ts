@@ -171,7 +171,7 @@ export const useSearchOrchestrator = () => {
           // Attempt VRBO search via Expedia Rapid API (graceful fallback)
           let vrboResults: any[] = [];
           try {
-            const { data: vrboData, error: vrboError } = await searchExpediaHotels({
+            const { data: vrboData, error: vrboError } = await callExpediaAPI({
               endpoint: 'https://expedia13.p.rapidapi.com/v2/hotels/search',
               params: {
                 location: params.destination,
