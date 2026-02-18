@@ -93,11 +93,11 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       </div>
 
       {/* Inline Recent Activity */}
-      <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
+      <div className="flex items-center gap-3 text-xs text-foreground/60 pt-1">
         <Clock className="h-3 w-3 shrink-0" />
         {recentActivities.map((activity, index) => (
           <span key={index} className="shrink-0">
-            {activity.action} <span className="text-muted-foreground/50">({activity.time})</span>
+            {activity.action} <span className="text-foreground/40">({activity.time})</span>
             {index < recentActivities.length - 1 && <span className="ml-3">·</span>}
           </span>
         ))}
