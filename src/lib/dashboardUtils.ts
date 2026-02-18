@@ -44,8 +44,20 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
     }
   });
 
-  // Calculate actual total spending from all itineraries
+  const today = new Date();
+
+  // Calculate total spending from past/current itineraries only
   const totalSpent = activeItineraries.reduce((sum, itinerary) => {
+    const startDate = itinerary.itin_date_start;
+    if (startDate && new Date(startDate) > today) return sum;
+    const spending = Number(itinerary.spending) || 0;
+    return sum + spending;
+  }, 0);
+
+  // Calculate projected spending from future itineraries
+  const projectedSpend = activeItineraries.reduce((sum, itinerary) => {
+    const startDate = itinerary.itin_date_start;
+    if (!startDate || new Date(startDate) <= today) return sum;
     const spending = Number(itinerary.spending) || 0;
     return sum + spending;
   }, 0);
@@ -55,6 +67,7 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
     countriesVisited: visitedCountries.length,
     citiesVisited: uniqueCities.size,
     totalSpent,
+    projectedSpend,
     flightsThisYear: Number(flightsThisYear),
     visitedCountries
   };

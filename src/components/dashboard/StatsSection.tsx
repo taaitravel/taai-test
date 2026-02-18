@@ -6,6 +6,7 @@ interface StatsSectionProps {
     countriesVisited: number;
     citiesVisited: number;
     totalSpent: number;
+    projectedSpend: number;
     flightsThisYear: number;
     travelerLevel: string;
   };

@@ -3,7 +3,6 @@ import { FolderOpen } from "lucide-react";
 import { HeroSection } from "@/components/dashboard/HeroSection";
 import { StatsSection } from "@/components/dashboard/StatsSection";
 import { TripsSection } from "@/components/dashboard/TripsSection";
-import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TripBrowser } from "@/components/dashboard/TripBrowser";
 import { TripsFilter } from "@/components/dashboard/TripsFilter";
 import { PendingInvitationsCard } from "@/components/itinerary/PendingInvitationsCard";
@@ -34,8 +33,13 @@ export const DashboardContent = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero Section */}
-      <HeroSection userProfile={userProfile} activeItineraries={activeItineraries} />
+      {/* Hero Section with TravelHub + Stats Row */}
+      <HeroSection
+        userProfile={userProfile}
+        activeItineraries={activeItineraries}
+        fullUserStats={fullUserStats}
+        onBrowseTrips={openTripBrowser}
+      />
 
       {/* Pending Invitations */}
       <div className="mb-8">
@@ -56,7 +60,7 @@ export const DashboardContent = () => {
         onClearFilters={handleClearFilters}
       />
 
-      {/* Trips Section - Responsive Layout */}
+      {/* Trips Section */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-4">
           <TripsSection 
@@ -65,15 +69,9 @@ export const DashboardContent = () => {
             onTripClick={openTripBrowser}
           />
         </div>
-        <div className="lg:col-span-4 mt-6 lg:mt-0">
-          <QuickActions 
-            activeItineraries={activeItineraries}
-            onBrowseTrips={openTripBrowser}
-          />
-        </div>
       </div>
 
-      {/* My Itineraries Button - below trips */}
+      {/* My Itineraries Button */}
       <div className="flex justify-center mt-8 mb-8">
         <Button
           onClick={() => navigate('/my-itineraries')}
