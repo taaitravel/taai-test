@@ -7,6 +7,7 @@ export const useHotelFilters = (results: any[]) => {
     starRatings: [],
     amenities: [],
     guestRating: 0,
+    propertyType: 'all',
   });
 
   const maxPrice = useMemo(() => {
@@ -17,45 +18,34 @@ export const useHotelFilters = (results: any[]) => {
 
   const filteredResults = useMemo(() => {
     return results.filter((hotel: any) => {
+      // Property type filter
+      if (filters.propertyType === 'hotel' && hotel.propertyCategory === 'rental') return false;
+      if (filters.propertyType === 'rental' && hotel.propertyCategory !== 'rental') return false;
+
       const price = hotel.min_total_price || hotel.price || 0;
-      if (price < filters.priceRange[0] || price > filters.priceRange[1]) {
-        return false;
-      }
+      if (price < filters.priceRange[0] || price > filters.priceRange[1]) return false;
 
       if (filters.starRatings.length > 0) {
         const hotelRating = hotel.class || hotel.rating || 0;
-        if (!filters.starRatings.includes(Math.round(hotelRating))) {
-          return false;
-        }
+        if (!filters.starRatings.includes(Math.round(hotelRating))) return false;
       }
 
       if (filters.guestRating > 0) {
         const guestRating = hotel.review_score || hotel.guestRating || 0;
-        if (guestRating < filters.guestRating) {
-          return false;
-        }
+        if (guestRating < filters.guestRating) return false;
       }
 
       if (filters.amenities.length > 0) {
         const hotelAmenities = hotel.amenities || hotel.hotel_facilities || [];
         const hasAllAmenities = filters.amenities.every(amenity => 
-          hotelAmenities.some((a: string) => 
-            a.toLowerCase().includes(amenity.toLowerCase())
-          )
+          hotelAmenities.some((a: string) => a.toLowerCase().includes(amenity.toLowerCase()))
         );
-        if (!hasAllAmenities) {
-          return false;
-        }
+        if (!hasAllAmenities) return false;
       }
 
       return true;
     });
   }, [results, filters]);
 
-  return {
-    filters,
-    setFilters,
-    maxPrice,
-    filteredResults,
-  };
+  return { filters, setFilters, maxPrice, filteredResults };
 };
