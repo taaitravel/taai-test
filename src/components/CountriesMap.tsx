@@ -5,7 +5,7 @@ import { MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCountryData } from '@/hooks/useCountryData';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { getMapStyle, getMarkerBorderColor } from '@/lib/mapStyles';
+import { getMapStyle, getMarkerBorderColor, getMarkerDotColor, getMarkerGlow } from '@/lib/mapStyles';
 
 interface CountriesMapProps {
   visitedCountries: string[];
@@ -89,13 +89,15 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
           const markerEl = document.createElement('div');
           markerEl.className = 'country-marker';
           const borderColor = getMarkerBorderColor(theme);
+          const dotColor = getMarkerDotColor(theme);
+          const glowColor = getMarkerGlow(theme);
           markerEl.style.cssText = `
             width: 12px;
             height: 12px;
-            background: #ffce87;
+            background: ${dotColor};
             border: 2px solid ${borderColor};
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(255, 206, 135, 0.6);
+            box-shadow: 0 0 10px ${glowColor};
             cursor: pointer;
           `;
           const popup = new mapboxgl.Popup({ offset: 25 })

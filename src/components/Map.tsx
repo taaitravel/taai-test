@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { escapeHtml, sanitizeCategory, sanitizePrice } from '@/lib/sanitize';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { getMapStyle, getPopupColors } from '@/lib/mapStyles';
+import { getMapStyle, getPopupColors, getMarkerDotColor, getMarkerGlow } from '@/lib/mapStyles';
 
 interface MapLocation {
   city: string;
@@ -21,7 +21,7 @@ interface MapProps {
   locations?: MapLocation[];
 }
 
-const getCategoryColor = (category?: string) => {
+const getCategoryColor = (category?: string, theme?: string) => {
   switch (category) {
     case 'hotel':
     case 'property':
@@ -38,19 +38,20 @@ const getCategoryColor = (category?: string) => {
     case 'package':
       return '#ff849c'; // Pink
     case 'destination':
-      return '#ffce87'; // Golden
     default:
-      return '#ffce87'; // Golden default
+      return getMarkerDotColor(theme);
   }
 };
 
 // Generate marker HTML based on category shape
-const getMarkerHTML = (category?: string, price?: number): string => {
+const getMarkerHTML = (category?: string, price?: number, theme?: string): string => {
   // Validate inputs to prevent XSS
   const safeCategory = sanitizeCategory(category);
   const safePrice = sanitizePrice(price);
   
-  const color = getCategoryColor(safeCategory);
+  const color = getCategoryColor(safeCategory, theme);
+  const dotColor = getMarkerDotColor(theme);
+  const glowColor = getMarkerGlow(theme);
   const priceDisplay = safePrice ? `$${Math.round(safePrice)}` : '';
   
   switch (category) {
@@ -262,15 +263,15 @@ const getMarkerHTML = (category?: string, price?: number): string => {
       `;
       
     default:
-      // Default golden circle (destination)
+      // Default circle (destination)
       return `
         <div style="
           width: 12px;
           height: 12px;
           border-radius: 50%;
-          background: #ffce87;
-          border: 2px solid #ffce87;
-          box-shadow: 0 0 10px rgba(255,206,135,0.6);
+          background: ${dotColor};
+          border: 2px solid ${dotColor};
+          box-shadow: 0 0 10px ${glowColor};
           cursor: pointer;
         "></div>
       `;
@@ -432,7 +433,7 @@ const Map = ({
       // Create marker element with shape based on category
       const el = document.createElement('div');
       el.className = 'custom-marker';
-      el.innerHTML = getMarkerHTML(location.category, location.price);
+      el.innerHTML = getMarkerHTML(location.category, location.price, theme);
       
       // Add hover effect
       el.addEventListener('mouseenter', () => {

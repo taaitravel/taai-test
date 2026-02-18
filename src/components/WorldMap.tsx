@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { getMapStyle, getMapFog, getMarkerBorderColor } from '@/lib/mapStyles';
+import { getMapStyle, getMapFog, getMarkerBorderColor, getMarkerDotColor, getMarkerGlow } from '@/lib/mapStyles';
 
 interface WorldMapProps {
   visitedCountries: string[];
@@ -89,9 +89,11 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
         if (coordinates) {
           const el = document.createElement('div');
           el.className = 'w-4 h-4 rounded-full border-2 shadow-lg';
-          el.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+          const dotColor = getMarkerDotColor(theme);
+          const glowColor = getMarkerGlow(theme);
+          el.style.background = dotColor;
           el.style.borderColor = borderColor;
-          el.style.boxShadow = '0 2px 10px rgba(251, 191, 36, 0.5)';
+          el.style.boxShadow = `0 2px 10px ${glowColor}`;
 
           const popup = new mapboxgl.Popup({
             offset: 25,

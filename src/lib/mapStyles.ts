@@ -69,3 +69,13 @@ export function getPopupColors(theme: string | undefined) {
 export function getMarkerBorderColor(theme: string | undefined): string {
   return theme === 'light' ? '#d1d5db' : '#ffffff';
 }
+
+/** Default marker dot color — pink for light, gold for dark */
+export function getMarkerDotColor(theme: string | undefined): string {
+  return theme === 'light' ? '#ff849c' : '#ffce87';
+}
+
+/** Marker glow shadow color */
+export function getMarkerGlow(theme: string | undefined): string {
+  return theme === 'light' ? 'rgba(255,132,156,0.6)' : 'rgba(255,206,135,0.6)';
+}
