@@ -267,6 +267,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
     startDate={itineraryData.itin_date_start}
     duration={duration}
     destinations={destinations}
+    itineraryId={itineraryData.id}
     flights={itineraryData.flights || []}
     hotels={itineraryData.hotels || []}
     activities={itineraryData.activities || []}
