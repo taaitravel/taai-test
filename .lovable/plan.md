@@ -1,89 +1,33 @@
 
+## Fix Yelp Dining Search: Empty Results
 
-## Add Dining Search Tab with Reservation Deep-Links
+### Root Cause
+The Yelp Fusion API is returning `{"businesses":[]}` for every query (tested "restaurant in Miami" and "pizza in New York"). The `YELP_API_KEY` secret is not present in the Lovable Cloud secrets (only `RAPID_API_KEY`, `STRIPE_SECRET_KEY`, and `LOVABLE_API_KEY` exist). It may be set directly on the external Supabase project but is expired/invalid, or the Yelp API response format has changed.
 
-### Overview
-Add a "Dining" tab to the /search page that searches for restaurants via the existing Yelp API edge function (`search-yelp-businesses`), and generates OpenTable/Resy deep-links so users can book reservations directly.
+### Fix Plan
 
-### Changes
+#### 1. Add diagnostic logging to edge function
+**File:** `supabase/functions/search-yelp-businesses/index.ts`
 
-#### 1. Update SearchType to include "dining"
+Log the Yelp API HTTP status and response body before returning, so we can see exactly what Yelp is sending back (e.g., 401 Unauthorized, deprecated key error, etc.):
 
-**Files:** `src/components/search/AdaptiveSearchForm.tsx`, `src/hooks/useSearchOrchestrator.ts`
+```
+const yelpResp = await fetch(url, ...);
+console.log("Yelp API status:", yelpResp.status);
+const data = await yelpResp.json();
+console.log("Yelp API response keys:", Object.keys(data));
+if (data.error) console.error("Yelp API error:", JSON.stringify(data.error));
+```
 
-- Add `'dining'` to the `SearchType` union: `'flights' | 'hotels' | 'cars' | 'activities' | 'packages' | 'dining'`
+#### 2. Add `YELP_API_KEY` as a project secret
+You will need to provide a valid Yelp Fusion API key. Once you have one, I will add it to the project secrets so the edge function can use it.
 
-#### 2. Create DiningSearchFields component
+#### 3. Improve error propagation
+Instead of silently returning `{"businesses":[]}` when Yelp returns a non-200 status, pass the error back to the client so the UI can show a meaningful message (e.g., "Yelp API key expired" vs "No restaurants found").
 
-**New file:** `src/components/search/fields/DiningSearchFields.tsx`
+### Action Required From You
+Go to [https://fusion.yelp.com/](https://fusion.yelp.com/) and either:
+- Verify your existing API key is still active, or
+- Generate a new one
 
-Fields:
-- Location (reuse PlaceSearch in `restaurant` mode)
-- Date (calendar picker)
-- Time (select: common dinner slots like 6:00 PM, 7:00 PM, etc.)
-- Party size (select: 1-10)
-- Cuisine type (optional select: Italian, Japanese, Mexican, American, etc.)
-
-#### 3. Add Dining tab to AdaptiveSearchForm
-
-**File:** `src/components/search/AdaptiveSearchForm.tsx`
-
-- Import `UtensilsCrossed` icon from lucide-react
-- Add state for dining fields (location, date, time, partySize, cuisine)
-- Add 6th TabsTrigger for "Dining" -- update grid from `grid-cols-5` to `grid-cols-6`
-- Add TabsContent rendering DiningSearchFields
-- Add dining case to `handleSubmit`, `isFormValid`, and `getSearchButtonText`
-
-#### 4. Add dining search to orchestrator
-
-**File:** `src/hooks/useSearchOrchestrator.ts`
-
-- Add `case 'dining'` that:
-  1. Geocodes the location using `search-cities` edge function (to get lat/lon)
-  2. Calls the existing `search-yelp-businesses` edge function with `{ term: cuisine or "restaurant", latitude, longitude, location }`
-  3. Maps Yelp results to a normalized format including name, rating, price level, image, address, phone, coordinates, and reservation links
-
-#### 5. Generate reservation deep-links
-
-In the orchestrator's dining result mapping, generate:
-- **OpenTable link:** `https://www.opentable.com/s?term={restaurant_name}&covers={party_size}&dateTime={date}T{time}`
-- **Resy link:** `https://resy.com/cities/{city}?query={restaurant_name}&date={date}&seats={party_size}`
-- **Google Maps link:** `https://www.google.com/maps/search/?api=1&query={restaurant_name}+{address}`
-
-These links open in a new browser tab for direct booking.
-
-#### 6. Create DiningResultCard component
-
-**New file:** `src/components/search/cards/DiningResultCard.tsx`
-
-Display:
-- Restaurant image (from Yelp)
-- Name, rating (stars), price level ($ signs), cuisine categories
-- Address
-- "Reserve on OpenTable" and "Reserve on Resy" buttons (open deep-links in new tab)
-- "View on Google Maps" secondary link
-
-#### 7. Wire up result rendering
-
-**Files:** `src/components/search/SearchResultsGrid.tsx`, `src/components/search/SearchResultsTree.tsx`
-
-- Add `dining` case to render `DiningResultCard` for each result
-- Enable map view for dining results (restaurants have lat/lon from Yelp)
-
-#### 8. Update SearchResults and Search page
-
-**File:** `src/components/search/SearchResults.tsx`
-
-- Allow `showMapView` for dining type
-
-**File:** `src/pages/Search.tsx`
-
-- Update `showMapView` condition to include `'dining'`
-
-### Technical Details
-
-- No new edge functions needed -- reuses existing `search-yelp-businesses`
-- No new API keys needed -- Yelp API key is already configured
-- Deep-links to OpenTable/Resy are URL-based and require no API access
-- The Yelp API returns up to 8 businesses per search (current limit in the edge function)
-
+Share it here and I will add it as a secret and redeploy the edge function.
