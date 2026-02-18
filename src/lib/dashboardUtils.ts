@@ -68,6 +68,7 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
     citiesVisited: uniqueCities.size,
     totalSpent,
     projectedSpend,
+    lifetimeTotal: totalSpent + projectedSpend,
     flightsThisYear: Number(flightsThisYear),
     visitedCountries
   };
