@@ -622,6 +622,53 @@ export type Database = {
         }
         Relationships: []
       }
+      itinerary_event_completions: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          event_date: string | null
+          event_index: number
+          event_type: string
+          id: string
+          itinerary_id: number
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          event_date?: string | null
+          event_index: number
+          event_type: string
+          id?: string
+          itinerary_id: number
+          notes?: string | null
+          user_id?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          event_date?: string | null
+          event_index?: number
+          event_type?: string
+          id?: string
+          itinerary_id?: number
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_event_completions_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itinerary_events: {
         Row: {
           action: string

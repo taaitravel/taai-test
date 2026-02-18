@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ItineraryData } from "@/types/itinerary";
 import { ItineraryInfoHeader } from "./ItineraryInfoHeader";
 import { TripOverviewSection } from "./TripOverviewSection";
@@ -19,6 +19,7 @@ import { List, CalendarDays } from "lucide-react";
 
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 import { useExpediaMapSync } from "@/hooks/useExpediaMapSync";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
@@ -53,6 +54,19 @@ export const ItineraryContent = ({
   const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
   const { updateItineraryWithEnhancedCities } = useEnhancedCityFormatting();
   const { syncExpediaLocations, isUpdating } = useExpediaMapSync();
+  const { user } = useAuth();
+  const reminderTriggered = useRef(false);
+
+  // Trigger reminder generation for upcoming itineraries
+  useEffect(() => {
+    if (!user || !itineraryData.id || reminderTriggered.current) return;
+    const isUpcoming = new Date(itineraryData.itin_date_start).getTime() > Date.now() - 86400000;
+    if (!isUpcoming) return;
+    reminderTriggered.current = true;
+    supabase.functions.invoke('generate-reminders', {
+      body: { itinerary_id: itineraryData.id },
+    }).catch(console.warn);
+  }, [user, itineraryData.id]);
 
   // Local add modal state and handlers
   const [addOpen, setAddOpen] = useState(false);
@@ -236,6 +250,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
     startDate={itineraryData.itin_date_start}
     duration={duration}
     destinations={destinations}
+    itineraryId={itineraryData.id}
     flights={itineraryData.flights || []}
     hotels={itineraryData.hotels || []}
     activities={itineraryData.activities || []}
