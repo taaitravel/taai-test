@@ -38,7 +38,7 @@ const Search = () => {
     setShowItineraryModal(false);
   };
 
-  const showMapView = searchType === 'hotels' || searchType === 'activities';
+  const showMapView = searchType === 'hotels' || searchType === 'activities' || searchType === 'dining';
   const displayResults = searchType === 'hotels' ? filteredResults : results;
 
   return (

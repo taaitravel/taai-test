@@ -22,7 +22,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Yelp API key not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const params = new URLSearchParams({ term, limit: "8" });
+    const params = new URLSearchParams({ term, limit: "20" });
     if (location) params.set("location", String(location));
     if (latitude && longitude) {
       params.set("latitude", String(latitude));
