@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { ItineraryData } from '@/types/itinerary';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useThemeContext } from '@/contexts/ThemeContext';
+import { getMapStyle, getMapFog, getPopupColors, getMarkerBorderColor } from '@/lib/mapStyles';
 
 interface ItineraryMapViewProps {
   itineraries: ItineraryData[];
@@ -16,6 +18,7 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
   const [mapToken, setMapToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { theme } = useThemeContext();
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -33,14 +36,21 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
     fetchToken();
   }, []);
 
+  // Initialize map - re-create on theme change
   useEffect(() => {
-    if (!mapContainer.current || !mapToken || map.current) return;
+    if (!mapContainer.current || !mapToken) return;
+
+    // Destroy existing map on theme change
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
 
     mapboxgl.accessToken = mapToken;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: getMapStyle(theme, 'itinerary-overview'),
       center: [0, 20],
       zoom: 1.5,
       projection: 'globe'
@@ -50,18 +60,15 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
     map.current.scrollZoom.disable();
 
     map.current.on('style.load', () => {
-      map.current?.setFog({
-        color: 'rgb(20, 20, 30)',
-        'high-color': 'rgb(40, 40, 60)',
-        'horizon-blend': 0.1
-      });
+      const fog = getMapFog(theme);
+      if (fog) map.current?.setFog(fog);
     });
 
     return () => {
       map.current?.remove();
       map.current = null;
     };
-  }, [mapToken]);
+  }, [mapToken, theme]);
 
   useEffect(() => {
     if (!map.current || !mapToken) return;
@@ -77,6 +84,9 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
       itinerary.itin_map_locations.forEach((location) => {
         if (!location.lat || !location.lng) return;
 
+        const popupColors = getPopupColors(theme);
+        const markerBorder = getMarkerBorderColor(theme);
+
         // Create marker element
         const el = document.createElement('div');
         el.className = 'flex items-center justify-center';
@@ -84,7 +94,7 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
         el.style.height = '36px';
         el.style.backgroundColor = '#ffce87';
         el.style.borderRadius = '50%';
-        el.style.border = '3px solid #1a1c2e';
+        el.style.border = `3px solid ${markerBorder}`;
         el.style.cursor = 'pointer';
         el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
         el.innerHTML = `<span style="font-size: 14px;">✈️</span>`;
@@ -122,14 +132,14 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
         const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
           .setHTML(`
             <div style="padding: 16px; max-width: 220px; text-align: center;">
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #1a1c2e;">${itinerary.itin_name || 'Untitled Trip'}</h3>
-              <p style="font-size: 11px; color: #666; margin-bottom: 10px;">${dateRange}</p>
-              <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; color: ${status === 'Upcoming' ? '#1a1c2e' : 'white'}; background: ${statusColor}; margin-bottom: 12px;">
+              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px; color: ${popupColors.text};">${itinerary.itin_name || 'Untitled Trip'}</h3>
+              <p style="font-size: 11px; color: ${popupColors.mutedText}; margin-bottom: 10px;">${dateRange}</p>
+              <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; color: ${status === 'Upcoming' ? popupColors.statusTextDark : 'white'}; background: ${statusColor}; margin-bottom: 12px;">
                 ${status}
               </span>
               <button 
                 id="view-${itinerary.id}-${location.lat}" 
-                style="display: block; width: 100%; background: #1a1c2e; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; border: none; cursor: pointer;"
+                style="display: block; width: 100%; background: ${popupColors.buttonBg}; color: ${popupColors.buttonText}; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; border: none; cursor: pointer;"
               >
                 View Itinerary
               </button>
@@ -194,10 +204,10 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
       <div ref={mapContainer} className="absolute inset-0" />
       
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-[#12131a]/95 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-        <p className="text-xs font-medium text-white mb-2">Itineraries</p>
-        <div className="flex items-center gap-2 text-xs text-slate-300">
-          <div className="w-4 h-4 rounded-full bg-[#ffce87] border-2 border-[#1a1c2e]" />
+      <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur-sm rounded-lg p-3 border border-border">
+        <p className="text-xs font-medium text-foreground mb-2">Itineraries</p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="w-4 h-4 rounded-full bg-[#ffce87] border-2 border-border" />
           <span>{itineraries.length} trip{itineraries.length !== 1 ? 's' : ''}</span>
         </div>
       </div>

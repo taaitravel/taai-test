@@ -6,6 +6,8 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { useThemeContext } from '@/contexts/ThemeContext';
+import { getMapStyle, getMarkerBorderColor } from '@/lib/mapStyles';
 import { Loader2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MapLegend } from './MapLegend';
@@ -83,6 +85,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const sourceAdded = useRef(false);
+  const { theme } = useThemeContext();
 
   const category = getCategoryFromSearchType(searchType);
   const categoryColor = getCategoryColor(category);
@@ -109,22 +112,38 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
     fetchToken();
   }, [retryCount]);
 
-  // Initialize map
+  // Initialize map - re-create on theme change
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken || map.current) return;
+    if (!mapContainer.current || !mapboxToken) return;
 
+    // Destroy existing map on theme change
+    if (map.current) {
+      if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
+      map.current.remove();
+      map.current = null;
+      sourceAdded.current = false;
+    }
+
+    setLoading(true);
+
+    const borderColor = getMarkerBorderColor(theme);
+    
     mapboxgl.accessToken = mapboxToken;
     
-    // Use clean dark base style - no conflicting POI layers
+    // Use clean base style based on theme
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: getMapStyle(theme, 'search'),
       center: [0, 20],
       zoom: 2,
       projection: 'mercator' as any,
       antialias: true,
       attributionControl: false
     });
+
+    // Update marker border config for this theme
+    MARKER_CONFIG.cluster.borderColor = borderColor;
+    MARKER_CONFIG.point.borderColor = borderColor;
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     map.current.scrollZoom.disable();
@@ -144,7 +163,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
       map.current = null;
       sourceAdded.current = false;
     };
-  }, [mapboxToken]);
+  }, [mapboxToken, theme]);
 
   // Add/update GeoJSON source with clustering
   useEffect(() => {
@@ -447,9 +466,9 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-[600px] bg-[#1a1c2e]/50 rounded-lg border border-white/10">
-        <div className="text-red-400 mb-2">⚠️ Map Error</div>
-        <p className="text-white/60 text-sm">{error}</p>
+      <div className="flex flex-col items-center justify-center h-[600px] bg-card/50 rounded-lg border border-border">
+        <div className="text-destructive mb-2">⚠️ Map Error</div>
+        <p className="text-muted-foreground text-sm">{error}</p>
       </div>
     );
   }
@@ -457,22 +476,22 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
   const validResults = results.filter(r => r.latitude && r.longitude);
 
   return (
-    <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-white/10">
+    <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-border">
       {/* Map container - always render so map can initialize */}
       <div ref={mapContainer} className="absolute inset-0" />
       
       {/* Loading overlay */}
       {loading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1c2e]/80 z-20">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-400 mb-3" />
-          <p className="text-white/70 text-sm">Loading map...</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/80 z-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+          <p className="text-muted-foreground text-sm">Loading map...</p>
         </div>
       )}
 
       {/* No locations message */}
       {!loading && validResults.length === 0 && results.length > 0 && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1c2e]/80 z-20">
-          <p className="text-white/60 text-sm">No locations available for map view</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/80 z-20">
+          <p className="text-muted-foreground text-sm">No locations available for map view</p>
         </div>
       )}
       
@@ -482,15 +501,15 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
       {/* Map Controls Overlay */}
       {!loading && validResults.length > 0 && (
         <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
-          <div className="bg-[#1a1c2e]/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 flex items-center gap-3">
-            <span className="text-white/70 text-sm">
+          <div className="bg-card/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-border flex items-center gap-3">
+            <span className="text-muted-foreground text-sm">
               {validResults.length} locations • Click clusters to expand
             </span>
             
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 text-xs text-white/80 hover:text-white hover:bg-white/10"
+              className="h-7 text-xs"
               onClick={handleResetView}
             >
               <RotateCcw className="h-3 w-3 mr-1" />
@@ -502,7 +521,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
       
       {/* Scroll zoom hint */}
       {!loading && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#1a1c2e]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-white/50 text-xs z-10 pointer-events-none">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-card/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border text-muted-foreground text-xs z-10 pointer-events-none">
           Use controls to zoom • Drag to pan • Click markers for details
         </div>
       )}
