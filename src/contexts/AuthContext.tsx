@@ -29,6 +29,7 @@ interface UserProfile {
   terms_accepted_at: string | null;
   privacy_accepted_at: string | null;
   terms_version: string | null;
+  date_format: string | null;
   created_at: string;
 }
 

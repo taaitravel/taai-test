@@ -28,7 +28,8 @@ const ProfileSetup = () => {
     monthlyFlights: {} as Record<number, number>,
     selectedAirlines: [] as string[],
     selectedHotels: [] as string[],
-    selectedCarRentals: [] as string[]
+    selectedCarRentals: [] as string[],
+    dateFormat: 'MM/DD/YY' as string
   });
 
   const [selectedContinent, setSelectedContinent] = useState<string | null>(null);
@@ -136,8 +137,9 @@ const ProfileSetup = () => {
             flight_freq: profileData.monthlyFlights,
             p_airlines: profileData.selectedAirlines,
             p_hotels: profileData.selectedHotels,
-            p_car_rentals: profileData.selectedCarRentals
-          })
+            p_car_rentals: profileData.selectedCarRentals,
+            date_format: profileData.dateFormat
+          } as any)
           .eq('userid', user?.id);
 
         if (error) {
@@ -217,6 +219,25 @@ const ProfileSetup = () => {
                 onChange={(e) => handleInputChange('nationality', e.target.value)}
                 className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Date Format Preference</Label>
+              <div className="flex gap-2">
+                {['MM/DD/YY', 'DD/MM/YY'].map(fmt => (
+                  <Button
+                    key={fmt}
+                    variant={profileData.dateFormat === fmt ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setProfileData(prev => ({ ...prev, dateFormat: fmt }))}
+                    className={profileData.dateFormat === fmt
+                      ? 'gold-gradient text-[#171821]'
+                      : 'bg-[#1f1f27] border-white/50 hover:bg-white/10 text-white'}
+                  >
+                    {fmt}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
         );
