@@ -110,6 +110,10 @@
     --marker-hotel: 348 100% 76%;   /* #ff849c */
     --marker-reservation: 0 0% 100%; /* #ffffff */
     --marker-outline: 0 0% 0%;
+
+    /* Rental/VRBO accent - gold tone */
+    --rental: 36 100% 76%;              /* #ffce87 gold */
+    --rental-foreground: 30 50% 15%;
   }
 }
 
