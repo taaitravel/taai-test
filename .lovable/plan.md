@@ -1,41 +1,30 @@
 
 
-# Restructure Stats Row -- Consistent Layout, Remove Icons
+# Align TravelHub Quick Actions with Search Tabs
 
-## Changes in `src/components/dashboard/HeroSection.tsx`
+## Problem
+The TravelHub quick actions don't match the search page tabs. It has "AI Trip" and "Manual" buttons instead of mirroring the search categories, and it's missing "Packages" and "Dining".
 
-### Next Travel (left) -- Remove Calendar icon
-- Delete the `Calendar` icon
-- Keep the same content and left-aligned layout: date, trip name, "X days away" badge
-- Remove the `Award` and `Calendar` imports entirely
+## Changes in `src/components/dashboard/sections/TravelHub.tsx`
 
-### Lifetime Total Spent (center) -- Reorder to Amount / Label / Trips
-Current order: Amount, then "Lifetime Total Spent (X trips)"
+### Replace actions array
+Remove "AI Trip" and "Manual" buttons. Replace with:
 
-New order:
-```
-$69,591.74
-Lifetime Total Spent
-(14 trips completed)
-```
-- Amount stays as the headline
-- "Lifetime Total Spent" on its own line
-- "(X trips completed)" on a separate line below
+1. **New Itinerary** (gold-gradient, links to `/new-manual-itinerary`) -- uses `Plus` icon
+2. **Properties** (links to `/search?tab=hotels`) -- uses `Hotel` icon, renamed from "Hotels" to match search naming
+3. **Flights** (links to `/search?tab=flights`) -- uses `Plane` icon
+4. **Activities** (links to `/search?tab=activities`) -- uses `Activity` icon (from lucide)
+5. **Cars** (links to `/search?tab=cars`) -- uses `Car` icon
+6. **Packages** (links to `/search?tab=packages`) -- uses `Package` icon
+7. **Dining** (links to `/search?tab=dining`) -- uses `UtensilsCrossed` icon
 
-### Traveler Level (right) -- Reorder to Level / Label / Stats, remove icon
-Current order: Award icon, "Traveler Level" label, level name, stats
+### Update grid
+Change from `grid-cols-3 sm:grid-cols-6` to `grid-cols-4 sm:grid-cols-7` to accommodate 7 buttons.
 
-New order:
-```
-Explorer
-Traveler Level
-17 countries · 24 flights
-```
-- Delete the `Award` icon
-- Level name as the headline (large, bold)
-- "Traveler Level" label below
-- Stats line stays at the bottom
+### Update imports
+- Remove `Sparkles`, `Building2`, `MapPin`
+- Add `Hotel`, `Activity`, `Package`, `UtensilsCrossed`
 
-### Cleanup
-- Remove `Award, Calendar` from lucide-react imports (no icons left)
+### Order and naming
+Matches the search page tab order exactly (Properties, Flights, Activities, Cars, Packages, Dining), with "New Itinerary" prepended as the primary action.
 
