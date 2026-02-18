@@ -17,15 +17,15 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
 
   const actions = [
     {
-      icon: Sparkles,
-      label: "AI Trip",
-      onClick: () => navigate('/new-itinerary'),
+      icon: Plus,
+      label: "New Itinerary",
+      onClick: () => navigate('/new-manual-itinerary'),
       className: "gold-gradient text-background hover:opacity-90"
     },
     {
-      icon: Plus,
-      label: "Manual",
-      onClick: () => navigate('/new-manual-itinerary'),
+      icon: Hotel,
+      label: "Properties",
+      onClick: () => navigate('/search?tab=hotels'),
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
@@ -35,9 +35,9 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
-      icon: Building2,
-      label: "Hotels",
-      onClick: () => navigate('/search?tab=hotels'),
+      icon: Activity,
+      label: "Activities",
+      onClick: () => navigate('/search?tab=activities'),
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
@@ -47,9 +47,15 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
-      icon: MapPin,
-      label: "Activities",
-      onClick: () => navigate('/search?tab=activities'),
+      icon: Package,
+      label: "Packages",
+      onClick: () => navigate('/search?tab=packages'),
+      className: "border-border text-foreground hover:bg-accent bg-transparent"
+    },
+    {
+      icon: UtensilsCrossed,
+      label: "Dining",
+      onClick: () => navigate('/search?tab=dining'),
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     }
   ];
