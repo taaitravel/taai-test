@@ -56,6 +56,10 @@
     --marker-hotel: 348 100% 60%;
     --marker-reservation: 240 16% 15%;
     --marker-outline: 0 0% 100%;
+
+    /* Rental/VRBO accent - gold tone */
+    --rental: 36 100% 70%;              /* #ffce87 gold */
+    --rental-foreground: 30 50% 15%;    /* dark warm text on gold */
   }
 
   /* Dark Mode - Current luxury dark theme */
