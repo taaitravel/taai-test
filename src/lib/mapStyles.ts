@@ -13,7 +13,7 @@ const DARK_STYLES: Record<MapVariant, string> = {
   'itinerary-overview': 'mapbox://styles/mapbox/dark-v11',
 };
 
-const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v11';
+const LIGHT_STYLE = 'mapbox://styles/taai/cmlrf6i5q004p01qk9a5i062m';
 
 export function getMapStyle(theme: string | undefined, variant: MapVariant = 'search'): string {
   if (theme === 'light') return LIGHT_STYLE;
