@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Plus, Plane, Building2, Car, MapPin, Sparkles, FolderOpen, Clock } from "lucide-react";
+import { Plus, Plane, Hotel, Car, Activity, Package, UtensilsCrossed, FolderOpen, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface TravelHubProps {
@@ -17,15 +17,15 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
 
   const actions = [
     {
-      icon: Sparkles,
-      label: "AI Trip",
-      onClick: () => navigate('/new-itinerary'),
+      icon: Plus,
+      label: "New Itinerary",
+      onClick: () => navigate('/new-manual-itinerary'),
       className: "gold-gradient text-background hover:opacity-90"
     },
     {
-      icon: Plus,
-      label: "Manual",
-      onClick: () => navigate('/new-manual-itinerary'),
+      icon: Hotel,
+      label: "Properties",
+      onClick: () => navigate('/search?tab=hotels'),
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
@@ -35,9 +35,9 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
-      icon: Building2,
-      label: "Hotels",
-      onClick: () => navigate('/search?tab=hotels'),
+      icon: Activity,
+      label: "Activities",
+      onClick: () => navigate('/search?tab=activities'),
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
@@ -47,9 +47,15 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     },
     {
-      icon: MapPin,
-      label: "Activities",
-      onClick: () => navigate('/search?tab=activities'),
+      icon: Package,
+      label: "Packages",
+      onClick: () => navigate('/search?tab=packages'),
+      className: "border-border text-foreground hover:bg-accent bg-transparent"
+    },
+    {
+      icon: UtensilsCrossed,
+      label: "Dining",
+      onClick: () => navigate('/search?tab=dining'),
       className: "border-border text-foreground hover:bg-accent bg-transparent"
     }
   ];
@@ -77,7 +83,7 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       </div>
 
       {/* 6-Column Action Grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
         {actions.map((action, index) => (
           <Button
             key={index}
