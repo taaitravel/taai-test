@@ -46,18 +46,18 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
 
   const today = new Date();
 
-  // Calculate total spending from past/current itineraries only
+  // Calculate total spending from fully completed itineraries only
   const totalSpent = activeItineraries.reduce((sum, itinerary) => {
-    const startDate = itinerary.itin_date_start;
-    if (startDate && new Date(startDate) > today) return sum;
+    const endDate = itinerary.itin_date_end;
+    if (!endDate || new Date(endDate) >= today) return sum;
     const spending = Number(itinerary.spending) || 0;
     return sum + spending;
   }, 0);
 
-  // Calculate projected spending from future itineraries
+  // Calculate projected spending from active + future itineraries (end date not yet passed)
   const projectedSpend = activeItineraries.reduce((sum, itinerary) => {
-    const startDate = itinerary.itin_date_start;
-    if (!startDate || new Date(startDate) <= today) return sum;
+    const endDate = itinerary.itin_date_end;
+    if (!endDate || new Date(endDate) < today) return sum;
     const spending = Number(itinerary.spending) || 0;
     return sum + spending;
   }, 0);

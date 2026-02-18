@@ -25,8 +25,8 @@ export const TravelMetrics = ({
   // Rank future trips by spending amount (highest to lowest) for projected spend
   const rankedTrips = (activeItineraries || [])
     .filter(itinerary => {
-      const startDate = itinerary.itin_date_start;
-      return startDate && new Date(startDate) > today && itinerary.spending && Number(itinerary.spending) > 0;
+      const endDate = itinerary.itin_date_end;
+      return endDate && new Date(endDate) >= today && itinerary.spending && Number(itinerary.spending) > 0;
     })
     .map(itinerary => ({
       name: itinerary.title || itinerary.itin_name || 'Unnamed Trip',
