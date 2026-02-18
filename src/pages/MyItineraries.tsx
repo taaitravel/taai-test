@@ -330,7 +330,7 @@ const MyItineraries = () => {
                     {filteredItineraries.length} itinerary{filteredItineraries.length !== 1 ? 's' : ''}
                   </p>
                 </div>
-                <Button onClick={() => navigate('/new-itinerary')} className="gap-2" size={isMobile ? 'sm' : 'default'}>
+                <Button onClick={() => navigate('/search')} className="gap-2" size={isMobile ? 'sm' : 'default'}>
                   <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">New Itinerary</span>
                 </Button>
