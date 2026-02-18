@@ -4,6 +4,8 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { escapeHtml, sanitizeCategory, sanitizePrice } from '@/lib/sanitize';
+import { useThemeContext } from '@/contexts/ThemeContext';
+import { getMapStyle, getPopupColors } from '@/lib/mapStyles';
 
 interface MapLocation {
   city: string;
@@ -285,6 +287,7 @@ const Map = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const { theme } = useThemeContext();
 
   // Fetch Mapbox token with retry
   useEffect(() => {
@@ -319,10 +322,17 @@ const Map = ({
     fetchMapboxToken();
   }, [retryCount]);
 
-  // Initialize map when token is available
+  // Initialize map when token is available or theme changes
   useEffect(() => {
-    if (!mapboxToken || !mapContainer.current || map.current) {
+    if (!mapboxToken || !mapContainer.current) {
       return;
+    }
+
+    // Destroy existing map on theme change
+    if (map.current) {
+      clearMarkers();
+      map.current.remove();
+      map.current = null;
     }
     
     setLoading(true);
@@ -332,7 +342,7 @@ const Map = ({
       
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/taai/cme4vu58w01r701s29jan9lw9',
+        style: getMapStyle(theme, 'itinerary'),
         center: [0, 20],
         zoom: 2,
         projection: 'mercator' as any,
@@ -385,7 +395,7 @@ const Map = ({
       setError('Failed to initialize map: ' + err.message);
       setLoading(false);
     }
-  }, [mapboxToken]);
+  }, [mapboxToken, theme]);
 
   // Clear existing markers helper
   const clearMarkers = useCallback(() => {
@@ -440,6 +450,7 @@ const Map = ({
       const safeAddress = location.address ? escapeHtml(location.address) : '';
       const safePrice = sanitizePrice(location.price);
       
+      const popupColors = getPopupColors(theme);
       const popup = new mapboxgl.Popup({
         offset: 35,
         closeButton: true,
@@ -447,17 +458,17 @@ const Map = ({
         maxWidth: '300px'
       }).setHTML(`
         <div style="
-          color: white; 
+          color: ${popupColors.text}; 
           font-weight: 600; 
           padding: 16px; 
-          background: #1a1c2e; 
-          border: 1px solid rgba(255,255,255,0.1);
+          background: ${popupColors.bg}; 
+          border: 1px solid ${popupColors.border};
           border-radius: 12px;
           min-width: 200px;
         ">
           ${safeCategory ? `<div style="
             font-size: 10px; 
-            color: rgba(255,255,255,0.5); 
+            color: ${popupColors.mutedText}; 
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 6px;
@@ -465,7 +476,7 @@ const Map = ({
           <div style="font-size: 16px; margin-bottom: 4px; line-height: 1.4;">
             ${safeName}
           </div>
-          ${safeAddress ? `<div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 8px;">
+          ${safeAddress ? `<div style="font-size: 12px; color: ${popupColors.mutedText}; margin-bottom: 8px;">
             📍 ${safeAddress}
           </div>` : ''}
           ${safePrice ? `<div style="font-size: 20px; font-weight: bold; color: #ff849c;">

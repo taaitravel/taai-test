@@ -4,6 +4,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCountryData } from '@/hooks/useCountryData';
+import { useThemeContext } from '@/contexts/ThemeContext';
+import { getMapStyle, getMarkerBorderColor } from '@/lib/mapStyles';
 
 interface CountriesMapProps {
   visitedCountries: string[];
@@ -16,68 +18,61 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { countryCoordinates } = useCountryData(visitedCountries);
+  const { theme } = useThemeContext();
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
 
+  // Fetch token once
   useEffect(() => {
-    if (!mapContainer.current) return;
-
-    const initializeMap = async () => {
+    const fetchToken = async () => {
       try {
-        console.log('CountriesMap: Attempting to get Mapbox token...');
-        
-        // Get Mapbox token from Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        console.log('CountriesMap: Token response:', { data, error });
-        
-        if (error) {
+        if (error || !data?.token) {
           setError('Unable to load map. Please check configuration.');
           setIsLoading(false);
           return;
         }
-
-        const mapboxToken = data?.token;
-        if (!mapboxToken) {
-          setError('Mapbox token not configured.');
-          setIsLoading(false);
-          return;
-        }
-
-        // Initialize map with TAAI custom style
-        mapboxgl.accessToken = mapboxToken;
-        
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current,
-          style: 'mapbox://styles/taai/cme4vu58w01r701s29jan9lw9',
-          projection: 'mercator',
-          center: [0, 0],
-          zoom: 2,
-          pitch: 0,
-        });
-
-        // Add atmosphere and fog effects
-        // Default map settings (no fog or custom projection)
-
-
-
-        // Markers will be handled in effect when coordinates are available
-
-
-
-        setIsLoading(false);
-
-      } catch (err) {
-        console.error('Error initializing map:', err);
+        setMapboxToken(data.token);
+      } catch {
         setError('Failed to load map');
         setIsLoading(false);
       }
     };
-
-    initializeMap();
-
-    // Cleanup
-    return () => {
-      map.current?.remove();
-    };
+    fetchToken();
   }, []);
+
+  // Initialize / re-initialize map on token or theme change
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxToken) return;
+
+    // Destroy existing map on theme change
+    if (map.current) {
+      markersRef.current.forEach(m => m.remove());
+      markersRef.current = [];
+      map.current.remove();
+      map.current = null;
+    }
+
+    setIsLoading(true);
+    mapboxgl.accessToken = mapboxToken;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: getMapStyle(theme, 'countries'),
+      projection: 'mercator',
+      center: [0, 0],
+      zoom: 2,
+      pitch: 0,
+    });
+
+    map.current.on('load', () => setIsLoading(false));
+
+    return () => {
+      markersRef.current.forEach(m => m.remove());
+      markersRef.current = [];
+      map.current?.remove();
+      map.current = null;
+    };
+  }, [mapboxToken, theme]);
 
   // Add/Update markers when country coordinates change
   useEffect(() => {
@@ -93,11 +88,12 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
         if (country.longitude && country.latitude) {
           const markerEl = document.createElement('div');
           markerEl.className = 'country-marker';
+          const borderColor = getMarkerBorderColor(theme);
           markerEl.style.cssText = `
             width: 12px;
             height: 12px;
             background: #ffce87;
-            border: 2px solid #ffffff;
+            border: 2px solid ${borderColor};
             border-radius: 50%;
             box-shadow: 0 0 10px rgba(255, 206, 135, 0.6);
             cursor: pointer;
@@ -132,21 +128,21 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
 
   if (error) {
     return (
-      <div className="h-[250px] flex items-center justify-center bg-[#171821]/80 rounded-lg border border-white/20">
+      <div className="h-[250px] flex items-center justify-center bg-card/80 rounded-lg border border-border">
         <div className="text-center">
-          <MapPin className="h-8 w-8 text-white/60 mx-auto mb-2" />
-          <p className="text-white/80 font-medium text-sm">Map Unavailable</p>
+          <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-foreground font-medium text-sm">Map Unavailable</p>
           {visitedCountries.length > 0 && (
             <div className="mt-3 space-y-1">
-              <p className="text-white/60 text-xs">Your countries:</p>
+              <p className="text-muted-foreground text-xs">Your countries:</p>
               <div className="flex flex-wrap gap-1 justify-center">
                 {visitedCountries.slice(0, 3).map((country, index) => (
-                  <div key={index} className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">
+                  <div key={index} className="text-xs text-foreground/70 bg-secondary px-2 py-1 rounded">
                     {country}
                   </div>
                 ))}
                 {visitedCountries.length > 3 && (
-                  <div className="text-xs text-white/60">+{visitedCountries.length - 3}</div>
+                  <div className="text-xs text-muted-foreground">+{visitedCountries.length - 3}</div>
                 )}
               </div>
             </div>
@@ -161,16 +157,16 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
       <div ref={mapContainer} className="absolute inset-0" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-background/10 rounded-lg" />
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#171821]/80 rounded-lg border border-white/20">
+        <div className="absolute inset-0 flex items-center justify-center bg-card/80 rounded-lg border border-border">
           <div className="text-center">
-            <MapPin className="h-8 w-8 text-white/60 mx-auto mb-2 animate-pulse" />
-            <p className="text-white/80 font-medium text-sm">Loading Map...</p>
+            <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2 animate-pulse" />
+            <p className="text-foreground font-medium text-sm">Loading Map...</p>
           </div>
         </div>
       )}
       {visitedCountries.length > 0 && !isLoading && (
-        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded px-2 py-1">
-          <p className="text-xs text-white/80 font-medium">{visitedCountries.length} countries</p>
+        <div className="absolute top-2 right-2 bg-card/60 backdrop-blur-sm rounded px-2 py-1">
+          <p className="text-xs text-foreground/80 font-medium">{visitedCountries.length} countries</p>
         </div>
       )}
     </div>

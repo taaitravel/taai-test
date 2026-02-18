@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
+import { useThemeContext } from '@/contexts/ThemeContext';
+import { getMapStyle, getMapFog, getMarkerBorderColor } from '@/lib/mapStyles';
 
 interface WorldMapProps {
   visitedCountries: string[];
@@ -12,6 +14,8 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const { theme } = useThemeContext();
 
   // Countries coordinates mapping
   const countryCoordinates: { [key: string]: [number, number] } = {
@@ -35,109 +39,101 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
     'China': [104.1954, 35.8617]
   };
 
+  // Fetch token once
   useEffect(() => {
-    if (!mapContainer.current) return;
-
-    const initializeMap = async () => {
+    const fetchToken = async () => {
       try {
-        // Get Mapbox token from Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        
-        if (error) {
-          console.error('Error getting Mapbox token:', error);
+        if (error || !data?.token) {
           setError('Unable to load map. Please check configuration.');
           setIsLoading(false);
           return;
         }
-
-        const mapboxToken = data?.token;
-        if (!mapboxToken) {
-          console.error('No token in response data');
-          setError('Mapbox token not configured.');
-          setIsLoading(false);
-          return;
-        }
-
-        // Initialize map
-        mapboxgl.accessToken = mapboxToken;
-        
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current!,
-          style: 'mapbox://styles/mapbox/dark-v11',
-          projection: 'globe',
-          zoom: 1.2,
-          center: [0, 30],
-          interactive: false, // Make it non-interactive for display purposes
-        });
-
-        map.current.on('style.load', () => {
-          // Add fog for a nice effect
-          map.current?.setFog({
-            color: 'rgb(23, 24, 33)',
-            'high-color': 'rgb(50, 50, 60)',
-            'horizon-blend': 0.1,
-          });
-
-          // Add markers for visited countries
-          visitedCountries.forEach(country => {
-            const coordinates = countryCoordinates[country];
-            if (coordinates) {
-              // Create a custom marker
-              const el = document.createElement('div');
-              el.className = 'w-4 h-4 rounded-full border-2 border-white shadow-lg';
-              el.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
-              el.style.boxShadow = '0 2px 10px rgba(251, 191, 36, 0.5)';
-              
-              // Add popup
-              const popup = new mapboxgl.Popup({
-                offset: 25,
-                className: 'custom-popup'
-              }).setHTML(`
-                <div style="
-                  background: #1f2937;
-                  color: white;
-                  padding: 8px 12px;
-                  border-radius: 6px;
-                  font-size: 14px;
-                  font-weight: 500;
-                ">
-                  ${country}
-                </div>
-              `);
-              
-              new mapboxgl.Marker(el)
-                .setLngLat(coordinates)
-                .setPopup(popup)
-                .addTo(map.current!);
-            }
-          });
-
-          setIsLoading(false);
-        });
-
-      } catch (err) {
-        console.error('Error initializing map:', err);
+        setMapboxToken(data.token);
+      } catch {
         setError('Failed to load map');
         setIsLoading(false);
       }
     };
+    fetchToken();
+  }, []);
 
-    initializeMap();
+  // Initialize / re-initialize map on token or theme change
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxToken) return;
+
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
+
+    setIsLoading(true);
+    mapboxgl.accessToken = mapboxToken;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current!,
+      style: getMapStyle(theme, 'world'),
+      projection: 'globe',
+      zoom: 1.2,
+      center: [0, 30],
+      interactive: false,
+    });
+
+    map.current.on('style.load', () => {
+      const fog = getMapFog(theme);
+      if (fog) map.current?.setFog(fog);
+
+      const borderColor = getMarkerBorderColor(theme);
+      visitedCountries.forEach(country => {
+        const coordinates = countryCoordinates[country];
+        if (coordinates) {
+          const el = document.createElement('div');
+          el.className = 'w-4 h-4 rounded-full border-2 shadow-lg';
+          el.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+          el.style.borderColor = borderColor;
+          el.style.boxShadow = '0 2px 10px rgba(251, 191, 36, 0.5)';
+
+          const popup = new mapboxgl.Popup({
+            offset: 25,
+            className: 'custom-popup'
+          }).setHTML(`
+            <div style="
+              background: ${theme === 'light' ? '#ffffff' : '#1f2937'};
+              color: ${theme === 'light' ? '#1a1a2e' : 'white'};
+              padding: 8px 12px;
+              border-radius: 6px;
+              font-size: 14px;
+              font-weight: 500;
+            ">
+              ${country}
+            </div>
+          `);
+
+          new mapboxgl.Marker(el)
+            .setLngLat(coordinates)
+            .setPopup(popup)
+            .addTo(map.current!);
+        }
+      });
+
+      setIsLoading(false);
+    });
 
     return () => {
       map.current?.remove();
+      map.current = null;
     };
-  }, [visitedCountries]);
+  }, [mapboxToken, theme, visitedCountries]);
 
   if (error) {
     return (
-      <div className="h-48 flex items-center justify-center bg-[#171820] rounded-lg border border-yellow-500/20">
+      <div className="h-48 flex items-center justify-center bg-card rounded-lg border border-border">
         <div className="text-center">
-          <div className="text-yellow-400 text-sm">{error}</div>
+          <div className="text-primary text-sm">{error}</div>
           {visitedCountries.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1 justify-center">
               {visitedCountries.map((country, index) => (
-                <span key={index} className="px-2 py-1 bg-white/20 text-white text-xs rounded border border-white/30">
+                <span key={index} className="px-2 py-1 bg-secondary text-foreground text-xs rounded border border-border">
                   {country}
                 </span>
               ))}
@@ -150,16 +146,16 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
 
   if (isLoading) {
     return (
-      <div className="h-48 flex items-center justify-center bg-[#171820] rounded-lg border border-yellow-500/20">
+      <div className="h-48 flex items-center justify-center bg-card rounded-lg border border-border">
         <div className="text-center">
-          <div className="text-yellow-200 text-sm animate-pulse">Loading Map...</div>
+          <div className="text-muted-foreground text-sm animate-pulse">Loading Map...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-48 bg-[#171820] rounded-lg overflow-hidden">
+    <div className="relative w-full h-48 bg-card rounded-lg overflow-hidden">
       <div ref={mapContainer} className="w-full h-full" />
     </div>
   );
