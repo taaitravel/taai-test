@@ -37,7 +37,6 @@ const ProfileSetup = () => {
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
 
-  // Data for gamified experience
   const continents = {
     'North America': ['United States', 'Canada', 'Mexico', 'Costa Rica', 'Panama'],
     'Europe': ['United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 'Netherlands', 'Switzerland', 'Austria', 'Norway'],
@@ -125,7 +124,6 @@ const ProfileSetup = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Save profile data to Supabase
       try {
         const { error } = await supabase
           .from('users')
@@ -184,45 +182,45 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-white mb-2">Personal Information</h3>
-              <p className="text-white/70">Let's complete your basic profile</p>
+              <h3 className="text-xl font-semibold text-foreground mb-2">Personal Information</h3>
+              <p className="text-muted-foreground">Let's complete your basic profile</p>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-white">Last Name</Label>
+              <Label htmlFor="lastName" className="text-foreground">Last Name</Label>
               <Input
                 id="lastName"
                 placeholder="Smith"
                 value={profileData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="address" className="text-white">Address</Label>
+              <Label htmlFor="address" className="text-foreground">Address</Label>
               <Input
                 id="address"
                 placeholder="123 Main St, City, State 12345"
                 value={profileData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
-                className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="nationality" className="text-white">Nationality</Label>
+              <Label htmlFor="nationality" className="text-foreground">Nationality</Label>
               <Input
                 id="nationality"
                 placeholder="United States"
                 value={profileData.nationality}
                 onChange={(e) => handleInputChange('nationality', e.target.value)}
-                className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white">Date Format Preference</Label>
+              <Label className="text-foreground">Date Format Preference</Label>
               <div className="flex gap-2">
                 {['MM/DD/YY', 'DD/MM/YY'].map(fmt => (
                   <Button
@@ -231,8 +229,8 @@ const ProfileSetup = () => {
                     size="sm"
                     onClick={() => setProfileData(prev => ({ ...prev, dateFormat: fmt }))}
                     className={profileData.dateFormat === fmt
-                      ? 'gold-gradient text-[#171821]'
-                      : 'bg-[#1f1f27] border-white/50 hover:bg-white/10 text-white'}
+                      ? 'gold-gradient text-primary-foreground'
+                      : 'bg-secondary border-border hover:bg-accent text-foreground'}
                   >
                     {fmt}
                   </Button>
@@ -246,24 +244,24 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Globe className="h-12 w-12 text-white mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Countries Visited</h3>
-              <p className="text-white/70">Pop the bubbles to select countries you've visited!</p>
-              <Badge variant="secondary" className="mt-2 bg-white/20 text-white border-white/30">
+              <Globe className="h-12 w-12 text-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Countries Visited</h3>
+              <p className="text-muted-foreground">Pop the bubbles to select countries you've visited!</p>
+              <Badge variant="secondary" className="mt-2 bg-accent text-foreground border-border">
                 {profileData.countriesVisited.length} countries visited
               </Badge>
             </div>
             
             {!selectedContinent ? (
               <div className="space-y-4">
-                <p className="text-center text-white">Select a continent to explore:</p>
+                <p className="text-center text-foreground">Select a continent to explore:</p>
                 <div className="grid grid-cols-2 gap-3">
                   {Object.keys(continents).map((continent) => (
                     <Button
                       key={continent}
                       variant="outline"
                       onClick={() => setSelectedContinent(continent)}
-                      className="h-16 text-sm font-medium bg-[#1f1f27] border-white/50 hover:bg-white/10 hover:border-white animate-pulse text-white"
+                      className="h-16 text-sm font-medium bg-secondary border-border hover:bg-accent hover:border-primary animate-pulse text-foreground"
                     >
                       {continent}
                     </Button>
@@ -273,12 +271,12 @@ const ProfileSetup = () => {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-white">{selectedContinent}</h4>
+                  <h4 className="font-semibold text-foreground">{selectedContinent}</h4>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedContinent(null)}
-                    className="text-white/70 hover:text-white"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     Back to continents
                   </Button>
@@ -292,8 +290,8 @@ const ProfileSetup = () => {
                       onClick={() => handleCountrySelect(country)}
                       className={`text-xs transition-all duration-200 ${
                         profileData.countriesVisited.includes(country)
-                          ? 'gold-gradient text-[#171821] scale-95'
-                          : 'bg-[#1f1f27] border-white/50 hover:bg-white/10 hover:scale-105 text-white'
+                          ? 'gold-gradient text-primary-foreground scale-95'
+                          : 'bg-secondary border-border hover:bg-accent hover:scale-105 text-foreground'
                       }`}
                     >
                       {country}
@@ -309,10 +307,10 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Calendar className="h-12 w-12 text-white mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Flight Frequency</h3>
-              <p className="text-white/70">Click months to add flights (max 10 per month)</p>
-              <Badge variant="secondary" className="mt-2 bg-white/20 text-white border-white/30">
+              <Calendar className="h-12 w-12 text-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Flight Frequency</h3>
+              <p className="text-muted-foreground">Click months to add flights (max 10 per month)</p>
+              <Badge variant="secondary" className="mt-2 bg-accent text-foreground border-border">
                 {Object.values(profileData.monthlyFlights).reduce((sum, flights) => sum + flights, 0)} total flights/year
               </Badge>
             </div>
@@ -322,11 +320,11 @@ const ProfileSetup = () => {
                 const flightCount = profileData.monthlyFlights[index] || 0;
                 return (
                   <div key={month} className="text-center">
-                    <div className="text-xs text-white/70 mb-1">{month}</div>
+                    <div className="text-xs text-muted-foreground mb-1">{month}</div>
                     <div className={`border rounded-lg p-3 transition-colors ${
                       flightCount > 0 
-                        ? 'border-[#ffce87] hover:border-[#ffce87]' 
-                        : 'border-white/30 hover:border-white/50'
+                        ? 'border-primary hover:border-primary' 
+                        : 'border-border hover:border-muted-foreground'
                     }`}>
                       <div className="flex items-center justify-between mb-2">
                         <Button
@@ -334,22 +332,22 @@ const ProfileSetup = () => {
                           size="sm"
                           onClick={() => handleMonthDecrease(index)}
                           disabled={flightCount === 0}
-                          className="h-6 w-6 p-0 text-white hover:text-white"
+                          className="h-6 w-6 p-0 text-foreground hover:text-foreground"
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="font-semibold text-white">{flightCount}</span>
+                        <span className="font-semibold text-foreground">{flightCount}</span>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleMonthClick(index)}
                           disabled={flightCount >= 10}
-                          className="h-6 w-6 p-0 text-white hover:text-white"
+                          className="h-6 w-6 p-0 text-foreground hover:text-foreground"
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
-                      <div className="text-xs text-white/70">flights</div>
+                      <div className="text-xs text-muted-foreground">flights</div>
                     </div>
                   </div>
                 );
@@ -363,17 +361,17 @@ const ProfileSetup = () => {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <div className="flex justify-center space-x-4 mb-4">
-                <Plane className="h-8 w-8 text-white" />
-                <Hotel className="h-8 w-8 text-white" />
-                <Car className="h-8 w-8 text-white" />
+                <Plane className="h-8 w-8 text-foreground" />
+                <Hotel className="h-8 w-8 text-foreground" />
+                <Car className="h-8 w-8 text-foreground" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Travel Preferences</h3>
-              <p className="text-white/70">Select your preferred airlines, hotels, and car rentals</p>
+              <h3 className="text-xl font-semibold text-foreground mb-2">Travel Preferences</h3>
+              <p className="text-muted-foreground">Select your preferred airlines, hotels, and car rentals</p>
             </div>
             
             <div className="space-y-6">
               <div>
-                <h4 className="font-medium text-white mb-2">Preferred Airlines</h4>
+                <h4 className="font-medium text-foreground mb-2">Preferred Airlines</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                   {airlines.map((airline) => (
                     <Button
@@ -383,8 +381,8 @@ const ProfileSetup = () => {
                       onClick={() => handlePreferenceSelect('selectedAirlines', airline)}
                       className={`text-xs transition-all duration-200 ${
                         profileData.selectedAirlines.includes(airline)
-                          ? 'gold-gradient text-[#171821]'
-                          : 'bg-[#1f1f27] border-white/50 hover:bg-white/10 text-white'
+                          ? 'gold-gradient text-primary-foreground'
+                          : 'bg-secondary border-border hover:bg-accent text-foreground'
                       }`}
                     >
                       {airline}
@@ -394,7 +392,7 @@ const ProfileSetup = () => {
               </div>
               
               <div>
-                <h4 className="font-medium text-white mb-2">Preferred Hotels</h4>
+                <h4 className="font-medium text-foreground mb-2">Preferred Hotels</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                   {hotels.map((hotel) => (
                     <Button
@@ -404,8 +402,8 @@ const ProfileSetup = () => {
                       onClick={() => handlePreferenceSelect('selectedHotels', hotel)}
                       className={`text-xs transition-all duration-200 ${
                         profileData.selectedHotels.includes(hotel)
-                          ? 'gold-gradient text-[#171821]'
-                          : 'bg-[#1f1f27] border-white/50 hover:bg-white/10 text-white'
+                          ? 'gold-gradient text-primary-foreground'
+                          : 'bg-secondary border-border hover:bg-accent text-foreground'
                       }`}
                     >
                       {hotel}
@@ -415,7 +413,7 @@ const ProfileSetup = () => {
               </div>
               
               <div>
-                <h4 className="font-medium text-white mb-2">Preferred Car Rentals</h4>
+                <h4 className="font-medium text-foreground mb-2">Preferred Car Rentals</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                   {carRentals.map((rental) => (
                     <Button
@@ -425,8 +423,8 @@ const ProfileSetup = () => {
                       onClick={() => handlePreferenceSelect('selectedCarRentals', rental)}
                       className={`text-xs transition-all duration-200 ${
                         profileData.selectedCarRentals.includes(rental)
-                          ? 'gold-gradient text-[#171821]'
-                          : 'bg-[#1f1f27] border-white/50 hover:bg-white/10 text-white'
+                          ? 'gold-gradient text-primary-foreground'
+                          : 'bg-secondary border-border hover:bg-accent text-foreground'
                       }`}
                     >
                       {rental}
@@ -442,49 +440,45 @@ const ProfileSetup = () => {
         const travelerLevel = getTravelerLevel();
         return (
           <div className="space-y-6">
-            {/* Completion Header */}
             <div className="text-center mb-6">
               <div className="text-4xl mb-4">🎉</div>
-              <h3 className="text-xl font-semibold text-white mb-2">Profile Complete!</h3>
-              <p className="text-white/70">You're all set to start your journey</p>
+              <h3 className="text-xl font-semibold text-foreground mb-2">Profile Complete!</h3>
+              <p className="text-muted-foreground">You're all set to start your journey</p>
             </div>
 
-            {/* Traveler Level Achievement - Main Focus */}
-            <div className="bg-gradient-to-br from-white/20 to-white/5 p-6 rounded-lg border border-white/30 text-center">
+            <div className="bg-gradient-to-br from-accent/50 to-accent/10 p-6 rounded-lg border border-border text-center">
               <div className="text-4xl mb-3">{travelerLevel.icon}</div>
-              <h4 className={`text-xl font-bold text-white mb-2`}>
+              <h4 className="text-xl font-bold text-foreground mb-2">
                 Welcome, {travelerLevel.level}!
               </h4>
-              <p className="text-sm text-white/70 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 {profileData.countriesVisited.length} countries explored • {Object.values(profileData.monthlyFlights).reduce((sum, flights) => sum + flights, 0)} flights per year
               </p>
               <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="bg-[#171821]/50 p-3 rounded-lg">
-                  <div className="font-semibold text-white">{profileData.selectedAirlines.length}</div>
-                  <div className="text-white/70">Preferred Airlines</div>
+                <div className="bg-background/50 p-3 rounded-lg">
+                  <div className="font-semibold text-foreground">{profileData.selectedAirlines.length}</div>
+                  <div className="text-muted-foreground">Preferred Airlines</div>
                 </div>
-                <div className="bg-[#171821]/50 p-3 rounded-lg">
-                  <div className="font-semibold text-white">{profileData.selectedHotels.length}</div>
-                  <div className="text-white/70">Preferred Hotels</div>
+                <div className="bg-background/50 p-3 rounded-lg">
+                  <div className="font-semibold text-foreground">{profileData.selectedHotels.length}</div>
+                  <div className="text-muted-foreground">Preferred Hotels</div>
                 </div>
               </div>
             </div>
 
-            {/* Call to Action */}
-            <div className="bg-[#171820]/30 p-4 rounded-lg border border-white/20 text-center">
-              <h5 className="font-semibold text-white mb-2">Ready for Your Next Adventure?</h5>
-              <p className="text-sm text-white/70 mb-3">
+            <div className="bg-secondary/30 p-4 rounded-lg border border-border text-center">
+              <h5 className="font-semibold text-foreground mb-2">Ready for Your Next Adventure?</h5>
+              <p className="text-sm text-muted-foreground mb-3">
                 Your personalized travel profile is ready. Let's start planning your next unforgettable trip!
               </p>
-              <div className="flex items-center justify-center space-x-2 text-white">
+              <div className="flex items-center justify-center space-x-2 text-foreground">
                 <MapPin className="h-4 w-4" />
                 <span className="text-sm font-medium">Dashboard → Create Itinerary → Book Trip</span>
               </div>
             </div>
 
-            {/* Quick Stats */}
             <div className="text-center">
-              <p className="text-xs text-white/70">
+              <p className="text-xs text-muted-foreground">
                 Based on your profile, we'll recommend personalized destinations, 
                 optimize your loyalty programs, and find the best deals.
               </p>
@@ -498,7 +492,7 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#171821] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <MobileNavigation 
         showBackButton={true}
         backPath={currentStep > 1 ? undefined : "/signup"}
@@ -507,8 +501,8 @@ const ProfileSetup = () => {
         showProfileButton={false}
       />
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none"></div>
-        <Card className="w-full max-w-lg shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/5 pointer-events-none"></div>
+        <Card className="w-full max-w-lg shadow-2xl border-border bg-card/95 backdrop-blur-md relative">
           
         <CardHeader className="text-center space-y-4">
             <div className="flex items-center justify-center">
@@ -516,11 +510,11 @@ const ProfileSetup = () => {
             </div>
             
             <div className="space-y-2">
-              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <Badge variant="secondary" className="bg-accent text-foreground border-border">
                 Step {currentStep} of {totalSteps}
               </Badge>
-              <CardTitle className="text-2xl text-white">Profile Setup</CardTitle>
-              <CardDescription className="text-white/70">
+              <CardTitle className="text-2xl text-foreground">Profile Setup</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Help us personalize your travel experience
               </CardDescription>
             </div>
@@ -535,7 +529,7 @@ const ProfileSetup = () => {
               <Button 
                 variant="outline" 
                 onClick={handleBack}
-                className="flex items-center space-x-2 bg-[#171821] border-white/50 text-white hover:bg-white/10 hover:border-white"
+                className="flex items-center space-x-2 bg-card border-border text-foreground hover:bg-accent"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Back</span>
@@ -543,7 +537,7 @@ const ProfileSetup = () => {
               
               <Button 
                 onClick={handleNext}
-                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold flex items-center space-x-2"
+                className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold flex items-center space-x-2"
               >
                 <span>{currentStep === totalSteps ? 'Complete Setup' : 'Next'}</span>
                 <ArrowRight className="h-4 w-4" />

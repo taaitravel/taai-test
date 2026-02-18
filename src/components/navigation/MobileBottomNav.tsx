@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { icon: Briefcase, label: 'Itineraries', path: '/itineraries' },
   { icon: Search, label: 'Search', path: '/search' },
   { icon: Sparkles, label: 'New Itinerary', path: '/new-itinerary' },
-  { icon: User, label: 'Profile', path: '/profile-setup' },
+  { icon: User, label: 'Profile', path: '/profile' },
 ];
 
 const HIDDEN_ROUTES = ['/signup', '/login', '/terms', '/'];
@@ -29,7 +29,7 @@ export const MobileBottomNav: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#171821] border-t border-white/20 flex md:hidden h-[64px]">
+    <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-background border-t border-border flex md:hidden h-[64px]">
       <div className="flex items-center justify-around w-full h-full px-2 py-2">
         {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
@@ -42,8 +42,8 @@ export const MobileBottomNav: React.FC = () => {
                 "flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors duration-200",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                 isActive 
-                  ? "text-[#ffce87]" 
-                  : "text-white/70 hover:text-white"
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
               aria-label={label}
               aria-current={isActive ? 'page' : undefined}

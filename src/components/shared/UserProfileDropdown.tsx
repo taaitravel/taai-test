@@ -1,15 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut, CreditCard } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { User, UserPen, Compass, Settings, CreditCard, HelpCircle, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { ThemeToggle } from "./ThemeToggle";
 
 export const UserProfileDropdown = () => {
   const navigate = useNavigate();
   const { signOut, userProfile } = useAuth();
   const { toast } = useToast();
+
+  const avatarUrl = (userProfile as any)?.avatar_url;
 
   const handleSignOut = async () => {
     try {
@@ -28,19 +30,20 @@ export const UserProfileDropdown = () => {
     }
   };
 
-  const handleEditProfile = () => {
-    navigate("/profile-setup");
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost"
           size="sm"
-          className="text-foreground hover:bg-accent p-2 rounded-full transition-all duration-200 hover:scale-105"
+          className="text-foreground hover:bg-accent p-1 rounded-full transition-all duration-200 hover:scale-105"
         >
-          <User className="h-5 w-5" />
+          <Avatar className="h-8 w-8">
+            {avatarUrl ? <AvatarImage src={avatarUrl} alt="Profile" /> : null}
+            <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
@@ -57,25 +60,42 @@ export const UserProfileDropdown = () => {
           </p>
         </div>
         <DropdownMenuSeparator className="bg-border" />
-        <div className="px-3 py-2">
-          <p className="text-xs text-muted-foreground mb-2">Appearance</p>
-          <ThemeToggle />
-        </div>
-        <DropdownMenuSeparator className="bg-border" />
+        <DropdownMenuItem 
+          onClick={() => navigate("/profile?tab=edit")}
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
+        >
+          <UserPen className="h-4 w-4 mr-2" />
+          Edit Profile
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => navigate("/profile-setup")}
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
+        >
+          <Compass className="h-4 w-4 mr-2" />
+          Profile Setup
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => navigate("/profile?tab=preferences")}
+          className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Preferences
+        </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => navigate("/subscription")}
           className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
         >
           <CreditCard className="h-4 w-4 mr-2" />
-          Subscription
+          Subscription & Payment
         </DropdownMenuItem>
         <DropdownMenuItem 
-          onClick={handleEditProfile}
+          onClick={() => navigate("/contact")}
           className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors"
         >
-          <Settings className="h-4 w-4 mr-2" />
-          Edit Profile
+          <HelpCircle className="h-4 w-4 mr-2" />
+          Help
         </DropdownMenuItem>
+        <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuItem 
           onClick={handleSignOut}
           className="cursor-pointer hover:bg-accent focus:bg-accent transition-colors text-destructive hover:text-destructive"
