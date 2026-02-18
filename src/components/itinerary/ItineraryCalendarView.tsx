@@ -122,7 +122,7 @@ export const ItineraryCalendarView = ({
           <CardTitle className="text-foreground">Calendar View</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <ScrollArea className="h-[1200px]">
+          <ScrollArea className="h-[1000px]">
             <div className="space-y-8 pr-2">
               {tripMonths.map(({ month, year }) => (
                 <MonthGrid
