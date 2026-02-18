@@ -71,7 +71,7 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
         </div>
 
         {/* Right: Traveler Badge */}
-        <div className="bg-gradient-to-br from-foreground/10 via-foreground/5 to-transparent p-4 rounded-2xl border border-border backdrop-blur-md">
+        <div className="p-4">
           <div className="flex items-center gap-3">
             <Award className="h-5 w-5 text-foreground/60 shrink-0" />
             <div>
