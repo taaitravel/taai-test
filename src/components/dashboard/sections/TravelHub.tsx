@@ -83,7 +83,7 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       </div>
 
       {/* 6-Column Action Grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
         {actions.map((action, index) => (
           <Button
             key={index}
