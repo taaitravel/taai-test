@@ -9,6 +9,7 @@ interface TravelMetricsProps {
     countriesVisited: number;
     citiesVisited: number;
     totalSpent: number;
+    projectedSpend: number;
     flightsThisYear: number;
     travelerLevel: string;
   };
@@ -20,12 +21,20 @@ export const TravelMetrics = ({
   visitedCountries,
   activeItineraries
 }: TravelMetricsProps) => {
-  // Rank trips by spending amount (highest to lowest)
-  const rankedTrips = (activeItineraries || []).filter(itinerary => itinerary.spending && Number(itinerary.spending) > 0).map(itinerary => ({
-    name: itinerary.title || itinerary.itin_name || 'Unnamed Trip',
-    spending: Number(itinerary.spending) || 0,
-    date: itinerary.start_date || itinerary.itin_date_start
-  })).sort((a, b) => b.spending - a.spending).slice(0, 5); // Top 5 most expensive trips
+  const today = new Date();
+  // Rank future trips by spending amount (highest to lowest) for projected spend
+  const rankedTrips = (activeItineraries || [])
+    .filter(itinerary => {
+      const startDate = itinerary.itin_date_start;
+      return startDate && new Date(startDate) > today && itinerary.spending && Number(itinerary.spending) > 0;
+    })
+    .map(itinerary => ({
+      name: itinerary.title || itinerary.itin_name || 'Unnamed Trip',
+      spending: Number(itinerary.spending) || 0,
+      date: itinerary.start_date || itinerary.itin_date_start
+    }))
+    .sort((a, b) => b.spending - a.spending)
+    .slice(0, 5);
 
   const formatMonthYear = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -81,8 +90,8 @@ export const TravelMetrics = ({
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Lifetime Total Spent</p>
-                <p className="text-foreground font-sans font-bold text-4xl">${userStats.totalSpent.toLocaleString()}</p>
+                <p className="text-sm font-medium text-foreground/60 mb-1">Projected Spend</p>
+                <p className="text-foreground font-sans font-bold text-4xl">${userStats.projectedSpend.toLocaleString()}</p>
               </div>
               <BarChart3 className="h-6 w-6 text-muted-foreground" />
             </div>

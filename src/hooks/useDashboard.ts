@@ -24,9 +24,10 @@ export const useDashboard = () => {
     closeTripBrowser 
   } = useTripBrowser();
 
-  const { visitedCountries, ...userStats } = calculateUserStats(activeItineraries, userProfile);
+  const { visitedCountries, projectedSpend, ...userStats } = calculateUserStats(activeItineraries, userProfile);
   const fullUserStats = {
     ...userStats,
+    projectedSpend,
     travelerLevel: getTravelerLevel(visitedCountries.length, userStats.flightsThisYear)
   };
 
