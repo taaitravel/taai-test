@@ -6,6 +6,7 @@ import { Map } from "@/components/Map";
 
 import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
+import { ItineraryCalendarView } from "./ItineraryCalendarView";
 import { ItinerarySidebar } from "./ItinerarySidebar";
 import { AddItemDialog, ItemType } from "./AddItemDialog";
 import { AddDestinationDialog } from "./AddDestinationDialog";
@@ -13,6 +14,8 @@ import { AddDestinationDialog } from "./AddDestinationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { List, CalendarDays } from "lucide-react";
 
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 import { useExpediaMapSync } from "@/hooks/useExpediaMapSync";
@@ -55,6 +58,7 @@ export const ItineraryContent = ({
   const [addOpen, setAddOpen] = useState(false);
   const [addType, setAddType] = useState<ItemType | null>(null);
   const [addDestinationOpen, setAddDestinationOpen] = useState(false);
+  const [scheduleView, setScheduleView] = useState<'list' | 'calendar'>('list');
 
   const openAdd = (type: ItemType) => {
     setAddType(type);
@@ -211,22 +215,55 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
       />
 
       {/* Essential Metrics & Daily Schedule */}
+      <div className="flex items-center justify-end mb-2">
+        <ToggleGroup
+          type="single"
+          value={scheduleView}
+          onValueChange={(v) => v && setScheduleView(v as 'list' | 'calendar')}
+          size="sm"
+        >
+          <ToggleGroupItem value="list" aria-label="List view">
+            <List className="h-3.5 w-3.5 mr-1" /> List
+          </ToggleGroupItem>
+          <ToggleGroupItem value="calendar" aria-label="Calendar view">
+            <CalendarDays className="h-3.5 w-3.5 mr-1" /> Calendar
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-<DailyScheduleSection
-  startDate={itineraryData.itin_date_start}
-  duration={duration}
-  destinations={destinations}
-  flights={itineraryData.flights || []}
-  hotels={itineraryData.hotels || []}
-  activities={itineraryData.activities || []}
-  reservations={itineraryData.reservations || []}
-  onViewItem={(type, index) => {
-    if (type === 'flights') return onFlightClick(index);
-    if (type === 'hotels') return onHotelClick(index);
-    if (type === 'activities') return onActivityClick(index);
-    if (type === 'reservations') return onReservationClick(index);
-  }}
-/>
+{scheduleView === 'list' ? (
+  <DailyScheduleSection
+    startDate={itineraryData.itin_date_start}
+    duration={duration}
+    destinations={destinations}
+    flights={itineraryData.flights || []}
+    hotels={itineraryData.hotels || []}
+    activities={itineraryData.activities || []}
+    reservations={itineraryData.reservations || []}
+    onViewItem={(type, index) => {
+      if (type === 'flights') return onFlightClick(index);
+      if (type === 'hotels') return onHotelClick(index);
+      if (type === 'activities') return onActivityClick(index);
+      if (type === 'reservations') return onReservationClick(index);
+    }}
+  />
+) : (
+  <ItineraryCalendarView
+    startDate={itineraryData.itin_date_start}
+    duration={duration}
+    destinations={destinations}
+    flights={itineraryData.flights || []}
+    hotels={itineraryData.hotels || []}
+    activities={itineraryData.activities || []}
+    reservations={itineraryData.reservations || []}
+    onViewItem={(type, index) => {
+      if (type === 'flights') return onFlightClick(index);
+      if (type === 'hotels') return onHotelClick(index);
+      if (type === 'activities') return onActivityClick(index);
+      if (type === 'reservations') return onReservationClick(index);
+    }}
+  />
+)}
         <ItinerarySidebar 
           itineraryData={itineraryData} 
           refreshTrigger={budgetRefreshTrigger} 

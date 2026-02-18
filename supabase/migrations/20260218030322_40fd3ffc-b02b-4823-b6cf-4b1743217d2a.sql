@@ -1,0 +1,1 @@
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS date_format text DEFAULT 'MM/DD/YY';

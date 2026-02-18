@@ -968,6 +968,7 @@ export type Database = {
           countries_visited: Json | null
           country: string | null
           created_at: string | null
+          date_format: string | null
           email: string | null
           first_name: string | null
           flight_freq: Json | null
@@ -998,6 +999,7 @@ export type Database = {
           countries_visited?: Json | null
           country?: string | null
           created_at?: string | null
+          date_format?: string | null
           email?: string | null
           first_name?: string | null
           flight_freq?: Json | null
@@ -1028,6 +1030,7 @@ export type Database = {
           countries_visited?: Json | null
           country?: string | null
           created_at?: string | null
+          date_format?: string | null
           email?: string | null
           first_name?: string | null
           flight_freq?: Json | null
