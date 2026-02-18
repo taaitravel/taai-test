@@ -30,9 +30,28 @@ serve(async (req) => {
     }
 
     const url = `https://api.yelp.com/v3/businesses/search?${params.toString()}`;
+    console.log("Yelp request URL:", url);
     const yelpResp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+    console.log("Yelp API status:", yelpResp.status);
     const data = await yelpResp.json();
+    console.log("Yelp API response keys:", Object.keys(data));
+    if (data.error) {
+      console.error("Yelp API error:", JSON.stringify(data.error));
+      return new Response(JSON.stringify({ error: data.error?.description || "Yelp API error", yelp_error: data.error }), {
+        status: yelpResp.status >= 400 ? yelpResp.status : 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
+    if (!yelpResp.ok) {
+      console.error("Yelp non-OK response:", JSON.stringify(data));
+      return new Response(JSON.stringify({ error: `Yelp API returned ${yelpResp.status}` }), {
+        status: yelpResp.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`Yelp returned ${(data.businesses || []).length} businesses`);
     return new Response(JSON.stringify({ businesses: data.businesses || [] }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
