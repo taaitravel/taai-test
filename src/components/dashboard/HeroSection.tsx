@@ -2,8 +2,31 @@ import { Badge } from "@/components/ui/badge";
 import { format, differenceInDays } from "date-fns";
 import { TravelHub } from "./sections/TravelHub";
 import { useDashboardSections } from "@/hooks/useDashboardSections";
-...
-      {/* Compact 3-Column Stats Row */}
+
+interface HeroSectionProps {
+  userProfile: any;
+  activeItineraries?: any[];
+  fullUserStats: {
+    totalTrips: number;
+    countriesVisited: number;
+    citiesVisited: number;
+    totalSpent: number;
+    projectedSpend: number;
+    lifetimeTotal: number;
+    flightsThisYear: number;
+    travelerLevel: string;
+  };
+  onBrowseTrips: () => void;
+}
+
+export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats, onBrowseTrips }: HeroSectionProps) => {
+  const { nextTrip } = useDashboardSections(activeItineraries);
+  const daysAway = nextTrip ? differenceInDays(new Date(nextTrip.itin_date_start), new Date()) : null;
+
+  return (
+    <div className="mb-6 space-y-3">
+      <TravelHub activeItineraries={activeItineraries} onBrowseTrips={onBrowseTrips} />
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Left: Next Travel Date */}
         <div className="p-4">
