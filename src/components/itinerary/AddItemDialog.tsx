@@ -177,8 +177,21 @@ if (type === 'hotels') {
         const end = item.check_out ? new Date(item.check_out) : null;
         const nights = start && end ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) : 0;
         const perNight = Number(item.cost || 0);
+        const rooms = Number(item.rooms || 1);
         item.nights = nights;
-        item.cost = perNight * Math.max(nights, 0);
+        item.rooms = rooms;
+        item.guests = Number(item.guests || 2);
+        item.cost_per_night = perNight;
+        item.cost = perNight * Math.max(nights, 0) * rooms;
+      }
+
+      // For activities, calculate total group cost
+      if (type === 'activities') {
+        const participants = Number(item.participants || 1);
+        const costPerPerson = Number(item.cost || 0);
+        item.participants = participants;
+        item.cost_per_person = costPerPerson;
+        item.cost = costPerPerson * participants;
       }
 
       await onSubmit(type, item);
