@@ -47,7 +47,7 @@ export const DiningSearchFields = ({
       {/* Date & Time */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Date *</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Date *</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
