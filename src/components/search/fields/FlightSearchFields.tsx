@@ -89,16 +89,16 @@ export const FlightSearchFields = ({
         </Button>
 
         <div>
-          <label className="text-xs font-medium text-white/70 mb-1.5 block">To (Airport Code) *</label>
+          <label className="text-xs font-medium text-foreground/60 mb-1.5 block">To (Airport Code) *</label>
           <input
             type="text"
             value={destination}
             onChange={(e) => onDestinationChange(e.target.value.toUpperCase())}
             placeholder="e.g., LAX"
             maxLength={3}
-            className="w-full px-3 py-1.5 h-9 bg-white/5 border border-white/10 rounded-md text-white text-sm placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-1.5 h-9 bg-background/50 border border-border rounded-md text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          <p className="text-xs text-white/40 mt-1">3-letter code</p>
+          <p className="text-xs text-foreground/40 mt-1">3-letter code</p>
         </div>
       </div>
 
