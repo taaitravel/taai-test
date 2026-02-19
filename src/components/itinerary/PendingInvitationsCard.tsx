@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useInvitations } from '@/hooks/useInvitations';
 import { format } from 'date-fns';
-import { Calendar, MapPin, Check, X } from 'lucide-react';
+import { Calendar, Check, X } from 'lucide-react';
 
 export const PendingInvitationsCard = () => {
   const { receivedInvitations, loading, acceptInvitation, declineInvitation } = useInvitations();
@@ -13,9 +13,9 @@ export const PendingInvitationsCard = () => {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-[#1a1c2e] to-[#252744] border-white/10">
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
+        <CardTitle className="text-foreground flex items-center gap-2">
           Trip Invitations
           <Badge variant="destructive" className="ml-2">
             {receivedInvitations.length}
@@ -31,19 +31,19 @@ export const PendingInvitationsCard = () => {
           return (
             <div
               key={invitation.id}
-              className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3"
+              className="p-4 rounded-lg bg-secondary border border-border space-y-3"
             >
               <div>
-                <p className="text-white font-semibold">
+                <p className="text-foreground font-semibold">
                   {invitation.itinerary?.itin_name || 'Trip Invitation'}
                 </p>
-                <p className="text-sm text-white/60 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {inviterName} invited you to join this trip
                 </p>
               </div>
 
               {invitation.itinerary && (
-                <div className="flex flex-wrap gap-3 text-xs text-white/70">
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     <span>
@@ -67,7 +67,7 @@ export const PendingInvitationsCard = () => {
                   size="sm"
                   variant="outline"
                   onClick={() => declineInvitation(invitation.id)}
-                  className="flex-1 border-white/20 text-white hover:bg-white/10"
+                  className="flex-1 border-border text-foreground hover:bg-accent"
                 >
                   <X className="h-4 w-4 mr-1" />
                   Decline

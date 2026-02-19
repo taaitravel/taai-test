@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
-import { LayoutGrid, Map, List, Plus, Globe } from 'lucide-react';
+import { LayoutGrid, Map, List, Plus, Globe, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MobileNavigation } from '@/components/shared/MobileNavigation';
@@ -16,6 +16,7 @@ import { GridFilters, GridSortField, GridSortDirection } from '@/components/my-i
 import { FloatingCollectionDropZone } from '@/components/my-itineraries/FloatingCollectionDropZone';
 import { useItineraryCollections, Collection } from '@/hooks/useItineraryCollections';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { useSharedItineraries } from '@/hooks/useSharedItineraries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { ItineraryData } from '@/types/itinerary';
