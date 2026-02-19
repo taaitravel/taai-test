@@ -203,10 +203,11 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
             <p className="text-2xl font-bold text-center flex items-baseline justify-center gap-1" style={{ color: '#ff849c' }}>
-              ${Math.ceil(pricePerPerson).toLocaleString('en-US')}
-              <span className="text-xs text-white/50">/p</span>
+              ${Math.ceil(totalGroupCost).toLocaleString('en-US')}
             </p>
-            <p className="text-white/40 text-xs text-center">including taxes and fees</p>
+            <p className="text-white/40 text-xs text-center">
+              ${Math.ceil(pricePerPerson).toLocaleString('en-US')}/p × {participants} guest{participants > 1 ? 's' : ''}
+            </p>
           </div>
           <div className="pt-2 border-t border-white/10 flex-shrink-0">
             <Button
