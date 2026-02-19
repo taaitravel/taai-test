@@ -91,7 +91,7 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Badge className={`gap-1 text-xs px-2 py-0.5 ${getRoleBadgeColor(attendee.role)}`}>
                     {getRoleIcon(attendee.role)}
-                    {attendee.role}
+                    {getDisplayRole(attendee.role)}
                   </Badge>
 
                   {attendee.status === 'pending' && (
@@ -108,22 +108,6 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-card border-border">
-                        {attendee.role !== 'editor' && (
-                          <DropdownMenuItem 
-                            onClick={() => updateAttendeeRole(attendee.id, 'editor')}
-                            className="text-foreground hover:bg-accent cursor-pointer"
-                          >
-                            Make Editor
-                          </DropdownMenuItem>
-                        )}
-                        {attendee.role !== 'viewer' && (
-                          <DropdownMenuItem 
-                            onClick={() => updateAttendeeRole(attendee.id, 'viewer')}
-                            className="text-foreground hover:bg-accent cursor-pointer"
-                          >
-                            Make Viewer
-                          </DropdownMenuItem>
-                        )}
                         <DropdownMenuItem 
                           onClick={() => removeAttendee(attendee.id)}
                           className="text-destructive hover:bg-accent cursor-pointer"
