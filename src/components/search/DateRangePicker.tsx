@@ -88,7 +88,7 @@ export const DateRangePicker = ({
           </Popover>
 
           {/* Arrow */}
-          <ArrowRight className="hidden md:block h-3 w-3 text-foreground/30 flex-shrink-0" />
+          <ArrowRight className="hidden md:block h-3 w-3 text-foreground/30 dark:text-white/20 flex-shrink-0" />
 
           {/* End Date */}
           <Button
