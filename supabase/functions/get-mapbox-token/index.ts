@@ -53,7 +53,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Returning token successfully for user:', data.user.id);
+    console.log('Returning token successfully for user:', userId);
     return new Response(
       JSON.stringify({ token: mapboxToken }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
