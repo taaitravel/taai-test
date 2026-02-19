@@ -28,7 +28,9 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
   onAddToCollection,
   onRemoveFromCollection,
   showCollectionActions = false,
-  collectionId
+  collectionId,
+  isShared = false,
+  ownerName,
 }) => {
   const navigate = useNavigate();
 
