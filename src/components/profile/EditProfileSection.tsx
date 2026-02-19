@@ -69,7 +69,7 @@ export const EditProfileSection = () => {
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
         <CardHeader>
           <CardTitle className="text-foreground">Personal Information</CardTitle>
         </CardHeader>
