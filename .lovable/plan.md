@@ -1,54 +1,60 @@
 
 
-# Standardize Date Formatting and Styling Across All Search Fields
+## Plan: Fix Edit Itinerary Light Theme + Fix Invitation System
 
-## Problem
-Date fields are inconsistent across the search interface:
-- **DateRangePicker** (Hotels, Flights, Cars, Packages): Uses `MMM dd` format (e.g., "Feb 20")
-- **ActivitySearchFields**: Uses `PPP` format (e.g., "February 20th, 2026") -- much longer
-- **DiningSearchFields**: Uses `PPP` format (e.g., "February 20th, 2026") -- much longer
+### Part 1: Light Theme for Edit Itinerary Page
 
-Additionally, the selected date text should use the brand primary color to indicate an active/filled state, while unselected dates should show light grey/white in dark mode.
+The EditItinerary page has hardcoded dark-mode colors throughout (e.g., `bg-[#171821]`, `text-white`, `border-white/30`). These need to be replaced with semantic CSS variables per the project's theming standard.
 
-## Changes
+**Changes to `src/pages/EditItinerary.tsx`:**
+- Replace all `bg-[#171821]` with `bg-background`
+- Replace all `text-white` with `text-foreground`
+- Replace all `text-white/80`, `text-white/70`, `text-white/50` with `text-foreground/80`, `text-foreground/70`, `text-foreground/50`
+- Replace `border-white/30` and `border-white/40` with `border-border`
+- Replace `bg-white/10`, `bg-white/20` input backgrounds with `bg-input` or `bg-secondary`
+- Replace card classes `bg-[#171821]/80 border-white/30` with `bg-card/80 border-border`
+- Replace `hover:shadow-white/20` with `hover:shadow-primary/10`
+- Replace button hardcoded colors (`text-[#171821]`) with `text-primary-foreground` or appropriate semantic tokens
+- Ensure the loading state also uses `bg-background` and `text-foreground`
 
-### 1. `src/components/search/fields/ActivitySearchFields.tsx` -- Match date format
-- Change `format(date, 'PPP')` to `format(date, 'MMM dd')` for consistency
-- Add primary color when date is selected: `dark:text-primary` / `text-primary` for the filled state
-- Keep `text-muted-foreground` / `dark:text-white/40` for placeholder ("Select date")
+### Part 2: Fix Invitation System (Emails/Notifications Not Working)
 
-### 2. `src/components/search/fields/DiningSearchFields.tsx` -- Same treatment
-- Change `format(date, 'PPP')` to `format(date, 'MMM dd')`
-- Add primary color for selected date, light grey for unselected
+**Root Cause:** The `send-invitation` edge function uses the caller's anon-key authenticated client to query the `users` table for the recipient. However, the RLS policy on `users` restricts SELECT to `auth.uid() = userid` -- meaning you can only see your own row. As a result, recipient lookups always return `null`, and no notification is ever created. The invitations themselves are saved to `itinerary_invitations`, but the invited user is never notified.
 
-### 3. `src/components/search/DateRangePicker.tsx` -- Active/inactive text colors
-- When a date IS selected: the date value text gets `text-primary` (the rose brand color) in both themes
-- When no date selected ("Select"): keep `dark:text-white/40` / `text-muted-foreground` (light grey)
-- The label text (Depart, Return, etc.) stays `dark:text-white/60` / `text-foreground/60` -- neutral, not colored
-- Calendar icon: when date selected, also tint with primary; when inactive, keep current muted color
+**Fix in `supabase/functions/send-invitation/index.ts`:**
+- Move the recipient lookup (finding user by email or username) to use the `supabaseAdmin` (service role) client, which bypasses RLS
+- The admin client is already created later in the function for notification insertion -- move its creation earlier and reuse it for both recipient lookup and notification creation
+- This ensures the function can actually find users by email/username and create the in-app notification
 
-## Detailed class changes
+**Before (broken):**
+```
+// Uses anon client - RLS blocks cross-user lookups
+const { data: recipient } = await supabaseClient
+  .from('users')
+  .select('userid')
+  .eq('email', value)
+  .single();
+```
 
-**DateRangePicker.tsx:**
-- Date value spans (lines 63, 108): When date exists, add `text-primary` class; when no date, keep current muted styling
-- Calendar icons (lines 60, 105): When date exists, use `text-primary`; otherwise `text-foreground/50 dark:text-white/40`
-- Label spans (lines 62, 107): Keep as `text-foreground/60 dark:text-white/60` (no change)
+**After (fixed):**
+```
+// Uses admin client - bypasses RLS for recipient lookup
+const supabaseAdmin = createClient(
+  Deno.env.get('SUPABASE_URL'),
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+);
 
-**ActivitySearchFields.tsx (line 56):**
-- Format: `'PPP'` becomes `'MMM dd'`
-- Button class: when date selected, text becomes `text-primary`; when not, stays muted
+const { data: recipient } = await supabaseAdmin
+  .from('users')
+  .select('userid')
+  .eq('email', value)
+  .single();
+```
 
-**DiningSearchFields.tsx (line 61):**
-- Format: `'PPP'` becomes `'MMM dd'`
-- Button class: same active/inactive treatment
+### Summary of Files Changed
 
-## Visual Result
-- All date fields across Hotels, Flights, Cars, Activities, Dining, and Packages show dates as "Feb 20" format
-- Selected dates glow with the brand rose/primary color in both light and dark mode
-- Unselected dates show a subtle "Select date" in light grey (dark mode) or muted grey (light mode)
-- Consistent, polished look across all tabs
+| File | Change |
+|------|--------|
+| `src/pages/EditItinerary.tsx` | Replace all hardcoded dark colors with semantic CSS variables for full light/dark theme support |
+| `supabase/functions/send-invitation/index.ts` | Use service-role admin client for recipient user lookup to bypass RLS restrictions |
 
-## Files to modify
-1. `src/components/search/DateRangePicker.tsx`
-2. `src/components/search/fields/ActivitySearchFields.tsx`
-3. `src/components/search/fields/DiningSearchFields.tsx`
