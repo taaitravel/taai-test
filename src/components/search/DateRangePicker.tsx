@@ -94,8 +94,8 @@ export const DateRangePicker = ({
           <Button
             variant="outline"
             className={cn(
-              'flex-1 justify-start text-left font-normal bg-background/50 border-border h-auto py-1.5 px-2 hover:bg-accent w-full',
-              !endDate && 'text-muted-foreground'
+              'flex-1 justify-start text-left font-normal bg-background/50 dark:bg-white/5 border-border dark:border-white/10 h-auto py-1.5 px-2 hover:bg-accent dark:hover:bg-white/10 w-full',
+              !endDate && 'text-muted-foreground dark:text-white/40'
             )}
             onClick={() => {
               setSelectingEnd(true);
