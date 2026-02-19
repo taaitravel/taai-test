@@ -12,7 +12,7 @@ interface ActivitySearchCardProps {
   searchParams?: any;
 }
 
-export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
+export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
