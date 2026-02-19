@@ -31,17 +31,18 @@ serve(async (req) => {
     });
 
     const token = authHeader.replace('Bearer ', '');
-    const { data, error: authError } = await supabase.auth.getUser(token);
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
 
-    if (authError || !data?.user) {
-      console.error('Authentication failed:', authError?.message);
+    if (claimsError || !claimsData?.claims) {
+      console.error('Authentication failed:', claimsError?.message);
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('User authenticated:', data.user.id);
+    const userId = claimsData.claims.sub;
+    console.log('User authenticated:', userId);
 
     const mapboxToken = Deno.env.get('MAPBOX_TAAI_TOKEN');
     if (!mapboxToken) {
