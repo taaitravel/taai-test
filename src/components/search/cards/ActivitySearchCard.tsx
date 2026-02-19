@@ -125,12 +125,15 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
           itinerary_id: itinData.itin_id,
           type: 'activity',
           external_ref: activity.id || `activity-${Date.now()}`,
-          price: pricePerPerson,
+          price: totalGroupCost,
           item_data: {
             name: activity.name,
             location: activityLocation,
             address: activity.address || '',
-            price: pricePerPerson,
+            date: searchParams?.checkin || new Date().toISOString().split('T')[0],
+            pricePerPerson,
+            participants,
+            totalCost: totalGroupCost,
             rating: activity.rating,
             images: images,
             bookingStatus: 'pending'
