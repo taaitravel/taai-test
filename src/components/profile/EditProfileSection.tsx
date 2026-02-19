@@ -108,10 +108,11 @@ export const EditProfileSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cell">Phone Number</Label>
+            <Label htmlFor="cell" className="dark:text-white/60">Phone Number</Label>
             <Input
               id="cell"
               type="tel"
+              className="dark:bg-white/5 dark:border-white/10 dark:text-white"
               value={form.cell}
               onChange={(e) => handleChange("cell", e.target.value)}
               placeholder="+1 (555) 000-0000"
