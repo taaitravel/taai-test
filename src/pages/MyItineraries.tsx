@@ -23,6 +23,7 @@ import { ItineraryData } from '@/types/itinerary';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'grid' | 'map' | 'list';
+type ItineraryTab = 'mine' | 'shared';
 
 const MyItineraries = () => {
   const navigate = useNavigate();
