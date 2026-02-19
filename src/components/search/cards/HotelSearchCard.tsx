@@ -31,8 +31,10 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
 
   const images = hotel.images || (hotel.image ? [hotel.image] : []);
   const pricePerNight = hotel.pricePerNight || hotel.price || 0;
-  const totalPrice = hotel.totalPrice || hotel.min_total_price || 0;
+  const rooms = searchParams?.rooms || 1;
+  const adults = searchParams?.adults || 2;
   const nights = hotel.nights || 1;
+  const totalPrice = pricePerNight * nights * rooms || hotel.totalPrice || hotel.min_total_price || 0;
   const location = hotel.cityName 
     ? `${hotel.cityName}${hotel.distanceFromSearch ? `, ${hotel.distanceFromSearch} mi` : ''}` 
     : (hotel.location || hotel.city || '');
