@@ -228,7 +228,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
 
   return (
     <div ref={containerRef} className="relative">
-      <Label htmlFor={id} className="text-xs font-medium text-foreground/60 mb-1.5 block">{label}</Label>
+      <Label htmlFor={id} className="text-xs font-medium text-foreground/60 dark:text-white/60 mb-1.5 block">{label}</Label>
       <Input
         id={id}
         placeholder={placeholder}
