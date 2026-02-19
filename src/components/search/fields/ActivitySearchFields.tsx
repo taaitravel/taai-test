@@ -72,9 +72,9 @@ export const ActivitySearchFields = ({
       {/* Participants & Category */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Participants *</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Participants *</label>
           <Select value={participants.toString()} onValueChange={(v) => onParticipantsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
