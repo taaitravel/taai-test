@@ -55,27 +55,27 @@ export const FlightSearchFields = ({
       <RadioGroup value={tripType} onValueChange={onTripTypeChange} className="flex gap-4">
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="roundtrip" id="roundtrip" />
-          <Label htmlFor="roundtrip" className="text-white cursor-pointer text-sm">Round-trip</Label>
+          <Label htmlFor="roundtrip" className="text-foreground cursor-pointer text-sm">Round-trip</Label>
         </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="oneway" id="oneway" />
-          <Label htmlFor="oneway" className="text-white cursor-pointer text-sm">One-way</Label>
+          <Label htmlFor="oneway" className="text-foreground cursor-pointer text-sm">One-way</Label>
         </div>
       </RadioGroup>
 
       {/* From/To with Swap */}
       <div className="grid md:grid-cols-[1fr_auto_1fr] gap-2 items-end">
         <div>
-          <label className="text-xs font-medium text-white/70 mb-1.5 block">From (Airport Code) *</label>
+          <label className="text-xs font-medium text-foreground/60 mb-1.5 block">From (Airport Code) *</label>
           <input
             type="text"
             value={origin}
             onChange={(e) => onOriginChange(e.target.value.toUpperCase())}
             placeholder="e.g., JFK"
             maxLength={3}
-            className="w-full px-3 py-1.5 h-9 bg-white/5 border border-white/10 rounded-md text-white text-sm placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-1.5 h-9 bg-background/50 border border-border rounded-md text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          <p className="text-xs text-white/40 mt-1">3-letter code</p>
+          <p className="text-xs text-foreground/40 mt-1">3-letter code</p>
         </div>
 
         <Button
@@ -83,22 +83,22 @@ export const FlightSearchFields = ({
           variant="ghost"
           size="icon"
           onClick={handleSwapLocations}
-          className="mb-5 hover:bg-white/10 h-9 w-9"
+          className="mb-5 hover:bg-accent h-9 w-9"
         >
-          <ArrowLeftRight className="h-4 w-4 text-white/60" />
+          <ArrowLeftRight className="h-4 w-4 text-foreground/60" />
         </Button>
 
         <div>
-          <label className="text-xs font-medium text-white/70 mb-1.5 block">To (Airport Code) *</label>
+          <label className="text-xs font-medium text-foreground/60 mb-1.5 block">To (Airport Code) *</label>
           <input
             type="text"
             value={destination}
             onChange={(e) => onDestinationChange(e.target.value.toUpperCase())}
             placeholder="e.g., LAX"
             maxLength={3}
-            className="w-full px-3 py-1.5 h-9 bg-white/5 border border-white/10 rounded-md text-white text-sm placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-1.5 h-9 bg-background/50 border border-border rounded-md text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          <p className="text-xs text-white/40 mt-1">3-letter code</p>
+          <p className="text-xs text-foreground/40 mt-1">3-letter code</p>
         </div>
       </div>
 
@@ -116,9 +116,9 @@ export const FlightSearchFields = ({
       {/* Travelers & Class */}
       <div className="grid md:grid-cols-3 gap-2">
         <div>
-          <label className="text-xs font-medium text-white/70 mb-1.5 block">Adults *</label>
+          <label className="text-xs font-medium text-foreground/60 mb-1.5 block">Adults *</label>
           <Select value={adults.toString()} onValueChange={(v) => onAdultsChange(parseInt(v))}>
-            <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm">
+            <SelectTrigger className="bg-background/50 border-border text-foreground h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -130,9 +130,9 @@ export const FlightSearchFields = ({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-white/70 mb-1.5 block">Children</label>
+          <label className="text-xs font-medium text-foreground/60 mb-1.5 block">Children</label>
           <Select value={children.toString()} onValueChange={(v) => onChildrenChange(parseInt(v))}>
-            <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm">
+            <SelectTrigger className="bg-background/50 border-border text-foreground h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -144,9 +144,9 @@ export const FlightSearchFields = ({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-white/70 mb-1.5 block">Class</label>
+          <label className="text-xs font-medium text-foreground/60 mb-1.5 block">Class</label>
           <Select value={flightClass} onValueChange={onFlightClassChange}>
-            <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm">
+            <SelectTrigger className="bg-background/50 border-border text-foreground h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

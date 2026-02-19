@@ -201,45 +201,45 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
   return (
     <form onSubmit={handleSubmit} className="p-4">
       <Tabs value={searchType} onValueChange={(v) => setSearchType(v as SearchType)}>
-        <TabsList className="grid grid-cols-6 bg-[#1a1c2e] border border-white/10 mb-4 h-auto p-1">
+        <TabsList className="grid grid-cols-6 bg-secondary border border-border mb-4 h-auto p-1">
           <TabsTrigger 
             value="hotels"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-foreground/60 hover:text-foreground hover:bg-accent data-[state=active]:text-foreground data-[state=active]:bg-accent"
           >
             <Hotel className="h-4 w-4" />
             <span>Properties</span>
           </TabsTrigger>
           <TabsTrigger 
             value="flights" 
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-foreground/60 hover:text-foreground hover:bg-accent data-[state=active]:text-foreground data-[state=active]:bg-accent"
           >
             <Plane className="h-4 w-4" />
             <span>Flights</span>
           </TabsTrigger>
           <TabsTrigger 
             value="activities"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-foreground/60 hover:text-foreground hover:bg-accent data-[state=active]:text-foreground data-[state=active]:bg-accent"
           >
             <Activity className="h-4 w-4" />
             <span>Activities</span>
           </TabsTrigger>
           <TabsTrigger 
             value="cars"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-foreground/60 hover:text-foreground hover:bg-accent data-[state=active]:text-foreground data-[state=active]:bg-accent"
           >
             <Car className="h-4 w-4" />
             <span>Cars</span>
           </TabsTrigger>
           <TabsTrigger 
             value="packages"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-foreground/60 hover:text-foreground hover:bg-accent data-[state=active]:text-foreground data-[state=active]:bg-accent"
           >
             <Package className="h-4 w-4" />
             <span>Packages</span>
           </TabsTrigger>
           <TabsTrigger 
             value="dining"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 data-[state=active]:text-white data-[state=active]:bg-white/10"
+            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-foreground/60 hover:text-foreground hover:bg-accent data-[state=active]:text-foreground data-[state=active]:bg-accent"
           >
             <UtensilsCrossed className="h-4 w-4" />
             <span>Dining</span>
