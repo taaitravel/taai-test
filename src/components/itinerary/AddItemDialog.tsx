@@ -87,7 +87,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
 
     // Common numeric validations
     const numberFields: string[] = [];
-    if (type === 'hotels') numberFields.push('cost', 'nights', 'rating');
+    if (type === 'hotels') numberFields.push('cost', 'nights', 'rating', 'rooms', 'guests');
     if (type === 'activities') numberFields.push('cost');
     if (type === 'reservations') numberFields.push('party_size', 'cost');
 
