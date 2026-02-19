@@ -43,8 +43,8 @@ export const DateRangePicker = ({
 
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium text-foreground/60">Dates *</label>
-      <div className="border border-border rounded-lg p-2 bg-secondary">
+      <label className="text-xs font-medium text-foreground/60 dark:text-white/60">Dates *</label>
+      <div className="border border-border dark:border-white/10 rounded-lg p-2 bg-secondary dark:bg-white/5">
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-1.5">
           {/* Start Date */}
           <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -52,15 +52,15 @@ export const DateRangePicker = ({
               <Button
                 variant="outline"
                 className={cn(
-                  'flex-1 justify-start text-left font-normal bg-background/50 border-border h-auto py-1.5 px-2 hover:bg-accent w-full',
-                  !startDate && 'text-muted-foreground'
+                  'flex-1 justify-start text-left font-normal bg-background/50 dark:bg-white/5 border-border dark:border-white/10 h-auto py-1.5 px-2 hover:bg-accent dark:hover:bg-white/10 w-full',
+                  !startDate && 'text-muted-foreground dark:text-white/40'
                 )}
                 onClick={() => setSelectingEnd(false)}
               >
-                <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0 text-foreground" />
+                <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0 text-foreground dark:text-white" />
                 <div className="flex items-center gap-2 w-full">
-                  <span className="text-xs text-foreground w-[40%] md:w-[25%]">{startLabel}</span>
-                  <span className="text-sm text-foreground w-[60%] md:w-[75%]">{startDate ? format(startDate, 'MMM dd') : 'Select'}</span>
+                  <span className="text-xs text-foreground dark:text-white w-[40%] md:w-[25%]">{startLabel}</span>
+                  <span className="text-sm text-foreground dark:text-white w-[60%] md:w-[75%]">{startDate ? format(startDate, 'MMM dd') : 'Select'}</span>
                 </div>
               </Button>
             </PopoverTrigger>
@@ -88,31 +88,31 @@ export const DateRangePicker = ({
           </Popover>
 
           {/* Arrow */}
-          <ArrowRight className="hidden md:block h-3 w-3 text-foreground/30 flex-shrink-0" />
+          <ArrowRight className="hidden md:block h-3 w-3 text-foreground/30 dark:text-white/20 flex-shrink-0" />
 
           {/* End Date */}
           <Button
             variant="outline"
             className={cn(
-              'flex-1 justify-start text-left font-normal bg-background/50 border-border h-auto py-1.5 px-2 hover:bg-accent w-full',
-              !endDate && 'text-muted-foreground'
+              'flex-1 justify-start text-left font-normal bg-background/50 dark:bg-white/5 border-border dark:border-white/10 h-auto py-1.5 px-2 hover:bg-accent dark:hover:bg-white/10 w-full',
+              !endDate && 'text-muted-foreground dark:text-white/40'
             )}
             onClick={() => {
               setSelectingEnd(true);
               setIsOpen(true);
             }}
           >
-            <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0 text-foreground" />
+            <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0 text-foreground dark:text-white" />
             <div className="flex items-center gap-2 w-full">
-              <span className="text-xs text-foreground w-[40%] md:w-[25%]">{endLabel}</span>
-              <span className="text-sm text-foreground w-[60%] md:w-[75%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
+              <span className="text-xs text-foreground dark:text-white w-[40%] md:w-[25%]">{endLabel}</span>
+              <span className="text-sm text-foreground dark:text-white w-[60%] md:w-[75%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
             </div>
           </Button>
         </div>
 
         {/* Duration Display */}
         {showNights && nights > 0 && (
-          <p className="text-center text-[10px] text-foreground/50 mt-1.5">
+          <p className="text-center text-[10px] text-foreground/50 dark:text-white/40 mt-1.5">
             {nights} {nights === 1 ? 'night' : 'nights'}
           </p>
         )}

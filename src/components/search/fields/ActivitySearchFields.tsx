@@ -42,13 +42,13 @@ export const ActivitySearchFields = ({
 
       {/* Date */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">Date *</label>
+        <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Date *</label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                'w-full justify-start text-left font-normal bg-background/50 border-border',
+                'w-full justify-start text-left font-normal bg-background/50 dark:bg-white/5 border-border dark:border-white/10',
                 !date && 'text-muted-foreground'
               )}
             >
@@ -72,9 +72,9 @@ export const ActivitySearchFields = ({
       {/* Participants & Category */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Participants *</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Participants *</label>
           <Select value={participants.toString()} onValueChange={(v) => onParticipantsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -86,9 +86,9 @@ export const ActivitySearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Category</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Category</label>
           <Select value={category} onValueChange={onCategoryChange}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

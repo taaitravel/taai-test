@@ -56,12 +56,12 @@ export const PackageSearchFields = ({
   return (
     <div className="space-y-4">
       {/* Package Includes */}
-      <div className="bg-background/50 border border-border rounded-lg p-3">
-        <p className="text-sm text-foreground/60 mb-2">Package includes:</p>
+      <div className="bg-background/50 dark:bg-white/5 border border-border dark:border-white/10 rounded-lg p-3">
+        <p className="text-sm text-foreground/60 dark:text-white/60 mb-2">Package includes:</p>
         <div className="flex flex-wrap gap-3">
-          <span className="text-sm text-foreground">✓ Flight</span>
-          <span className="text-sm text-foreground">✓ Hotel</span>
-          {includeCar && <span className="text-sm text-foreground">✓ Car</span>}
+          <span className="text-sm text-foreground dark:text-white">✓ Flight</span>
+          <span className="text-sm text-foreground dark:text-white">✓ Hotel</span>
+          {includeCar && <span className="text-sm text-foreground dark:text-white">✓ Car</span>}
         </div>
       </div>
 
@@ -81,9 +81,9 @@ export const PackageSearchFields = ({
           variant="ghost"
           size="icon"
           onClick={handleSwapLocations}
-          className="mb-0 hover:bg-accent"
+          className="mb-0 hover:bg-accent dark:hover:bg-white/10"
         >
-          <ArrowLeftRight className="h-5 w-5 text-foreground/60" />
+          <ArrowLeftRight className="h-5 w-5 text-foreground/60 dark:text-white/50" />
         </Button>
 
         <PlaceSearch
@@ -110,9 +110,9 @@ export const PackageSearchFields = ({
       {/* Travelers, Rooms, Flight Class */}
       <div className="grid md:grid-cols-4 gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Adults *</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Adults *</label>
           <Select value={adults.toString()} onValueChange={(v) => onAdultsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -124,9 +124,9 @@ export const PackageSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Children</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Children</label>
           <Select value={children.toString()} onValueChange={(v) => onChildrenChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -138,9 +138,9 @@ export const PackageSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Rooms *</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Rooms *</label>
           <Select value={rooms.toString()} onValueChange={(v) => onRoomsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -152,9 +152,9 @@ export const PackageSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Class</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Class</label>
           <Select value={flightClass} onValueChange={onFlightClassChange}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -174,7 +174,7 @@ export const PackageSearchFields = ({
           checked={includeCar}
           onCheckedChange={onIncludeCarChange}
         />
-        <Label htmlFor="includeCar" className="text-foreground cursor-pointer">
+        <Label htmlFor="includeCar" className="text-foreground dark:text-white cursor-pointer">
           Include car rental
         </Label>
       </div>
