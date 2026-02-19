@@ -33,7 +33,7 @@ interface PlaceSearchProps {
   locationBias?: { city?: string; lat?: number; lng?: number };
 }
 
-const dropdownBase = "absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-[#1a1c2e] border-white/10 shadow-lg";
+const dropdownBase = "absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-popover border-border shadow-lg";
 
 // Helper to get icon based on place type
 const getPlaceIcon = (result: PlaceResult) => {
