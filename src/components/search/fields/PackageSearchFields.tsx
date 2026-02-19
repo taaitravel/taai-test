@@ -138,9 +138,9 @@ export const PackageSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Rooms *</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Rooms *</label>
           <Select value={rooms.toString()} onValueChange={(v) => onRoomsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
