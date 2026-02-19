@@ -252,7 +252,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
                 setOpen(false);
                 onSelect(r);
               }}
-              className="block w-full text-left px-3 py-2 hover:bg-accent text-popover-foreground"
+              className="block w-full text-left px-3 py-2 hover:bg-accent dark:hover:bg-white/5 text-popover-foreground dark:text-white"
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">

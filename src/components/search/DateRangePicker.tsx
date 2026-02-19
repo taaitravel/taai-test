@@ -112,7 +112,7 @@ export const DateRangePicker = ({
 
         {/* Duration Display */}
         {showNights && nights > 0 && (
-          <p className="text-center text-[10px] text-foreground/50 mt-1.5">
+          <p className="text-center text-[10px] text-foreground/50 dark:text-white/40 mt-1.5">
             {nights} {nights === 1 ? 'night' : 'nights'}
           </p>
         )}

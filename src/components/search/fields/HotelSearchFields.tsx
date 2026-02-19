@@ -85,9 +85,9 @@ export const HotelSearchFields = ({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-foreground/60 mb-1.5 block">Rooms *</label>
+          <label className="text-xs font-medium text-foreground/60 dark:text-white/60 mb-1.5 block">Rooms *</label>
           <Select value={rooms.toString()} onValueChange={(v) => onRoomsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground h-9 text-sm">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
