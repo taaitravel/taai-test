@@ -19,6 +19,8 @@ interface ItineraryCardProps {
   onRemoveFromCollection?: (itineraryId: number) => void;
   showCollectionActions?: boolean;
   collectionId?: string;
+  isShared?: boolean;
+  ownerName?: string;
 }
 
 export const ItineraryCard: React.FC<ItineraryCardProps> = ({
@@ -26,7 +28,9 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
   onAddToCollection,
   onRemoveFromCollection,
   showCollectionActions = false,
-  collectionId
+  collectionId,
+  isShared = false,
+  ownerName,
 }) => {
   const navigate = useNavigate();
 
@@ -137,9 +141,21 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
             <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
             {itinerary.attendees?.length || 1}
           </div>
-          <Badge className="text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2">
-            {status}
-          </Badge>
+          <div className="flex flex-wrap gap-1">
+            <Badge className="text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2">
+              {status}
+            </Badge>
+            {isShared && (
+              <Badge variant="secondary" className="text-[10px] sm:text-xs bg-primary/10 text-primary border-primary/20 px-1 sm:px-2">
+                Shared
+              </Badge>
+            )}
+          </div>
+          {isShared && ownerName && (
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+              by {ownerName}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

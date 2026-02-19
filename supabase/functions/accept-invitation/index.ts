@@ -52,7 +52,7 @@ serve(async (req) => {
         .insert({
           itinerary_id: invitation.itinerary_id,
           user_id: user.id,
-          role: 'viewer',
+          role: 'collaborator',
           status: 'accepted',
           invited_by: invitation.invited_by,
         });

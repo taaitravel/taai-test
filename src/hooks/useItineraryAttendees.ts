@@ -55,7 +55,7 @@ export const useItineraryAttendees = (itineraryId: number | null) => {
     setLoading(false);
   };
 
-  const inviteAttendee = async (method: string, value: string, role: string = 'viewer') => {
+  const inviteAttendee = async (method: string, value: string, role: string = 'collaborator') => {
     try {
       const { data, error } = await supabase.functions.invoke('send-invitation', {
         body: {
