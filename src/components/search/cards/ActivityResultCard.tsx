@@ -8,9 +8,10 @@ import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface ActivityResultCardProps {
   activity: any;
+  searchParams?: any;
 }
 
-export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
+export const ActivityResultCard = ({ activity, searchParams }: ActivityResultCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
