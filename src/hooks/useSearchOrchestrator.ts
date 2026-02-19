@@ -168,45 +168,10 @@ export const useSearchOrchestrator = () => {
             })
           ) : [];
           
-          // Attempt VRBO search via Expedia Rapid API (graceful fallback)
-          let vrboResults: any[] = [];
-          try {
-            const { data: vrboData, error: vrboError } = await callExpediaAPI({
-              endpoint: 'https://expedia13.p.rapidapi.com/api/v1/hotels/search',
-              params: {
-                destination: params.destination,
-                checkin: params.checkin,
-                checkout: params.checkout,
-                adults: String(params.adults || 2),
-                rooms: String(params.rooms || 1),
-              },
-            });
-            
-            if (!vrboError && vrboData) {
-              const vrboHotels = Array.isArray(vrboData) ? vrboData : (vrboData?.properties || vrboData?.hotels || vrboData?.data || []);
-              vrboResults = vrboHotels.slice(0, 10).map((prop: any) => ({
-                id: `vrbo-${prop.id || prop.propertyId || Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                name: prop.name || prop.propertyName || 'Vacation Rental',
-                images: prop.images || prop.photos || (prop.image ? [prop.image] : []),
-                rating: prop.rating || prop.guestRating || 0,
-                review_count: prop.reviewCount || 0,
-                pricePerNight: prop.pricePerNight || prop.price || 0,
-                totalPrice: prop.totalPrice || prop.price || 0,
-                nights,
-                cityName: prop.city || prop.location || params.destination,
-                distanceFromSearch: 0,
-                latitude: prop.latitude || prop.lat || 0,
-                longitude: prop.longitude || prop.lng || 0,
-                bookingUrl: prop.url || prop.bookingUrl || `https://www.vrbo.com`,
-                source: 'VRBO',
-                propertyCategory: 'rental' as const,
-                providerTag: 'VRBO' as const,
-              }));
-              console.log(`✅ Found ${vrboResults.length} VRBO vacation rentals`);
-            }
-          } catch (vrboErr) {
-            console.warn('⚠️ VRBO search failed (non-blocking):', vrboErr);
-          }
+          // VRBO/Expedia search disabled - the expedia13 RapidAPI provider
+          // does not have a working hotel search endpoint. Booking.com is the
+          // primary and only active hotel provider.
+          const vrboResults: any[] = [];
           
           // Merge and interleave results
           searchResults = [...bookingHotels, ...vrboResults];
