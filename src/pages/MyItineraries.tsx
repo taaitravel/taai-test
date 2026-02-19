@@ -306,8 +306,8 @@ const MyItineraries = () => {
         />
 
         <div className="flex flex-1 flex-col md:flex-row">
-          {/* Desktop Sidebar - hidden on mobile */}
-          {!isMobile && (
+          {/* Desktop Sidebar - hidden on mobile and when viewing shared tab */}
+          {!isMobile && activeTab === 'mine' && (
             <CollectionsSidebar
               collections={collections}
               selectedCollectionId={selectedCollectionId}
