@@ -8,9 +8,10 @@ import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface HotelResultCardProps {
   hotel: any;
+  searchParams?: any;
 }
 
-export const HotelResultCard = ({ hotel }: HotelResultCardProps) => {
+export const HotelResultCard = ({ hotel, searchParams }: HotelResultCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
