@@ -56,12 +56,12 @@ export const PackageSearchFields = ({
   return (
     <div className="space-y-4">
       {/* Package Includes */}
-      <div className="bg-background/50 border border-border rounded-lg p-3">
-        <p className="text-sm text-foreground/60 mb-2">Package includes:</p>
+      <div className="bg-background/50 dark:bg-white/5 border border-border dark:border-white/10 rounded-lg p-3">
+        <p className="text-sm text-foreground/60 dark:text-white/60 mb-2">Package includes:</p>
         <div className="flex flex-wrap gap-3">
-          <span className="text-sm text-foreground">✓ Flight</span>
-          <span className="text-sm text-foreground">✓ Hotel</span>
-          {includeCar && <span className="text-sm text-foreground">✓ Car</span>}
+          <span className="text-sm text-foreground dark:text-white">✓ Flight</span>
+          <span className="text-sm text-foreground dark:text-white">✓ Hotel</span>
+          {includeCar && <span className="text-sm text-foreground dark:text-white">✓ Car</span>}
         </div>
       </div>
 
