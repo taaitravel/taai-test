@@ -116,9 +116,9 @@ export const FlightSearchFields = ({
       {/* Travelers & Class */}
       <div className="grid md:grid-cols-3 gap-2">
         <div>
-          <label className="text-xs font-medium text-foreground/60 mb-1.5 block">Adults *</label>
+          <label className="text-xs font-medium text-foreground/60 dark:text-white/60 mb-1.5 block">Adults *</label>
           <Select value={adults.toString()} onValueChange={(v) => onAdultsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground h-9 text-sm">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
