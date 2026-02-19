@@ -71,7 +71,7 @@ export const ItineraryMatcherModal = ({
         <RadioGroup value={selectedItinerary} onValueChange={setSelectedItinerary}>
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
             {/* Matching Itineraries */}
-            {matchingItineraries.map((itin) => (
+                {matchingItineraries.map((itin) => (
               <div
                 key={itin.id}
                 className={`flex items-start space-x-3 p-3 rounded-lg border ${
@@ -89,17 +89,22 @@ export const ItineraryMatcherModal = ({
                     <p className="font-semibold text-white">{itin.itin_name}</p>
                     {itin.matchType === 'exact' ? (
                       <CheckCircle className="h-4 w-4 text-green-400" />
-                    ) : (
+                    ) : itin.matchType === 'partial' ? (
                       <AlertCircle className="h-4 w-4 text-yellow-400" />
-                    )}
+                    ) : null}
                   </div>
-                  <div className="flex items-center gap-1 text-sm text-white/60 mt-1">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(itin.itin_date_start).toLocaleDateString()} -{' '}
-                    {new Date(itin.itin_date_end).toLocaleDateString()}
-                  </div>
+                  {itin.itin_date_start && itin.itin_date_end && (
+                    <div className="flex items-center gap-1 text-sm text-white/60 mt-1">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(itin.itin_date_start).toLocaleDateString()} -{' '}
+                      {new Date(itin.itin_date_end).toLocaleDateString()}
+                    </div>
+                  )}
                   {itin.matchType === 'partial' && (
                     <p className="text-xs text-yellow-400 mt-1">Dates overlap partially</p>
+                  )}
+                  {itin.matchType === 'available' && (
+                    <p className="text-xs text-white/40 mt-1">No date overlap</p>
                   )}
                 </Label>
               </div>
