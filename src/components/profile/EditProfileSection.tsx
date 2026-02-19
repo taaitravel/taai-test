@@ -76,8 +76,8 @@ export const EditProfileSection = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="first_name">First Name</Label>
-              <Input
+              <Label htmlFor="first_name" className="dark:text-white/60">First Name</Label>
+              <Input className="dark:bg-white/5 dark:border-white/10 dark:text-white"
                 id="first_name"
                 value={form.first_name}
                 onChange={(e) => handleChange("first_name", e.target.value)}
