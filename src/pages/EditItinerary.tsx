@@ -134,14 +134,14 @@ const EditItinerary = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#171821] flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#171821]">
+    <div className="min-h-screen bg-background">
       {/* Navigation - Mobile Responsive */}
       <MobileNavigation 
         travelerLevel="Master Traveler"
@@ -155,7 +155,7 @@ const EditItinerary = () => {
             <Button 
               variant="outline" 
               onClick={handleDiscard}
-              className="bg-white text-[#171821] border-white hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white active:bg-gradient-to-r active:from-[hsl(351,85%,75%)] active:via-[hsl(15,80%,70%)] active:to-[hsl(25,75%,65%)] active:text-white transition-all duration-300"
+              className="border-border text-foreground hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
             >
               <X className="h-4 w-4 mr-1" />
               Discard
@@ -163,7 +163,7 @@ const EditItinerary = () => {
             <Button 
               onClick={handleSave}
               disabled={saving}
-              className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+              className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
             >
               <Save className="h-4 w-4 mr-1" />
               {saving ? 'Saving...' : 'Save Changes'}
@@ -172,17 +172,17 @@ const EditItinerary = () => {
         }
       />
 
-      {/* Hero Section - Similar to home page */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden py-12 px-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5"></div>
         <div className="max-w-4xl mx-auto text-center relative">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
             Edit Your
             <span className="luxury-text-gradient block">
               Travel Itinerary
             </span>
           </h1>
-          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-foreground/80 mb-8 max-w-2xl mx-auto leading-relaxed">
             Update your travel plans and preferences with our intuitive editing interface
           </p>
         </div>
@@ -191,88 +191,88 @@ const EditItinerary = () => {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 pb-12 space-y-6">
         {/* Basic Info */}
-        <Card className="group hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 border-white/30 hover:border-white/40">
+        <Card className="group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 bg-card/80 border-border">
           <CardHeader>
-            <CardTitle className="text-white">Basic Information</CardTitle>
+            <CardTitle className="text-foreground">Basic Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <label className="text-white text-sm font-medium mb-2 block">Itinerary Name</label>
+              <label className="text-foreground text-sm font-medium mb-2 block">Itinerary Name</label>
               <Input
                 value={formData.itin_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, itin_name: e.target.value }))}
                 placeholder="Enter itinerary name"
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-white/50 focus:bg-white/15 transition-all duration-200"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary transition-all duration-200"
               />
             </div>
             <div>
-              <label className="text-white text-sm font-medium mb-2 block">Description</label>
+              <label className="text-foreground text-sm font-medium mb-2 block">Description</label>
               <Textarea
                 value={formData.itin_desc}
                 onChange={(e) => setFormData(prev => ({ ...prev, itin_desc: e.target.value }))}
                 placeholder="Describe your trip"
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-white/50 focus:bg-white/15 transition-all duration-200 min-h-[100px]"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary transition-all duration-200 min-h-[100px]"
               />
             </div>
           </CardContent>
         </Card>
 
         {/* Dates & Budget */}
-        <Card className="group hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 border-white/30 hover:border-white/40">
+        <Card className="group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 bg-card/80 border-border">
           <CardHeader>
-            <CardTitle className="text-white">Dates & Budget</CardTitle>
+            <CardTitle className="text-foreground">Dates & Budget</CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="text-white text-sm font-medium mb-2 block">Start Date</label>
+              <label className="text-foreground text-sm font-medium mb-2 block">Start Date</label>
               <Input
                 type="date"
                 value={formData.itin_date_start}
                 onChange={(e) => setFormData(prev => ({ ...prev, itin_date_start: e.target.value }))}
-                className="bg-white/10 border-white/30 text-white focus:border-white/50 focus:bg-white/15 transition-all duration-200"
+                className="bg-secondary border-border text-foreground focus:border-primary transition-all duration-200"
               />
             </div>
             <div>
-              <label className="text-white text-sm font-medium mb-2 block">End Date</label>
+              <label className="text-foreground text-sm font-medium mb-2 block">End Date</label>
               <Input
                 type="date"
                 value={formData.itin_date_end}
                 onChange={(e) => setFormData(prev => ({ ...prev, itin_date_end: e.target.value }))}
-                className="bg-white/10 border-white/30 text-white focus:border-white/50 focus:bg-white/15 transition-all duration-200"
+                className="bg-secondary border-border text-foreground focus:border-primary transition-all duration-200"
               />
             </div>
             <div>
-              <label className="text-white text-sm font-medium mb-2 block">Budget ($)</label>
+              <label className="text-foreground text-sm font-medium mb-2 block">Budget ($)</label>
               <Input
                 type="number"
                 value={formData.budget}
                 onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
                 placeholder="0"
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-white/50 focus:bg-white/15 transition-all duration-200"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary transition-all duration-200"
               />
             </div>
             <div>
-              <label className="text-white text-sm font-medium mb-2 block">Spending ($)</label>
+              <label className="text-foreground text-sm font-medium mb-2 block">Spending ($)</label>
               <Input
                 type="number"
                 value={formData.spending}
                 onChange={(e) => setFormData(prev => ({ ...prev, spending: e.target.value }))}
                 placeholder="0"
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-white/50 focus:bg-white/15 transition-all duration-200"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary transition-all duration-200"
               />
             </div>
           </CardContent>
         </Card>
 
         {/* Transportation */}
-        <Card className="group hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 border-white/30 hover:border-white/40">
+        <Card className="group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 bg-card/80 border-border">
           <CardHeader>
-            <CardTitle className="text-white flex justify-between items-center">
+            <CardTitle className="text-foreground flex justify-between items-center">
               Transportation
               <Button 
                 onClick={addLocation} 
                 size="sm" 
-                className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
               >
                 Add Location
               </Button>
@@ -284,23 +284,23 @@ const EditItinerary = () => {
                 <Badge 
                   key={index} 
                   variant="secondary" 
-                  className="bg-white/20 text-white hover:bg-white/30 cursor-pointer border-white/30 transition-all duration-200"
+                  className="bg-secondary text-foreground hover:bg-secondary/80 cursor-pointer border-border transition-all duration-200"
                   onClick={() => removeLocation(index)}
                 >
                   {location} ×
                 </Badge>
               ))}
               {formData.itin_locations.length === 0 && (
-                <p className="text-white/70">No locations added yet. Click "Add Location" to get started.</p>
+                <p className="text-foreground/60">No locations added yet. Click "Add Location" to get started.</p>
               )}
             </div>
           </CardContent>
         </Card>
 
         {/* Travel Type */}
-        <Card className="group hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 border-white/30 hover:border-white/40">
+        <Card className="group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 bg-card/80 border-border">
           <CardHeader>
-            <CardTitle className="text-white">Travel Type</CardTitle>
+            <CardTitle className="text-foreground">Travel Type</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-4">
@@ -308,8 +308,8 @@ const EditItinerary = () => {
                 variant={formData.user_type === 'individual' ? 'default' : 'outline'}
                 onClick={() => setFormData(prev => ({ ...prev, user_type: 'individual' }))}
                 className={formData.user_type === 'individual' 
-                  ? "gold-gradient hover:opacity-90 text-[#171821] font-semibold" 
-                  : "bg-white/10 border-white/30 text-white hover:bg-white/20 transition-all duration-200"
+                  ? "gold-gradient hover:opacity-90 text-primary-foreground font-semibold" 
+                  : "bg-secondary border-border text-foreground hover:bg-secondary/80 transition-all duration-200"
                 }
               >
                 Individual
@@ -318,8 +318,8 @@ const EditItinerary = () => {
                 variant={formData.user_type === 'business' ? 'default' : 'outline'}
                 onClick={() => setFormData(prev => ({ ...prev, user_type: 'business' }))}
                 className={formData.user_type === 'business' 
-                  ? "gold-gradient hover:opacity-90 text-[#171821] font-semibold" 
-                  : "bg-white/10 border-white/30 text-white hover:bg-white/20 transition-all duration-200"
+                  ? "gold-gradient hover:opacity-90 text-primary-foreground font-semibold" 
+                  : "bg-secondary border-border text-foreground hover:bg-secondary/80 transition-all duration-200"
                 }
               >
                 Business
@@ -328,32 +328,32 @@ const EditItinerary = () => {
           </CardContent>
         </Card>
 
-        {/* Budget Efficiency (Additional Fields) */}
-        <Card className="group hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/80 border-white/30 hover:border-white/40">
+        {/* Budget Efficiency */}
+        <Card className="group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 bg-card/80 border-border">
           <CardHeader>
-            <CardTitle className="text-white">Budget Analysis</CardTitle>
+            <CardTitle className="text-foreground">Budget Analysis</CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="text-white text-sm font-medium mb-2 block">Budget Rate</label>
+              <label className="text-foreground text-sm font-medium mb-2 block">Budget Rate</label>
               <Input
                 type="number"
                 step="0.01"
                 value={formData.budget_rate}
                 onChange={(e) => setFormData(prev => ({ ...prev, budget_rate: e.target.value }))}
                 placeholder="0.00"
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-white/50 focus:bg-white/15 transition-all duration-200"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary transition-all duration-200"
               />
             </div>
             <div>
-              <label className="text-white text-sm font-medium mb-2 block">Budget Efficiency Rate</label>
+              <label className="text-foreground text-sm font-medium mb-2 block">Budget Efficiency Rate</label>
               <Input
                 type="number"
                 step="0.01"
                 value={formData.b_efficiency_rate}
                 onChange={(e) => setFormData(prev => ({ ...prev, b_efficiency_rate: e.target.value }))}
                 placeholder="0.00"
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-white/50 focus:bg-white/15 transition-all duration-200"
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-primary transition-all duration-200"
               />
             </div>
           </CardContent>

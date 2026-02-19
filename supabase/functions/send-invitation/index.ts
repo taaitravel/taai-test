@@ -42,6 +42,12 @@ serve(async (req) => {
       throw new Error('Not authorized to invite to this itinerary');
     }
 
+    // Create admin client early — needed for cross-user lookups and notification insertion
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     // Get itinerary details
     const { data: itinerary } = await supabaseClient
       .from('itinerary')
@@ -63,17 +69,17 @@ serve(async (req) => {
 
     if (inviteError) throw inviteError;
 
-    // Try to find user by value and create notification
+    // Use admin client to find recipient (bypasses RLS on users table)
     let recipientId = null;
     if (method === 'email') {
-      const { data: recipient } = await supabaseClient
+      const { data: recipient } = await supabaseAdmin
         .from('users')
         .select('userid')
         .eq('email', value)
         .single();
       recipientId = recipient?.userid;
     } else if (method === 'username') {
-      const { data: recipient } = await supabaseClient
+      const { data: recipient } = await supabaseAdmin
         .from('users')
         .select('userid')
         .eq('username', value)
@@ -83,7 +89,7 @@ serve(async (req) => {
 
     // Create notification for recipient if they exist
     if (recipientId) {
-      const { data: inviter } = await supabaseClient
+      const { data: inviter } = await supabaseAdmin
         .from('users')
         .select('first_name, last_name, username')
         .eq('userid', user.id)
@@ -92,12 +98,6 @@ serve(async (req) => {
       const inviterName = inviter?.first_name 
         ? `${inviter.first_name} ${inviter.last_name || ''}`.trim()
         : inviter?.username || 'Someone';
-
-      // Use service role for notification creation
-      const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      );
 
       await supabaseAdmin
         .from('notifications')
@@ -110,9 +110,6 @@ serve(async (req) => {
           message: `${inviterName} invited you to join "${itinerary?.itin_name || 'a trip'}"`,
         });
     }
-
-    // TODO: Send email/SMS for external invitations
-    // This would require Resend/Twilio integration
 
     return new Response(
       JSON.stringify({ success: true, invitation }),
