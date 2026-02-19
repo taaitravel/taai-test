@@ -47,14 +47,14 @@ export const DiningSearchFields = ({
       {/* Date & Time */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Date *</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Date *</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  'w-full justify-start text-left font-normal bg-white/10 border-white/20',
-                  !date && 'text-white/60'
+                  'w-full justify-start text-left font-normal bg-background/50 border-border',
+                  !date && 'text-muted-foreground'
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
