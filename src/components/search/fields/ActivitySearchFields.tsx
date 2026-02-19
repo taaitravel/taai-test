@@ -42,7 +42,7 @@ export const ActivitySearchFields = ({
 
       {/* Date */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">Date *</label>
+        <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Date *</label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
