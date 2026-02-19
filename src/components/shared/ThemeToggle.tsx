@@ -8,9 +8,9 @@ export const ThemeToggle = () => {
   if (isLoading) {
     return (
       <div className="flex items-center gap-3">
-        <Sun className="h-4 w-4 text-muted-foreground" />
+        <Sun className="h-4 w-4 text-foreground/40" />
         <Switch disabled checked={true} />
-        <Moon className="h-4 w-4 text-muted-foreground" />
+        <Moon className="h-4 w-4 text-foreground/40" />
       </div>
     );
   }
