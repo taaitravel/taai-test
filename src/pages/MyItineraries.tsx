@@ -213,7 +213,7 @@ const MyItineraries = () => {
     }
   };
 
-  const loading = collectionsLoading || itinerariesLoading;
+  const loading = collectionsLoading || itinerariesLoading || sharedLoading;
   const isMobile = useIsMobile();
 
   // Mobile collections component (circular avatars)
