@@ -75,9 +75,9 @@ export const DiningSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Time *</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Time *</label>
           <Select value={time} onValueChange={onTimeChange}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
