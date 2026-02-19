@@ -99,9 +99,9 @@ export const DiningSearchFields = ({
       {/* Party Size & Cuisine */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Party Size *</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Party Size *</label>
           <Select value={partySize.toString()} onValueChange={(v) => onPartySizeChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
