@@ -56,7 +56,7 @@ export const EditProfileSection = () => {
 
   return (
     <div className="space-y-6 max-w-xl">
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
         <CardHeader>
           <CardTitle className="text-foreground">Profile Photo</CardTitle>
         </CardHeader>
