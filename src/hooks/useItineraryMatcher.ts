@@ -20,36 +20,43 @@ export const useItineraryMatcher = () => {
       if (error) throw error;
 
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
+      today.setHours(0, 0, 0, 0);
 
-      const searchStart = new Date(searchDates.checkin);
-      const searchEnd = new Date(searchDates.checkout);
+      const searchStart = searchDates.checkin ? new Date(searchDates.checkin) : null;
+      const searchEnd = searchDates.checkout ? new Date(searchDates.checkout) : null;
 
-      // Find itineraries that overlap with search dates AND are in the future
+      // Show ALL future itineraries, with match type indicators for date overlap
       const matchingItineraries = (itineraries || [])
         .map((itin: any) => {
-          const itinStart = new Date(itin.itin_date_start);
-          const itinEnd = new Date(itin.itin_date_end);
+          const itinEnd = itin.itin_date_end ? new Date(itin.itin_date_end) : null;
+          const itinStart = itin.itin_date_start ? new Date(itin.itin_date_start) : null;
 
           // Skip past itineraries (where end date is before today)
-          if (itinEnd < today) {
+          if (itinEnd && itinEnd < today) {
             return null;
           }
 
-          // Check if dates overlap
-          const isExactMatch =
-            searchStart >= itinStart && searchEnd <= itinEnd;
-          const hasPartialOverlap =
-            (searchStart >= itinStart && searchStart <= itinEnd) ||
-            (searchEnd >= itinStart && searchEnd <= itinEnd) ||
-            (searchStart <= itinStart && searchEnd >= itinEnd);
+          let matchType = 'available'; // default: future but no date overlap
 
-          return {
-            ...itin,
-            matchType: isExactMatch ? 'exact' : hasPartialOverlap ? 'partial' : 'none',
-          };
+          if (searchStart && searchEnd && itinStart && itinEnd) {
+            const isExactMatch =
+              searchStart >= itinStart && searchEnd <= itinEnd;
+            const hasPartialOverlap =
+              (searchStart >= itinStart && searchStart <= itinEnd) ||
+              (searchEnd >= itinStart && searchEnd <= itinEnd) ||
+              (searchStart <= itinStart && searchEnd >= itinEnd);
+
+            if (isExactMatch) matchType = 'exact';
+            else if (hasPartialOverlap) matchType = 'partial';
+          }
+
+          return { ...itin, matchType };
         })
-        .filter((itin: any) => itin !== null && itin.matchType !== 'none');
+        .filter((itin: any) => itin !== null);
+
+      // Sort: exact matches first, then partial, then available
+      const order = { exact: 0, partial: 1, available: 2 };
+      matchingItineraries.sort((a: any, b: any) => (order[a.matchType as keyof typeof order] ?? 2) - (order[b.matchType as keyof typeof order] ?? 2));
 
       return matchingItineraries;
     } catch (error) {
