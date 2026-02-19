@@ -135,9 +135,9 @@ export const CarSearchFields = ({
       {/* Driver Age & Car Type */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Driver Age *</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Driver Age *</label>
           <Select value={driverAge} onValueChange={onDriverAgeChange}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -149,9 +149,9 @@ export const CarSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Car Type</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Car Type</label>
           <Select value={carType} onValueChange={onCarTypeChange}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

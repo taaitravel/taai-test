@@ -242,7 +242,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       />
       {open && (results.length > 0 || loading) && (
         <div className={dropdownBase}>
-          {loading && <div className="px-3 py-2 text-sm opacity-70 text-white">Searching…</div>}
+          {loading && <div className="px-3 py-2 text-sm opacity-70 text-popover-foreground">Searching…</div>}
           {!loading && results.map((r) => (
             <button
               key={(r.id || r.name) + String(r.lat)}
@@ -252,7 +252,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
                 setOpen(false);
                 onSelect(r);
               }}
-              className="block w-full text-left px-3 py-2 hover:bg-accent/30 text-white"
+              className="block w-full text-left px-3 py-2 hover:bg-accent text-popover-foreground"
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">

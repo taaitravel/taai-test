@@ -174,7 +174,7 @@ export const PackageSearchFields = ({
           checked={includeCar}
           onCheckedChange={onIncludeCarChange}
         />
-        <Label htmlFor="includeCar" className="text-white cursor-pointer">
+        <Label htmlFor="includeCar" className="text-foreground cursor-pointer">
           Include car rental
         </Label>
       </div>
