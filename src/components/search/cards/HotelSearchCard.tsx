@@ -19,7 +19,7 @@ const VRBOBadge = () => (
   </div>
 );
 
-export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
+export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
