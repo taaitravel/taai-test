@@ -94,14 +94,15 @@ export const EditProfileSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="dark:text-white/60">Email</Label>
             <Input
               id="email"
               type="email"
+              className="dark:bg-white/5 dark:border-white/10 dark:text-white"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground dark:text-white/40">
               Changing your email will require re-verification.
             </p>
           </div>
