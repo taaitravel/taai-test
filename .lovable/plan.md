@@ -1,60 +1,90 @@
 
 
-## Plan: Fix Edit Itinerary Light Theme + Fix Invitation System
+## Plan: Pass Search Dates, Guest Counts, and Total Costs Through to Itinerary Items
 
-### Part 1: Light Theme for Edit Itinerary Page
+### Problem Summary
 
-The EditItinerary page has hardcoded dark-mode colors throughout (e.g., `bg-[#171821]`, `text-white`, `border-white/30`). These need to be replaced with semantic CSS variables per the project's theming standard.
+When users search for hotels or activities with specific dates and guest/participant counts, that critical data is lost at multiple points in the pipeline:
 
-**Changes to `src/pages/EditItinerary.tsx`:**
-- Replace all `bg-[#171821]` with `bg-background`
-- Replace all `text-white` with `text-foreground`
-- Replace all `text-white/80`, `text-white/70`, `text-white/50` with `text-foreground/80`, `text-foreground/70`, `text-foreground/50`
-- Replace `border-white/30` and `border-white/40` with `border-border`
-- Replace `bg-white/10`, `bg-white/20` input backgrounds with `bg-input` or `bg-secondary`
-- Replace card classes `bg-[#171821]/80 border-white/30` with `bg-card/80 border-border`
-- Replace `hover:shadow-white/20` with `hover:shadow-primary/10`
-- Replace button hardcoded colors (`text-[#171821]`) with `text-primary-foreground` or appropriate semantic tokens
-- Ensure the loading state also uses `bg-background` and `text-foreground`
+1. **Search cards don't receive `searchParams`** -- the `CategoryCarousel` has `searchParams` but never passes them to individual `HotelSearchCard` or `ActivitySearchCard` components
+2. **Activity cards use today's date** instead of the user's search date for the ItineraryMatcherModal
+3. **Guest/room/participant counts are not stored** when items are saved to the itinerary
+4. **Total trip cost is not calculated** (e.g., price x nights x rooms for hotels, price x participants for activities)
+5. **The AddItemDialog (manual add) is missing** fields for number of guests/rooms (hotels) and number of participants (activities)
 
-### Part 2: Fix Invitation System (Emails/Notifications Not Working)
+### Changes
 
-**Root Cause:** The `send-invitation` edge function uses the caller's anon-key authenticated client to query the `users` table for the recipient. However, the RLS policy on `users` restricts SELECT to `auth.uid() = userid` -- meaning you can only see your own row. As a result, recipient lookups always return `null`, and no notification is ever created. The invitations themselves are saved to `itinerary_invitations`, but the invited user is never notified.
+#### 1. Pass `searchParams` down to search cards
 
-**Fix in `supabase/functions/send-invitation/index.ts`:**
-- Move the recipient lookup (finding user by email or username) to use the `supabaseAdmin` (service role) client, which bypasses RLS
-- The admin client is already created later in the function for notification insertion -- move its creation earlier and reuse it for both recipient lookup and notification creation
-- This ensures the function can actually find users by email/username and create the in-app notification
+**File: `src/components/search/CategoryCarousel.tsx`**
+- Pass `searchParams` as a prop to `HotelSearchCard`, `ActivitySearchCard`, and other card components via `renderCard()`
 
-**Before (broken):**
-```
-// Uses anon client - RLS blocks cross-user lookups
-const { data: recipient } = await supabaseClient
-  .from('users')
-  .select('userid')
-  .eq('email', value)
-  .single();
-```
+#### 2. Update `HotelSearchCard` to use search params
 
-**After (fixed):**
-```
-// Uses admin client - bypasses RLS for recipient lookup
-const supabaseAdmin = createClient(
-  Deno.env.get('SUPABASE_URL'),
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-);
+**File: `src/components/search/cards/HotelSearchCard.tsx`**
+- Accept optional `searchParams` prop (checkin, checkout, adults, rooms)
+- Use `searchParams.checkin` / `searchParams.checkout` for the ItineraryMatcherModal `searchDates` instead of falling back to today
+- Include `adults`, `rooms`, `checkin`, `checkout` in `item_data` when saving to `cart_items`
+- Calculate and display total trip cost: `pricePerNight x nights x rooms`
 
-const { data: recipient } = await supabaseAdmin
-  .from('users')
-  .select('userid')
-  .eq('email', value)
-  .single();
+#### 3. Update `ActivitySearchCard` to use search params
+
+**File: `src/components/search/cards/ActivitySearchCard.tsx`**
+- Accept optional `searchParams` prop (checkin, participants)
+- Use `searchParams.checkin` for the ItineraryMatcherModal `searchDates` instead of hardcoded `new Date()`
+- Include `date`, `participants` in `item_data` when saving to `cart_items`
+- Calculate and display total group cost: `pricePerPerson x participants`
+
+#### 4. Update `HotelResultCard` and `ActivityResultCard` (grid view cards)
+
+**File: `src/components/search/cards/HotelResultCard.tsx`**
+- Same changes as HotelSearchCard: accept `searchParams`, store dates/guests in `item_data`
+
+**File: `src/components/search/cards/ActivityResultCard.tsx`**
+- Same changes as ActivitySearchCard: accept `searchParams`, store date/participants in `item_data`
+
+#### 5. Update `AddItemDialog` with missing fields
+
+**File: `src/components/itinerary/AddItemDialog.tsx`**
+- **Hotels form**: Add "Rooms" and "Guests" number inputs. Update total cost calculation to multiply `cost_per_night x nights x rooms`
+- **Activities form**: Add "Participants" number input. Show calculated total: `cost_per_person x participants`
+- Store these values (`rooms`, `guests`, `participants`) in the submitted item object so they appear in the itinerary schedule
+
+#### 6. Pass `searchParams` through grid/map views
+
+**File: `src/components/search/SearchResultsGrid.tsx`**
+- Accept and forward `searchParams` to individual result cards
+
+**File: `src/components/search/SearchResults.tsx`**
+- Ensure `searchParams` flows to all view modes (tree, grid, map)
+
+### Data Flow After Changes
+
+```text
+AdaptiveSearchForm
+  --> searchParams { checkin, checkout, adults, rooms, participants }
+    --> SearchResults
+      --> CategoryCarousel (tree view)
+        --> HotelSearchCard(hotel, searchParams)
+          --> ItineraryMatcherModal(searchDates from searchParams)
+          --> cart_items.item_data includes { checkIn, checkOut, adults, rooms, totalCost }
+        --> ActivitySearchCard(activity, searchParams)
+          --> ItineraryMatcherModal(searchDates from searchParams)
+          --> cart_items.item_data includes { date, participants, totalCost }
+      --> SearchResultsGrid (grid view)
+        --> Same prop forwarding
 ```
 
 ### Summary of Files Changed
 
 | File | Change |
 |------|--------|
-| `src/pages/EditItinerary.tsx` | Replace all hardcoded dark colors with semantic CSS variables for full light/dark theme support |
-| `supabase/functions/send-invitation/index.ts` | Use service-role admin client for recipient user lookup to bypass RLS restrictions |
+| `src/components/search/CategoryCarousel.tsx` | Forward `searchParams` to card components |
+| `src/components/search/cards/HotelSearchCard.tsx` | Accept `searchParams`, use real dates, store guests/rooms, calculate total |
+| `src/components/search/cards/ActivitySearchCard.tsx` | Accept `searchParams`, use real date, store participants, calculate total |
+| `src/components/search/cards/HotelResultCard.tsx` | Accept `searchParams`, use real dates, store guests/rooms |
+| `src/components/search/cards/ActivityResultCard.tsx` | Accept `searchParams`, use real date, store participants |
+| `src/components/search/SearchResults.tsx` | Pass `searchParams` to all view sub-components |
+| `src/components/search/SearchResultsGrid.tsx` | Forward `searchParams` to individual cards |
+| `src/components/itinerary/AddItemDialog.tsx` | Add Rooms/Guests fields for hotels, Participants field for activities, update cost calculations |
 
