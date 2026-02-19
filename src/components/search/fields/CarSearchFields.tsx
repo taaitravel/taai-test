@@ -118,9 +118,9 @@ export const CarSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Drop-off Time *</label>
+          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Drop-off Time *</label>
           <Select value={dropoffTime} onValueChange={onDropoffTimeChange}>
-            <SelectTrigger className="bg-background/50 border-border text-foreground">
+            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
