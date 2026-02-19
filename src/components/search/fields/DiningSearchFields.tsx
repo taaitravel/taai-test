@@ -57,8 +57,8 @@ export const DiningSearchFields = ({
                   !date && 'text-muted-foreground'
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, 'PPP') : 'Select date'}
+                <CalendarIcon className={cn("mr-2 h-4 w-4", date ? "text-primary" : "text-foreground/50 dark:text-white/40")} />
+                {date ? <span className="text-primary">{format(date, 'MMM dd')}</span> : <span className="text-muted-foreground dark:text-white/40">Select date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
