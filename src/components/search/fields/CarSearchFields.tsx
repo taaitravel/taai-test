@@ -104,9 +104,9 @@ export const CarSearchFields = ({
       {/* Times */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Pick-up Time *</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Pick-up Time *</label>
           <Select value={pickupTime} onValueChange={onPickupTimeChange}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -118,9 +118,9 @@ export const CarSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Drop-off Time *</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Drop-off Time *</label>
           <Select value={dropoffTime} onValueChange={onDropoffTimeChange}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
