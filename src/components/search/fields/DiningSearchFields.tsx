@@ -53,7 +53,7 @@ export const DiningSearchFields = ({
               <Button
                 variant="outline"
                 className={cn(
-                  'w-full justify-start text-left font-normal bg-background/50 border-border',
+                  'w-full justify-start text-left font-normal bg-background/50 dark:bg-white/5 border-border dark:border-white/10',
                   !date && 'text-muted-foreground'
                 )}
               >
