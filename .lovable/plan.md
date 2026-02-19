@@ -1,115 +1,38 @@
 
 
-# Fix Search Form Theming: Clean Dark Mode + Gradient Active Tab
+# Fix Invisible Icons and Elements on Profile/Preferences Page (Dark Mode)
 
 ## Problem
-The dark mode CSS variables (`--secondary`, `--accent`, `--muted`, `--border`) are all mapped to white/light values (intentionally for dashboard metric cards), but this causes the search form to look broken in dark mode -- white backgrounds clashing with the dark card, unreadable labels, inconsistent borders. The light theme is nearly there but the active tab needs a touch of the brand gradient color.
+The Sun icon in the ThemeToggle (and the inactive Moon icon) use `text-muted-foreground`, which in dark mode resolves to dark navy (`hsl(240, 16%, 11%)`) -- essentially invisible against the dark background. Several other elements on the Preferences page also have visibility issues in dark mode for the same reason.
 
 ## Root Cause
-The global dark mode variables set `--secondary: white`, `--accent: white`, `--border: 80% gray`, `--muted-foreground: dark navy`. These work for dashboard surfaces but destroy the search form's readability when semantic classes like `bg-secondary`, `bg-accent`, and `border-border` are used.
-
-## Approach
-Use Tailwind `dark:` prefix overrides on search components to get proper dark styling without changing global CSS variables (which would break the dashboard). This keeps both themes completely independent.
+The global dark mode `--muted-foreground` variable is set to a very dark value (for use on white dashboard cards). Any component sitting on the main dark background that uses `text-muted-foreground` becomes invisible.
 
 ## Changes
 
-### 1. `src/components/search/AdaptiveSearchForm.tsx` -- Tabs + Active Tab Gradient
+### 1. `src/components/shared/ThemeToggle.tsx` -- Fix icon visibility
+- Replace `text-muted-foreground` with `text-foreground/40` for the inactive icon state
+- This resolves to a visible muted white in dark mode and a muted dark in light mode
+- Apply to both the Sun and Moon icons (inactive states) and the loading state icons
 
-**TabsList**: Override dark mode background
-```
-bg-secondary border border-border
-```
-becomes:
-```
-bg-secondary dark:bg-white/5 border border-border dark:border-white/10
-```
+### 2. `src/components/profile/PreferencesSection.tsx` -- Dark mode overrides for cards
+- Cards use `bg-card` which in dark mode is white -- but the page background is dark. Add `dark:bg-white/5 dark:border-white/10` to cards so they blend into the dark background instead of being bright white boxes
+- Labels: add `dark:text-white/60` for visibility
+- Select trigger: add `dark:bg-white/5 dark:border-white/10 dark:text-white`
+- The "DD/MM/YY" outline button: add `dark:border-white/20 dark:text-white/70` so it's visible
 
-**TabsTrigger (all 6)**: Add brand gradient for active state in light mode, proper dark styling
-```
-text-foreground/60 hover:text-foreground hover:bg-accent
-data-[state=active]:text-foreground data-[state=active]:bg-accent
-```
-becomes:
-```
-text-foreground/60 dark:text-white/50
-hover:text-foreground dark:hover:text-white hover:bg-accent dark:hover:bg-white/5
-data-[state=active]:text-foreground dark:data-[state=active]:text-white
-data-[state=active]:bg-primary/10 data-[state=active]:text-primary
-dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-primary
-```
-
-This gives:
-- **Light mode**: Active tab gets a subtle rose/primary tint (the brand gradient color)
-- **Dark mode**: Active tab gets a subtle white glow with rose text, inactive tabs are muted white
-
-### 2. `src/components/search/DateRangePicker.tsx` -- Dark overrides
-
-- Date container: add `dark:bg-white/5 dark:border-white/10`
-- Date buttons: add `dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10`
+### 3. `src/components/profile/EditProfileSection.tsx` -- Same dark card overrides
+- Cards: add `dark:bg-white/5 dark:border-white/10`
+- Input fields: add `dark:bg-white/5 dark:border-white/10 dark:text-white`
 - Labels: add `dark:text-white/60`
-- Text spans: add `dark:text-white`
-- Muted text: add `dark:text-white/40`
-- Arrow: add `dark:text-white/20`
+- Hint text (muted-foreground): add `dark:text-white/40`
 
-### 3. `src/components/search/fields/HotelSearchFields.tsx` -- Dark overrides
-
-- Labels (`text-foreground/60`): add `dark:text-white/60`
-- SelectTriggers (`bg-background/50 border-border text-foreground`): add `dark:bg-white/5 dark:border-white/10 dark:text-white`
-
-### 4. `src/components/search/fields/FlightSearchFields.tsx` -- Dark overrides
-
-- Labels: add `dark:text-white/60`
-- Input fields: add `dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-white/30`
-- Hint text: add `dark:text-white/30`
-- SelectTriggers: add `dark:bg-white/5 dark:border-white/10 dark:text-white`
-- Radio labels: add `dark:text-white`
-- Swap button: add `dark:hover:bg-white/10 dark:text-white/50`
-
-### 5. `src/components/search/fields/ActivitySearchFields.tsx` -- Dark overrides
-
-- Labels: add `dark:text-white/60`
-- Date button: add `dark:bg-white/5 dark:border-white/10`
-- SelectTriggers: add `dark:bg-white/5 dark:border-white/10 dark:text-white`
-
-### 6. `src/components/search/fields/CarSearchFields.tsx` -- Dark overrides (same pattern)
-
-### 7. `src/components/search/fields/DiningSearchFields.tsx` -- Dark overrides (same pattern)
-
-### 8. `src/components/search/fields/PackageSearchFields.tsx` -- Dark overrides (same pattern)
-
-### 9. `src/components/inputs/PlaceSearch.tsx` -- Dark overrides
-
-- Input: add `dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-white/30`
-- Label: add `dark:text-white/60`
-- Dropdown: add `dark:bg-[#1a1c2e] dark:border-white/10`
-- Dropdown items: add `dark:text-white dark:hover:bg-white/5`
-
-### 10. `src/pages/Search.tsx` -- Dark card override
-
-- Main container: add `dark:bg-[#171820] dark:border-white/10`
-
-## Visual Result
-
-**Light Mode**:
-- Warm off-white card with subtle warm-gray inputs
-- Active tab gets a soft rose/coral tint from the brand gradient (primary/10 background + primary text)
-- Clean, readable, elegant
-
-**Dark Mode**:
-- Dark navy card (#171820) with subtle white/5 input surfaces
-- Soft white/10 borders throughout -- consistent and minimal
-- Active tab glows with rose accent text on white/10 background
-- All text is white at various opacities for hierarchy (100%, 60%, 40%, 30%)
-- No clashing colors, no white blocks, sleek and unified
+### 4. `src/pages/Profile.tsx` -- Fix profile tabs
+- TabsList (`bg-muted`): add `dark:bg-white/5` so the tab bar isn't a white block
+- TabsTrigger: add `dark:text-white/60` for inactive and `dark:data-[state=active]:text-white dark:data-[state=active]:bg-white/10` for active state
 
 ## Files to modify
-1. `src/pages/Search.tsx`
-2. `src/components/search/AdaptiveSearchForm.tsx`
-3. `src/components/search/DateRangePicker.tsx`
-4. `src/components/search/fields/HotelSearchFields.tsx`
-5. `src/components/search/fields/FlightSearchFields.tsx`
-6. `src/components/search/fields/ActivitySearchFields.tsx`
-7. `src/components/search/fields/CarSearchFields.tsx`
-8. `src/components/search/fields/DiningSearchFields.tsx`
-9. `src/components/search/fields/PackageSearchFields.tsx`
-10. `src/components/inputs/PlaceSearch.tsx`
+1. `src/components/shared/ThemeToggle.tsx`
+2. `src/components/profile/PreferencesSection.tsx`
+3. `src/components/profile/EditProfileSection.tsx`
+4. `src/pages/Profile.tsx`
