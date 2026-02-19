@@ -172,14 +172,13 @@ export const useSearchOrchestrator = () => {
           let vrboResults: any[] = [];
           try {
             const { data: vrboData, error: vrboError } = await callExpediaAPI({
-              endpoint: 'https://expedia13.p.rapidapi.com/v2/hotels/search',
+              endpoint: 'https://expedia13.p.rapidapi.com/api/v1/hotels/search',
               params: {
-                location: params.destination,
-                checkIn: params.checkin,
-                checkOut: params.checkout,
+                destination: params.destination,
+                checkin: params.checkin,
+                checkout: params.checkout,
                 adults: String(params.adults || 2),
                 rooms: String(params.rooms || 1),
-                propertyType: 'vacation_rental',
               },
             });
             
