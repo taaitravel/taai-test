@@ -40,13 +40,13 @@ export const PreferencesSection = () => {
 
   return (
     <div className="space-y-6 max-w-xl">
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
         <CardHeader>
           <CardTitle className="text-foreground">Appearance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label>Theme</Label>
+            <Label className="dark:text-white/60">Theme</Label>
             <ThemeToggle />
           </div>
         </CardContent>
