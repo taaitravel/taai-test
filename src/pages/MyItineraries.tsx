@@ -320,29 +320,51 @@ const MyItineraries = () => {
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col">
-            {/* Sub-header with collection name and count */}
+            {/* Sub-header with tab toggle, collection name, and count */}
             <header className="border-b border-border px-4 md:px-6 py-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-lg md:text-xl font-bold text-foreground">
-                    {selectedCollectionId 
-                      ? collections.find(c => c.id === selectedCollectionId)?.name || 'Collection'
-                      : 'All Itineraries'
-                    }
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    {filteredItineraries.length} itinerary{filteredItineraries.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
+              <div className="flex items-center justify-between mb-3">
+                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ItineraryTab)}>
+                  <TabsList className="bg-muted h-9">
+                    <TabsTrigger value="mine" className="gap-1.5 px-3 data-[state=active]:bg-accent data-[state=active]:text-foreground text-muted-foreground h-7">
+                      <Globe className="h-4 w-4" />
+                      My Trips
+                    </TabsTrigger>
+                    <TabsTrigger value="shared" className="gap-1.5 px-3 data-[state=active]:bg-accent data-[state=active]:text-foreground text-muted-foreground h-7">
+                      <Users className="h-4 w-4" />
+                      Shared
+                      {sharedItineraries.length > 0 && (
+                        <span className="ml-1 bg-primary/20 text-primary text-xs px-1.5 py-0.5 rounded-full">
+                          {sharedItineraries.length}
+                        </span>
+                      )}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
                 <Button onClick={() => navigate('/search')} className="gap-2" size={isMobile ? 'sm' : 'default'}>
                   <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">New Itinerary</span>
                 </Button>
               </div>
+              <div>
+                <h1 className="text-lg md:text-xl font-bold text-foreground">
+                  {activeTab === 'shared' 
+                    ? 'Shared With Me'
+                    : selectedCollectionId 
+                      ? collections.find(c => c.id === selectedCollectionId)?.name || 'Collection'
+                      : 'All Itineraries'
+                  }
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {activeTab === 'shared'
+                    ? `${sharedItineraries.length} shared trip${sharedItineraries.length !== 1 ? 's' : ''}`
+                    : `${filteredItineraries.length} itinerary${filteredItineraries.length !== 1 ? 's' : ''}`
+                  }
+                </p>
+              </div>
             </header>
 
-          {/* Mobile Collections - shown above content on mobile for grid/list views */}
-          {isMobile && viewMode !== 'map' && <MobileCollections />}
+          {/* Mobile Collections - shown above content on mobile for grid/list views (only for "mine" tab) */}
+          {isMobile && viewMode !== 'map' && activeTab === 'mine' && <MobileCollections />}
 
           {/* Content */}
           <main className="flex-1 p-4 md:p-6 overflow-auto">
@@ -352,6 +374,28 @@ const MyItineraries = () => {
                   <Skeleton key={i} className="w-full aspect-[255/375] rounded-lg bg-muted" />
                 ))}
               </div>
+            ) : activeTab === 'shared' ? (
+              /* Shared itineraries view */
+              sharedItineraries.length === 0 ? (
+                <div className="text-center py-16 space-y-4">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto" />
+                  <h3 className="text-lg font-semibold text-foreground">No shared trips yet</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    When someone invites you to collaborate on a trip, it will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                  {sharedItineraries.map((itin) => (
+                    <ItineraryCard
+                      key={itin.id}
+                      itinerary={itin}
+                      isShared
+                      ownerName={itin.ownerName}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
               <>
                 {viewMode === 'grid' && (
@@ -371,11 +415,9 @@ const MyItineraries = () => {
                 )}
                 {viewMode === 'map' && (
                   <div className="flex flex-col gap-4">
-                    {/* Map takes full width on mobile */}
                     <div className="w-full h-[50vh] md:h-[calc(100vh-200px)] rounded-lg overflow-hidden">
                       <ItineraryMapView itineraries={filteredItineraries} />
                     </div>
-                    {/* Collections below map on mobile */}
                     {isMobile && <MobileCollections />}
                   </div>
                 )}
