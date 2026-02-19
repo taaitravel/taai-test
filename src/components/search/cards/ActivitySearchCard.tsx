@@ -226,8 +226,8 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: new Date().toISOString().split('T')[0],
-          checkout: new Date().toISOString().split('T')[0]
+          checkin: searchParams?.checkin || new Date().toISOString().split('T')[0],
+          checkout: searchParams?.checkout || new Date().toISOString().split('T')[0]
         }}
         item={activity}
         onConfirm={handleModalConfirm}

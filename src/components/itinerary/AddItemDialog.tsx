@@ -314,9 +314,18 @@ if (type === 'hotels') {
               <Input id="duration" placeholder="e.g., 3h 30m" value={form.duration || ''} onChange={(e) => handleChange('duration', e.target.value)} className={inputClass} />
             </div>
             <div>
-              <Label htmlFor="cost">Cost (USD)</Label>
+              <Label htmlFor="cost">Cost per person (USD)</Label>
               <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
             </div>
+            <div>
+              <Label htmlFor="participants">Participants</Label>
+              <Input id="participants" type="number" min="1" value={form.participants || 1} onChange={(e) => handleChange('participants', e.target.value)} className={inputClass} />
+            </div>
+            {form.cost && Number(form.participants || 1) > 0 && (
+              <div className="sm:col-span-2 p-2 bg-primary/10 rounded text-sm text-center">
+                Total: ${(Number(form.cost || 0) * Number(form.participants || 1)).toLocaleString('en-US', { minimumFractionDigits: 2 })} ({form.participants || 1} participant{Number(form.participants || 1) > 1 ? 's' : ''})
+              </div>
+            )}
             <div className="sm:col-span-2">
               <Label htmlFor="link_url">Link to activity (optional)</Label>
               <Input id="link_url" placeholder="https://..." value={form.link_url || ''} onChange={(e) => handleChange('link_url', e.target.value)} className={inputClass} />

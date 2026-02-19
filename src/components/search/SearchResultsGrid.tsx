@@ -27,7 +27,7 @@ export const SearchResultsGrid = ({ results, searchType, searchParams }: SearchR
         {visibleResults.map((result, idx) => (
           <div key={result.id || idx} className="animate-fade-in">
             {searchType === 'hotels' && (
-              <HotelSearchCard hotel={result} />
+              <HotelSearchCard hotel={result} searchParams={searchParams} />
             )}
             {searchType === 'flights' && (
               <FlightSearchCard 
@@ -37,6 +37,7 @@ export const SearchResultsGrid = ({ results, searchType, searchParams }: SearchR
             {searchType === 'activities' && (
               <ActivitySearchCard 
                 activity={result}
+                searchParams={searchParams}
               />
             )}
             {searchType === 'cars' && (

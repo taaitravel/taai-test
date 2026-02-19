@@ -218,8 +218,8 @@ export const HotelResultCard = ({ hotel, searchParams }: HotelResultCardProps) =
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
-          checkout: hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
+          checkin: searchParams?.checkin || hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
+          checkout: searchParams?.checkout || hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
         }}
         item={hotel}
         onConfirm={handleModalConfirm}

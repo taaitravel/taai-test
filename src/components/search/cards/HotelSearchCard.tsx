@@ -166,14 +166,15 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
         </div>
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
-            <div className="flex items-center text-xs text-white/50">
-              <Calendar className="h-3 w-3 mr-1" />
-              {nights} nights
+            <div className="flex items-center justify-center gap-2 text-xs text-white/50">
+              <span className="flex items-center"><Calendar className="h-3 w-3 mr-1" />{nights} nights</span>
+              {rooms > 1 && <span>· {rooms} rooms</span>}
+              <span>· {adults} guests</span>
             </div>
             <p className={cn("text-2xl font-bold text-center", isRental ? "text-rental" : "text-primary")}>
               ${Math.ceil(totalPrice).toLocaleString('en-US')}
             </p>
-            <p className="text-white/40 text-xs text-center">including taxes and fees</p>
+            <p className="text-white/40 text-xs text-center">total for {nights}n · {rooms} room{rooms > 1 ? 's' : ''}</p>
           </div>
           <div className="pt-2 border-t border-white/10 flex-shrink-0">
             <Button
