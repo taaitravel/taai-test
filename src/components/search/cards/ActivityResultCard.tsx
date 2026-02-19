@@ -95,6 +95,10 @@ export const ActivityResultCard = ({ activity, searchParams }: ActivityResultCar
           item_data: {
             name: activity.name,
             location: activity.location || activity.address,
+            date: searchParams?.checkin || new Date().toISOString().split('T')[0],
+            participants: searchParams?.adults || 1,
+            pricePerPerson: activity.price || activity.cost || 75,
+            totalCost: (activity.price || activity.cost || 75) * (searchParams?.adults || 1),
             category: activity.category,
             tags: activity.tags,
             rating: activity.rating,
