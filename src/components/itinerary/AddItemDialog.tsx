@@ -50,10 +50,10 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           setForm({ airline: '', flight_number: '', departure: '', arrival: '', from: baseCity, to: baseCity, cost: '' });
           break;
         case 'hotels':
-setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost: '', rating: 4, link_url: '', location: null });
+          setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, rooms: 1, guests: 2, cost: '', rating: 4, link_url: '', location: null });
           break;
         case 'activities':
-          setForm({ name: '', city: baseCity, date: '', cost: '', duration: '', link_url: '', location: null });
+          setForm({ name: '', city: baseCity, date: '', cost: '', duration: '', participants: 1, link_url: '', location: null });
           break;
         case 'reservations':
           setForm({ type: 'restaurant', name: '', city: baseCity, date: '', time: '', party_size: 2, cost: '', link_url: '', location: null });
