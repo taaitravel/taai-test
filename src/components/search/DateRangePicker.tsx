@@ -43,8 +43,8 @@ export const DateRangePicker = ({
 
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium text-foreground/60">Dates *</label>
-      <div className="border border-border rounded-lg p-2 bg-secondary">
+      <label className="text-xs font-medium text-foreground/60 dark:text-white/60">Dates *</label>
+      <div className="border border-border dark:border-white/10 rounded-lg p-2 bg-secondary dark:bg-white/5">
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-1.5">
           {/* Start Date */}
           <Popover open={isOpen} onOpenChange={setIsOpen}>
