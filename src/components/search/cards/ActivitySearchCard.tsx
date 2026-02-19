@@ -24,6 +24,8 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
 
   const images = activity.images || (activity.image ? [activity.image] : []);
   const pricePerPerson = activity.price || activity.cost || 75;
+  const participants = searchParams?.adults || 1;
+  const totalGroupCost = pricePerPerson * participants;
   
   // Strip HTML tags safely using regex (no DOM parsing that could execute scripts)
   const stripHtml = (html: string): string => {
