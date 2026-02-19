@@ -56,7 +56,7 @@ export const EditProfileSection = () => {
 
   return (
     <div className="space-y-6 max-w-xl">
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
         <CardHeader>
           <CardTitle className="text-foreground">Profile Photo</CardTitle>
         </CardHeader>
@@ -69,23 +69,23 @@ export const EditProfileSection = () => {
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
         <CardHeader>
           <CardTitle className="text-foreground">Personal Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="first_name">First Name</Label>
-              <Input
+              <Label htmlFor="first_name" className="dark:text-white/60">First Name</Label>
+              <Input className="dark:bg-white/5 dark:border-white/10 dark:text-white"
                 id="first_name"
                 value={form.first_name}
                 onChange={(e) => handleChange("first_name", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="last_name">Last Name</Label>
-              <Input
+              <Label htmlFor="last_name" className="dark:text-white/60">Last Name</Label>
+              <Input className="dark:bg-white/5 dark:border-white/10 dark:text-white"
                 id="last_name"
                 value={form.last_name}
                 onChange={(e) => handleChange("last_name", e.target.value)}
@@ -94,23 +94,25 @@ export const EditProfileSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="dark:text-white/60">Email</Label>
             <Input
               id="email"
               type="email"
+              className="dark:bg-white/5 dark:border-white/10 dark:text-white"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground dark:text-white/40">
               Changing your email will require re-verification.
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cell">Phone Number</Label>
+            <Label htmlFor="cell" className="dark:text-white/60">Phone Number</Label>
             <Input
               id="cell"
               type="tel"
+              className="dark:bg-white/5 dark:border-white/10 dark:text-white"
               value={form.cell}
               onChange={(e) => handleChange("cell", e.target.value)}
               placeholder="+1 (555) 000-0000"
@@ -118,16 +120,16 @@ export const EditProfileSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">About You</Label>
+            <Label htmlFor="bio" className="dark:text-white/60">About You</Label>
             <Textarea
               id="bio"
               value={form.bio}
               onChange={(e) => handleChange("bio", e.target.value.slice(0, 200))}
               placeholder="Tell us a bit about yourself..."
-              className="resize-none"
+              className="resize-none dark:bg-white/5 dark:border-white/10 dark:text-white"
               rows={3}
             />
-            <p className="text-xs text-muted-foreground text-right">
+            <p className="text-xs text-muted-foreground dark:text-white/40 text-right">
               {form.bio.length}/200
             </p>
           </div>

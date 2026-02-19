@@ -40,25 +40,25 @@ export const PreferencesSection = () => {
 
   return (
     <div className="space-y-6 max-w-xl">
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
         <CardHeader>
           <CardTitle className="text-foreground">Appearance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label>Theme</Label>
+            <Label className="dark:text-white/60">Theme</Label>
             <ThemeToggle />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
         <CardHeader>
           <CardTitle className="text-foreground">Regional</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Date Format</Label>
+            <Label className="dark:text-white/60">Date Format</Label>
             <div className="flex gap-2">
               {["MM/DD/YY", "DD/MM/YY"].map((fmt) => (
                 <Button
@@ -66,7 +66,7 @@ export const PreferencesSection = () => {
                   variant={dateFormat === fmt ? "default" : "outline"}
                   size="sm"
                   onClick={() => setDateFormat(fmt)}
-                  className={dateFormat === fmt ? "gold-gradient text-primary-foreground" : ""}
+                  className={dateFormat === fmt ? "gold-gradient text-primary-foreground" : "dark:border-white/20 dark:text-white/70"}
                 >
                   {fmt}
                 </Button>
@@ -75,9 +75,9 @@ export const PreferencesSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Currency</Label>
+            <Label className="dark:text-white/60">Currency</Label>
             <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full dark:bg-white/5 dark:border-white/10 dark:text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
