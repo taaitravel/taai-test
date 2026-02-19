@@ -55,11 +55,11 @@ export const FlightSearchFields = ({
       <RadioGroup value={tripType} onValueChange={onTripTypeChange} className="flex gap-4">
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="roundtrip" id="roundtrip" />
-          <Label htmlFor="roundtrip" className="text-white cursor-pointer text-sm">Round-trip</Label>
+          <Label htmlFor="roundtrip" className="text-foreground cursor-pointer text-sm">Round-trip</Label>
         </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="oneway" id="oneway" />
-          <Label htmlFor="oneway" className="text-white cursor-pointer text-sm">One-way</Label>
+          <Label htmlFor="oneway" className="text-foreground cursor-pointer text-sm">One-way</Label>
         </div>
       </RadioGroup>
 
