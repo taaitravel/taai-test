@@ -238,7 +238,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        className="bg-background/50 text-foreground border-border focus-visible:ring-2 focus-visible:ring-primary/50 h-9 text-sm placeholder:text-muted-foreground"
+        className="bg-background/50 dark:bg-white/5 text-foreground dark:text-white border-border dark:border-white/10 focus-visible:ring-2 focus-visible:ring-primary/50 h-9 text-sm placeholder:text-muted-foreground dark:placeholder:text-white/30"
       />
       {open && (results.length > 0 || loading) && (
         <div className={dropdownBase}>
