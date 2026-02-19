@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 interface HotelSearchCardProps {
   hotel: any;
+  searchParams?: any;
 }
 
 const VRBOBadge = () => (
