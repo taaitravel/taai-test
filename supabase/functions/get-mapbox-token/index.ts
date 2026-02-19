@@ -1,10 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -23,26 +33,37 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
     const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    const payload = decodeJwtPayload(token);
 
-    if (claimsError || !claimsData?.claims) {
-      console.error('Authentication failed:', claimsError?.message);
+    if (!payload || !payload.sub || !payload.exp) {
+      console.error('Invalid JWT structure');
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const userId = claimsData.claims.sub;
-    console.log('User authenticated:', userId);
+    // Check token expiration
+    const now = Math.floor(Date.now() / 1000);
+    if ((payload.exp as number) < now) {
+      console.error('Token expired');
+      return new Response(
+        JSON.stringify({ error: 'Token expired' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check it's an authenticated role
+    if (payload.role !== 'authenticated') {
+      console.error('Not an authenticated user token');
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('User authenticated:', payload.sub);
 
     const mapboxToken = Deno.env.get('MAPBOX_TAAI_TOKEN');
     if (!mapboxToken) {
@@ -53,7 +74,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Returning token successfully for user:', userId);
+    console.log('Returning token successfully for user:', payload.sub);
     return new Response(
       JSON.stringify({ token: mapboxToken }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
