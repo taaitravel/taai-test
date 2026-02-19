@@ -81,9 +81,9 @@ export const PackageSearchFields = ({
           variant="ghost"
           size="icon"
           onClick={handleSwapLocations}
-          className="mb-0 hover:bg-accent"
+          className="mb-0 hover:bg-accent dark:hover:bg-white/10"
         >
-          <ArrowLeftRight className="h-5 w-5 text-foreground/60" />
+          <ArrowLeftRight className="h-5 w-5 text-foreground/60 dark:text-white/50" />
         </Button>
 
         <PlaceSearch
