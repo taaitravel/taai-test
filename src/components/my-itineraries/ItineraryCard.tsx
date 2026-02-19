@@ -19,6 +19,8 @@ interface ItineraryCardProps {
   onRemoveFromCollection?: (itineraryId: number) => void;
   showCollectionActions?: boolean;
   collectionId?: string;
+  isShared?: boolean;
+  ownerName?: string;
 }
 
 export const ItineraryCard: React.FC<ItineraryCardProps> = ({
