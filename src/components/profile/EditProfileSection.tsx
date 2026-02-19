@@ -120,16 +120,16 @@ export const EditProfileSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">About You</Label>
+            <Label htmlFor="bio" className="dark:text-white/60">About You</Label>
             <Textarea
               id="bio"
               value={form.bio}
               onChange={(e) => handleChange("bio", e.target.value.slice(0, 200))}
               placeholder="Tell us a bit about yourself..."
-              className="resize-none"
+              className="resize-none dark:bg-white/5 dark:border-white/10 dark:text-white"
               rows={3}
             />
-            <p className="text-xs text-muted-foreground text-right">
+            <p className="text-xs text-muted-foreground dark:text-white/40 text-right">
               {form.bio.length}/200
             </p>
           </div>

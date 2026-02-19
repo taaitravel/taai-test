@@ -75,9 +75,9 @@ export const PreferencesSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Currency</Label>
+            <Label className="dark:text-white/60">Currency</Label>
             <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full dark:bg-white/5 dark:border-white/10 dark:text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
