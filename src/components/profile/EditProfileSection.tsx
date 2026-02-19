@@ -84,8 +84,8 @@ export const EditProfileSection = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="last_name">Last Name</Label>
-              <Input
+              <Label htmlFor="last_name" className="dark:text-white/60">Last Name</Label>
+              <Input className="dark:bg-white/5 dark:border-white/10 dark:text-white"
                 id="last_name"
                 value={form.last_name}
                 onChange={(e) => handleChange("last_name", e.target.value)}
