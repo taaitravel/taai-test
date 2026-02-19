@@ -102,10 +102,10 @@ export const DateRangePicker = ({
               setIsOpen(true);
             }}
           >
-            <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0 text-foreground" />
+            <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0 text-foreground dark:text-white" />
             <div className="flex items-center gap-2 w-full">
-              <span className="text-xs text-foreground w-[40%] md:w-[25%]">{endLabel}</span>
-              <span className="text-sm text-foreground w-[60%] md:w-[75%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
+              <span className="text-xs text-foreground dark:text-white w-[40%] md:w-[25%]">{endLabel}</span>
+              <span className="text-sm text-foreground dark:text-white w-[60%] md:w-[75%]">{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
             </div>
           </Button>
         </div>
