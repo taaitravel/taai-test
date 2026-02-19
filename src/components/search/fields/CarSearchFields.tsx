@@ -73,7 +73,7 @@ export const CarSearchFields = ({
           checked={sameLocation}
           onCheckedChange={handleSameLocationToggle}
         />
-        <Label htmlFor="sameLocation" className="text-white cursor-pointer">
+        <Label htmlFor="sameLocation" className="text-foreground cursor-pointer">
           Return to same location
         </Label>
       </div>
