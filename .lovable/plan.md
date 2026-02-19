@@ -1,38 +1,54 @@
 
 
-# Fix Invisible Icons and Elements on Profile/Preferences Page (Dark Mode)
+# Standardize Date Formatting and Styling Across All Search Fields
 
 ## Problem
-The Sun icon in the ThemeToggle (and the inactive Moon icon) use `text-muted-foreground`, which in dark mode resolves to dark navy (`hsl(240, 16%, 11%)`) -- essentially invisible against the dark background. Several other elements on the Preferences page also have visibility issues in dark mode for the same reason.
+Date fields are inconsistent across the search interface:
+- **DateRangePicker** (Hotels, Flights, Cars, Packages): Uses `MMM dd` format (e.g., "Feb 20")
+- **ActivitySearchFields**: Uses `PPP` format (e.g., "February 20th, 2026") -- much longer
+- **DiningSearchFields**: Uses `PPP` format (e.g., "February 20th, 2026") -- much longer
 
-## Root Cause
-The global dark mode `--muted-foreground` variable is set to a very dark value (for use on white dashboard cards). Any component sitting on the main dark background that uses `text-muted-foreground` becomes invisible.
+Additionally, the selected date text should use the brand primary color to indicate an active/filled state, while unselected dates should show light grey/white in dark mode.
 
 ## Changes
 
-### 1. `src/components/shared/ThemeToggle.tsx` -- Fix icon visibility
-- Replace `text-muted-foreground` with `text-foreground/40` for the inactive icon state
-- This resolves to a visible muted white in dark mode and a muted dark in light mode
-- Apply to both the Sun and Moon icons (inactive states) and the loading state icons
+### 1. `src/components/search/fields/ActivitySearchFields.tsx` -- Match date format
+- Change `format(date, 'PPP')` to `format(date, 'MMM dd')` for consistency
+- Add primary color when date is selected: `dark:text-primary` / `text-primary` for the filled state
+- Keep `text-muted-foreground` / `dark:text-white/40` for placeholder ("Select date")
 
-### 2. `src/components/profile/PreferencesSection.tsx` -- Dark mode overrides for cards
-- Cards use `bg-card` which in dark mode is white -- but the page background is dark. Add `dark:bg-white/5 dark:border-white/10` to cards so they blend into the dark background instead of being bright white boxes
-- Labels: add `dark:text-white/60` for visibility
-- Select trigger: add `dark:bg-white/5 dark:border-white/10 dark:text-white`
-- The "DD/MM/YY" outline button: add `dark:border-white/20 dark:text-white/70` so it's visible
+### 2. `src/components/search/fields/DiningSearchFields.tsx` -- Same treatment
+- Change `format(date, 'PPP')` to `format(date, 'MMM dd')`
+- Add primary color for selected date, light grey for unselected
 
-### 3. `src/components/profile/EditProfileSection.tsx` -- Same dark card overrides
-- Cards: add `dark:bg-white/5 dark:border-white/10`
-- Input fields: add `dark:bg-white/5 dark:border-white/10 dark:text-white`
-- Labels: add `dark:text-white/60`
-- Hint text (muted-foreground): add `dark:text-white/40`
+### 3. `src/components/search/DateRangePicker.tsx` -- Active/inactive text colors
+- When a date IS selected: the date value text gets `text-primary` (the rose brand color) in both themes
+- When no date selected ("Select"): keep `dark:text-white/40` / `text-muted-foreground` (light grey)
+- The label text (Depart, Return, etc.) stays `dark:text-white/60` / `text-foreground/60` -- neutral, not colored
+- Calendar icon: when date selected, also tint with primary; when inactive, keep current muted color
 
-### 4. `src/pages/Profile.tsx` -- Fix profile tabs
-- TabsList (`bg-muted`): add `dark:bg-white/5` so the tab bar isn't a white block
-- TabsTrigger: add `dark:text-white/60` for inactive and `dark:data-[state=active]:text-white dark:data-[state=active]:bg-white/10` for active state
+## Detailed class changes
+
+**DateRangePicker.tsx:**
+- Date value spans (lines 63, 108): When date exists, add `text-primary` class; when no date, keep current muted styling
+- Calendar icons (lines 60, 105): When date exists, use `text-primary`; otherwise `text-foreground/50 dark:text-white/40`
+- Label spans (lines 62, 107): Keep as `text-foreground/60 dark:text-white/60` (no change)
+
+**ActivitySearchFields.tsx (line 56):**
+- Format: `'PPP'` becomes `'MMM dd'`
+- Button class: when date selected, text becomes `text-primary`; when not, stays muted
+
+**DiningSearchFields.tsx (line 61):**
+- Format: `'PPP'` becomes `'MMM dd'`
+- Button class: same active/inactive treatment
+
+## Visual Result
+- All date fields across Hotels, Flights, Cars, Activities, Dining, and Packages show dates as "Feb 20" format
+- Selected dates glow with the brand rose/primary color in both light and dark mode
+- Unselected dates show a subtle "Select date" in light grey (dark mode) or muted grey (light mode)
+- Consistent, polished look across all tabs
 
 ## Files to modify
-1. `src/components/shared/ThemeToggle.tsx`
-2. `src/components/profile/PreferencesSection.tsx`
-3. `src/components/profile/EditProfileSection.tsx`
-4. `src/pages/Profile.tsx`
+1. `src/components/search/DateRangePicker.tsx`
+2. `src/components/search/fields/ActivitySearchFields.tsx`
+3. `src/components/search/fields/DiningSearchFields.tsx`
