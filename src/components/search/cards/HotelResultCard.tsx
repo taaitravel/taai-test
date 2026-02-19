@@ -95,8 +95,10 @@ export const HotelResultCard = ({ hotel, searchParams }: HotelResultCardProps) =
           item_data: {
             name: hotel.hotel_name || hotel.hotelName,
             city: hotel.city || hotel.location,
-            checkIn: hotel.checkin || hotel.checkInDate,
-            checkOut: hotel.checkout || hotel.checkOutDate,
+            checkIn: searchParams?.checkin || hotel.checkin || hotel.checkInDate,
+            checkOut: searchParams?.checkout || hotel.checkout || hotel.checkOutDate,
+            rooms: searchParams?.rooms || 1,
+            adults: searchParams?.adults || 2,
             rating: hotel.review_score || hotel.reviewScore,
             reviewCount: hotel.review_nr || hotel.reviewCount,
             images: hotel.photos || hotel.images || [],
