@@ -69,6 +69,7 @@ const MyItineraries = () => {
   } = useItineraryCollections();
 
   const { activeItineraries, loading: itinerariesLoading } = useDashboardData();
+  const { sharedItineraries, loading: sharedLoading } = useSharedItineraries();
 
   // Fetch itinerary IDs for selected collection
   useEffect(() => {
