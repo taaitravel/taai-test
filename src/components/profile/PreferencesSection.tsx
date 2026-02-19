@@ -52,13 +52,13 @@ export const PreferencesSection = () => {
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
         <CardHeader>
           <CardTitle className="text-foreground">Regional</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Date Format</Label>
+            <Label className="dark:text-white/60">Date Format</Label>
             <div className="flex gap-2">
               {["MM/DD/YY", "DD/MM/YY"].map((fmt) => (
                 <Button
