@@ -27,12 +27,11 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
     switch (role) {
       case 'owner':
         return <Shield className="h-4 w-4" />;
+      case 'collaborator':
       case 'editor':
         return <Edit className="h-4 w-4" />;
-      case 'viewer':
-        return <Eye className="h-4 w-4" />;
       default:
-        return null;
+        return <Eye className="h-4 w-4" />;
     }
   };
 
@@ -40,13 +39,17 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
     switch (role) {
       case 'owner':
         return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'collaborator':
       case 'editor':
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'viewer':
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
       default:
-        return '';
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
+  };
+
+  const getDisplayRole = (role: string) => {
+    if (role === 'owner') return 'Owner';
+    return 'Collaborator';
   };
 
   return (
