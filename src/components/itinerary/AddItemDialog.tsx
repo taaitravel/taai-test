@@ -273,6 +273,19 @@ if (type === 'hotels') {
   <Label htmlFor="cost">Cost per night (USD)</Label>
   <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
 </div>
+            <div>
+              <Label htmlFor="rooms">Rooms</Label>
+              <Input id="rooms" type="number" min="1" value={form.rooms || 1} onChange={(e) => handleChange('rooms', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <Label htmlFor="guests">Guests</Label>
+              <Input id="guests" type="number" min="1" value={form.guests || 2} onChange={(e) => handleChange('guests', e.target.value)} className={inputClass} />
+            </div>
+            {form.cost && form.check_in && form.check_out && (
+              <div className="sm:col-span-2 p-2 bg-primary/10 rounded text-sm text-center">
+                Total: ${(Number(form.cost || 0) * Math.max(form.nights || 0, 0) * Number(form.rooms || 1)).toLocaleString('en-US', { minimumFractionDigits: 2 })} ({form.nights} nights × {form.rooms || 1} room{Number(form.rooms || 1) > 1 ? 's' : ''})
+              </div>
+            )}
             <div className="sm:col-span-2">
               <Label htmlFor="link_url">Hotel link (optional)</Label>
               <Input id="link_url" placeholder="https://..." value={form.link_url || ''} onChange={(e) => handleChange('link_url', e.target.value)} className={inputClass} />
