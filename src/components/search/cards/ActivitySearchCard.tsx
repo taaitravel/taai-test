@@ -9,9 +9,10 @@ import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface ActivitySearchCardProps {
   activity: any;
+  searchParams?: any;
 }
 
-export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
+export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
@@ -23,6 +24,8 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
 
   const images = activity.images || (activity.image ? [activity.image] : []);
   const pricePerPerson = activity.price || activity.cost || 75;
+  const participants = searchParams?.adults || 1;
+  const totalGroupCost = pricePerPerson * participants;
   
   // Strip HTML tags safely using regex (no DOM parsing that could execute scripts)
   const stripHtml = (html: string): string => {
@@ -122,12 +125,15 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
           itinerary_id: itinData.itin_id,
           type: 'activity',
           external_ref: activity.id || `activity-${Date.now()}`,
-          price: pricePerPerson,
+          price: totalGroupCost,
           item_data: {
             name: activity.name,
             location: activityLocation,
             address: activity.address || '',
-            price: pricePerPerson,
+            date: searchParams?.checkin || new Date().toISOString().split('T')[0],
+            pricePerPerson,
+            participants,
+            totalCost: totalGroupCost,
             rating: activity.rating,
             images: images,
             bookingStatus: 'pending'
@@ -197,10 +203,11 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
             <p className="text-2xl font-bold text-center flex items-baseline justify-center gap-1" style={{ color: '#ff849c' }}>
-              ${Math.ceil(pricePerPerson).toLocaleString('en-US')}
-              <span className="text-xs text-white/50">/p</span>
+              ${Math.ceil(totalGroupCost).toLocaleString('en-US')}
             </p>
-            <p className="text-white/40 text-xs text-center">including taxes and fees</p>
+            <p className="text-white/40 text-xs text-center">
+              ${Math.ceil(pricePerPerson).toLocaleString('en-US')}/p × {participants} guest{participants > 1 ? 's' : ''}
+            </p>
           </div>
           <div className="pt-2 border-t border-white/10 flex-shrink-0">
             <Button
@@ -219,8 +226,8 @@ export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: new Date().toISOString().split('T')[0],
-          checkout: new Date().toISOString().split('T')[0]
+          checkin: searchParams?.checkin || new Date().toISOString().split('T')[0],
+          checkout: searchParams?.checkout || new Date().toISOString().split('T')[0]
         }}
         item={activity}
         onConfirm={handleModalConfirm}

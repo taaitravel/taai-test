@@ -8,9 +8,10 @@ import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface ActivityResultCardProps {
   activity: any;
+  searchParams?: any;
 }
 
-export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
+export const ActivityResultCard = ({ activity, searchParams }: ActivityResultCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
@@ -94,6 +95,10 @@ export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
           item_data: {
             name: activity.name,
             location: activity.location || activity.address,
+            date: searchParams?.checkin || new Date().toISOString().split('T')[0],
+            participants: searchParams?.adults || 1,
+            pricePerPerson: activity.price || activity.cost || 75,
+            totalCost: (activity.price || activity.cost || 75) * (searchParams?.adults || 1),
             category: activity.category,
             tags: activity.tags,
             rating: activity.rating,
@@ -187,8 +192,8 @@ export const ActivityResultCard = ({ activity }: ActivityResultCardProps) => {
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: new Date().toISOString().split('T')[0],
-          checkout: new Date().toISOString().split('T')[0]
+          checkin: searchParams?.checkin || new Date().toISOString().split('T')[0],
+          checkout: searchParams?.checkout || new Date().toISOString().split('T')[0]
         }}
         item={activity}
         onConfirm={handleModalConfirm}

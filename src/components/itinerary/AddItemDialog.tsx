@@ -50,10 +50,10 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
           setForm({ airline: '', flight_number: '', departure: '', arrival: '', from: baseCity, to: baseCity, cost: '' });
           break;
         case 'hotels':
-setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost: '', rating: 4, link_url: '', location: null });
+          setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, rooms: 1, guests: 2, cost: '', rating: 4, link_url: '', location: null });
           break;
         case 'activities':
-          setForm({ name: '', city: baseCity, date: '', cost: '', duration: '', link_url: '', location: null });
+          setForm({ name: '', city: baseCity, date: '', cost: '', duration: '', participants: 1, link_url: '', location: null });
           break;
         case 'reservations':
           setForm({ type: 'restaurant', name: '', city: baseCity, date: '', time: '', party_size: 2, cost: '', link_url: '', location: null });
@@ -87,7 +87,7 @@ setForm({ name: '', city: baseCity, check_in: '', check_out: '', nights: 1, cost
 
     // Common numeric validations
     const numberFields: string[] = [];
-    if (type === 'hotels') numberFields.push('cost', 'nights', 'rating');
+    if (type === 'hotels') numberFields.push('cost', 'nights', 'rating', 'rooms', 'guests');
     if (type === 'activities') numberFields.push('cost');
     if (type === 'reservations') numberFields.push('party_size', 'cost');
 
@@ -177,8 +177,21 @@ if (type === 'hotels') {
         const end = item.check_out ? new Date(item.check_out) : null;
         const nights = start && end ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) : 0;
         const perNight = Number(item.cost || 0);
+        const rooms = Number(item.rooms || 1);
         item.nights = nights;
-        item.cost = perNight * Math.max(nights, 0);
+        item.rooms = rooms;
+        item.guests = Number(item.guests || 2);
+        item.cost_per_night = perNight;
+        item.cost = perNight * Math.max(nights, 0) * rooms;
+      }
+
+      // For activities, calculate total group cost
+      if (type === 'activities') {
+        const participants = Number(item.participants || 1);
+        const costPerPerson = Number(item.cost || 0);
+        item.participants = participants;
+        item.cost_per_person = costPerPerson;
+        item.cost = costPerPerson * participants;
       }
 
       await onSubmit(type, item);
@@ -260,6 +273,19 @@ if (type === 'hotels') {
   <Label htmlFor="cost">Cost per night (USD)</Label>
   <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
 </div>
+            <div>
+              <Label htmlFor="rooms">Rooms</Label>
+              <Input id="rooms" type="number" min="1" value={form.rooms || 1} onChange={(e) => handleChange('rooms', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <Label htmlFor="guests">Guests</Label>
+              <Input id="guests" type="number" min="1" value={form.guests || 2} onChange={(e) => handleChange('guests', e.target.value)} className={inputClass} />
+            </div>
+            {form.cost && form.check_in && form.check_out && (
+              <div className="sm:col-span-2 p-2 bg-primary/10 rounded text-sm text-center">
+                Total: ${(Number(form.cost || 0) * Math.max(form.nights || 0, 0) * Number(form.rooms || 1)).toLocaleString('en-US', { minimumFractionDigits: 2 })} ({form.nights} nights × {form.rooms || 1} room{Number(form.rooms || 1) > 1 ? 's' : ''})
+              </div>
+            )}
             <div className="sm:col-span-2">
               <Label htmlFor="link_url">Hotel link (optional)</Label>
               <Input id="link_url" placeholder="https://..." value={form.link_url || ''} onChange={(e) => handleChange('link_url', e.target.value)} className={inputClass} />
@@ -288,9 +314,18 @@ if (type === 'hotels') {
               <Input id="duration" placeholder="e.g., 3h 30m" value={form.duration || ''} onChange={(e) => handleChange('duration', e.target.value)} className={inputClass} />
             </div>
             <div>
-              <Label htmlFor="cost">Cost (USD)</Label>
+              <Label htmlFor="cost">Cost per person (USD)</Label>
               <Input id="cost" type="number" min="0" value={form.cost || ''} onChange={(e) => handleChange('cost', e.target.value)} className={inputClass} />
             </div>
+            <div>
+              <Label htmlFor="participants">Participants</Label>
+              <Input id="participants" type="number" min="1" value={form.participants || 1} onChange={(e) => handleChange('participants', e.target.value)} className={inputClass} />
+            </div>
+            {form.cost && Number(form.participants || 1) > 0 && (
+              <div className="sm:col-span-2 p-2 bg-primary/10 rounded text-sm text-center">
+                Total: ${(Number(form.cost || 0) * Number(form.participants || 1)).toLocaleString('en-US', { minimumFractionDigits: 2 })} ({form.participants || 1} participant{Number(form.participants || 1) > 1 ? 's' : ''})
+              </div>
+            )}
             <div className="sm:col-span-2">
               <Label htmlFor="link_url">Link to activity (optional)</Label>
               <Input id="link_url" placeholder="https://..." value={form.link_url || ''} onChange={(e) => handleChange('link_url', e.target.value)} className={inputClass} />

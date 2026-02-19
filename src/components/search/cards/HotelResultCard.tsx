@@ -8,9 +8,10 @@ import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface HotelResultCardProps {
   hotel: any;
+  searchParams?: any;
 }
 
-export const HotelResultCard = ({ hotel }: HotelResultCardProps) => {
+export const HotelResultCard = ({ hotel, searchParams }: HotelResultCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
@@ -94,8 +95,10 @@ export const HotelResultCard = ({ hotel }: HotelResultCardProps) => {
           item_data: {
             name: hotel.hotel_name || hotel.hotelName,
             city: hotel.city || hotel.location,
-            checkIn: hotel.checkin || hotel.checkInDate,
-            checkOut: hotel.checkout || hotel.checkOutDate,
+            checkIn: searchParams?.checkin || hotel.checkin || hotel.checkInDate,
+            checkOut: searchParams?.checkout || hotel.checkout || hotel.checkOutDate,
+            rooms: searchParams?.rooms || 1,
+            adults: searchParams?.adults || 2,
             rating: hotel.review_score || hotel.reviewScore,
             reviewCount: hotel.review_nr || hotel.reviewCount,
             images: hotel.photos || hotel.images || [],
@@ -215,8 +218,8 @@ export const HotelResultCard = ({ hotel }: HotelResultCardProps) => {
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
-          checkout: hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
+          checkin: searchParams?.checkin || hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
+          checkout: searchParams?.checkout || hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
         }}
         item={hotel}
         onConfirm={handleModalConfirm}

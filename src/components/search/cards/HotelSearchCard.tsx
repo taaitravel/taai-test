@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 interface HotelSearchCardProps {
   hotel: any;
+  searchParams?: any;
 }
 
 const VRBOBadge = () => (
@@ -18,7 +19,7 @@ const VRBOBadge = () => (
   </div>
 );
 
-export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
+export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
@@ -30,8 +31,10 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
 
   const images = hotel.images || (hotel.image ? [hotel.image] : []);
   const pricePerNight = hotel.pricePerNight || hotel.price || 0;
-  const totalPrice = hotel.totalPrice || hotel.min_total_price || 0;
+  const rooms = searchParams?.rooms || 1;
+  const adults = searchParams?.adults || 2;
   const nights = hotel.nights || 1;
+  const totalPrice = pricePerNight * nights * rooms || hotel.totalPrice || hotel.min_total_price || 0;
   const location = hotel.cityName 
     ? `${hotel.cityName}${hotel.distanceFromSearch ? `, ${hotel.distanceFromSearch} mi` : ''}` 
     : (hotel.location || hotel.city || '');
@@ -87,9 +90,11 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
           city: hotel.cityName || hotel.city,
           location: hotelLocation,
           address: hotel.address || '',
-          checkIn: hotel.checkin || hotel.checkInDate,
-          checkOut: hotel.checkout || hotel.checkOutDate,
+          checkIn: searchParams?.checkin || hotel.checkin || hotel.checkInDate,
+          checkOut: searchParams?.checkout || hotel.checkout || hotel.checkOutDate,
           pricePerNight, totalPrice, nights,
+          rooms,
+          adults,
           rating: hotel.rating,
           images, source,
           bookingUrl: hotel.bookingUrl,
@@ -161,14 +166,15 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
         </div>
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
-            <div className="flex items-center text-xs text-white/50">
-              <Calendar className="h-3 w-3 mr-1" />
-              {nights} nights
+            <div className="flex items-center justify-center gap-2 text-xs text-white/50">
+              <span className="flex items-center"><Calendar className="h-3 w-3 mr-1" />{nights} nights</span>
+              {rooms > 1 && <span>· {rooms} rooms</span>}
+              <span>· {adults} guests</span>
             </div>
             <p className={cn("text-2xl font-bold text-center", isRental ? "text-rental" : "text-primary")}>
               ${Math.ceil(totalPrice).toLocaleString('en-US')}
             </p>
-            <p className="text-white/40 text-xs text-center">including taxes and fees</p>
+            <p className="text-white/40 text-xs text-center">total for {nights}n · {rooms} room{rooms > 1 ? 's' : ''}</p>
           </div>
           <div className="pt-2 border-t border-white/10 flex-shrink-0">
             <Button
@@ -192,8 +198,8 @@ export const HotelSearchCard = ({ hotel }: HotelSearchCardProps) => {
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
-          checkout: hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
+          checkin: searchParams?.checkin || hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
+          checkout: searchParams?.checkout || hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
         }}
         item={hotel}
         onConfirm={handleModalConfirm}

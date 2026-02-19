@@ -80,11 +80,11 @@ export const CategoryCarousel = ({
 
     switch (searchType) {
       case 'hotels':
-        return <HotelSearchCard key={key} hotel={item} />;
+        return <HotelSearchCard key={key} hotel={item} searchParams={searchParams} />;
       case 'flights':
         return <FlightSearchCard key={key} flight={item} />;
       case 'activities':
-        return <ActivitySearchCard key={key} activity={item} />;
+        return <ActivitySearchCard key={key} activity={item} searchParams={searchParams} />;
       case 'cars':
         return <CarSearchCard key={key} car={item} />;
       case 'packages':
