@@ -110,9 +110,9 @@ export const PackageSearchFields = ({
       {/* Travelers, Rooms, Flight Class */}
       <div className="grid md:grid-cols-4 gap-3">
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Adults *</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Adults *</label>
           <Select value={adults.toString()} onValueChange={(v) => onAdultsChange(parseInt(v))}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -124,9 +124,9 @@ export const PackageSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Children</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Children</label>
           <Select value={children.toString()} onValueChange={(v) => onChildrenChange(parseInt(v))}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -138,9 +138,9 @@ export const PackageSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Rooms *</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Rooms *</label>
           <Select value={rooms.toString()} onValueChange={(v) => onRoomsChange(parseInt(v))}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -152,9 +152,9 @@ export const PackageSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-white mb-2 block">Class</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">Class</label>
           <Select value={flightClass} onValueChange={onFlightClassChange}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
