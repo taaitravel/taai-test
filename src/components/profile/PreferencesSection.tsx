@@ -66,7 +66,7 @@ export const PreferencesSection = () => {
                   variant={dateFormat === fmt ? "default" : "outline"}
                   size="sm"
                   onClick={() => setDateFormat(fmt)}
-                  className={dateFormat === fmt ? "gold-gradient text-primary-foreground" : ""}
+                  className={dateFormat === fmt ? "gold-gradient text-primary-foreground" : "dark:border-white/20 dark:text-white/70"}
                 >
                   {fmt}
                 </Button>
