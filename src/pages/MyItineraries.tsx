@@ -29,6 +29,7 @@ const MyItineraries = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<ItineraryTab>('mine');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(
     searchParams.get('collection')
