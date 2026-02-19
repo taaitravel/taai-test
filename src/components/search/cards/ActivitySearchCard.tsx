@@ -9,6 +9,7 @@ import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 
 interface ActivitySearchCardProps {
   activity: any;
+  searchParams?: any;
 }
 
 export const ActivitySearchCard = ({ activity }: ActivitySearchCardProps) => {
