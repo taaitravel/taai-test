@@ -83,9 +83,9 @@ export const FlightSearchFields = ({
           variant="ghost"
           size="icon"
           onClick={handleSwapLocations}
-          className="mb-5 hover:bg-accent h-9 w-9"
+          className="mb-5 hover:bg-accent dark:hover:bg-white/10 h-9 w-9"
         >
-          <ArrowLeftRight className="h-4 w-4 text-foreground/60" />
+          <ArrowLeftRight className="h-4 w-4 text-foreground/60 dark:text-white/50" />
         </Button>
 
         <div>
