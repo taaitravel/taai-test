@@ -74,7 +74,7 @@ export const MobileNavigation = ({
                     <Menu className="h-6 w-6" />
                   </Button>
                 </DrawerTrigger>
-                <DrawerContent className="h-screen bg-background/95 backdrop-blur-md border-none">
+                <DrawerContent className="h-[100dvh] bg-background/95 backdrop-blur-md border-none">
                   <div className="flex flex-col h-full">
                     {/* Header with close button */}
                     <div className="flex justify-between items-center p-6 border-b border-border">
@@ -94,7 +94,7 @@ export const MobileNavigation = ({
                     </div>
                     
                     {/* Menu Items */}
-                    <div className="flex-1 flex flex-col justify-center space-y-8 px-6">
+                    <div className="flex-1 flex flex-col justify-center space-y-8 px-6 overflow-y-auto">
                       {menuItems.map((item) => (
                         <button
                           key={item.path}
@@ -106,17 +106,17 @@ export const MobileNavigation = ({
                       ))}
                     </div>
                     
-                    {/* Footer with traveler level and sign out */}
-                      <div className="p-6 border-t border-border space-y-4">
-                        <Badge className="bg-accent text-foreground border-border text-lg px-4 py-2">
-                          {travelerLevel}
+                    {/* Footer with traveler level and sign out - always visible */}
+                    <div className="p-6 pb-24 border-t border-border space-y-4">
+                      <Badge className="bg-accent text-foreground border-border text-lg px-4 py-2">
+                        {travelerLevel}
                       </Badge>
                       <Button
                         onClick={handleSignOut}
-                        variant="ghost"
-                        className="w-full text-foreground hover:bg-accent justify-start"
+                        variant="destructive"
+                        className="w-full justify-start text-base"
                       >
-                        <LogOut className="h-4 w-4 mr-2" />
+                        <LogOut className="h-5 w-5 mr-2" />
                         Sign Out
                       </Button>
                     </div>
