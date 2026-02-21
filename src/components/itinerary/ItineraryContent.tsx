@@ -20,6 +20,8 @@ import { List, CalendarDays } from "lucide-react";
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 import { useExpediaMapSync } from "@/hooks/useExpediaMapSync";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/hooks/useAuthenticatedItineraryData";
+import { toast } from "sonner";
 
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
@@ -32,6 +34,7 @@ interface ItineraryContentProps {
   onEdit?: (type: any, index: number) => void;
   onDelete?: (type: string, index: number) => void;
   refreshMapData?: () => void;
+  userRole?: UserRole;
 }
 
 export const ItineraryContent = ({
@@ -45,6 +48,7 @@ export const ItineraryContent = ({
   onEdit,
   onDelete,
   refreshMapData,
+  userRole,
 }: ItineraryContentProps) => {
   const duration = Math.ceil(
     (new Date(itineraryData.itin_date_end).getTime() - 
@@ -80,95 +84,103 @@ export const ItineraryContent = ({
   };
 
 const handleAddSubmit = async (type: ItemType, item: any) => {
-  const current = (itineraryData as any)[type] || [];
-  const newArray = [...current, item];
+  try {
+    const current = (itineraryData as any)[type] || [];
+    const newArray = [...current, item];
 
-  // Update map locations using Expedia coordinates or user-selected location
-  const currentMap = Array.isArray(itineraryData.itin_map_locations) ? (itineraryData.itin_map_locations as any[]) : [];
-  let updatedMap: any[] = currentMap;
+    const currentMap = Array.isArray(itineraryData.itin_map_locations) ? (itineraryData.itin_map_locations as any[]) : [];
+    let updatedMap: any[] = currentMap;
 
-  // Check for Expedia location data first, then fallback to user location
-  const expediaLoc = item?.expedia_data?.location || item?.location;
-  const lat = expediaLoc?.latitude || expediaLoc?.lat;
-  const lng = expediaLoc?.longitude || expediaLoc?.lng;
-  
-  if (lat && lng && typeof lat === 'number' && typeof lng === 'number') {
-    const category = type === 'hotels' ? 'hotel' : type === 'activities' ? 'activity' : type === 'reservations' ? 'reservation' : undefined;
-    const label = item?.name || expediaLoc?.name || item.city || '';
-    const exists = currentMap.some((m: any) => 
-      (Math.abs(m?.lat - lat) < 0.001 && Math.abs(m?.lng - lng) < 0.001) || 
-      (m?.city || '').toLowerCase() === (label || '').toLowerCase()
-    );
-    if (!exists && label) {
-      updatedMap = [...currentMap, { 
-        city: label, 
-        lat, 
-        lng, 
-        ...(category && { category }),
-        ...(item?.expedia_property_id && { expedia_property_id: item.expedia_property_id })
-      } as any];
+    const expediaLoc = item?.expedia_data?.location || item?.location;
+    const lat = expediaLoc?.latitude || expediaLoc?.lat;
+    const lng = expediaLoc?.longitude || expediaLoc?.lng;
+    
+    if (lat && lng && typeof lat === 'number' && typeof lng === 'number') {
+      const category = type === 'hotels' ? 'hotel' : type === 'activities' ? 'activity' : type === 'reservations' ? 'reservation' : undefined;
+      const label = item?.name || expediaLoc?.name || item.city || '';
+      const exists = currentMap.some((m: any) => 
+        (Math.abs(m?.lat - lat) < 0.001 && Math.abs(m?.lng - lng) < 0.001) || 
+        (m?.city || '').toLowerCase() === (label || '').toLowerCase()
+      );
+      if (!exists && label) {
+        updatedMap = [...currentMap, { 
+          city: label, lat, lng, 
+          ...(category && { category }),
+          ...(item?.expedia_property_id && { expedia_property_id: item.expedia_property_id })
+        } as any];
+      }
     }
-  }
 
-  await supabase
-    .from('itinerary')
-    .update({ [type]: newArray, itin_map_locations: updatedMap })
-    .eq('id', itineraryData.id);
-  setAddOpen(false);
-  // Ask parent hook to refetch
-  refreshMapData?.();
-  refreshBudgetData?.();
+    const { error } = await supabase
+      .from('itinerary')
+      .update({ [type]: newArray, itin_map_locations: updatedMap })
+      .eq('id', itineraryData.id);
+    if (error) throw error;
+    setAddOpen(false);
+    refreshMapData?.();
+    refreshBudgetData?.();
+  } catch (error: any) {
+    console.error('Error adding item:', error);
+    toast.error(error?.message?.includes('row-level security') 
+      ? "You don't have permission to add items" 
+      : "Failed to add item. Please try again.");
+  }
 };
 
   // Destination adding (upcoming trips only)
   const isUpcoming = new Date(itineraryData.itin_date_start).getTime() > Date.now();
   
+  const isCollaborator = userRole === 'collaborator';
+
   const handleRemoveDestination = async (destinationToRemove: string) => {
+    if (isCollaborator) {
+      toast.error("Only the trip owner can remove destinations");
+      return;
+    }
     try {
       const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
       const updatedNames = currentNames.filter(dest => dest !== destinationToRemove);
-      
-      // Also remove from map locations
       const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
       const updatedMap = currentMap.filter((loc: any) => loc.city !== destinationToRemove);
       
-      await supabase
+      const { error } = await supabase
         .from('itinerary')
         .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
         .eq('id', itineraryData.id);
-      
+      if (error) throw error;
       refreshMapData?.();
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Failed to remove destination', e);
+      toast.error("Failed to remove destination");
     }
   };
   
   const handleAddDestination = async (cityName: string, lat: number, lng: number) => {
+    if (isCollaborator) {
+      toast.error("Only the trip owner can add destinations");
+      return;
+    }
     try {
       const newMapLoc = { 
-        city: cityName, 
-        lat, 
-        lng,
-        category: 'destination'
+        city: cityName, lat, lng, category: 'destination'
       };
 
-      // Update readable list
       const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
       const updatedNames = Array.from(new Set([...currentNames, cityName]));
 
-      // Update map coords
       const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
       const exists = currentMap.some((m) => m.city?.toLowerCase() === cityName.toLowerCase());
       const updatedMap = exists ? currentMap : [...currentMap, newMapLoc];
 
-      await supabase
+      const { error } = await supabase
         .from('itinerary')
         .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
         .eq('id', itineraryData.id);
-
+      if (error) throw error;
       refreshMapData?.();
     } catch (e) {
       console.warn('Failed to add destination', e);
+      toast.error("Failed to add destination");
     }
   };
 
@@ -188,7 +200,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
-      <ItineraryInfoHeader itineraryData={itineraryData} />
+      <ItineraryInfoHeader itineraryData={itineraryData} userRole={userRole} />
       {/* Trip Overview & Map Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <TripOverviewSection
@@ -197,8 +209,8 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           peopleCount={peopleCount}
           destinations={destinations}
           description={itineraryData.itin_desc}
-          onRemoveDestination={handleRemoveDestination}
-          onAddDestination={() => setAddDestinationOpen(true)}
+          onRemoveDestination={isCollaborator ? undefined : handleRemoveDestination}
+          onAddDestination={isCollaborator ? undefined : () => setAddDestinationOpen(true)}
           isUpcoming={isUpcoming}
         />
         <div className="lg:col-span-2">
