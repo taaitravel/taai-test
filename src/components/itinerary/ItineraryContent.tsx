@@ -156,31 +156,31 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
   };
   
   const handleAddDestination = async (cityName: string, lat: number, lng: number) => {
+    if (isCollaborator) {
+      toast.error("Only the trip owner can add destinations");
+      return;
+    }
     try {
       const newMapLoc = { 
-        city: cityName, 
-        lat, 
-        lng,
-        category: 'destination'
+        city: cityName, lat, lng, category: 'destination'
       };
 
-      // Update readable list
       const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
       const updatedNames = Array.from(new Set([...currentNames, cityName]));
 
-      // Update map coords
       const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
       const exists = currentMap.some((m) => m.city?.toLowerCase() === cityName.toLowerCase());
       const updatedMap = exists ? currentMap : [...currentMap, newMapLoc];
 
-      await supabase
+      const { error } = await supabase
         .from('itinerary')
         .update({ itin_locations: updatedNames, itin_map_locations: updatedMap })
         .eq('id', itineraryData.id);
-
+      if (error) throw error;
       refreshMapData?.();
     } catch (e) {
       console.warn('Failed to add destination', e);
+      toast.error("Failed to add destination");
     }
   };
 
@@ -200,7 +200,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
-      <ItineraryInfoHeader itineraryData={itineraryData} />
+      <ItineraryInfoHeader itineraryData={itineraryData} userRole={userRole} />
       {/* Trip Overview & Map Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <TripOverviewSection
@@ -209,8 +209,8 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           peopleCount={peopleCount}
           destinations={destinations}
           description={itineraryData.itin_desc}
-          onRemoveDestination={handleRemoveDestination}
-          onAddDestination={() => setAddDestinationOpen(true)}
+          onRemoveDestination={isCollaborator ? undefined : handleRemoveDestination}
+          onAddDestination={isCollaborator ? undefined : () => setAddDestinationOpen(true)}
           isUpcoming={isUpcoming}
         />
         <div className="lg:col-span-2">
