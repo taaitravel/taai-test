@@ -1,94 +1,92 @@
 
 
-## Phase 1: Shared Itineraries, Simplified Roles, and Light Theme Fixes
+## Fix: Collaborator Access to Shared Itineraries
 
-This phase focuses on the three most impactful collaboration features: seeing shared trips, a clear 2-role permission model, and theme-compatible notifications.
+### Root Cause
 
----
+The glitch happens because `useAuthenticatedItineraryData.ts` queries with `.eq('userid', user.id)` on line 36. This means only the **owner** can load an itinerary. When a collaborator navigates to the itinerary page, the query returns nothing, which triggers:
+1. `itineraryData` = null
+2. The page shows "No itinerary found..."
+3. Or worse, redirects to `/home`
 
-### 1. "Shared With Me" Itineraries Section
+The RLS policy already allows collaborators to SELECT the itinerary -- the problem is the **application code** adding an unnecessary owner filter.
 
-**Problem**: The `useDashboardData` hook only queries `itinerary.userid = user.id`, so itineraries shared via the invitation system never appear for the invited user -- even though the RLS policy already allows it (`is_itinerary_attendee`).
+### Changes
 
-**Solution**: Create a new hook `useSharedItineraries` that fetches itineraries where the user is an attendee but NOT the owner. Then surface these in a new "Shared With Me" tab/section on the `/itineraries` page.
+#### 1. Fix the data fetching query (critical bug fix)
 
-**Files to create/modify:**
-- **New: `src/hooks/useSharedItineraries.ts`** -- Queries `itinerary_attendees` for the current user (excluding `role = 'owner'`), then fetches the matching itineraries. The existing RLS on `itinerary` already permits SELECT for attendees.
-- **Modify: `src/pages/MyItineraries.tsx`** -- Add a toggle or tab between "My Itineraries" and "Shared With Me". The shared view uses the new hook and displays cards with a "Shared" badge and the owner's name.
-- **Modify: `src/components/my-itineraries/ItineraryCard.tsx`** -- Add optional `isShared` and `ownerName` props to show a "Shared by [Name]" label.
+**File: `src/hooks/useAuthenticatedItineraryData.ts`**
+- Remove `.eq('userid', user.id)` from the query -- RLS already enforces access control
+- The query becomes: `supabase.from('itinerary').select('*').eq('id', parseInt(itineraryId)).single()`
+- Add a `userRole` field to the return value: check if `data.userid === user.id` to determine "owner" vs query `itinerary_attendees` for the collaborator's role
+- Cart items query should also work for collaborators (they see shared cart items or their own)
 
----
+#### 2. Add role awareness to the Itinerary page
 
-### 2. Simplified 2-Role Permission Model
+**File: `src/pages/Itinerary.tsx`**
+- Receive `userRole` from the hook (`'owner' | 'collaborator'`)
+- Pass `userRole` down to `ItineraryContent` and `ItineraryHeader`
+- If collaborator:
+  - Hide the "Edit" (pencil) button that navigates to `/edit-itinerary` (that page edits trip metadata like name/dates)
+  - Allow add/edit/delete of items (hotels, flights, activities, reservations) -- collaborators can plan
+  - Show a subtle banner: "You're a collaborator on this trip" so the user knows their role
 
-**Current state**: The system has 3 roles (owner, editor, viewer). The user wants just 2 levels:
-1. **Owner** -- Full control, only the creator. No one else can delete, rename, or manage attendees.
-2. **Collaborator** -- Can edit itinerary content (add/remove hotels, flights, activities, etc.) but cannot delete the itinerary, rename it, or manage attendees.
+#### 3. Protect owner-only actions in the UI
 
-**Changes:**
-- **Modify: `src/components/itinerary/AttendeesSection.tsx`** -- Replace the "Make Editor" / "Make Viewer" dropdown with just "Collaborator" as the default and only non-owner role. Remove the role-switching UI for simplicity.
-- **Modify: `src/components/itinerary/InviteAttendeesDialog.tsx`** -- Always invite as `collaborator` role (no role selector needed).
-- **Modify: `src/hooks/useItineraryAttendees.ts`** -- Default role on invite = `'collaborator'` instead of `'viewer'`.
-- **Modify: `supabase/functions/accept-invitation/index.ts`** -- Set accepted attendee role to `'collaborator'` instead of `'viewer'`.
-- **Database migration** -- Update the RLS policy on the `itinerary` table so that `collaborator` role gets UPDATE access to content fields (flights, hotels, activities, reservations, budget fields) but NOT to `itin_name`, `itin_desc`, or `userid`. This is enforced at the RLS level:
+**File: `src/components/itinerary/ItineraryHeader.tsx`**
+- Accept `userRole` prop
+- Hide the Edit (pencil) button when `userRole !== 'owner'`
+- Hide "Add to Collection" button for collaborators (collections are personal)
 
-```sql
--- Update the existing UPDATE policy to include collaborators
-DROP POLICY IF EXISTS "Owners and editors can update itineraries" ON public.itinerary;
-CREATE POLICY "Owners and collaborators can update itineraries"
-ON public.itinerary FOR UPDATE
-USING (
-  auth.uid() = userid
-  OR get_itinerary_role(id, auth.uid()) IN ('owner', 'editor', 'collaborator')
-);
+**File: `src/components/itinerary/ItineraryContent.tsx`**
+- Accept `userRole` prop
+- If `userRole === 'collaborator'`:
+  - Disable destination add/remove (those modify `itin_locations` which is trip metadata)
+  - Keep item add/edit/delete enabled (collaborators can add hotels, flights, etc.)
+- Wrap all Supabase update calls in try/catch with user-friendly error toasts instead of silent failures
+
+**File: `src/components/itinerary/ItineraryInfoHeader.tsx`**
+- Accept `userRole` prop
+- When `userRole === 'collaborator'`, show a small badge/chip: "Collaborator" next to the trip title so the user always knows their role
+
+#### 4. Graceful error handling for failed updates
+
+**File: `src/components/itinerary/ItineraryContent.tsx`**
+- Wrap `handleAddSubmit`, `handleRemoveDestination`, `handleAddDestination` in try/catch
+- On RLS violation or other error, show a toast: "You don't have permission to do this" instead of silently failing or crashing
+
+**File: `src/pages/Itinerary.tsx`**
+- Wrap `handleEditSubmit` and `handleDelete` in try/catch with toast error messages
+
+#### 5. Update the hook return type
+
+**File: `src/hooks/useAuthenticatedItineraryData.ts`**
+- Add `userRole: 'owner' | 'collaborator' | null` to the return object
+- Determine role by checking if `data.userid === user.id` (owner) or querying `itinerary_attendees` for the user's role
+- This avoids an extra DB call in most cases (owner check is just a string comparison)
+
+### Technical Details
+
+```text
+Before (broken for collaborators):
+  useAuthenticatedItineraryData
+    -> query: itinerary WHERE userid = user.id AND id = X
+    -> collaborator: NO ROWS RETURNED -> "itin not found" -> redirect
+
+After (works for all attendees):
+  useAuthenticatedItineraryData
+    -> query: itinerary WHERE id = X (RLS handles access control)
+    -> determine role: data.userid === user.id ? 'owner' : lookup attendee role
+    -> return { itineraryData, userRole }
+    -> UI adapts based on userRole
 ```
 
-Note: "editor" is kept for backward compatibility with existing attendees. New invites will use "collaborator". The itinerary name/description fields are protected by the UI (only shown as editable to owners), and the DELETE policy already restricts deletion to `userid = auth.uid()`.
-
----
-
-### 3. Light Theme for Notifications and Terms Page
-
-**Problem**: The `NotificationCenter` sheet and `PendingInvitationsCard` use hardcoded dark colors. The `Terms` page is entirely dark-mode hardcoded.
-
-**Files to modify:**
-
-- **`src/components/shared/NotificationCenter.tsx`** -- Already uses semantic classes (`bg-primary/5`, `border-border`, `text-muted-foreground`). Only minor tweaks needed: ensure the Sheet background inherits from theme (`bg-background` on SheetContent).
-
-- **`src/components/itinerary/PendingInvitationsCard.tsx`** -- Replace:
-  - `from-[#1a1c2e] to-[#252744]` with `bg-card`
-  - `border-white/10` with `border-border`
-  - `text-white` with `text-foreground`
-  - `text-white/60` with `text-muted-foreground`
-  - `bg-white/5` with `bg-secondary`
-  - `border-white/10` with `border-border`
-  - `border-white/20` with `border-border`
-
-- **`src/pages/Terms.tsx`** -- Replace all `bg-[#171821]` with `bg-background`, `text-white` with `text-foreground`, `text-white/80` with `text-foreground/80`, `border-white/30` with `border-border`, `bg-white/10` with `bg-secondary`, `text-[#171821]` with `text-primary-foreground`, and `shadow-white/20` with `shadow-primary/10`.
-
----
-
-### Summary of All Files Changed
+### Summary of Files Changed
 
 | File | Change |
 |------|--------|
-| **New:** `src/hooks/useSharedItineraries.ts` | Fetch itineraries where user is attendee but not owner |
-| `src/pages/MyItineraries.tsx` | Add "Shared With Me" tab using new hook |
-| `src/components/my-itineraries/ItineraryCard.tsx` | Add shared badge and owner name display |
-| `src/components/itinerary/AttendeesSection.tsx` | Simplify to Owner + Collaborator roles |
-| `src/components/itinerary/InviteAttendeesDialog.tsx` | Default to collaborator role |
-| `src/hooks/useItineraryAttendees.ts` | Default invite role = collaborator |
-| `supabase/functions/accept-invitation/index.ts` | Set accepted role to collaborator |
-| `src/components/itinerary/PendingInvitationsCard.tsx` | Semantic theme tokens |
-| `src/pages/Terms.tsx` | Semantic theme tokens |
-| **Database migration** | Update itinerary UPDATE policy to include collaborator role |
-
-### What Phase 2 Will Cover (later)
-
-- End-to-end encrypted itinerary chat
-- Public/social user profiles with countries visited, traveler level
-- Follow system and public itinerary sharing
-- Privacy settings (public vs. private profiles)
-- Terms of Service update for social features
-- Friends/followers infrastructure
-
+| `src/hooks/useAuthenticatedItineraryData.ts` | Remove userid filter, add userRole detection, wrap updates in try/catch |
+| `src/pages/Itinerary.tsx` | Pass userRole to children, add try/catch to edit/delete handlers, show role banner |
+| `src/components/itinerary/ItineraryHeader.tsx` | Accept userRole, hide Edit button for collaborators |
+| `src/components/itinerary/ItineraryContent.tsx` | Accept userRole, disable destination changes for collaborators, add error handling |
+| `src/components/itinerary/ItineraryInfoHeader.tsx` | Accept userRole, show "Collaborator" badge |
