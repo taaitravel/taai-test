@@ -48,6 +48,7 @@ export const ItineraryContent = ({
   onEdit,
   onDelete,
   refreshMapData,
+  userRole,
 }: ItineraryContentProps) => {
   const duration = Math.ceil(
     (new Date(itineraryData.itin_date_end).getTime() - 
