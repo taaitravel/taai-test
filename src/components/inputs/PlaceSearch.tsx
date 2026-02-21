@@ -149,7 +149,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
       return items;
     };
 
-    const fetchYelp = async (q: string) => {
+    const fetchYelp = async (q: string): Promise<PlaceResult[]> => {
       try {
         const body: Record<string, unknown> = { term: q };
         if (biasCoords) {
@@ -160,8 +160,17 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
         }
         
         const { data, error } = await supabase.functions.invoke('search-yelp-businesses', { body });
-        if (error) throw error;
+        if (error) {
+          console.warn('Yelp unavailable, falling back to Mapbox only');
+          return [];
+        }
         
+        // Handle API-level errors (e.g. trial expired)
+        if (data?.error || data?.yelp_error) {
+          console.warn('Yelp API error:', data.error || data.yelp_error?.description);
+          return [];
+        }
+
         const items: PlaceResult[] = (data?.businesses || []).map((b: any) => ({
           id: b.id,
           name: b.name,
@@ -175,7 +184,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
         }));
         return items;
       } catch (e) {
-        console.error('Yelp search error', e);
+        console.warn('Yelp search failed, using Mapbox fallback', e);
         return [];
       }
     };
