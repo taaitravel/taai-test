@@ -20,6 +20,8 @@ import { List, CalendarDays } from "lucide-react";
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 import { useExpediaMapSync } from "@/hooks/useExpediaMapSync";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/hooks/useAuthenticatedItineraryData";
+import { toast } from "sonner";
 
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
@@ -32,6 +34,7 @@ interface ItineraryContentProps {
   onEdit?: (type: any, index: number) => void;
   onDelete?: (type: string, index: number) => void;
   refreshMapData?: () => void;
+  userRole?: UserRole;
 }
 
 export const ItineraryContent = ({

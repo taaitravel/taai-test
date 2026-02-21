@@ -8,17 +8,21 @@ import { useItineraryCollections } from "@/hooks/useItineraryCollections";
 import { toast } from "sonner";
 import { usePDFExport } from "@/hooks/usePDFExport";
 import { ItineraryData } from "@/types/itinerary";
+import { UserRole } from "@/hooks/useAuthenticatedItineraryData";
 
 interface ItineraryHeaderProps {
   itineraryId: number;
   itineraryData?: ItineraryData | null;
+  userRole?: UserRole;
 }
 
-export const ItineraryHeader = ({ itineraryId, itineraryData }: ItineraryHeaderProps) => {
+export const ItineraryHeader = ({ itineraryId, itineraryData, userRole }: ItineraryHeaderProps) => {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { collections, createCollection, addToCollection } = useItineraryCollections();
   const { exportToPDF, isGenerating } = usePDFExport();
+
+  const isOwner = userRole === 'owner';
 
   const handleExportPDF = async () => {
     if (!itineraryData) {
@@ -66,14 +70,16 @@ export const ItineraryHeader = ({ itineraryId, itineraryData }: ItineraryHeaderP
                 <FileDown className="h-4 w-4" />
               )}
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-card text-foreground border-border hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
-              onClick={() => setDialogOpen(true)}
-            >
-              <FolderPlus className="h-4 w-4" />
-            </Button>
+            {isOwner && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-card text-foreground border-border hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
+                onClick={() => setDialogOpen(true)}
+              >
+                <FolderPlus className="h-4 w-4" />
+              </Button>
+            )}
             <Button 
               variant="outline" 
               size="sm" 
@@ -81,13 +87,15 @@ export const ItineraryHeader = ({ itineraryId, itineraryData }: ItineraryHeaderP
             >
               <Share2 className="h-4 w-4" />
             </Button>
-            <Button 
-              size="sm" 
-              className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full gold-gradient hover:opacity-90 text-background font-semibold"
-              onClick={() => navigate(`/edit-itinerary?id=${itineraryId}`)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
+            {isOwner && (
+              <Button 
+                size="sm" 
+                className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full gold-gradient hover:opacity-90 text-background font-semibold"
+                onClick={() => navigate(`/edit-itinerary?id=${itineraryId}`)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         }
       />
