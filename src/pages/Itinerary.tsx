@@ -165,10 +165,8 @@ const Itinerary = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <ItineraryHeader itineraryId={itineraryData.id} itineraryData={itineraryData} userRole={userRole} />
-      </div>
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
+      <ItineraryHeader itineraryId={itineraryData.id} itineraryData={itineraryData} userRole={userRole} />
 
       {userRole === 'collaborator' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
