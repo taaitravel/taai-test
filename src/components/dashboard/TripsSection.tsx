@@ -137,7 +137,7 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
               <p className="text-sm">No upcoming trips</p>
             </div>
           ) : (
-            <div className="relative w-[255px] h-[375px]">
+            <div className="relative w-full max-w-[255px] h-[375px]">
               {upcomingTrips.slice(0, 3).map((trip, index) => renderTripCard(trip, index))}
               {upcomingTrips.length > 3 && (
                 <div className="absolute bottom-0 right-0 bg-muted backdrop-blur-md rounded-full px-3 py-1 text-xs text-muted-foreground border border-border">
@@ -165,7 +165,7 @@ export const TripsSection = ({ activeItineraries, loading, onTripClick }: TripsS
               <p className="text-sm">No past trips yet</p>
             </div>
           ) : (
-            <div className="relative w-[255px] h-[375px]">
+            <div className="relative w-full max-w-[255px] h-[375px]">
               {pastTrips.slice(0, 3).map((trip, index) => renderTripCard(trip, index))}
               {pastTrips.length > 3 && (
                 <div className="absolute bottom-0 right-0 bg-muted backdrop-blur-md rounded-full px-3 py-1 text-xs text-muted-foreground border border-border">
