@@ -83,16 +83,16 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       </div>
 
       {/* 6-Column Action Grid */}
-      <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+      <div className="flex flex-wrap gap-2">
         {actions.map((action, index) => (
           <Button
             key={index}
             size="sm"
             variant="outline"
             onClick={action.onClick}
-            className={`h-9 flex items-center justify-center gap-1.5 text-xs font-medium border ${action.className}`}
+            className={`h-9 flex items-center justify-center gap-1.5 text-xs font-medium border whitespace-nowrap ${action.className}`}
           >
-            <action.icon className="h-3.5 w-3.5" />
+            <action.icon className="h-3.5 w-3.5 shrink-0" />
             {action.label}
           </Button>
         ))}
