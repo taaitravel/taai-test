@@ -4,9 +4,12 @@ import { useToast } from "@/hooks/use-toast";
 import { ItineraryData } from "@/types/itinerary";
 import { useMapLocationSync } from "./useMapLocationSync";
 
+export type UserRole = 'owner' | 'collaborator' | null;
+
 export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<UserRole>(null);
   const [budgetRefreshTrigger, setBudgetRefreshTrigger] = useState(0);
   const [mapRefreshTrigger, setMapRefreshTrigger] = useState(0);
   const { toast } = useToast();
@@ -23,40 +26,55 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
   useEffect(() => {
     const fetchAuthenticatedItinerary = async () => {
       try {
-        // Check if user is authenticated
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
         if (authError || !user) {
           throw new Error('User not authenticated');
         }
 
-        let query = supabase
+        // Don't filter by userid — RLS already handles access control
+        const { data, error } = await supabase
           .from('itinerary')
           .select('*')
-          .eq('userid', user.id);
-        
-        if (itineraryId) {
-          query = query.eq('id', parseInt(itineraryId));
-        } else {
-          query = query.limit(1);
-        }
-        
-        const { data, error } = await query.single();
+          .eq('id', parseInt(itineraryId!))
+          .single();
 
         if (error) throw error;
 
-        // Fetch cart items for this itinerary
-        const { data: cartItems, error: cartError } = await supabase
+        // Determine user role
+        const isOwner = data.userid === user.id;
+        let role: UserRole = isOwner ? 'owner' : null;
+
+        if (!isOwner) {
+          // Check attendee role
+          const { data: attendeeData } = await supabase
+            .from('itinerary_attendees')
+            .select('role')
+            .eq('itinerary_id', data.id)
+            .eq('user_id', user.id)
+            .eq('status', 'accepted')
+            .single();
+
+          role = attendeeData ? 'collaborator' : null;
+        }
+
+        setUserRole(role);
+
+        // Fetch cart items — for owner fetch by itinerary, for collaborator fetch their own
+        const cartQuery = supabase
           .from('cart_items')
           .select('*')
-          .eq('itinerary_id', data.itin_id)
-          .eq('user_id', user.id);
+          .eq('itinerary_id', data.itin_id);
+
+        if (!isOwner) {
+          cartQuery.eq('user_id', user.id);
+        }
+
+        const { data: cartItems, error: cartError } = await cartQuery;
 
         if (cartError) {
           console.error('Error fetching cart items:', cartError);
         }
-
-        console.log('🛒 Fetched cart items:', cartItems);
 
         // Separate cart items by type and include cart_id for editing/deleting
         const cartFlights = (cartItems?.filter(item => item.type === 'flight') || []).map(item => ({
@@ -96,8 +114,8 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
         // Calculate total spending from all cart items
         const totalSpending = cartItems?.reduce((sum, item) => sum + item.price, 0) || 0;
         
-        // Update itinerary spending in database if changed
-        if (totalSpending !== data.spending) {
+        // Only owner should update spending
+        if (isOwner && totalSpending !== data.spending) {
           await supabase
             .from('itinerary')
             .update({ spending: totalSpending })
@@ -157,19 +175,13 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
           expedia_data: data.expedia_data || {}
         };
 
-        console.log('🔐 User authenticated:', user.id);
-        console.log('📊 Enhanced data:', transformedData);
-        console.log('🏨 Hotels:', transformedData.hotels);
-        console.log('🎯 Activities:', transformedData.activities);
-        console.log('✈️ Flights:', transformedData.flights);
-
         setItineraryData(transformedData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching authenticated itinerary:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load itinerary. Please make sure you are logged in.',
+          description: 'Failed to load itinerary. Please make sure you are logged in and have access.',
           variant: 'destructive',
         });
         setLoading(false);
@@ -184,6 +196,7 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
   return {
     itineraryData,
     loading,
+    userRole,
     budgetRefreshTrigger,
     refreshBudgetData,
     refreshMapData,
