@@ -20,7 +20,7 @@ export const ItineraryBreadcrumb = ({ itineraryId, itineraryName }: ItineraryBre
   if (loading) return null;
 
   return (
-    <Breadcrumb className="mb-4">
+    <Breadcrumb className="mb-4 hidden md:block">
       <BreadcrumbList className="text-white/60">
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
