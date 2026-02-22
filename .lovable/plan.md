@@ -3,21 +3,21 @@
 # Add Spending to Center of Donut Chart
 
 ## Problem
-The donut chart center currently shows only "Total" and the budget amount, leaving a visual gap above it. The spending amount should also be displayed in the center to make better use of the space.
+The donut chart center currently shows only "Total" and the budget amount ($150,000), leaving a visual gap in the upper portion of the circle. The spending total should also be displayed there.
 
 ## Changes
 
-### `src/components/itinerary/BudgetPieChart.tsx` (lines 517-521)
-Update the center label overlay to show both the spending and budget:
+### `src/components/itinerary/BudgetPieChart.tsx` (lines ~517-521)
+Update the center label overlay to show both values stacked:
 
-- Line 1: "Spent" label in small muted text
-- Line 2: The `totalSpent` value in a bold, color-coded style (using the existing pink/coral color `hsl(351,85%,75%)`)
-- Line 3: A small separator or "of" text
-- Line 4: "Budget" label in small muted text  
-- Line 5: The `totalBudget` value in bold foreground text
+- "Spent" label (small muted text)
+- `$totalSpent` value (bold, pink/coral color `hsl(351,85%,75%)`)
+- A thin separator or small gap
+- "of" or "Budget" label (small muted text)
+- `$totalBudget` value (bold, foreground color)
 
-This replaces the current center content which only shows "Total" and the budget number.
+This replaces the current content which only shows "Total" and budget.
 
 ### No other files affected
-The `totalSpent` and `totalBudget` variables are already computed in the component (lines 340-341), so no data changes are needed.
+Both `totalSpent` and `totalBudget` are already computed in the component.
 
