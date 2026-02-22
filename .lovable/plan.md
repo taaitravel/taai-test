@@ -1,28 +1,26 @@
 
 
-# Center the Donut Chart Label Precisely
+# Responsive Itinerary Stacked Cards at 450px and Below
 
 ## Problem
-The center label text appears shifted downward because `top-1/2` positions it at the center of the entire `ResponsiveContainer` (which includes the legend area below the pie). The pie itself sits higher, so the label doesn't align with the donut's visual center.
+The stacked cards are fixed at 255x375px. At 450px viewport width, two columns of 255px cards cannot fit side-by-side, so the layout falls back to a single stretched column.
 
 ## Solution
+Reduce the card dimensions at small screens so two columns fit within 450px, while keeping all text sizes, buttons, navigation arrows, and add buttons unchanged.
 
-### `src/components/itinerary/BudgetPieChart.tsx` (lines 517-522)
+## Changes
 
-Adjust the center label positioning to account for the legend taking up space at the bottom. Instead of `top-1/2`, use a calculated offset that targets the actual center of the pie chart (not the full container).
+### 1. `src/components/itinerary/ItineraryStackedCards.tsx` (line 44)
+Update the grid to show 2 columns on small screens:
+- Change `grid-cols-1 sm:grid-cols-2` to `grid-cols-2 lg:grid-cols-4`
+- This makes the default (mobile) layout 2 columns instead of 1
 
-Since the pie uses `cy="50%"` but the legend pushes it up, we need to shift the label upward. Replace:
+### 2. `src/components/itinerary/ItineraryStackedSection.tsx` (line 63)
+Make the card container responsive:
+- Change `w-[255px] h-[375px]` to `w-[165px] h-[243px] sm:w-[255px] sm:h-[375px]`
+- At screens under 640px (which includes 450px), cards shrink to 165x243px -- the same compact size already used for itinerary cards on the My Itineraries page
+- Two 165px cards + gap + padding fits comfortably within 450px
 
-```
-top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
-```
+### No other changes
+Text sizes, scroll arrows, pagination indicators, add buttons, and edit/share/split-cost action buttons all remain exactly as they are. Only the card container dimensions get a responsive breakpoint.
 
-with a pixel-based approach that accounts for the legend:
-
-```
-top-[calc(50%-24px)] left-1/2 -translate-x-1/2 -translate-y-1/2
-```
-
-The `24px` offset compensates for roughly half the legend height, centering the label on the actual pie ring. This may need minor tweaking (~20-28px) after visual verification.
-
-### No other files affected
