@@ -41,7 +41,7 @@ export const MobileBottomNav: React.FC = () => {
                 key={path}
                 onClick={() => handleNavClick(path)}
                 className={cn(
-                  "flex items-center justify-center -mt-4 w-12 h-12 rounded-full shadow-md transition-all duration-300",
+                  "flex items-center justify-center -mt-6 w-12 h-12 rounded-full shadow-md transition-all duration-300",
                   "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                   isActive
                     ? "gold-gradient text-primary-foreground scale-110"
