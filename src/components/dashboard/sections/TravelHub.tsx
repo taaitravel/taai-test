@@ -99,7 +99,7 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       </div>
 
       {/* Inline Recent Activity */}
-      <div className="flex items-center gap-3 text-xs text-foreground/60 pt-1">
+      <div className="flex items-center gap-3 text-xs text-foreground/60 pt-1 overflow-x-auto scrollbar-none">
         <Clock className="h-3 w-3 shrink-0" />
         {recentActivities.map((activity, index) => (
           <span key={index} className="shrink-0">
