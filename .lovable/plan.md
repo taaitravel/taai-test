@@ -1,23 +1,27 @@
 
 
-# Add Spending to Center of Donut Chart
+# Fix Donut Chart Center Label Layout
 
 ## Problem
-The donut chart center currently shows only "Total" and the budget amount ($150,000), leaving a visual gap in the upper portion of the circle. The spending total should also be displayed there.
+The center text is too spread out vertically -- "of" and "$150,000" fall below the donut hole. The user wants all text consolidated inside the inner circle with this layout:
+
+```text
+$79,859.98
+TOTAL SPENT OF
+$150,000
+```
 
 ## Changes
 
-### `src/components/itinerary/BudgetPieChart.tsx` (lines ~517-521)
-Update the center label overlay to show both values stacked:
+### `src/components/itinerary/BudgetPieChart.tsx` (lines 518-523)
 
-- "Spent" label (small muted text)
-- `$totalSpent` value (bold, pink/coral color `hsl(351,85%,75%)`)
-- A thin separator or small gap
-- "of" or "Budget" label (small muted text)
-- `$totalBudget` value (bold, foreground color)
+Replace the current center label with:
 
-This replaces the current content which only shows "Total" and budget.
+- Line 1: `$totalSpent` value -- bold, pink/coral color (`text-[hsl(351,85%,75%)]`), larger font (~`text-xl`)
+- Line 2: "TOTAL SPENT OF" -- small uppercase muted text (`text-[9px] tracking-wider`)
+- Line 3: `$totalBudget` value -- bold foreground, medium font (~`text-base`)
+
+The container div keeps `absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center` but uses tighter spacing (`leading-tight`) so everything fits within the ~104px inner radius of the donut.
 
 ### No other files affected
-Both `totalSpent` and `totalBudget` are already computed in the component.
 
