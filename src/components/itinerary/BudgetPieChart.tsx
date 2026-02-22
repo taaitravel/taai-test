@@ -516,8 +516,10 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
             
             {/* Center Label */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-              <p className="text-muted-foreground text-xs font-medium mb-1">Total</p>
-              <p className="text-foreground text-xl font-bold">${totalBudget.toLocaleString()}</p>
+              <p className="text-muted-foreground text-[10px] font-medium">Spent</p>
+              <p className="text-[hsl(351,85%,75%)] text-lg font-bold">${totalSpent.toLocaleString()}</p>
+              <p className="text-muted-foreground text-[10px] font-medium mt-0.5">of</p>
+              <p className="text-foreground text-sm font-bold">${totalBudget.toLocaleString()}</p>
             </div>
           </div>
         )}
