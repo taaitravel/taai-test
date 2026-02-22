@@ -43,7 +43,7 @@ export const TravelMetrics = ({
     const year = String(date.getFullYear()).slice(-2);
     return `${month}/${year}`;
   };
-  return <Card className="border-border hover:shadow-xl hover:shadow-foreground/5 transition-all duration-300 bg-card/80 backdrop-blur-md p-5">
+  return <Card className="border-border hover:shadow-xl hover:shadow-foreground/5 transition-all duration-300 bg-card/80 backdrop-blur-md p-3 sm:p-5 overflow-hidden">
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-xl font-bold text-foreground">Travel Metrics</h2>
         <Button size="sm" className="gold-gradient hover:opacity-90 text-background font-semibold">
@@ -51,7 +51,7 @@ export const TravelMetrics = ({
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 mb-5">
         {/* Flight Progress Indicator */}
         <Card className="border-border bg-secondary backdrop-blur-sm">
           <CardContent className="p-4 min-h-[250px] flex flex-col">
@@ -84,14 +84,14 @@ export const TravelMetrics = ({
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
         {/* Top Spending Trips */}
         <Card className="border-border bg-secondary backdrop-blur-sm">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-sm font-medium text-foreground/60 mb-1">Projected Spend</p>
-                <p className="text-foreground font-sans font-bold text-4xl">${userStats.projectedSpend.toLocaleString()}</p>
+                <p className="text-foreground font-sans font-bold text-2xl sm:text-4xl">${userStats.projectedSpend.toLocaleString()}</p>
               </div>
               <BarChart3 className="h-6 w-6 text-muted-foreground" />
             </div>
