@@ -30,28 +30,30 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-[9999] flex md:hidden justify-center">
-      <nav className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-lg shadow-black/10 flex items-center justify-around w-full max-w-md h-[60px] px-1">
+      <nav className="relative overflow-visible bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-lg shadow-black/10 flex items-center justify-around w-full max-w-md h-[60px] px-1">
         {NAV_ITEMS.map(({ icon: Icon, label, path }, index) => {
           const isActive = location.pathname === path;
           const isCenterAction = index === Math.floor(NAV_ITEMS.length / 2);
           
           if (isCenterAction) {
             return (
-              <button
-                key={path}
-                onClick={() => handleNavClick(path)}
-                className={cn(
-                  "flex items-center justify-center -mt-6 w-12 h-12 rounded-full shadow-md transition-all duration-300",
-                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-                  isActive
-                    ? "gold-gradient text-primary-foreground scale-110"
-                    : "bg-primary text-primary-foreground hover:scale-105"
-                )}
-                aria-label={label}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <Icon className="h-5 w-5" strokeWidth={2.5} />
-              </button>
+              <React.Fragment key={path}>
+                <div className="w-12 shrink-0" />
+                <button
+                  onClick={() => handleNavClick(path)}
+                  className={cn(
+                    "absolute left-1/2 -translate-x-1/2 -top-6 flex items-center justify-center w-12 h-12 rounded-full shadow-md transition-all duration-300",
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                    isActive
+                      ? "gold-gradient text-primary-foreground scale-110"
+                      : "bg-primary text-primary-foreground hover:scale-105"
+                  )}
+                  aria-label={label}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={2.5} />
+                </button>
+              </React.Fragment>
             );
           }
 
