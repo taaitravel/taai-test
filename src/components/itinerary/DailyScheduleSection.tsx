@@ -119,7 +119,7 @@ export const DailyScheduleSection = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          <ScrollArea className="h-[1100px]">
+          <ScrollArea className="h-[1100px] [&>div>div]:!block [&_[data-radix-scroll-area-scrollbar]]:hidden">
             <div className="divide-y divide-border">
               {Array.from({ length: duration }, (_, index) => {
                 const currentDate = new Date(startDate);
@@ -171,7 +171,7 @@ export const DailyScheduleSection = ({
                         </span>
                       )}
                       <span className="flex-1" />
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-border text-muted-foreground">
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-border text-muted-foreground max-w-[120px] truncate flex-shrink-0">
                         {destination}
                       </Badge>
                       {hasEvents && (
@@ -194,8 +194,8 @@ export const DailyScheduleSection = ({
                                   : 'border-border bg-muted/30'
                               }`}
                             >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className={`text-foreground truncate ${completed ? 'line-through opacity-60' : ''}`}>
+                              <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                                <span className={`text-foreground truncate text-xs sm:text-sm ${completed ? 'line-through opacity-60' : ''}`}>
                                   {e.title}
                                 </span>
                                 {e.subtitle && (

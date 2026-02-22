@@ -387,34 +387,36 @@ if (type === 'hotels') {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg gold-gradient text-[#171821] text-base">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg gold-gradient text-[#171821] text-base max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-xl">{title}</DialogTitle>
           <DialogDescription className="text-base">
             Fill in the details below to add to your itinerary.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Shared datalists for suggestions */}
-        <datalist id="cities">
-          {(suggestions?.cities || []).map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
-        <datalist id="hotels">
-          {(suggestions?.hotels || []).map((h) => (
-            <option key={h} value={h} />
-          ))}
-        </datalist>
-        <datalist id="activities">
-          {(suggestions?.activities || []).map((a) => (
-            <option key={a} value={a} />
-          ))}
-        </datalist>
+        <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+          {/* Shared datalists for suggestions */}
+          <datalist id="cities">
+            {(suggestions?.cities || []).map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
+          <datalist id="hotels">
+            {(suggestions?.hotels || []).map((h) => (
+              <option key={h} value={h} />
+            ))}
+          </datalist>
+          <datalist id="activities">
+            {(suggestions?.activities || []).map((a) => (
+              <option key={a} value={a} />
+            ))}
+          </datalist>
 
-        {renderFields()}
+          {renderFields()}
+        </div>
 
-        <DialogFooter className="mt-6 flex justify-between items-center">
+        <DialogFooter className="mt-4 flex justify-between items-center flex-shrink-0 border-t border-black/10 pt-4">
           {initialItem && onDelete && (
             <Button 
               variant="ghost" 
