@@ -1,28 +1,32 @@
 
 
-# Move Google Sign-In Button Below Forgot Password
+# Separate Privacy Policy into Its Own Page
 
-## What Changes
-Reorder the Login page so the layout is:
-1. Email field
-2. Password field
-3. Forgot password link
-4. "Continue with Google" button (with "or" separator above it)
-5. Sign In button
+## Overview
+Split the current `/terms` page into two distinct pages -- `/terms` for Terms of Service only, and `/privacy-policy` for the Privacy Policy -- to satisfy Google Cloud OAuth verification requirements.
 
-## Technical Details
+## Changes
 
-### `src/pages/Login.tsx`
-- Remove the Google button (lines 101-113) and the "or" separator (lines 115-122) from their current position at the top of the form
-- Insert them between the "Forgot password?" link (line 148-152) and the "Sign In" button (lines 154-160)
-- The order inside `CardContent` becomes:
-  1. Email input
-  2. Password input
-  3. Forgot password link
-  4. "or" separator
-  5. "Continue with Google" button
-  6. Sign In button
-  7. Bottom separator and links
+### 1. Create new file: `src/pages/PrivacyPolicy.tsx`
+- Extract the Privacy Policy content (sections 1-10 under the Shield icon) from the current `Terms.tsx`
+- Use the same card/layout styling as the Terms page
+- Include the `PublicNavigation` component at the top (matching `/terms`, `/what-we-do`, `/contact` pattern)
+- No acceptance checkboxes needed on this standalone page (those stay on `/terms` for the signup flow)
+- Add a link at the bottom pointing to `/terms` for cross-reference
 
-No other files need changes -- `signInWithGoogle` is already wired up in AuthContext.
+### 2. Update `src/pages/Terms.tsx`
+- Remove the entire Privacy Policy section (everything from the Shield icon header through section 10)
+- Remove the Separator between Terms and Privacy sections
+- Add a link/reference to `/privacy-policy` near the bottom (e.g., "See our Privacy Policy")
+- Keep the acceptance checkboxes and flow logic unchanged -- the privacy checkbox label will link to `/privacy-policy`
+
+### 3. Update `src/App.tsx`
+- Import the new `PrivacyPolicy` component
+- Add route: `<Route path="/privacy-policy" element={<PrivacyPolicy />} />` (public, no ProtectedRoute)
+
+### Technical Notes
+- The acceptance flow on `/terms` remains unchanged -- both checkboxes still appear there during signup/login flows
+- The privacy checkbox label text will become a clickable link: "I have read and agree to the [Privacy Policy](/privacy-policy)"
+- Both pages are public (no auth required), consistent with `/what-we-do` and `/contact`
+- The `PublicNavigation` component provides the back button and logo header
 
