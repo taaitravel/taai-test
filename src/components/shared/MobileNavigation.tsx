@@ -137,10 +137,16 @@ export const MobileNavigation = ({
             )}
           </div>
 
-          {/* Centered Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
-          </div>
+          {/* Centered Logo - sits above action buttons row on mobile */}
+          {isMobile ? (
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-1">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px]" />
+            </div>
+          ) : (
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
+            </div>
+          )}
 
           {/* Right Side - Desktop or Custom Actions */}
           <div className="flex items-center space-x-4">
