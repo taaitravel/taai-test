@@ -352,20 +352,12 @@ const Index = () => {
             Revolutionizing travel planning with artificial intelligence
           </p>
           <div className="flex justify-center space-x-6 text-sm text-muted-foreground">
-            <Button 
-              variant="link" 
-              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => isRouterReady && navigate('/terms')}
-            >
+            <a href="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Privacy Policy
-            </Button>
-            <Button 
-              variant="link" 
-              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => isRouterReady && navigate('/terms')}
-            >
+            </a>
+            <a href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Terms of Service
-            </Button>
+            </a>
             <a href="mailto:support@taai.travel" className="hover:text-foreground transition-colors">Contact</a>
           </div>
         </div>
