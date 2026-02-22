@@ -1,27 +1,28 @@
 
 
-# Fix Donut Chart Center Label Layout
+# Center the Donut Chart Label Precisely
 
 ## Problem
-The center text is too spread out vertically -- "of" and "$150,000" fall below the donut hole. The user wants all text consolidated inside the inner circle with this layout:
+The center label text appears shifted downward because `top-1/2` positions it at the center of the entire `ResponsiveContainer` (which includes the legend area below the pie). The pie itself sits higher, so the label doesn't align with the donut's visual center.
 
-```text
-$79,859.98
-TOTAL SPENT OF
-$150,000
+## Solution
+
+### `src/components/itinerary/BudgetPieChart.tsx` (lines 517-522)
+
+Adjust the center label positioning to account for the legend taking up space at the bottom. Instead of `top-1/2`, use a calculated offset that targets the actual center of the pie chart (not the full container).
+
+Since the pie uses `cy="50%"` but the legend pushes it up, we need to shift the label upward. Replace:
+
+```
+top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
 ```
 
-## Changes
+with a pixel-based approach that accounts for the legend:
 
-### `src/components/itinerary/BudgetPieChart.tsx` (lines 518-523)
+```
+top-[calc(50%-24px)] left-1/2 -translate-x-1/2 -translate-y-1/2
+```
 
-Replace the current center label with:
-
-- Line 1: `$totalSpent` value -- bold, pink/coral color (`text-[hsl(351,85%,75%)]`), larger font (~`text-xl`)
-- Line 2: "TOTAL SPENT OF" -- small uppercase muted text (`text-[9px] tracking-wider`)
-- Line 3: `$totalBudget` value -- bold foreground, medium font (~`text-base`)
-
-The container div keeps `absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center` but uses tighter spacing (`leading-tight`) so everything fits within the ~104px inner radius of the donut.
+The `24px` offset compensates for roughly half the legend height, centering the label on the actual pie ring. This may need minor tweaking (~20-28px) after visual verification.
 
 ### No other files affected
-
