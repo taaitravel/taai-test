@@ -60,7 +60,7 @@ export const MobileNavigation = ({
   return (
     <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 relative">
           {/* Left Side - Mobile Menu or Back Button */}
           <div className="flex items-center space-x-4">
             {isMobile ? (
@@ -137,10 +137,16 @@ export const MobileNavigation = ({
             )}
           </div>
 
-          {/* Centered Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
-          </div>
+          {/* Centered Logo - sits above action buttons row on mobile */}
+          {isMobile ? (
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-1">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px]" />
+            </div>
+          ) : (
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
+            </div>
+          )}
 
           {/* Right Side - Desktop or Custom Actions */}
           <div className="flex items-center space-x-4">
