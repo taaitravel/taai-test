@@ -49,10 +49,10 @@ export const AddDestinationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
-      <DialogContent className="sm:max-w-[500px] bg-[#171821]/95 border-white/30 backdrop-blur-md">
+      <DialogContent className="sm:max-w-[500px] bg-card/95 border-border backdrop-blur-md">
         <DialogHeader>
-          <DialogTitle className="text-white">Add Destination</DialogTitle>
-          <DialogDescription className="text-white/70">
+          <DialogTitle className="text-foreground">Add Destination</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Search for a city or location to add to your itinerary.
           </DialogDescription>
         </DialogHeader>
@@ -65,9 +65,9 @@ export const AddDestinationDialog = ({
             onSelect={handlePlaceSelect}
           />
           {selectedPlace && (
-            <div className="p-3 bg-white/10 rounded-lg border border-white/20">
-              <p className="text-sm text-white font-medium">Selected:</p>
-              <p className="text-white">{selectedPlace.city}</p>
+            <div className="p-3 bg-muted rounded-lg border border-border">
+              <p className="text-sm text-foreground font-medium">Selected:</p>
+              <p className="text-foreground">{selectedPlace.city}</p>
             </div>
           )}
         </div>
@@ -75,14 +75,14 @@ export const AddDestinationDialog = ({
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="border-white/30 text-white hover:bg-white/10"
+            className="border-border text-foreground hover:bg-accent"
           >
             Cancel
           </Button>
           <Button
             onClick={handleAdd}
             disabled={!selectedPlace}
-            className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+            className="gold-gradient hover:opacity-90 text-background font-semibold"
           >
             Add Destination
           </Button>
