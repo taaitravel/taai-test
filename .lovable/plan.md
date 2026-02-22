@@ -1,32 +1,25 @@
 
 
-# Separate Privacy Policy into Its Own Page
+# Fix Homepage Privacy Policy Link for Google Verification
 
-## Overview
-Split the current `/terms` page into two distinct pages -- `/terms` for Terms of Service only, and `/privacy-policy` for the Privacy Policy -- to satisfy Google Cloud OAuth verification requirements.
+## Problem
+Google's verification bot crawls `https://taai-test.lovable.app/` and cannot find a link to the privacy policy because:
+1. The "Privacy Policy" footer link incorrectly navigates to `/terms` instead of `/privacy-policy`
+2. Both footer links use JavaScript `onClick` handlers instead of real `<a href>` tags, which bots cannot follow
 
 ## Changes
 
-### 1. Create new file: `src/pages/PrivacyPolicy.tsx`
-- Extract the Privacy Policy content (sections 1-10 under the Shield icon) from the current `Terms.tsx`
-- Use the same card/layout styling as the Terms page
-- Include the `PublicNavigation` component at the top (matching `/terms`, `/what-we-do`, `/contact` pattern)
-- No acceptance checkboxes needed on this standalone page (those stay on `/terms` for the signup flow)
-- Add a link at the bottom pointing to `/terms` for cross-reference
+### `src/pages/Index.tsx` (footer section, ~lines 354-369)
+- Change the "Privacy Policy" button from `navigate('/terms')` to a proper `<a href="/privacy-policy">` tag
+- Change the "Terms of Service" button from `navigate('/terms')` to a proper `<a href="/terms">` tag
+- This ensures Google's crawler can discover and follow both links
 
-### 2. Update `src/pages/Terms.tsx`
-- Remove the entire Privacy Policy section (everything from the Shield icon header through section 10)
-- Remove the Separator between Terms and Privacy sections
-- Add a link/reference to `/privacy-policy` near the bottom (e.g., "See our Privacy Policy")
-- Keep the acceptance checkboxes and flow logic unchanged -- the privacy checkbox label will link to `/privacy-policy`
+### After Publishing
+Once the fix is deployed to `https://taai-test.lovable.app/`:
+1. Go back to Google Cloud Console > OAuth consent screen
+2. Select "I have fixed the issues"
+3. Click "Proceed" to re-submit for verification
 
-### 3. Update `src/App.tsx`
-- Import the new `PrivacyPolicy` component
-- Add route: `<Route path="/privacy-policy" element={<PrivacyPolicy />} />` (public, no ProtectedRoute)
-
-### Technical Notes
-- The acceptance flow on `/terms` remains unchanged -- both checkboxes still appear there during signup/login flows
-- The privacy checkbox label text will become a clickable link: "I have read and agree to the [Privacy Policy](/privacy-policy)"
-- Both pages are public (no auth required), consistent with `/what-we-do` and `/contact`
-- The `PublicNavigation` component provides the back button and logo header
+## Technical Details
+Replace the two `<Button variant="link">` elements in the footer with standard `<a>` anchor tags styled the same way. This makes them crawlable by bots while maintaining the same visual appearance.
 
