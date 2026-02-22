@@ -515,7 +515,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
             </ResponsiveContainer>
             
             {/* Center Label */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
+            <div className="absolute top-[calc(50%-24px)] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
               <p className="text-[hsl(351,85%,75%)] text-xl font-bold">${totalSpent.toLocaleString()}</p>
               <p className="text-muted-foreground text-[9px] font-medium uppercase tracking-wider">total spent of</p>
               <p className="text-foreground text-base font-bold">${totalBudget.toLocaleString()}</p>
