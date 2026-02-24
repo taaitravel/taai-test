@@ -8,6 +8,9 @@ import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingSt
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
 import { useBrowserState } from "@/hooks/useBrowserState";
 import { AddItemDialog, ItemType } from "@/components/itinerary/AddItemDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plane, Building2, MapPin, Utensils, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -211,8 +214,103 @@ const Itinerary = () => {
         defaultCity={(itineraryData.itin_locations || [])[0] || ''}
         suggestions={{ cities: itineraryData.itin_locations || [] }}
       />
+
+      {/* Item Detail Viewer */}
+      <ItemDetailDialog
+        browserState={browserState}
+        itineraryData={itineraryData}
+        onClose={() => {
+          if (browserState.flightBrowserOpen) closeFlightBrowser();
+          else if (browserState.hotelBrowserOpen) closeHotelBrowser();
+          else if (browserState.activityBrowserOpen) closeActivityBrowser();
+          else if (browserState.reservationBrowserOpen) closeReservationBrowser();
+        }}
+        onEdit={(type, index) => {
+          if (browserState.flightBrowserOpen) closeFlightBrowser();
+          else if (browserState.hotelBrowserOpen) closeHotelBrowser();
+          else if (browserState.activityBrowserOpen) closeActivityBrowser();
+          else if (browserState.reservationBrowserOpen) closeReservationBrowser();
+          handleEdit(type, index);
+        }}
+      />
     </div>
   );
 };
+
+/* ---- Item Detail Viewer ---- */
+const iconMap = {
+  flights: Plane,
+  hotels: Building2,
+  activities: MapPin,
+  reservations: Utensils,
+} as const;
+
+const labelMap = { flights: 'Flight', hotels: 'Hotel', activities: 'Activity', reservations: 'Reservation' } as const;
+
+function ItemDetailDialog({ browserState, itineraryData, onClose, onEdit }: {
+  browserState: any;
+  itineraryData: any;
+  onClose: () => void;
+  onEdit: (type: ItemType, index: number) => void;
+}) {
+  const isOpen = browserState.flightBrowserOpen || browserState.hotelBrowserOpen || browserState.activityBrowserOpen || browserState.reservationBrowserOpen;
+
+  let type: ItemType = 'flights';
+  let index = 0;
+  if (browserState.flightBrowserOpen) { type = 'flights'; index = browserState.currentFlightIndex; }
+  else if (browserState.hotelBrowserOpen) { type = 'hotels'; index = browserState.currentHotelIndex; }
+  else if (browserState.activityBrowserOpen) { type = 'activities'; index = browserState.currentActivityIndex; }
+  else if (browserState.reservationBrowserOpen) { type = 'reservations'; index = browserState.currentReservationIndex; }
+
+  const items = (itineraryData?.[type] || []) as any[];
+  const item = items[index];
+  const Icon = iconMap[type];
+
+  if (!isOpen || !item) return null;
+
+  const fields: { label: string; value: string | number | undefined }[] = [];
+  if (type === 'flights') {
+    fields.push({ label: 'Airline', value: item.airline }, { label: 'Flight #', value: item.flight_number }, { label: 'From', value: item.from }, { label: 'To', value: item.to }, { label: 'Departure', value: item.departure }, { label: 'Arrival', value: item.arrival });
+  } else if (type === 'hotels') {
+    fields.push({ label: 'Name', value: item.name }, { label: 'City', value: item.city }, { label: 'Check-in', value: item.check_in }, { label: 'Check-out', value: item.check_out }, { label: 'Rating', value: item.rating });
+  } else if (type === 'activities') {
+    fields.push({ label: 'Name', value: item.name }, { label: 'City', value: item.city }, { label: 'Date', value: item.date }, { label: 'Duration', value: item.duration });
+  } else {
+    fields.push({ label: 'Name', value: item.name }, { label: 'Type', value: item.type }, { label: 'City', value: item.city }, { label: 'Date', value: item.date }, { label: 'Time', value: item.time }, { label: 'Party size', value: item.party_size });
+  }
+  const cost = item.cost ?? item.price ?? 0;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Icon className="h-5 w-5 text-primary" />
+            {labelMap[type]} Details
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          {fields.filter(f => f.value != null && f.value !== '').map(f => (
+            <div key={f.label} className="flex justify-between">
+              <span className="text-muted-foreground">{f.label}</span>
+              <span className="font-medium text-right max-w-[60%] truncate">{f.value}</span>
+            </div>
+          ))}
+          {cost > 0 && (
+            <div className="flex justify-between border-t pt-2">
+              <span className="text-muted-foreground">Cost</span>
+              <span className="font-semibold">${Number(cost).toLocaleString()}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex justify-end pt-2">
+          <Button variant="outline" size="sm" onClick={() => onEdit(type, index)}>
+            <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default Itinerary;
