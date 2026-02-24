@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Plus, Plane, Hotel, Car, Activity, Package, UtensilsCrossed, FolderOpen, Clock } from "lucide-react";
+import { Plus, Plane, Hotel, Car, Activity, Package, UtensilsCrossed, FolderOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface TravelHubProps {
@@ -60,11 +60,6 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
     }
   ];
 
-  const recentActivities = [
-    { action: "Updated Singapore budget", time: "2h" },
-    { action: "Added hotel", time: "1d" },
-    { action: "New itinerary", time: "3d" }
-  ];
 
   return (
     <div className="w-full space-y-3">
@@ -98,16 +93,6 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
         ))}
       </div>
 
-      {/* Inline Recent Activity */}
-      <div className="flex items-center gap-3 text-xs text-foreground/60 pt-1 overflow-x-auto scrollbar-none">
-        <Clock className="h-3 w-3 shrink-0" />
-        {recentActivities.map((activity, index) => (
-          <span key={index} className="shrink-0">
-            {activity.action} <span className="text-foreground/40">({activity.time})</span>
-            {index < recentActivities.length - 1 && <span className="ml-3">·</span>}
-          </span>
-        ))}
-      </div>
     </div>
   );
 };
