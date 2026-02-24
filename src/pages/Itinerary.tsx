@@ -214,6 +214,25 @@ const Itinerary = () => {
         defaultCity={(itineraryData.itin_locations || [])[0] || ''}
         suggestions={{ cities: itineraryData.itin_locations || [] }}
       />
+
+      {/* Item Detail Viewer */}
+      <ItemDetailDialog
+        browserState={browserState}
+        itineraryData={itineraryData}
+        onClose={() => {
+          if (browserState.flightBrowserOpen) closeFlightBrowser();
+          else if (browserState.hotelBrowserOpen) closeHotelBrowser();
+          else if (browserState.activityBrowserOpen) closeActivityBrowser();
+          else if (browserState.reservationBrowserOpen) closeReservationBrowser();
+        }}
+        onEdit={(type, index) => {
+          if (browserState.flightBrowserOpen) closeFlightBrowser();
+          else if (browserState.hotelBrowserOpen) closeHotelBrowser();
+          else if (browserState.activityBrowserOpen) closeActivityBrowser();
+          else if (browserState.reservationBrowserOpen) closeReservationBrowser();
+          handleEdit(type, index);
+        }}
+      />
     </div>
   );
 };
