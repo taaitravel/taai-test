@@ -222,13 +222,44 @@ export const DailyScheduleSection = ({
                           return (
                             <div
                               key={i}
-                              className={`flex items-center justify-between rounded border px-2.5 py-1.5 text-sm transition-colors ${
+                              className={`flex items-center gap-2 rounded border px-2.5 py-1.5 text-sm transition-colors ${
                                 completed
                                   ? 'border-primary/30 bg-primary/5'
                                   : 'border-border bg-muted/30'
                               }`}
                             >
-                              <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                              <button
+                                aria-label={completed ? 'Mark incomplete' : 'Mark complete'}
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  toggleCompletion(e.type, e.index, dateStr);
+                                }}
+                                className="flex-shrink-0 transition-colors"
+                              >
+                                {completed ? (
+                                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                                ) : (
+                                  <Circle className="h-5 w-5 text-muted-foreground hover:text-primary" />
+                                )}
+                              </button>
+                              {onViewItem && (
+                                <button
+                                  aria-label="View details"
+                                  onClick={(ev) => {
+                                    ev.stopPropagation();
+                                    onViewItem(e.group as any, e.index);
+                                  }}
+                                  className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full border border-border hover:border-primary hover:bg-primary/10 transition-colors"
+                                >
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                                </button>
+                              )}
+                              {e.datetime && (
+                                <span className="flex-shrink-0 text-[10px] text-muted-foreground">
+                                  {e.datetime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              )}
+                              <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
                                 <span className={`text-foreground truncate text-xs sm:text-sm ${completed ? 'line-through opacity-60' : ''}`}>
                                   {e.title}
                                 </span>
@@ -237,39 +268,6 @@ export const DailyScheduleSection = ({
                                     {e.subtitle}
                                   </span>
                                 )}
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {e.datetime && (
-                                  <span className="text-[10px] text-muted-foreground">
-                                    {e.datetime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
-                                )}
-                                {onViewItem && (
-                                  <button
-                                    aria-label="View details"
-                                    onClick={(ev) => {
-                                      ev.stopPropagation();
-                                      onViewItem(e.group as any, e.index);
-                                    }}
-                                    className="w-5 h-5 flex items-center justify-center rounded-full border border-border hover:border-primary hover:bg-primary/10 transition-colors"
-                                  >
-                                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                                  </button>
-                                )}
-                                <button
-                                  aria-label={completed ? 'Mark incomplete' : 'Mark complete'}
-                                  onClick={(ev) => {
-                                    ev.stopPropagation();
-                                    toggleCompletion(e.type, e.index, dateStr);
-                                  }}
-                                  className="flex-shrink-0 transition-colors"
-                                >
-                                  {completed ? (
-                                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                                  ) : (
-                                    <Circle className="h-5 w-5 text-muted-foreground hover:text-primary" />
-                                  )}
-                                </button>
                               </div>
                             </div>
                           );
