@@ -128,6 +128,7 @@ export const DailyScheduleSection = ({
                 const weekday = getAbbreviatedWeekday(currentDate);
                 const formattedDate = formatDateByPreference(currentDate, dateFormat);
                 const holiday = getHoliday(currentDate);
+                const events = buildEventsForDay(currentDate);
                 // Derive destination from booked events for this day
                 const eventCities: string[] = [];
                 events.forEach(e => {
@@ -150,7 +151,6 @@ export const DailyScheduleSection = ({
                 const destination = uniqueCities.length > 0
                   ? uniqueCities.join(', ')
                   : destinations[index % destinations.length];
-                const events = buildEventsForDay(currentDate);
                 const hasEvents = events.length > 0;
                 const isOpen = !!openDays[index];
                 const dateStr = currentDate.toISOString().split('T')[0];
