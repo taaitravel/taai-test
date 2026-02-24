@@ -128,7 +128,28 @@ export const DailyScheduleSection = ({
                 const weekday = getAbbreviatedWeekday(currentDate);
                 const formattedDate = formatDateByPreference(currentDate, dateFormat);
                 const holiday = getHoliday(currentDate);
-                const destination = destinations[index % destinations.length];
+                // Derive destination from booked events for this day
+                const eventCities: string[] = [];
+                events.forEach(e => {
+                  if (e.type === 'flight') {
+                    const flight = (flights || [])[e.index] as any;
+                    if (flight?.to) eventCities.push(flight.to);
+                    else if (flight?.from) eventCities.push(flight.from);
+                  } else if (e.type === 'hotel-checkin' || e.type === 'hotel-checkout') {
+                    const hotel = (hotels || [])[e.index] as any;
+                    if (hotel?.city) eventCities.push(hotel.city);
+                  } else if (e.type === 'activity') {
+                    const activity = (activities || [])[e.index] as any;
+                    if (activity?.city) eventCities.push(activity.city);
+                  } else if (e.type === 'reservation') {
+                    const reservation = (reservations || [])[e.index] as any;
+                    if (reservation?.city) eventCities.push(reservation.city);
+                  }
+                });
+                const uniqueCities = [...new Set(eventCities.filter(Boolean))];
+                const destination = uniqueCities.length > 0
+                  ? uniqueCities.join(', ')
+                  : destinations[index % destinations.length];
                 const events = buildEventsForDay(currentDate);
                 const hasEvents = events.length > 0;
                 const isOpen = !!openDays[index];
