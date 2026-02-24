@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronRight, CheckCircle2, Circle, ExternalLink } from "lucide-react";
+import { ChevronRight, CheckCircle2, Circle, ExternalLink, Plane, Bed, MapPin, Utensils } from "lucide-react";
 import { ItineraryData } from "@/types/itinerary";
 import { getHoliday, formatDateByPreference, getAbbreviatedWeekday } from "@/lib/holidays";
 import { useAuth } from "@/contexts/AuthContext";
