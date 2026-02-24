@@ -416,7 +416,7 @@ if (type === 'hotels') {
           {renderFields()}
         </div>
 
-        <DialogFooter className="mt-4 flex justify-between items-center flex-shrink-0 border-t border-black/10 pt-4">
+        <DialogFooter className="mt-4 flex flex-row items-center justify-end gap-2 flex-shrink-0 border-t border-black/10 pt-4">
           {initialItem && onDelete && (
             <Button 
               variant="ghost" 
@@ -434,28 +434,26 @@ if (type === 'hotels') {
               <Trash2 className="h-5 w-5" />
             </Button>
           )}
-          <div className="flex gap-2 ml-auto">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={onClose} 
-              disabled={loading}
-              className="h-10 w-10 bg-white hover:bg-white/90 text-[#171821] border-0"
-              aria-label="Cancel"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            <Button 
-              variant="contrast" 
-              size="icon"
-              onClick={handleSubmit} 
-              disabled={loading || !type}
-              className="h-10 w-10 hover:text-green-700 transition-colors"
-              aria-label="Save"
-            >
-              <Check className="h-5 w-5" />
-            </Button>
-          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onClose} 
+            disabled={loading}
+            className="h-10 w-10 bg-white hover:bg-white/90 text-[#171821] border-0"
+            aria-label="Cancel"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+          <Button 
+            variant="contrast" 
+            size="icon"
+            onClick={handleSubmit} 
+            disabled={loading || !type}
+            className="h-10 w-10 hover:text-green-700 transition-colors"
+            aria-label="Save"
+          >
+            <Check className="h-5 w-5" />
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
