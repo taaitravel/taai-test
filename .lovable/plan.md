@@ -1,42 +1,29 @@
 
 
-# Auto-Format Destinations on Save and Add
+# Dynamic Day Location from Booked Events
 
 ## Problem
-Destination names are stored as-is without consistent formatting. The `enhance-city-formatting` edge function exists but is only triggered manually. We want it to run automatically every time a destination is added or an itinerary is saved.
+The daily schedule destination badge (e.g., "LOS ANGELES") is assigned by cycling through the `destinations` array using modulo arithmetic (`destinations[index % destinations.length]`). This means the displayed location has no connection to what's actually booked for that day.
 
-## Changes
+## Solution
+Derive the destination label from the events scheduled for each day. Extract the city/location from flights, hotels, activities, and reservations that fall on that date. If multiple unique cities appear, show them joined (e.g., "Paris, Rome"). If no events exist for the day, fall back to the current round-robin behavior.
 
-### 1. `src/components/itinerary/ItineraryContent.tsx` -- Auto-format on Add Destination
+## Change
 
-In `handleAddDestination`, after receiving the city name from `AddDestinationDialog` (which already provides lat/lng from PlaceSearch), pass the raw city name through `enhanceCityFormatting` to get the properly formatted "City, Country" name before saving.
+### `src/components/itinerary/DailyScheduleSection.tsx`
 
-- Call `enhanceCityFormatting([cityName])` from the existing `useEnhancedCityFormatting` hook (already imported)
-- If it returns a result, use the `formattedName` instead of the raw `cityName` for both `itin_locations` and `itin_map_locations`
-- Fall back to the original name if the enhancement fails
+Replace line 131:
+```
+const destination = destinations[index % destinations.length];
+```
 
-### 2. `src/pages/CreateManualItinerary.tsx` -- Auto-format on Create
+With logic that:
+1. Collects city names from all events for that day:
+   - Flights: use the `to` field (arrival city) as primary, `from` field for departures
+   - Hotels: use the `city` field
+   - Activities: use the `city` field
+   - Reservations: use the `city` field
+2. Deduplicates and joins them (e.g., "Paris" or "Paris, Rome")
+3. Falls back to `destinations[index % destinations.length]` if no event cities are found
 
-In `handleCreateItinerary`, before inserting into Supabase:
-
-- Import and use `useEnhancedCityFormatting`
-- Call `enhanceCityFormatting(locationsArray)` on the array of city names
-- Replace `locationsArray` and `selectedLocations` map entries with the enhanced formatted names and coordinates
-- Fall back to originals if enhancement fails
-
-### 3. `src/pages/CreateItinerary.tsx` -- Auto-format on Save (AI flow)
-
-In `saveItinerary`, before the insert:
-
-- Import and use `useEnhancedCityFormatting`
-- Call `enhanceCityFormatting(itineraryData.locations)` if locations exist
-- Update the locations and mapLocations with formatted names before saving
-- Fall back to originals if enhancement fails
-
-## Technical Details
-
-- The `enhanceCityFormatting` function calls the `enhance-city-formatting` edge function which uses Mapbox geocoding to return `"City, Country"` formatted names with accurate lat/lng
-- The hook is already available at `src/hooks/useEnhancedCityFormatting.ts`
-- No new dependencies needed
-- The formatting call is async, so each save/add operation will have a brief additional network call (~200-500ms)
-- If the edge function fails, the original user-provided names are preserved as fallback
+This is a self-contained change -- only the destination derivation logic on ~line 131 changes. No other files or components are affected.
