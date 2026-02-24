@@ -8,6 +8,9 @@ import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingSt
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
 import { useBrowserState } from "@/hooks/useBrowserState";
 import { AddItemDialog, ItemType } from "@/components/itinerary/AddItemDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plane, Building2, MapPin, Utensils, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
