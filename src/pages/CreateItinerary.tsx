@@ -12,6 +12,7 @@ import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 
 interface ItineraryData {
   name?: string;
@@ -33,6 +34,7 @@ const CreateItinerary = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { enhanceCityFormatting } = useEnhancedCityFormatting();
   const [itineraryData, setItineraryData] = useState<ItineraryData>({});
   const [isSaving, setIsSaving] = useState(false);
   const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
@@ -57,6 +59,21 @@ const CreateItinerary = () => {
 
     setIsSaving(true);
     try {
+      // Auto-format destination names before saving
+      let finalLocations = itineraryData.locations || [];
+      let finalMapLocations = itineraryData.mapLocations || [];
+      try {
+        if (finalLocations.length > 0) {
+          const enhanced = await enhanceCityFormatting(finalLocations);
+          if (enhanced.length > 0) {
+            finalLocations = enhanced.map(e => e.formattedName);
+            finalMapLocations = enhanced.map(e => ({ city: e.formattedName, lat: e.lat, lng: e.lng }));
+          }
+        }
+      } catch {
+        // Fall back to original values
+      }
+
       const { data, error } = await supabase
         .from('itinerary')
         .insert({
@@ -65,8 +82,8 @@ const CreateItinerary = () => {
           itin_desc: itineraryData.description,
           itin_date_start: itineraryData.dateStart,
           itin_date_end: itineraryData.dateEnd,
-          itin_locations: itineraryData.locations,
-          itin_map_locations: itineraryData.mapLocations,
+          itin_locations: finalLocations,
+          itin_map_locations: finalMapLocations,
           budget: itineraryData.budget,
           user_type: itineraryData.userType || 'individual',
           attendees: itineraryData.attendees,

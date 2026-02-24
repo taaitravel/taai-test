@@ -12,11 +12,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationSelector } from "@/components/LocationSelector";
+import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 
 const CreateManualItinerary = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
+  const { enhanceCityFormatting } = useEnhancedCityFormatting();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -67,8 +69,18 @@ const CreateManualItinerary = () => {
     setLoading(true);
 
     try {
-      // Use selected geolocations
-      const locationsArray = selectedLocations.map(loc => loc.city);
+      // Auto-format destination names before saving
+      let locationsArray = selectedLocations.map(loc => loc.city);
+      let finalMapLocations = selectedLocations;
+      try {
+        const enhanced = await enhanceCityFormatting(locationsArray);
+        if (enhanced.length > 0) {
+          locationsArray = enhanced.map(e => e.formattedName);
+          finalMapLocations = enhanced.map(e => ({ city: e.formattedName, lat: e.lat, lng: e.lng }));
+        }
+      } catch {
+        // Fall back to original values
+      }
       
       // Create attendees array based on count
       const attendeesArray = Array.from({ length: parseInt(formData.attendeeCount) }, (_, i) => ({
@@ -86,7 +98,7 @@ const CreateManualItinerary = () => {
           itin_date_start: formData.dateStart,
           itin_date_end: formData.dateEnd,
           itin_locations: locationsArray,
-          itin_map_locations: selectedLocations,
+          itin_map_locations: finalMapLocations,
           budget: formData.budget ? parseFloat(formData.budget) : null,
           user_type: userProfile?.user_type || 'individual',
           attendees: attendeesArray,
