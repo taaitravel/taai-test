@@ -1,42 +1,34 @@
 
 
-# Replace Destination Text with Category Icon Dots
+# Fix: View Details Button Not Opening Modal
 
-## What Changes
-Replace the destination text (e.g., "Los Angeles, United States") inside the outline badge on each day row with small colored icons representing the event categories scheduled for that day. Each icon corresponds to a category. Multiple events of the same type show multiple icons. All icons are aligned side-by-side inside the existing badge bubble.
+## Problem
+When clicking the "View details" button (the small circle with an external link icon) on an event in the Daily Schedule, nothing happens. The button calls `onViewItem`, which triggers `openFlightBrowser(index)` / `openHotelBrowser(index)` etc. These functions correctly set `browserState.flightBrowserOpen = true` (and similar), but **no component reads `browserState`** to render a modal. The state is set but never consumed -- the modal simply does not exist yet.
 
-## Visual Result
-Instead of seeing `Los Angeles, United States` in the badge, you will see colored icons like:
-- A row of tiny icons: plane, plane, bed, map-pin, utensils
-- If no events exist for the day, the badge is hidden
-
-## Category Colors and Icons
-- **Flight**: `Plane` icon, `text-blue-500`
-- **Hotel check-in**: `Bed` icon, `text-purple-500`
-- **Hotel check-out**: `Bed` icon, `text-purple-400`
-- **Activity**: `MapPin` icon, `text-green-500`
-- **Reservation**: `Utensils` icon, `text-orange-500`
+## Solution
+Add a detail viewer Dialog in `Itinerary.tsx` that:
+1. Reads `browserState` to determine which item type is open and at which index
+2. Renders a Dialog showing the selected item's details
+3. Uses the existing close functions (`closeFlightBrowser`, etc.) to dismiss it
 
 ## Technical Details
 
-### File: `src/components/itinerary/DailyScheduleSection.tsx`
+### File: `src/pages/Itinerary.tsx`
 
-**No new imports needed** -- `Plane`, `Bed`, `MapPin`, `Utensils` are already imported on line 6.
+1. Import `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle` from `@/components/ui/dialog`
+2. Import category icons (`Plane`, `Building2`, `MapPin`, `Utensils`) from `lucide-react`
+3. After the existing `<AddItemDialog>`, add a new `<Dialog>` that:
+   - Computes `isOpen` from `browserState.flightBrowserOpen || hotelBrowserOpen || activityBrowserOpen || reservationBrowserOpen`
+   - Determines the active type and index from whichever is open
+   - Pulls the item from `itineraryData[type][index]`
+   - Renders a detail view with the item's key fields (name, dates, city, cost, etc.)
+   - On close, calls the corresponding `close*Browser()` function
+   - Includes an "Edit" button that closes the viewer and opens the existing edit dialog
 
-**Replace lines 195-197** (the Badge): Keep the `Badge` wrapper with `variant="outline"` but:
-- Remove `max-w-[120px] truncate` classes and `{destination}` text
-- Add `flex items-center gap-0.5` for horizontal icon layout
-- Map over the `events` array, rendering the matching Lucide icon (`h-3 w-3`) with its category color
-- Only render the Badge if `hasEvents` is true (hide it on empty days)
+4. The detail content will render different fields based on type:
+   - **Flight**: airline, flight number, from/to, departure/arrival, cost
+   - **Hotel**: name, city, check-in/check-out, cost
+   - **Activity**: name, city, date, cost
+   - **Reservation**: name, type, city, date, time, cost
 
-**Icon mapping** (inline helper object):
-```
-flight       -> Plane,   text-blue-500
-hotel-checkin  -> Bed,   text-purple-500
-hotel-checkout -> Bed,   text-purple-400
-activity     -> MapPin,  text-green-500
-reservation  -> Utensils, text-orange-500
-```
-
-Single-file change, ~5 lines modified.
-
+This is a single-file change to `src/pages/Itinerary.tsx` -- no new components needed.
