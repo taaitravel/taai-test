@@ -192,9 +192,22 @@ export const DailyScheduleSection = ({
                         </span>
                       )}
                       <span className="flex-1" />
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-border text-muted-foreground max-w-[120px] truncate flex-shrink-0">
-                        {destination}
-                      </Badge>
+                      {hasEvents && (
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-border flex items-center gap-0.5 flex-shrink-0">
+                          {events.map((e, i) => {
+                            const iconMap: Record<string, { Icon: typeof Plane; color: string }> = {
+                              flight: { Icon: Plane, color: 'text-blue-500' },
+                              'hotel-checkin': { Icon: Bed, color: 'text-purple-500' },
+                              'hotel-checkout': { Icon: Bed, color: 'text-purple-400' },
+                              activity: { Icon: MapPin, color: 'text-green-500' },
+                              reservation: { Icon: Utensils, color: 'text-orange-500' },
+                            };
+                            const entry = iconMap[e.type];
+                            if (!entry) return null;
+                            return <entry.Icon key={i} className={`h-3 w-3 ${entry.color}`} />;
+                          })}
+                        </Badge>
+                      )}
                       {hasEvents && (
                         <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 flex-shrink-0 ${
                           isOpen ? 'rotate-90' : ''
