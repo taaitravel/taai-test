@@ -56,7 +56,7 @@ export const ItineraryContent = ({
   );
   const destinations = itineraryData.itin_locations || [];
   const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
-  const { updateItineraryWithEnhancedCities } = useEnhancedCityFormatting();
+  const { updateItineraryWithEnhancedCities, enhanceCityFormatting } = useEnhancedCityFormatting();
   const { syncExpediaLocations, isUpdating } = useExpediaMapSync();
   const { user } = useAuth();
   const reminderTriggered = useRef(false);
@@ -161,15 +161,30 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
       return;
     }
     try {
+      // Auto-format the city name via the enhance-city-formatting edge function
+      let formattedName = cityName;
+      let formattedLat = lat;
+      let formattedLng = lng;
+      try {
+        const enhanced = await enhanceCityFormatting([cityName]);
+        if (enhanced.length > 0) {
+          formattedName = enhanced[0].formattedName;
+          formattedLat = enhanced[0].lat;
+          formattedLng = enhanced[0].lng;
+        }
+      } catch {
+        // Fall back to original values
+      }
+
       const newMapLoc = { 
-        city: cityName, lat, lng, category: 'destination'
+        city: formattedName, lat: formattedLat, lng: formattedLng, category: 'destination'
       };
 
       const currentNames = Array.isArray(itineraryData.itin_locations) ? itineraryData.itin_locations : [];
-      const updatedNames = Array.from(new Set([...currentNames, cityName]));
+      const updatedNames = Array.from(new Set([...currentNames, formattedName]));
 
       const currentMap = Array.isArray(itineraryData.itin_map_locations) ? itineraryData.itin_map_locations : [];
-      const exists = currentMap.some((m) => m.city?.toLowerCase() === cityName.toLowerCase());
+      const exists = currentMap.some((m) => m.city?.toLowerCase() === formattedName.toLowerCase());
       const updatedMap = exists ? currentMap : [...currentMap, newMapLoc];
 
       const { error } = await supabase
