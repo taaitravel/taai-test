@@ -1,29 +1,45 @@
 
 
-# Dynamic Day Location from Booked Events
+# Replace Destination Text with Category Dot Icons
 
-## Problem
-The daily schedule destination badge (e.g., "LOS ANGELES") is assigned by cycling through the `destinations` array using modulo arithmetic (`destinations[index % destinations.length]`). This means the displayed location has no connection to what's actually booked for that day.
+## What Changes
+Replace the destination text inside the outline badge on each day row with small colored dots representing the event categories scheduled for that day. Each dot corresponds to a category (flight, hotel, activity, reservation). Multiple events of the same type show multiple dots. All dots are aligned side-by-side inside the existing badge bubble.
 
-## Solution
-Derive the destination label from the events scheduled for each day. Extract the city/location from flights, hotels, activities, and reservations that fall on that date. If multiple unique cities appear, show them joined (e.g., "Paris, Rome"). If no events exist for the day, fall back to the current round-robin behavior.
+## Visual Result
+Instead of seeing `Los Angeles, United States` in the badge, you'll see something like:
+`[plane-dot] [plane-dot] [bed-dot] [activity-dot] [fork-dot]`
 
-## Change
+Each dot will be a small colored circle with a tiny icon inside, stacked horizontally.
 
-### `src/components/itinerary/DailyScheduleSection.tsx`
+## Category Colors and Icons
+- **Flight**: `Plane` icon, blue tint (e.g., `text-blue-500`)
+- **Hotel check-in/out**: `Bed` icon, purple tint (e.g., `text-purple-500`) -- single icon per hotel event
+- **Activity**: `MapPin` icon, green tint (e.g., `text-green-500`)
+- **Reservation**: `Utensils` icon, orange tint (e.g., `text-orange-500`)
 
-Replace line 131:
-```
-const destination = destinations[index % destinations.length];
-```
+## Technical Details
 
-With logic that:
-1. Collects city names from all events for that day:
-   - Flights: use the `to` field (arrival city) as primary, `from` field for departures
-   - Hotels: use the `city` field
-   - Activities: use the `city` field
-   - Reservations: use the `city` field
-2. Deduplicates and joins them (e.g., "Paris" or "Paris, Rome")
-3. Falls back to `destinations[index % destinations.length]` if no event cities are found
+### File: `src/components/itinerary/DailyScheduleSection.tsx`
 
-This is a self-contained change -- only the destination derivation logic on ~line 131 changes. No other files or components are affected.
+1. **Add imports**: Import `Plane`, `Bed`, `MapPin`, `Utensils` from `lucide-react`
+
+2. **Replace the Badge content** (lines 195-197): Keep the `Badge` wrapper with `variant="outline"` but:
+   - Remove `max-w-[120px] truncate` (no longer text)
+   - Add `flex items-center gap-0.5` for horizontal dot layout
+   - Remove `{destination}` text
+   - Instead, map over the `events` array and render a small icon for each event:
+     - A wrapper span with category-specific color
+     - The corresponding Lucide icon at `h-3 w-3` size
+   - If no events, show nothing (empty badge or hide it)
+
+3. **Icon mapping helper**: A small inline map from event type to icon component and color class:
+   ```
+   flight -> Plane, text-blue-500
+   hotel-checkin -> Bed, text-purple-500
+   hotel-checkout -> Bed, text-purple-400
+   activity -> MapPin, text-green-500
+   reservation -> Utensils, text-orange-500
+   ```
+
+This is a single-file change affecting only lines ~195-197 plus the import line at the top.
+
