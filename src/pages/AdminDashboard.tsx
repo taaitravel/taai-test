@@ -16,13 +16,13 @@ const AdminDashboard: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate('/')}
-            className="text-white/80 hover:text-white hover:bg-white/10"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-            <p className="text-white/70">Business metrics and financial analytics</p>
+            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Business metrics and financial analytics</p>
           </div>
         </div>
 

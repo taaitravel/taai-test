@@ -126,8 +126,8 @@ const Subscription = () => {
 
         <Tabs defaultValue="individual" className="max-w-7xl mx-auto">
           <TabsList className="grid w-full grid-cols-2 mb-8 bg-secondary border-border">
-            <TabsTrigger value="individual" className="text-[#171822] data-[state=active]:gold-gradient data-[state=active]:text-white">Individual Plans</TabsTrigger>
-            <TabsTrigger value="corporate" className="text-[#171822] data-[state=active]:gold-gradient data-[state=active]:text-white">Corporate Plans</TabsTrigger>
+            <TabsTrigger value="individual" className="text-secondary-foreground data-[state=active]:gold-gradient data-[state=active]:text-primary-foreground">Individual Plans</TabsTrigger>
+            <TabsTrigger value="corporate" className="text-secondary-foreground data-[state=active]:gold-gradient data-[state=active]:text-primary-foreground">Corporate Plans</TabsTrigger>
           </TabsList>
 
           <TabsContent value="individual">

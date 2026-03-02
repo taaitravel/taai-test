@@ -11,12 +11,12 @@ export const PublicNavigation = ({ showGetStarted = true }: PublicNavigationProp
   const { user } = useAuth();
 
   return (
-    <nav className="bg-[#171821]/95 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+    <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Button 
             variant="ghost" 
-            className="text-white hover:text-white hover:bg-white/10"
+            className="text-foreground hover:text-foreground hover:bg-accent"
             onClick={() => navigate('/')}
           >
             ← Back
@@ -36,14 +36,14 @@ export const PublicNavigation = ({ showGetStarted = true }: PublicNavigationProp
               user ? (
                 <Button 
                   onClick={() => navigate('/home')}
-                  className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                  className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
                 >
                   Dashboard
                 </Button>
               ) : (
                 <Button 
                   onClick={() => navigate('/signup')}
-                  className="gold-gradient hover:opacity-90 text-[#171821] font-semibold"
+                  className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
                 >
                   Get Started
                 </Button>

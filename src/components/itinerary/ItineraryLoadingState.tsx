@@ -6,10 +6,10 @@ interface ItineraryLoadingStateProps {
 
 export const ItineraryLoadingState = ({ message }: ItineraryLoadingStateProps) => {
   return (
-    <div className="min-h-screen bg-[#171821] flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center">
-        <Plane className="h-12 w-12 text-white mx-auto mb-4 animate-pulse" />
-        <p className="text-white/70">{message}</p>
+        <Plane className="h-12 w-12 text-foreground mx-auto mb-4 animate-pulse" />
+        <p className="text-muted-foreground">{message}</p>
       </div>
     </div>
   );

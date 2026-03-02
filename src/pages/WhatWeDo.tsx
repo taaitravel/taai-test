@@ -10,37 +10,37 @@ const WhatWeDo = () => {
 
   const features = [
     {
-      icon: <Plane className="h-12 w-12 text-white" />,
+      icon: <Plane className="h-12 w-12 text-foreground" />,
       title: "AI-Powered Booking",
       description: "Smart integration with major travel platforms for seamless booking",
       details: "Our AI analyzes thousands of options to find the best flights, hotels, and activities within your budget and preferences."
     },
     {
-      icon: <Map className="h-12 w-12 text-white" />,
+      icon: <Map className="h-12 w-12 text-foreground" />,
       title: "Interactive Maps",
       description: "Visual trip planning with location mapping and recommendations",
       details: "See your entire journey visualized on interactive maps with real-time updates and location-based suggestions."
     },
     {
-      icon: <Calendar className="h-12 w-12 text-white" />,
+      icon: <Calendar className="h-12 w-12 text-foreground" />,
       title: "Smart Itineraries",
       description: "Comprehensive trip planning with real-time updates and editing",
       details: "Dynamic itineraries that adapt to changes, weather conditions, and local events for the perfect travel experience."
     },
     {
-      icon: <BarChart3 className="h-12 w-12 text-white" />,
+      icon: <BarChart3 className="h-12 w-12 text-foreground" />,
       title: "Budget Tracking",
       description: "Real-time expense monitoring with detailed analytics",
       details: "Track spending across categories with intelligent budget allocation and cost-saving recommendations."
     },
     {
-      icon: <MessageCircle className="h-12 w-12 text-white" />,
+      icon: <MessageCircle className="h-12 w-12 text-foreground" />,
       title: "Trip Chat",
       description: "Stay connected with travel updates and group coordination",
       details: "Collaborate with travel companions, receive updates, and coordinate plans through our integrated chat system."
     },
     {
-      icon: <Users className="h-12 w-12 text-white" />,
+      icon: <Users className="h-12 w-12 text-foreground" />,
       title: "Group Travel",
       description: "Perfect for both individual and corporate travel needs",
       details: "Advanced group management tools for corporate travel and family trips with shared budgets and permissions."
@@ -49,40 +49,40 @@ const WhatWeDo = () => {
 
   const benefits = [
     {
-      icon: <Zap className="h-8 w-8 text-white" />,
+      icon: <Zap className="h-8 w-8 text-foreground" />,
       title: "Save Time",
       description: "Reduce planning time from hours to minutes with AI assistance"
     },
     {
-      icon: <Globe className="h-8 w-8 text-white" />,
+      icon: <Globe className="h-8 w-8 text-foreground" />,
       title: "Global Access",
       description: "Access to worldwide travel options and local recommendations"
     },
     {
-      icon: <Clock className="h-8 w-8 text-white" />,
+      icon: <Clock className="h-8 w-8 text-foreground" />,
       title: "24/7 Support",
       description: "Round-the-clock assistance for all your travel needs"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-[#171821]">
+    <div className="min-h-screen bg-background">
       <PublicNavigation />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-foreground/10 via-transparent to-foreground/5"></div>
         <div className="max-w-7xl mx-auto text-center relative">
-          <Badge className="mb-6 bg-white/20 text-white hover:bg-white/30 border-white/30" variant="secondary">
+          <Badge className="mb-6 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-border" variant="secondary">
             Revolutionary Travel Technology
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6">
             What We Do
             <span className="luxury-text-gradient block">
               Better Than Anyone
             </span>
           </h1>
-          <p className="text-xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
             TAAI Travel combines artificial intelligence with intuitive design to create 
             the most advanced travel planning platform on the market.
           </p>
@@ -93,10 +93,10 @@ const WhatWeDo = () => {
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
               Our Core Features
             </h2>
-            <p className="text-xl text-white/80 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Every feature is designed to make travel planning effortless and enjoyable
             </p>
           </div>
@@ -105,19 +105,19 @@ const WhatWeDo = () => {
             {features.map((feature, index) => (
               <Card 
                 key={index} 
-                className="group hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 bg-[#171821]/60 border-white/20 hover:border-white/40 hover:scale-105"
+                className="group hover:shadow-2xl transition-all duration-300 bg-card/60 border-border hover:border-primary/40 hover:scale-105"
               >
                 <CardContent className="p-6">
                   <div className="mb-6 group-hover:scale-110 transition-all duration-300">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">
+                  <h3 className="text-xl font-semibold text-foreground mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-white/70 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     {feature.description}
                   </p>
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-muted-foreground/80">
                     {feature.details}
                   </p>
                 </CardContent>
@@ -128,13 +128,13 @@ const WhatWeDo = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-[#171821] to-[#171820]">
+      <section className="py-20 px-4 bg-gradient-to-b from-background to-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
               Why Choose TAAI Travel?
             </h2>
-            <p className="text-xl text-white/80">
+            <p className="text-xl text-muted-foreground">
               Discover the advantages that set us apart
             </p>
           </div>
@@ -143,15 +143,15 @@ const WhatWeDo = () => {
             {benefits.map((benefit, index) => (
               <div 
                 key={index}
-                className="text-center p-6 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300"
+                className="text-center p-6 rounded-lg bg-accent/50 border border-border hover:bg-accent transition-all duration-300"
               >
                 <div className="flex justify-center mb-4">
                   {benefit.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   {benefit.title}
                 </h3>
-                <p className="text-white/70">
+                <p className="text-muted-foreground">
                   {benefit.description}
                 </p>
               </div>
@@ -161,7 +161,7 @@ const WhatWeDo = () => {
           <div className="text-center">
             <Button 
               size="lg" 
-              className="gold-gradient hover:opacity-90 text-[#171821] px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+              className="gold-gradient hover:opacity-90 text-primary-foreground px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
               onClick={() => navigate('/signup')}
             >
               Start Your Journey Today
@@ -172,25 +172,25 @@ const WhatWeDo = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#171821] text-white py-12 px-4 border-t border-white/20">
+      <footer className="bg-background text-foreground py-12 px-4 border-t border-border">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center mb-4">
             <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="max-h-8" />
           </div>
-          <p className="text-white/70 mb-4">
+          <p className="text-muted-foreground mb-4">
             Revolutionizing travel planning with artificial intelligence
           </p>
-          <div className="flex justify-center space-x-6 text-sm text-white/70">
+          <div className="flex justify-center space-x-6 text-sm text-muted-foreground">
             <Button 
               variant="link" 
-              className="p-0 h-auto font-normal text-white/70 hover:text-white transition-colors"
+              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => navigate('/contact')}
             >
               Contact Us
             </Button>
             <Button 
               variant="link" 
-              className="p-0 h-auto font-normal text-white/70 hover:text-white transition-colors"
+              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => navigate('/terms')}
             >
               Terms of Service

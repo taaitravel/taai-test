@@ -76,20 +76,20 @@
     --primary: 351 85% 75%;
     --primary-foreground: 23 24% 11%;
 
-    --secondary: 0 0% 100%;
-    --secondary-foreground: 240 16% 11%;
+    --secondary: 240 14% 16%;
+    --secondary-foreground: 0 0% 90%;
 
-    --muted: 0 0% 100%;
-    --muted-foreground: 240 16% 11%;
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 0 0% 100%;
-    --accent-foreground: 240 16% 11%;
+    --accent: 240 10% 18%;
+    --accent-foreground: 0 0% 90%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 80%;
-    --input: 0 0% 100%;
+    --border: 240 10% 22%;
+    --input: 240 10% 18%;
     --ring: 351 85% 75%;
     
     --contrast: 0 0% 0%;
@@ -100,9 +100,9 @@
     --sidebar-foreground: 351 85% 75%;
     --sidebar-primary: 351 85% 75%;
     --sidebar-primary-foreground: 23 24% 11%;
-    --sidebar-accent: 0 0% 100%;
-    --sidebar-accent-foreground: 240 16% 11%;
-    --sidebar-border: 0 0% 80%;
+    --sidebar-accent: 240 10% 18%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 240 10% 22%;
     --sidebar-ring: 351 85% 75%;
 
     /* Map marker semantic tokens - Dark Mode */
