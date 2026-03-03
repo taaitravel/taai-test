@@ -43,7 +43,26 @@ export const DailyScheduleSection = ({
 }: DailyScheduleSectionProps) => {
   const { userProfile } = useAuth();
   const dateFormat = (userProfile as any)?.date_format || 'MM/DD/YY';
-  const [openDays, setOpenDays] = useState<Record<number, boolean>>({});
+  const [openDays, setOpenDays] = useState<Record<number, boolean>>(() => {
+    const initial: Record<number, boolean> = {};
+    const tripStart = new Date(startDate + 'T00:00:00');
+    for (let i = 0; i < duration; i++) {
+      const day = new Date(tripStart);
+      day.setDate(day.getDate() + i);
+      // We can't call buildEventsForDay yet since helpers are defined below,
+      // but we can inline a quick check for any matching events
+      const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(day); dayEnd.setHours(23, 59, 59, 999);
+      const inDay = (val?: string) => { if (!val) return false; const dt = new Date(val); return !isNaN(dt.getTime()) && dt >= dayStart && dt <= dayEnd; };
+      const hasEvents =
+        (flights || []).some((f: any) => inDay(f?.departure)) ||
+        (hotels || []).some((h: any) => inDay(h?.check_in) || inDay(h?.check_out)) ||
+        (activities || []).some((a: any) => inDay(a?.date) || inDay(a?.datetime)) ||
+        (reservations || []).some((r: any) => inDay(r?.date) || inDay(r?.datetime));
+      if (hasEvents) initial[i] = true;
+    }
+    return initial;
+  });
   const { isCompleted, toggleCompletion, getCompletedCount } = useEventCompletions(itineraryId);
 
   const toStartOfDay = (d: Date) => { const nd = new Date(d); nd.setHours(0, 0, 0, 0); return nd; };
