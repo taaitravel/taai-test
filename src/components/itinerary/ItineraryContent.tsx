@@ -76,7 +76,7 @@ export const ItineraryContent = ({
   const [addOpen, setAddOpen] = useState(false);
   const [addType, setAddType] = useState<ItemType | null>(null);
   const [addDestinationOpen, setAddDestinationOpen] = useState(false);
-  const [scheduleView, setScheduleView] = useState<'list' | 'calendar'>('list');
+  const [scheduleView, setScheduleView] = useState<'list' | 'calendar'>('calendar');
 
   const openAdd = (type: ItemType) => {
     setAddType(type);
@@ -263,11 +263,11 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           onValueChange={(v) => v && setScheduleView(v as 'list' | 'calendar')}
           size="sm"
         >
-          <ToggleGroupItem value="list" aria-label="List view">
-            <List className="h-3.5 w-3.5 mr-1" /> List
-          </ToggleGroupItem>
           <ToggleGroupItem value="calendar" aria-label="Calendar view">
             <CalendarDays className="h-3.5 w-3.5 mr-1" /> Calendar
+          </ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label="List view">
+            <List className="h-3.5 w-3.5 mr-1" /> List
           </ToggleGroupItem>
         </ToggleGroup>
       </div>

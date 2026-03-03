@@ -290,47 +290,43 @@ const DayCell = ({
               return (
                 <div
                   key={ei}
-                  className={`flex items-center justify-between rounded border px-2 py-1.5 text-xs transition-colors ${
+                  className={`flex items-center gap-1.5 rounded border px-2 py-1.5 text-xs transition-colors ${
                     completed ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted/30'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ev.color}`} />
-                    <span className={`truncate ${completed ? 'line-through opacity-60' : 'text-foreground'}`}>
-                      {ev.title}
-                    </span>
-                    {ev.time && (
-                      <span className="text-[10px] text-muted-foreground flex-shrink-0">{ev.time}</span>
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ev.color}`} />
+                  <button
+                    aria-label={completed ? 'Mark incomplete' : 'Mark complete'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCompletion(ev.type, ev.index, dateStr);
+                    }}
+                    className="flex-shrink-0"
+                  >
+                    {completed ? (
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted-foreground hover:text-primary" />
                     )}
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                    {onViewItem && (
-                      <button
-                        aria-label="View details"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onViewItem(ev.group as any, ev.index);
-                        }}
-                        className="w-5 h-5 flex items-center justify-center rounded-full border border-border hover:border-primary hover:bg-primary/10 transition-colors"
-                      >
-                        <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                      </button>
-                    )}
+                  </button>
+                  {onViewItem && (
                     <button
-                      aria-label={completed ? 'Mark incomplete' : 'Mark complete'}
+                      aria-label="View details"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleCompletion(ev.type, ev.index, dateStr);
+                        onViewItem(ev.group as any, ev.index);
                       }}
-                      className="flex-shrink-0"
+                      className="w-5 h-5 flex items-center justify-center rounded-full border border-border hover:border-primary hover:bg-primary/10 transition-colors flex-shrink-0"
                     >
-                      {completed ? (
-                        <CheckCircle2 className="h-4 w-4 text-primary" />
-                      ) : (
-                        <Circle className="h-4 w-4 text-muted-foreground hover:text-primary" />
-                      )}
+                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
                     </button>
-                  </div>
+                  )}
+                  {ev.time && (
+                    <span className="text-[10px] text-muted-foreground flex-shrink-0">{ev.time}</span>
+                  )}
+                  <span className={`truncate min-w-0 ${completed ? 'line-through opacity-60' : 'text-foreground'}`}>
+                    {ev.title}
+                  </span>
                 </div>
               );
             })
