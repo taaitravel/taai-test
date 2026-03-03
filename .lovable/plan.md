@@ -1,21 +1,27 @@
 
 
-# Fix Dialog Footer Button Alignment
+# Three Changes to Itinerary Schedule Views
 
-## Problem
-The three footer buttons (Trash, X, Checkmark) are misaligned -- the trash button sits on a separate row below the X and Checkmark buttons instead of all three being side-by-side.
+## 1. Calendar Popover: Reorder Event Row Elements
 
-## Solution
-Flatten the footer layout so all three buttons sit in a single horizontal row, right-aligned, with the trash button first.
+**File: `src/components/itinerary/ItineraryCalendarView.tsx`** (lines 291-334)
 
-## Technical Details
+Currently the popover event row shows: `[dot] [title] [time] ... [view button] [checkbox]` (right side).
 
-### File: `src/components/itinerary/AddItemDialog.tsx`
+Reorder to match the list view pattern: `[dot] [checkbox] [view button] [time] [title]` -- interactive elements first, then time, then title filling remaining space.
 
-**Lines 415-449** (DialogFooter): Replace the current nested layout with a single flex row:
+## 2. Calendar as Default View + Swap Button Order
 
-- Remove the outer `flex justify-between` wrapper and the inner `<div className="flex gap-2 ml-auto">`
-- Use `DialogFooter` with `className="mt-4 flex flex-row items-center justify-end gap-2 flex-shrink-0 border-t border-black/10 pt-4"`
-- Place all three buttons as direct children in order: Trash (conditionally rendered), X, Checkmark
-- No logic or prop changes -- purely a layout fix
+**File: `src/components/itinerary/ItineraryContent.tsx`**
+
+- **Line 79**: Change default state from `'list'` to `'calendar'`
+- **Lines 266-271**: Swap the `ToggleGroupItem` order so Calendar appears first, List second
+
+## 3. List View: Days with Events Open by Default
+
+**File: `src/components/itinerary/DailyScheduleSection.tsx`**
+
+- **Line 46**: Instead of initializing `openDays` as empty `{}`, compute the initial state by iterating through all days and setting `openDays[index] = true` for any day that has events (> 0). Use a `useMemo` or inline computation based on `buildEventsForDay` to pre-populate the map before the first render.
+
+This way days with events show expanded by default, and users can collapse them manually.
 
