@@ -4,8 +4,10 @@ import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
 import { ItineraryContent } from "@/components/itinerary/ItineraryContent";
 import { ItineraryBreadcrumb } from "@/components/itinerary/ItineraryBreadcrumb";
 import { AttendeesSection } from "@/components/itinerary/AttendeesSection";
+import { ItineraryChatModal } from "@/components/itinerary/chat/ItineraryChatModal";
 import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingState";
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
+import { useItineraryAttendees } from "@/hooks/useItineraryAttendees";
 import { useBrowserState } from "@/hooks/useBrowserState";
 import { AddItemDialog, ItemType } from "@/components/itinerary/AddItemDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -40,6 +42,12 @@ const Itinerary = () => {
   const [editType, setEditType] = useState<ItemType | null>(null);
   const [editIndex, setEditIndex] = useState<number>(0);
   const [initialItem, setInitialItem] = useState<any | null>(null);
+
+  // Chat modal state
+  const [chatOpen, setChatOpen] = useState(false);
+
+  // Attendees for chat button visibility
+  const { attendees } = useItineraryAttendees(itineraryData?.id ? Number(itineraryData.id) : null);
 
   const openEdit = (type: ItemType, index: number) => {
     if (!itineraryData) return;
@@ -169,7 +177,13 @@ const Itinerary = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
-      <ItineraryHeader itineraryId={itineraryData.id} itineraryData={itineraryData} userRole={userRole} />
+      <ItineraryHeader
+        itineraryId={itineraryData.id}
+        itineraryData={itineraryData}
+        userRole={userRole}
+        attendeeCount={attendees.length}
+        onChatOpen={() => setChatOpen(true)}
+      />
 
       {userRole === 'collaborator' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
