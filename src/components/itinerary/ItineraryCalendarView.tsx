@@ -60,8 +60,8 @@ export const ItineraryCalendarView = ({
   // Determine all months the trip spans
   const tripMonths = useMemo(() => {
     const months: { month: number; year: number }[] = [];
-    const cursor = new Date(tripStart.getFullYear(), tripStart.getMonth(), 1);
-    const endMonth = new Date(tripEnd.getFullYear(), tripEnd.getMonth(), 1);
+    const cursor = new Date(tripStart.getFullYear(), tripStart.getMonth() - 1, 1);
+    const endMonth = new Date(tripEnd.getFullYear(), tripEnd.getMonth() + 1, 1);
     while (cursor <= endMonth) {
       months.push({ month: cursor.getMonth(), year: cursor.getFullYear() });
       cursor.setMonth(cursor.getMonth() + 1);
@@ -122,7 +122,7 @@ export const ItineraryCalendarView = ({
           <CardTitle className="text-foreground">Calendar View</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <ScrollArea className="h-[1100px]">
+          <ScrollArea className="max-h-[1200px]">
             <div className="space-y-8 pr-2">
               {tripMonths.map(({ month, year }) => (
                 <MonthGrid
