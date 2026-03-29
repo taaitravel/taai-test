@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Menu, X, LogOut } from "lucide-react";
+import { LOGO_URL, AUTHENTICATED_MENU_ITEMS } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -34,14 +35,7 @@ export const MobileNavigation = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { signOut, userProfile } = useAuth();
 
-  const menuItems = [
-    { label: "Home", path: "/home" },
-    { label: "Itineraries", path: "/itineraries" },
-    { label: "New Itinerary", path: "/new-itinerary" },
-    { label: "Manual Itinerary", path: "/new-manual-itinerary" },
-    { label: "Subscription", path: "/subscription" },
-    { label: "Profile & Settings", path: "/profile" },
-  ];
+  const menuItems = [...AUTHENTICATED_MENU_ITEMS];
 
   const handleSignOut = async () => {
     try {
@@ -79,7 +73,7 @@ export const MobileNavigation = ({
                     {/* Header with close button */}
                     <div className="flex justify-between items-center p-6 border-b border-border">
                       <img 
-                        src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
+                        src={LOGO_URL} 
                         alt="TAAI Travel" 
                         className="h-12" 
                       />
@@ -140,11 +134,11 @@ export const MobileNavigation = ({
           {/* Centered Logo - sits above action buttons row on mobile */}
           {isMobile ? (
             <div className="absolute left-1/2 transform -translate-x-1/2 -top-1">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[50px]" />
+              <img src={LOGO_URL} alt="TAAI Travel" className="h-[50px]" />
             </div>
           ) : (
             <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
+              <img src={LOGO_URL} alt="TAAI Travel" className="h-[70px]" />
             </div>
           )}
 

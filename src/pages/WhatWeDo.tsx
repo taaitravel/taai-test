@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Plane, Map, Calendar, BarChart3, MessageCircle, Users, Zap, Globe, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PublicNavigation } from "@/components/shared/PublicNavigation";
+import { PublicFooter } from "@/components/shared/PublicFooter";
 
 const WhatWeDo = () => {
   const navigate = useNavigate();
@@ -171,33 +172,7 @@ const WhatWeDo = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-background text-foreground py-12 px-4 border-t border-border">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center mb-4">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="max-h-8" />
-          </div>
-          <p className="text-muted-foreground mb-4">
-            Revolutionizing travel planning with artificial intelligence
-          </p>
-          <div className="flex justify-center space-x-6 text-sm text-muted-foreground">
-            <Button 
-              variant="link" 
-              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => navigate('/contact')}
-            >
-              Contact Us
-            </Button>
-            <Button 
-              variant="link" 
-              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => navigate('/terms')}
-            >
-              Terms of Service
-            </Button>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 };
