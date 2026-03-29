@@ -166,8 +166,8 @@ const CreateItinerary = () => {
         {savedItineraryId && (
           <div className="mt-8">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Book Your Trip</h2>
-              <p className="text-white/70">Add items to cart, save price snapshots, or book individual items</p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Book Your Trip</h2>
+              <p className="text-foreground/70">Add items to cart, save price snapshots, or book individual items</p>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -202,7 +202,7 @@ const CreateItinerary = () => {
             </Button>
           ) : (
             <div className="space-y-2">
-              <p className="text-white/70 text-sm">
+              <p className="text-foreground/70 text-sm">
                 ✅ Itinerary saved! You can now add items to your booking cart above.
               </p>
               <Button
