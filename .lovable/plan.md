@@ -1,21 +1,31 @@
 
 
-# Fix Dialog Footer Button Alignment
+# Extend Calendar View Beyond Trip Dates
 
 ## Problem
-The three footer buttons (Trash, X, Checkmark) are misaligned -- the trash button sits on a separate row below the X and Checkmark buttons instead of all three being side-by-side.
+The calendar currently only renders months that the trip spans. There's no room to see dates before or after the trip, making the view feel cramped and limiting context.
 
 ## Solution
-Flatten the footer layout so all three buttons sit in a single horizontal row, right-aligned, with the trash button first.
+Extend `tripMonths` computation to include 1 month before the trip start and 1 month after the trip end. Also remove the fixed `h-[1100px]` on the ScrollArea so the calendar can breathe naturally.
 
 ## Technical Details
 
-### File: `src/components/itinerary/AddItemDialog.tsx`
+### File: `src/components/itinerary/ItineraryCalendarView.tsx`
 
-**Lines 415-449** (DialogFooter): Replace the current nested layout with a single flex row:
+**Lines 61-70** (`tripMonths` useMemo): Change the cursor start to 1 month before `tripStart` and the end boundary to 1 month after `tripEnd`:
 
-- Remove the outer `flex justify-between` wrapper and the inner `<div className="flex gap-2 ml-auto">`
-- Use `DialogFooter` with `className="mt-4 flex flex-row items-center justify-end gap-2 flex-shrink-0 border-t border-black/10 pt-4"`
-- Place all three buttons as direct children in order: Trash (conditionally rendered), X, Checkmark
-- No logic or prop changes -- purely a layout fix
+```ts
+const tripMonths = useMemo(() => {
+  const months: { month: number; year: number }[] = [];
+  const cursor = new Date(tripStart.getFullYear(), tripStart.getMonth() - 1, 1); // 1 month before
+  const endMonth = new Date(tripEnd.getFullYear(), tripEnd.getMonth() + 1, 1);   // 1 month after
+  while (cursor <= endMonth) {
+    months.push({ month: cursor.getMonth(), year: cursor.getFullYear() });
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return months;
+}, [startDate, duration]);
+```
+
+**Line 126**: Remove the fixed height constraint from `ScrollArea` — change `h-[1100px]` to `max-h-[1200px]` so it can size naturally but still scrolls for very long trips.
 
