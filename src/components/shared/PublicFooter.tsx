@@ -1,5 +1,3 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { LOGO_URL } from "@/lib/constants";
 
 interface FooterLink {
@@ -18,8 +16,6 @@ const DEFAULT_LINKS: FooterLink[] = [
 ];
 
 export const PublicFooter = ({ links = DEFAULT_LINKS }: PublicFooterProps) => {
-  const navigate = useNavigate();
-
   return (
     <footer className="bg-background text-foreground py-12 px-4 border-t border-border">
       <div className="max-w-7xl mx-auto text-center">
@@ -31,14 +27,13 @@ export const PublicFooter = ({ links = DEFAULT_LINKS }: PublicFooterProps) => {
         </p>
         <div className="flex justify-center space-x-6 text-sm">
           {links.map((link) => (
-            <Button
+            <a
               key={link.path}
-              variant="link"
-              className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => navigate(link.path)}
+              href={link.path}
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               {link.label}
-            </Button>
+            </a>
           ))}
         </div>
       </div>

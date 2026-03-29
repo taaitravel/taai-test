@@ -3,10 +3,10 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, FileText, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { LOGO_URL } from "@/lib/constants";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -105,7 +105,7 @@ const Terms = () => {
         <Card className="w-full max-w-md shadow-2xl shadow-primary/10 border-border bg-card/95 backdrop-blur-md">
           <CardHeader className="text-center space-y-4">
             <div className="flex items-center justify-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[120px] w-auto" />
+              <img src={LOGO_URL} alt="TAAI Travel" className="h-[120px] w-auto" />
             </div>
             <CardTitle className="text-xl text-foreground">Session Expired</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -143,7 +143,7 @@ const Terms = () => {
             )}
             
             <div className="flex items-center justify-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[120px] w-auto" />
+              <img src={LOGO_URL} alt="TAAI Travel" className="h-[120px] w-auto" />
             </div>
             
             <CardTitle className="text-2xl text-foreground">Terms of Service & Privacy Policy</CardTitle>
@@ -155,7 +155,6 @@ const Terms = () => {
           </CardHeader>
 
           <CardContent className="space-y-6 max-h-[70vh] overflow-y-auto">
-            {/* Terms of Service Section */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <FileText className="h-5 w-5 text-foreground" />
@@ -214,16 +213,11 @@ const Terms = () => {
             </div>
 
             <div className="pt-4 border-t border-border">
-              <Button
-                variant="link"
-                className="text-primary p-0"
-                onClick={() => navigate('/privacy-policy')}
-              >
+              <a href="/privacy-policy" className="text-primary hover:text-primary/80 text-sm font-medium">
                 View our Privacy Policy →
-              </Button>
+              </a>
             </div>
 
-            {/* Acceptance Section */}
             {(isSignupFlow || isLoginRequired) && (
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
