@@ -101,7 +101,7 @@ export const TripBrowser = ({
 
               <Badge className={`${
                 isUpcoming
-                  ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                  ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
                   : 'bg-muted text-muted-foreground border-border'
               }`}>
                 {isUpcoming ? 'Upcoming' : 'Past'}

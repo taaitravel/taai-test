@@ -21,15 +21,15 @@ export const ItineraryBreadcrumb = ({ itineraryId, itineraryName }: ItineraryBre
 
   return (
     <Breadcrumb className="mb-4 hidden md:block">
-      <BreadcrumbList className="text-white/60">
+        <BreadcrumbList className="text-muted-foreground">
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to="/my-itineraries" className="hover:text-[#ffce87] transition-colors">
+            <Link to="/my-itineraries" className="hover:text-primary transition-colors">
               My Itineraries
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator className="text-white/40" />
+        <BreadcrumbSeparator className="text-muted-foreground/60" />
 
         {collectionId && collectionName && (
           <>
@@ -37,18 +37,18 @@ export const ItineraryBreadcrumb = ({ itineraryId, itineraryName }: ItineraryBre
               <BreadcrumbLink asChild>
                 <Link
                   to={`/my-itineraries?collection=${collectionId}`}
-                  className="hover:text-[#ffce87] transition-colors"
+                  className="hover:text-primary transition-colors"
                 >
                   {collectionName}
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
-            <BreadcrumbSeparator className="text-white/40" />
+            <BreadcrumbSeparator className="text-muted-foreground/60" />
           </>
         )}
 
         <BreadcrumbItem>
-          <BreadcrumbPage className="text-white font-medium">
+          <BreadcrumbPage className="text-foreground font-medium">
             {itineraryName}
           </BreadcrumbPage>
         </BreadcrumbItem>

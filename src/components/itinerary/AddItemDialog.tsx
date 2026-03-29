@@ -33,7 +33,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
   const [form, setForm] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const inputClass = "bg-white text-[#171821] border-0 focus-visible:ring-2 focus-visible:ring-primary text-base";
+  const inputClass = "bg-white text-card-foreground border-0 focus-visible:ring-2 focus-visible:ring-primary text-base";
 
   useEffect(() => {
     if (open && type) {
@@ -387,7 +387,7 @@ if (type === 'hotels') {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg gold-gradient text-[#171821] text-base max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-lg gold-gradient text-card-foreground text-base max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-xl">{title}</DialogTitle>
           <DialogDescription className="text-base">
@@ -439,7 +439,7 @@ if (type === 'hotels') {
             size="icon"
             onClick={onClose} 
             disabled={loading}
-            className="h-10 w-10 bg-white hover:bg-white/90 text-[#171821] border-0"
+            className="h-10 w-10 bg-white hover:bg-white/90 text-card-foreground border-0"
             aria-label="Cancel"
           >
             <X className="h-5 w-5" />

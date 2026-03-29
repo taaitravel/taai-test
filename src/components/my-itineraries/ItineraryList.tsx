@@ -126,8 +126,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
 
   const StatusBadge = ({ status }: { status: string }) => {
     const variants = {
-      upcoming: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30',
-      active: 'bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30',
+      upcoming: 'bg-blue-500/20 text-blue-500 border-blue-500/30',
+      active: 'bg-green-500/20 text-green-500 border-green-500/30',
       completed: 'bg-muted text-muted-foreground border-border'
     };
     

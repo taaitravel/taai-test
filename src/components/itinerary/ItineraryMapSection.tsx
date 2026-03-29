@@ -44,7 +44,7 @@ export const ItineraryMapSection = ({ mapLocations }: ItineraryMapSectionProps) 
 
   return (
     <div className="lg:col-span-2">
-      <Card className="bg-[#171821]/80 border-white/30 backdrop-blur-md h-full">
+      <Card className="bg-card/80 border-border backdrop-blur-md h-full">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
