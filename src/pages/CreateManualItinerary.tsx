@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, MapPin, Calendar, DollarSign, Users } from "lucide-react";
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
+import { LOGO_URL } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,7 +149,7 @@ const CreateManualItinerary = () => {
         <Card className="w-full max-w-2xl shadow-2xl shadow-white/20 border-white/30 bg-[#171821]/95 backdrop-blur-md relative">
           <CardHeader className="text-center space-y-2">
             <div className="flex items-center justify-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[120px] w-auto" />
+              <img src={LOGO_URL} alt="TAAI Travel" className="h-[120px] w-auto" />
             </div>
             
             <div className="space-y-2">

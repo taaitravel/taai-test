@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Plane, Users, MapPin, Calendar, ArrowRight, ArrowLeft, Globe, Plus, Minus, Car, Hotel, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { LOGO_URL } from "@/lib/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
@@ -506,7 +507,7 @@ const ProfileSetup = () => {
           
         <CardHeader className="text-center space-y-4">
             <div className="flex items-center justify-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px] w-auto" />
+              <img src={LOGO_URL} alt="TAAI Travel" className="h-[70px] w-auto" />
             </div>
             
             <div className="space-y-2">
