@@ -1,83 +1,142 @@
 
 
-# Phase 1: Shared Components Refactoring
+# Itinerary Collaborator Chat -- Full-Slide Modal
 
-This phase tackles the building blocks that every page depends on. We'll standardize styling patterns, extract duplicated code into reusable components, and eliminate all hardcoded `dark:` overrides in favor of semantic CSS variables.
+## Approach
 
-## Problem Summary
+A full-screen modal (Sheet/Dialog) triggered from a **MessageCircle** button in the `ItineraryHeader` action row. The button only appears when the itinerary has 2+ attendees. This avoids new routes and keeps chat contextually tied to the itinerary.
 
-1. **Duplicated footer** -- identical footer markup copy-pasted in Index, WhatWeDo, Contact (3 places)
-2. **Duplicated navigation menu items** -- Index page and MobileNavigation both define the same menu arrays independently
-3. **Mixed styling approaches** -- 18 component files use `dark:text-white/60`, `dark:bg-white/5`, `dark:border-white/10` instead of semantic variables, creating an inconsistent dual system
-4. **Profile components** use hardcoded dark overrides while the rest of the app uses semantic variables
-5. **Search field components** (6 files) all use `dark:` overrides instead of semantic variables
-6. **No shared constants** for routes, menu items, or brand assets
+All chat data lives in Supabase with RLS. No end-to-end encryption in this phase (that's the Phase 2 social plan); this is a functional group chat scoped to each itinerary.
 
 ---
 
-## Changes
+## Database (2 new tables, 1 migration)
 
-### 1. Extract `PublicFooter` component
-**New file: `src/components/shared/PublicFooter.tsx`**
+### `itinerary_chat_messages`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| itinerary_id | bigint | NOT NULL |
+| sender_id | uuid | NOT NULL, refs auth.users |
+| content | text | message body |
+| attachment_type | text | null, 'image', 'calendar_event', 'itinerary_card' |
+| attachment_data | jsonb | url/card payload |
+| reply_to_id | uuid | nullable, self-ref for replies |
+| edited_at | timestamptz | null until edited |
+| deleted | boolean | default false (soft delete) |
+| created_at | timestamptz | default now() |
 
-A single reusable footer with the TAAI logo, tagline, and configurable nav links. Replace the duplicated footer blocks in Index.tsx, WhatWeDo.tsx, and Contact.tsx with `<PublicFooter />`.
+### `itinerary_chat_reactions`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| message_id | uuid | NOT NULL |
+| user_id | uuid | NOT NULL |
+| reaction | text | default 'like' |
+| created_at | timestamptz | |
+| UNIQUE(message_id, user_id, reaction) | | |
 
-### 2. Create shared route/menu constants
-**New file: `src/lib/constants.ts`**
+### `itinerary_chat_participants`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| itinerary_id | bigint | NOT NULL |
+| user_id | uuid | NOT NULL |
+| joined_at | timestamptz | default now() |
+| UNIQUE(itinerary_id, user_id) | | |
 
-Centralize:
-- `LOGO_URL` (the uploaded logo path used in 10+ files)
-- `AUTHENTICATED_MENU_ITEMS` (used by Index.tsx and MobileNavigation.tsx)
-- `PUBLIC_MENU_ITEMS` (used by Index.tsx)
+**RLS rules:**
+- Messages SELECT: user must be a chat participant AND `message.created_at >= participant.joined_at` (new users can't see old messages)
+- Messages INSERT: user must be a chat participant
+- Messages UPDATE: only sender, only within 10 min of created_at for content edits
+- Messages DELETE: soft-delete only, sender only
+- Reactions: participants can insert/delete their own
+- Participants: auto-populated via a trigger on `itinerary_attendees` insert (status='accepted')
 
-Update Index.tsx and MobileNavigation.tsx to import from constants instead of defining inline.
-
-### 3. Fix Profile components -- remove all `dark:` overrides
-**Files: `src/components/profile/EditProfileSection.tsx`, `src/components/profile/PreferencesSection.tsx`**
-
-Replace pattern:
-- `dark:bg-white/5` → `bg-input` (already maps to `240 10% 18%` in dark mode)
-- `dark:border-white/10` → `border-border`
-- `dark:text-white` → `text-foreground`
-- `dark:text-white/60` → `text-muted-foreground`
-- `dark:text-white/40` → `text-muted-foreground`
-- `dark:text-white/70` → `text-foreground/70`
-
-### 4. Fix Profile page tab triggers
-**File: `src/pages/Profile.tsx`**
-
-Remove `dark:text-white/60 dark:data-[state=active]:text-white dark:data-[state=active]:bg-white/10` from TabsTriggers. Replace with semantic equivalents using the existing tab styling patterns.
-
-### 5. Fix Search field components -- remove all `dark:` overrides
-**Files (6):**
-- `src/components/search/DateRangePicker.tsx`
-- `src/components/search/fields/FlightSearchFields.tsx`
-- `src/components/search/fields/HotelSearchFields.tsx`
-- `src/components/search/fields/CarSearchFields.tsx`
-- `src/components/search/fields/ActivitySearchFields.tsx`
-- `src/components/search/fields/PackageSearchFields.tsx`
-
-Same replacement pattern as profile components. Also update `src/components/inputs/PlaceSearch.tsx` and `src/components/search/fields/DiningSearchFields.tsx`.
-
-### 6. Fix Search page hardcoded dark wrapper
-**File: `src/pages/Search.tsx`** (line 54)
-
-Replace `dark:bg-[#171820] dark:border-white/10` with semantic `bg-card border-border`.
-
-### 7. Fix AdaptiveSearchForm tab triggers
-**File: `src/components/search/AdaptiveSearchForm.tsx`**
-
-Remove any `dark:` overrides on tab triggers, use semantic variables.
+A trigger on `itinerary_attendees` INSERT will auto-insert into `itinerary_chat_participants`.
 
 ---
 
-## File Count: ~15 files modified, 2 new files created
+## Frontend Components
+
+### 1. Chat Button in `ItineraryHeader.tsx`
+- Add `MessageCircle` icon button in the `customActions` div
+- Only render when `attendees.length >= 2` (fetch attendee count via existing `useItineraryAttendees`)
+- Opens the chat modal
+
+### 2. `ItineraryChatModal.tsx` (new, main component)
+Full-screen Sheet from the right side. Contains:
+- **Header**: Trip name, participant avatars, close button
+- **Filter bar**: Tabs for "All", "Media", "Docs", plus a participant filter dropdown
+- **Message list**: Scrollable area with Supabase Realtime subscription
+- **Input bar**: Text input + attachment button (image upload, share itinerary card) + send
+
+### 3. `ChatMessage.tsx` (new)
+Single message bubble:
+- Sender avatar + name + timestamp
+- Reply-to preview (if replying)
+- Content text with attachment rendering
+- Long-press/right-click context menu: Reply, Copy, Edit (if sender + within 10 min), Delete (if sender)
+- Like reaction button (heart icon, shows count)
+- "Edited" label if `edited_at` is set
+- "This message was deleted" placeholder if soft-deleted
+
+### 4. `ChatAttachmentPicker.tsx` (new)
+Popover with options:
+- Upload photo (to Supabase storage bucket `chat-attachments`)
+- Share itinerary card (select from flights/hotels/activities/reservations)
+- Share calendar event (select a date from the trip)
+
+### 5. `useItineraryChat.ts` (new hook)
+- Fetches messages with sender info joined from `users` table
+- Supabase Realtime channel for new messages, edits, deletes, reactions
+- `sendMessage(content, attachmentType?, attachmentData?, replyToId?)`
+- `editMessage(id, newContent)` -- checks 10-min window client-side, enforced by RLS
+- `deleteMessage(id)` -- soft delete
+- `toggleReaction(messageId)`
+- Filter state: media/docs/participant
+
+---
+
+## Storage
+
+Create a new public bucket `chat-attachments` for image uploads with RLS allowing authenticated users to upload and all participants to read.
+
+---
+
+## Key UX Details
+
+- **Copy message**: Long-press (mobile) or right-click (desktop) opens context menu with "Copy" option using `navigator.clipboard.writeText()`
+- **Reply**: Tapping "Reply" shows a reply preview bar above the input, referencing the original message
+- **10-min edit window**: Edit option grayed out / hidden after 10 minutes from send time
+- **New participant visibility**: RLS `WHERE message.created_at >= participant.joined_at` ensures new members only see messages from their join time forward
+- **Filters**: "Media" tab filters `attachment_type = 'image'`; "Docs" filters calendar/card attachments; participant dropdown filters by `sender_id`
+- **Reactions**: Single "like" heart on each message, toggleable, shows count
+- **Styling**: Uses existing semantic tokens (`bg-card`, `border-border`, `text-foreground`), gold gradient for send button, matches itinerary page theme
+
+---
+
+## Files to Create/Edit
+
+| Action | File |
+|--------|------|
+| Migration | `supabase/migrations/` -- 3 tables, RLS, trigger |
+| New bucket | `chat-attachments` storage bucket |
+| New | `src/hooks/useItineraryChat.ts` |
+| New | `src/components/itinerary/chat/ItineraryChatModal.tsx` |
+| New | `src/components/itinerary/chat/ChatMessage.tsx` |
+| New | `src/components/itinerary/chat/ChatAttachmentPicker.tsx` |
+| Edit | `src/components/itinerary/ItineraryHeader.tsx` -- add chat button |
+| Edit | `src/pages/Itinerary.tsx` -- pass attendee count, manage chat modal state |
+
+---
 
 ## Implementation Order
-1. Create `constants.ts` and `PublicFooter.tsx` (foundations)
-2. Update 3 pages to use `PublicFooter`
-3. Fix profile components (2 files)
-4. Fix Profile.tsx tab triggers
-5. Fix search components (8 files)
-6. Fix Search.tsx wrapper
+
+1. Database migration (tables + RLS + trigger + storage bucket)
+2. `useItineraryChat` hook with Realtime
+3. `ChatMessage` component
+4. `ChatAttachmentPicker` component
+5. `ItineraryChatModal` assembly
+6. Wire into `ItineraryHeader` + `Itinerary.tsx`
 
