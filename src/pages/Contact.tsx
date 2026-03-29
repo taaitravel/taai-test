@@ -176,7 +176,7 @@ const Contact = () => {
                     className="bg-input border-border text-foreground placeholder:text-muted-foreground/50"
                     placeholder="Enter your full name"
                   />
-                  {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
+                  {errors.name && <p className="text-destructive text-sm">{errors.name}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -191,7 +191,7 @@ const Contact = () => {
                     className="bg-input border-border text-foreground placeholder:text-muted-foreground/50"
                     placeholder="Enter your email address"
                   />
-                  {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
+                  {errors.email && <p className="text-destructive text-sm">{errors.email}</p>}
                 </div>
 
                 {formData.inquiryType === 'corporate' && (
@@ -206,7 +206,7 @@ const Contact = () => {
                       className="bg-input border-border text-foreground placeholder:text-muted-foreground/50"
                       placeholder="Enter your company name"
                     />
-                    {errors.companyName && <p className="text-red-400 text-sm">{errors.companyName}</p>}
+                    {errors.companyName && <p className="text-destructive text-sm">{errors.companyName}</p>}
                   </div>
                 )}
 
@@ -222,7 +222,7 @@ const Contact = () => {
                     className="bg-input border-border text-foreground placeholder:text-muted-foreground/50"
                     placeholder="What can we help you with?"
                   />
-                  {errors.subject && <p className="text-red-400 text-sm">{errors.subject}</p>}
+                  {errors.subject && <p className="text-destructive text-sm">{errors.subject}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -237,7 +237,7 @@ const Contact = () => {
                     className="bg-input border-border text-foreground placeholder:text-muted-foreground/50 resize-none"
                     placeholder="Tell us more about your inquiry... (10-2000 characters)"
                   />
-                  {errors.message && <p className="text-red-400 text-sm">{errors.message}</p>}
+                  {errors.message && <p className="text-destructive text-sm">{errors.message}</p>}
                 </div>
 
                 <Button 

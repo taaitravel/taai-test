@@ -10,6 +10,7 @@ import { Plane, Users, Building2, ArrowLeft, Mail, RefreshCw } from "lucide-reac
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Captcha } from '@/components/ui/captcha';
+import { LOGO_URL } from "@/lib/constants";
 
 const Signup = () => {
   const location = useLocation();
@@ -198,7 +199,7 @@ const Signup = () => {
         <Card className="w-full max-w-md shadow-2xl border-border bg-card/95 backdrop-blur-md relative">
           <CardHeader className="text-center space-y-4">
             <div className="flex items-center justify-center">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[150px] w-auto" />
+              <img src={LOGO_URL} alt="TAAI Travel" className="h-[150px] w-auto" />
             </div>
             <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
               <Mail className="h-8 w-8 text-primary-foreground" />
@@ -282,7 +283,7 @@ const Signup = () => {
           </Button>
           
           <div className="flex items-center justify-center">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[200px] w-auto" />
+            <img src={LOGO_URL} alt="TAAI Travel" className="h-[200px] w-auto" />
           </div>
           
           <div className="space-y-2">

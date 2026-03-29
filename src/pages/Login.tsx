@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { LOGO_URL } from "@/lib/constants";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -86,7 +86,7 @@ const Login = () => {
           </Button>
           
           <div className="flex items-center justify-center">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[200px] w-auto" />
+            <img src={LOGO_URL} alt="TAAI Travel" className="h-[200px] w-auto" />
           </div>
           
           <div className="space-y-2">

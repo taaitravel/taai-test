@@ -1,12 +1,10 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield } from "lucide-react";
 import { PublicNavigation } from "@/components/shared/PublicNavigation";
+import { PublicFooter } from "@/components/shared/PublicFooter";
+import { LOGO_URL } from "@/lib/constants";
 
 const PrivacyPolicy = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-background">
       <PublicNavigation />
@@ -16,7 +14,7 @@ const PrivacyPolicy = () => {
           <Card className="shadow-2xl shadow-primary/10 border-border bg-card/95 backdrop-blur-md">
             <CardHeader className="text-center space-y-4">
               <div className="flex items-center justify-center">
-                <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[120px] w-auto" />
+                <img src={LOGO_URL} alt="TAAI Travel" className="h-[120px] w-auto" />
               </div>
               <CardTitle className="text-2xl text-foreground">Privacy Policy</CardTitle>
               <p className="text-muted-foreground">Last updated: January 2025</p>
@@ -88,18 +86,16 @@ const PrivacyPolicy = () => {
               </div>
 
               <div className="pt-4 border-t border-border">
-                <Button
-                  variant="link"
-                  className="text-primary p-0"
-                  onClick={() => navigate('/terms')}
-                >
+                <a href="/terms" className="text-primary hover:text-primary/80 text-sm font-medium">
                   View our Terms of Service →
-                </Button>
+                </a>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <PublicFooter />
     </div>
   );
 };
