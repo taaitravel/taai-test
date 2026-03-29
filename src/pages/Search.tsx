@@ -51,7 +51,7 @@ const Search = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Search Form - Keep dark theme */}
-        <div className="bg-card dark:bg-[#171820] backdrop-blur-sm rounded-lg px-5 py-0 border border-border dark:border-white/10">
+        <div className="bg-card backdrop-blur-sm rounded-lg px-5 py-0 border border-border">
           <AdaptiveSearchForm onSearch={handleSearch} />
         </div>
 

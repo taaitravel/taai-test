@@ -38,7 +38,6 @@ export const EditProfileSection = () => {
         bio: form.bio,
       };
 
-      // If email changed, we'd need re-verification — for now just update
       if (form.email !== userProfile?.email) {
         updates.email = form.email;
       }
@@ -56,7 +55,7 @@ export const EditProfileSection = () => {
 
   return (
     <div className="space-y-6 max-w-xl">
-      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-foreground">Profile Photo</CardTitle>
         </CardHeader>
@@ -69,23 +68,23 @@ export const EditProfileSection = () => {
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-card dark:bg-white/5 dark:border-white/10">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-foreground">Personal Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="first_name" className="dark:text-white/60">First Name</Label>
-              <Input className="dark:bg-white/5 dark:border-white/10 dark:text-white"
+              <Label htmlFor="first_name" className="text-muted-foreground">First Name</Label>
+              <Input className="bg-input border-border text-foreground"
                 id="first_name"
                 value={form.first_name}
                 onChange={(e) => handleChange("first_name", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="last_name" className="dark:text-white/60">Last Name</Label>
-              <Input className="dark:bg-white/5 dark:border-white/10 dark:text-white"
+              <Label htmlFor="last_name" className="text-muted-foreground">Last Name</Label>
+              <Input className="bg-input border-border text-foreground"
                 id="last_name"
                 value={form.last_name}
                 onChange={(e) => handleChange("last_name", e.target.value)}
@@ -94,25 +93,25 @@ export const EditProfileSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="dark:text-white/60">Email</Label>
+            <Label htmlFor="email" className="text-muted-foreground">Email</Label>
             <Input
               id="email"
               type="email"
-              className="dark:bg-white/5 dark:border-white/10 dark:text-white"
+              className="bg-input border-border text-foreground"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
             />
-            <p className="text-xs text-muted-foreground dark:text-white/40">
+            <p className="text-xs text-muted-foreground">
               Changing your email will require re-verification.
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cell" className="dark:text-white/60">Phone Number</Label>
+            <Label htmlFor="cell" className="text-muted-foreground">Phone Number</Label>
             <Input
               id="cell"
               type="tel"
-              className="dark:bg-white/5 dark:border-white/10 dark:text-white"
+              className="bg-input border-border text-foreground"
               value={form.cell}
               onChange={(e) => handleChange("cell", e.target.value)}
               placeholder="+1 (555) 000-0000"
@@ -120,16 +119,16 @@ export const EditProfileSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio" className="dark:text-white/60">About You</Label>
+            <Label htmlFor="bio" className="text-muted-foreground">About You</Label>
             <Textarea
               id="bio"
               value={form.bio}
               onChange={(e) => handleChange("bio", e.target.value.slice(0, 200))}
               placeholder="Tell us a bit about yourself..."
-              className="resize-none dark:bg-white/5 dark:border-white/10 dark:text-white"
+              className="resize-none bg-input border-border text-foreground"
               rows={3}
             />
-            <p className="text-xs text-muted-foreground dark:text-white/40 text-right">
+            <p className="text-xs text-muted-foreground text-right">
               {form.bio.length}/200
             </p>
           </div>

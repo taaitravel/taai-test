@@ -33,7 +33,7 @@ interface PlaceSearchProps {
   locationBias?: { city?: string; lat?: number; lng?: number };
 }
 
-const dropdownBase = "absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-popover dark:bg-[#1a1c2e] border-border dark:border-white/10 shadow-lg";
+const dropdownBase = "absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-popover border-border shadow-lg";
 
 // Helper to get icon based on place type
 const getPlaceIcon = (result: PlaceResult) => {
@@ -237,7 +237,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
 
   return (
     <div ref={containerRef} className="relative">
-      <Label htmlFor={id} className="text-xs font-medium text-foreground/60 dark:text-white/60 mb-1.5 block">{label}</Label>
+      <Label htmlFor={id} className="text-xs font-medium text-muted-foreground mb-1.5 block">{label}</Label>
       <Input
         id={id}
         placeholder={placeholder}
@@ -247,7 +247,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        className="bg-background/50 dark:bg-white/5 text-foreground dark:text-white border-border dark:border-white/10 focus-visible:ring-2 focus-visible:ring-primary/50 h-9 text-sm placeholder:text-muted-foreground dark:placeholder:text-white/30"
+        className="bg-background/50 text-foreground border-border focus-visible:ring-2 focus-visible:ring-primary/50 h-9 text-sm placeholder:text-muted-foreground"
       />
       {open && (results.length > 0 || loading) && (
         <div className={dropdownBase}>
@@ -261,7 +261,7 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
                 setOpen(false);
                 onSelect(r);
               }}
-              className="block w-full text-left px-3 py-2 hover:bg-accent dark:hover:bg-white/5 text-popover-foreground dark:text-white"
+              className="block w-full text-left px-3 py-2 hover:bg-accent text-popover-foreground"
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
