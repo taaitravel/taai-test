@@ -1,6 +1,6 @@
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { Button } from "@/components/ui/button";
-import { Edit, Share2, FolderPlus, FileDown, Loader2 } from "lucide-react";
+import { Edit, Share2, FolderPlus, FileDown, Loader2, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AddToCollectionDialog } from "@/components/my-itineraries/AddToCollectionDialog";
@@ -14,9 +14,11 @@ interface ItineraryHeaderProps {
   itineraryId: number;
   itineraryData?: ItineraryData | null;
   userRole?: UserRole;
+  attendeeCount?: number;
+  onChatOpen?: () => void;
 }
 
-export const ItineraryHeader = ({ itineraryId, itineraryData, userRole }: ItineraryHeaderProps) => {
+export const ItineraryHeader = ({ itineraryId, itineraryData, userRole, attendeeCount = 0, onChatOpen }: ItineraryHeaderProps) => {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { collections, createCollection, addToCollection } = useItineraryCollections();
@@ -56,6 +58,17 @@ export const ItineraryHeader = ({ itineraryId, itineraryData, userRole }: Itiner
         showTripButtons={false}
         customActions={
           <div className="flex items-center gap-2">
+            {attendeeCount >= 2 && onChatOpen && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full bg-card text-foreground border-border hover:bg-gradient-to-r hover:from-[hsl(351,85%,75%)] hover:via-[hsl(15,80%,70%)] hover:to-[hsl(25,75%,65%)] hover:text-white transition-all duration-300"
+                onClick={onChatOpen}
+                title="Trip Chat"
+              >
+                <MessageCircle className="h-4 w-4" />
+              </Button>
+            )}
             <Button 
               variant="outline" 
               size="sm" 
