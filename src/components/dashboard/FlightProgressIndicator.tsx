@@ -87,7 +87,7 @@ export const FlightProgressIndicator = ({
           </div>}
         
         {isMaxLevel && <div className="text-center">
-            <div className="text-sm text-green-600 dark:text-green-400 font-medium">
+            <div className="text-sm text-green-500 font-medium">
               ✨ Maximum level achieved!
             </div>
           </div>}

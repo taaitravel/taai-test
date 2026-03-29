@@ -33,10 +33,10 @@ type CalendarEvent = {
 };
 
 const colorMap: Record<string, { color: string; textColor: string }> = {
-  flight: { color: 'bg-rose-400/80', textColor: 'text-rose-700 dark:text-rose-300' },
-  hotel: { color: 'bg-orange-400/80', textColor: 'text-orange-700 dark:text-orange-300' },
-  activity: { color: 'bg-amber-400/80', textColor: 'text-amber-700 dark:text-amber-300' },
-  reservation: { color: 'bg-sky-400/80', textColor: 'text-sky-700 dark:text-sky-300' },
+  flight: { color: 'bg-rose-400/80', textColor: 'text-rose-500' },
+  hotel: { color: 'bg-orange-400/80', textColor: 'text-orange-500' },
+  activity: { color: 'bg-amber-400/80', textColor: 'text-amber-500' },
+  reservation: { color: 'bg-sky-400/80', textColor: 'text-sky-500' },
 };
 
 export const ItineraryCalendarView = ({

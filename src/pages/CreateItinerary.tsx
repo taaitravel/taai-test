@@ -110,7 +110,7 @@ const CreateItinerary = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#171821] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Navigation - Mobile Responsive */}
       <MobileNavigation 
         travelerLevel="Master Traveler"
@@ -124,8 +124,8 @@ const CreateItinerary = () => {
       {/* Main Content - Side by Side Chat Comparison */}
       <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-6">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Your Perfect Itinerary</h1>
-          <p className="text-white/70">Compare our traditional booking assistant with the new TAAI Assistant</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Perfect Itinerary</h1>
+          <p className="text-foreground/70">Compare our traditional booking assistant with the new TAAI Assistant</p>
         </div>
 
         {/* Two Column Layout for Chat Comparison */}
@@ -135,7 +135,7 @@ const CreateItinerary = () => {
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center py-2 rounded-t-lg font-semibold">
               Traditional Booking Assistant
             </div>
-            <div className="flex-1 border-2 border-blue-500/30 rounded-b-lg bg-black/20 p-4">
+            <div className="flex-1 border-2 border-blue-500/30 rounded-b-lg bg-secondary p-4">
               <AIReservationChat 
                 itineraryData={itineraryData}
                 onUpdateData={updateItineraryData}
@@ -151,7 +151,7 @@ const CreateItinerary = () => {
             <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-2 rounded-t-lg font-semibold">
               TAAI Assistant (NEW)
             </div>
-            <div className="flex-1 border-2 border-orange-500/30 rounded-b-lg bg-black/20 relative">
+            <div className="flex-1 border-2 border-orange-500/30 rounded-b-lg bg-secondary relative">
               <ChatInterface 
                 context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
                 placeholder="Ask TAAI about planning your perfect trip..."
