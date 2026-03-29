@@ -30,7 +30,6 @@ export const ActivitySearchFields = ({
 }: ActivitySearchFieldsProps) => {
   return (
     <div className="space-y-4">
-      {/* Destination */}
       <PlaceSearch
         id="activity-destination"
         label="Destination *"
@@ -40,20 +39,19 @@ export const ActivitySearchFields = ({
         onSelect={(place) => onDestinationChange(place.name)}
       />
 
-      {/* Date */}
       <div>
-        <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Date *</label>
+        <label className="text-sm font-medium text-muted-foreground mb-2 block">Date *</label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                'w-full justify-start text-left font-normal bg-background/50 dark:bg-white/5 border-border dark:border-white/10',
+                'w-full justify-start text-left font-normal bg-background/50 border-border',
                 !date && 'text-muted-foreground'
               )}
             >
-              <CalendarIcon className={cn("mr-2 h-4 w-4", date ? "text-primary" : "text-foreground/50 dark:text-white/40")} />
-              {date ? <span className="text-primary">{format(date, 'MMM dd')}</span> : <span className="text-muted-foreground dark:text-white/40">Select date</span>}
+              <CalendarIcon className={cn("mr-2 h-4 w-4", date ? "text-primary" : "text-muted-foreground")} />
+              {date ? <span className="text-primary">{format(date, 'MMM dd')}</span> : <span className="text-muted-foreground">Select date</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -69,12 +67,11 @@ export const ActivitySearchFields = ({
         </Popover>
       </div>
 
-      {/* Participants & Category */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Participants *</label>
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">Participants *</label>
           <Select value={participants.toString()} onValueChange={(v) => onParticipantsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -86,9 +83,9 @@ export const ActivitySearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Category</label>
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">Category</label>
           <Select value={category} onValueChange={onCategoryChange}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

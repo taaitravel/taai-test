@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { LOGO_URL } from "@/lib/constants";
 
 interface PublicNavigationProps {
   showGetStarted?: boolean;
@@ -24,7 +25,7 @@ export const PublicNavigation = ({ showGetStarted = true }: PublicNavigationProp
           
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <img 
-              src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
+              src={LOGO_URL} 
               alt="TAAI Travel" 
               className="h-[70px] cursor-pointer" 
               onClick={() => navigate('/')}

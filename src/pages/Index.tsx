@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LOGO_URL, AUTHENTICATED_MENU_ITEMS, PUBLIC_MENU_ITEMS } from "@/lib/constants";
+import { PublicFooter } from "@/components/shared/PublicFooter";
 import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut, User, Menu, X } from "lucide-react";
@@ -32,23 +34,9 @@ const Index = () => {
 
   const getMenuItems = () => {
     if (user) {
-      return [
-        { label: "Home", path: "/home" },
-        { label: "Itineraries", path: "/itineraries" },
-        { label: "New Itinerary", path: "/new-itinerary" },
-        { label: "Manual Itinerary", path: "/new-manual-itinerary" },
-        { label: "Subscription", path: "/subscription" },
-        { label: "Profile & Settings", path: "/profile-setup" },
-        { label: "Contact Us", path: "/contact" }
-      ];
-    } else {
-      return [
-        { label: "What We Do", path: "/what-we-do" },
-        { label: "Subscription", path: "/subscription" },
-        { label: "Contact Us", path: "/contact" },
-        { label: "Sign In", path: "/login" }
-      ];
+      return [...AUTHENTICATED_MENU_ITEMS, { label: "Contact Us", path: "/contact" }];
     }
+    return [...PUBLIC_MENU_ITEMS];
   };
 
   const features = [
@@ -108,7 +96,7 @@ const Index = () => {
                       {/* Header with close button */}
                       <div className="flex justify-between items-center p-6 border-b border-border">
                         <img 
-                          src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" 
+                          src={LOGO_URL} 
                           alt="TAAI Travel" 
                           className="h-12" 
                         />
@@ -204,7 +192,7 @@ const Index = () => {
 
             {/* Center - Logo */}
             <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="h-[70px]" />
+              <img src={LOGO_URL} alt="TAAI Travel" className="h-[70px]" />
             </div>
 
             {/* Right side - User icon when logged in */}
@@ -342,26 +330,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-background text-foreground py-12 px-4 border-t border-border">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center mb-4">
-            <img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="TAAI Travel" className="max-h-8" />
-          </div>
-          <p className="text-muted-foreground mb-4">
-            Revolutionizing travel planning with artificial intelligence
-          </p>
-          <div className="flex justify-center space-x-6 text-sm text-muted-foreground">
-            <a href="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Privacy Policy
-            </a>
-            <a href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Terms of Service
-            </a>
-            <a href="mailto:support@taai.travel" className="hover:text-foreground transition-colors">Contact</a>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
 
       {/* Chat Interface */}
       <ChatInterface context="travel planning and general travel assistance" />

@@ -33,7 +33,6 @@ export const HotelSearchFields = ({
 }: HotelSearchFieldsProps) => {
   return (
     <div className="space-y-3">
-      {/* Destination */}
       <PlaceSearch
         id="hotel-destination"
         label="Destination *"
@@ -43,7 +42,6 @@ export const HotelSearchFields = ({
         onSelect={(place) => onDestinationChange(place.name)}
       />
 
-      {/* Dates */}
       <DateRangePicker
         startDate={checkinDate}
         endDate={checkoutDate}
@@ -54,12 +52,11 @@ export const HotelSearchFields = ({
         showNights={true}
       />
 
-      {/* Guests & Rooms */}
       <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="text-xs font-medium text-foreground/60 dark:text-white/60 mb-1.5 block">Adults *</label>
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Adults *</label>
           <Select value={adults.toString()} onValueChange={(v) => onAdultsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white h-9 text-sm">
+            <SelectTrigger className="bg-background/50 border-border text-foreground h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -71,9 +68,9 @@ export const HotelSearchFields = ({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-foreground/60 dark:text-white/60 mb-1.5 block">Children</label>
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Children</label>
           <Select value={children.toString()} onValueChange={(v) => onChildrenChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white h-9 text-sm">
+            <SelectTrigger className="bg-background/50 border-border text-foreground h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -85,9 +82,9 @@ export const HotelSearchFields = ({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-foreground/60 dark:text-white/60 mb-1.5 block">Rooms *</label>
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Rooms *</label>
           <Select value={rooms.toString()} onValueChange={(v) => onRoomsChange(parseInt(v))}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white h-9 text-sm">
+            <SelectTrigger className="bg-background/50 border-border text-foreground h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

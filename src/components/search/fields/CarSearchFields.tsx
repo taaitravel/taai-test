@@ -53,7 +53,6 @@ export const CarSearchFields = ({
 
   return (
     <div className="space-y-4">
-      {/* Pick-up Location */}
       <PlaceSearch
         id="car-pickup"
         label="Pick-up Location *"
@@ -66,19 +65,17 @@ export const CarSearchFields = ({
         }}
       />
 
-      {/* Same Location Checkbox */}
       <div className="flex items-center space-x-2">
         <Checkbox 
           id="sameLocation" 
           checked={sameLocation}
           onCheckedChange={handleSameLocationToggle}
         />
-        <Label htmlFor="sameLocation" className="text-foreground dark:text-white cursor-pointer">
+        <Label htmlFor="sameLocation" className="text-foreground cursor-pointer">
           Return to same location
         </Label>
       </div>
 
-      {/* Drop-off Location */}
       {!sameLocation && (
         <PlaceSearch
           id="car-dropoff"
@@ -90,7 +87,6 @@ export const CarSearchFields = ({
         />
       )}
 
-      {/* Dates */}
       <DateRangePicker
         startDate={pickupDate}
         endDate={dropoffDate}
@@ -101,12 +97,11 @@ export const CarSearchFields = ({
         showNights={false}
       />
 
-      {/* Times */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Pick-up Time *</label>
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">Pick-up Time *</label>
           <Select value={pickupTime} onValueChange={onPickupTimeChange}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -118,9 +113,9 @@ export const CarSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Drop-off Time *</label>
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">Drop-off Time *</label>
           <Select value={dropoffTime} onValueChange={onDropoffTimeChange}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -132,12 +127,11 @@ export const CarSearchFields = ({
         </div>
       </div>
 
-      {/* Driver Age & Car Type */}
       <div className="grid md:grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Driver Age *</label>
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">Driver Age *</label>
           <Select value={driverAge} onValueChange={onDriverAgeChange}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -149,9 +143,9 @@ export const CarSearchFields = ({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground dark:text-white/60 mb-2 block">Car Type</label>
+          <label className="text-sm font-medium text-muted-foreground mb-2 block">Car Type</label>
           <Select value={carType} onValueChange={onCarTypeChange}>
-            <SelectTrigger className="bg-background/50 dark:bg-white/5 border-border dark:border-white/10 text-foreground dark:text-white">
+            <SelectTrigger className="bg-background/50 border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

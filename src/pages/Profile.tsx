@@ -33,16 +33,16 @@ const Profile = () => {
         <h1 className="text-2xl font-bold text-foreground mb-6">My Profile</h1>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="mb-6 bg-muted dark:bg-white/5">
-            <TabsTrigger value="edit" className="gap-2 dark:text-white/60 dark:data-[state=active]:text-white dark:data-[state=active]:bg-white/10">
+          <TabsList className="mb-6">
+            <TabsTrigger value="edit" className="gap-2">
               <UserPen className="h-4 w-4" />
               Edit Profile
             </TabsTrigger>
-            <TabsTrigger value="preferences" className="gap-2 dark:text-white/60 dark:data-[state=active]:text-white dark:data-[state=active]:bg-white/10">
+            <TabsTrigger value="preferences" className="gap-2">
               <Settings className="h-4 w-4" />
               Preferences
             </TabsTrigger>
-            <TabsTrigger value="setup" className="gap-2 dark:text-white/60 dark:data-[state=active]:text-white dark:data-[state=active]:bg-white/10">
+            <TabsTrigger value="setup" className="gap-2">
               <Compass className="h-4 w-4" />
               Traveler Setup
             </TabsTrigger>
