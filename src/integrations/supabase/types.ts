@@ -595,6 +595,106 @@ export type Database = {
           },
         ]
       }
+      itinerary_chat_messages: {
+        Row: {
+          attachment_data: Json | null
+          attachment_type: string | null
+          content: string | null
+          created_at: string
+          deleted: boolean
+          edited_at: string | null
+          id: string
+          itinerary_id: number
+          reply_to_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          attachment_data?: Json | null
+          attachment_type?: string | null
+          content?: string | null
+          created_at?: string
+          deleted?: boolean
+          edited_at?: string | null
+          id?: string
+          itinerary_id: number
+          reply_to_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          attachment_data?: Json | null
+          attachment_type?: string | null
+          content?: string | null
+          created_at?: string
+          deleted?: boolean
+          edited_at?: string | null
+          id?: string
+          itinerary_id?: number
+          reply_to_id?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_chat_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary_chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itinerary_chat_participants: {
+        Row: {
+          id: string
+          itinerary_id: number
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          itinerary_id: number
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          itinerary_id?: number
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      itinerary_chat_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reaction?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_chat_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary_chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itinerary_collections: {
         Row: {
           created_at: string
@@ -1139,6 +1239,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_chat_joined_at: {
+        Args: { p_itinerary_id: number; p_user_id: string }
+        Returns: string
+      }
       get_itinerary_role: {
         Args: { itinerary_id_param: number; user_id_param: string }
         Returns: string
@@ -1148,6 +1252,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_chat_participant: {
+        Args: { p_itinerary_id: number; p_user_id: string }
         Returns: boolean
       }
       is_itinerary_attendee: {
