@@ -207,7 +207,7 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
       <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur-sm rounded-lg p-3 border border-border">
         <p className="text-xs font-medium text-foreground mb-2">Itineraries</p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <div className="w-4 h-4 rounded-full bg-[#ffce87] border-2 border-border" />
+          <div className="w-4 h-4 rounded-full bg-primary border-2 border-border" />
           <span>{itineraries.length} trip{itineraries.length !== 1 ? 's' : ''}</span>
         </div>
       </div>
