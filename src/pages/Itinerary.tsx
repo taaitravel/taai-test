@@ -247,6 +247,14 @@ const Itinerary = () => {
           handleEdit(type, index);
         }}
       />
+
+      {/* Chat Modal */}
+      <ItineraryChatModal
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        itineraryId={itineraryData.id}
+        itineraryData={itineraryData}
+      />
     </div>
   );
 };
