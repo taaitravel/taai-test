@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { UserMinus, Shield, Eye, Edit, Users } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserMinus, Shield, Edit, Users } from "lucide-react";
 import { useItineraryAttendees } from "@/hooks/useItineraryAttendees";
 import { InviteAttendeesDialog } from "./InviteAttendeesDialog";
 import {
@@ -17,7 +17,7 @@ interface AttendeesSectionProps {
 }
 
 export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
-  const { attendees, loading, updateAttendeeRole, removeAttendee } = useItineraryAttendees(itineraryId);
+  const { attendees, loading, isOwner, removeAttendee } = useItineraryAttendees(itineraryId);
 
   if (loading) {
     return null;
@@ -27,11 +27,8 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
     switch (role) {
       case 'owner':
         return <Shield className="h-4 w-4" />;
-      case 'collaborator':
-      case 'editor':
-        return <Edit className="h-4 w-4" />;
       default:
-        return <Eye className="h-4 w-4" />;
+        return <Edit className="h-4 w-4" />;
     }
   };
 
@@ -39,11 +36,8 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
     switch (role) {
       case 'owner':
         return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'collaborator':
-      case 'editor':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
     }
   };
 
@@ -60,16 +54,20 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
             <Users className="h-5 w-5 text-foreground" />
             <span>Trip Attendees ({attendees.length})</span>
           </CardTitle>
-          <InviteAttendeesDialog itineraryId={itineraryId} />
+          {isOwner && <InviteAttendeesDialog itineraryId={itineraryId} />}
         </div>
+        {!isOwner && (
+          <p className="text-sm text-muted-foreground">Only the trip owner can invite or manage attendees.</p>
+        )}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {attendees.map((attendee) => {
-            const isOwner = attendee.role === 'owner';
-            const userName = attendee.users?.first_name
-              ? `${attendee.users.first_name} ${attendee.users.last_name || ''}`.trim()
-              : attendee.users?.username || attendee.users?.email || 'Unknown';
+            const isAttendeeOwner = attendee.role === 'owner';
+            const profile = attendee.profile;
+            const userName = profile?.first_name
+              ? `${profile.first_name} ${profile.last_name || ''}`.trim()
+              : profile?.username || 'Unknown';
 
             return (
               <div
@@ -78,13 +76,16 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
               >
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
                   <Avatar className="h-10 w-10 flex-shrink-0">
+                    {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                      {userName.split(' ').map(n => n[0]).join('')}
+                      {userName.split(' ').map(n => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm truncate">{userName}</p>
-                    <p className="text-xs text-muted-foreground truncate">{attendee.users?.email || ''}</p>
+                    {profile?.username && (
+                      <p className="text-xs text-muted-foreground truncate">@{profile.username}</p>
+                    )}
                   </div>
                 </div>
 
@@ -94,13 +95,7 @@ export const AttendeesSection = ({ itineraryId }: AttendeesSectionProps) => {
                     {getDisplayRole(attendee.role)}
                   </Badge>
 
-                  {attendee.status === 'pending' && (
-                    <Badge variant="secondary" className="bg-muted text-foreground text-xs px-2 py-0.5">
-                      Pending
-                    </Badge>
-                  )}
-
-                  {!isOwner && (
+                  {!isAttendeeOwner && isOwner && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-foreground">

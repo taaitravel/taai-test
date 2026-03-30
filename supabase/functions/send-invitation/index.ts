@@ -27,10 +27,20 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { itinerary_id, method, value, role = 'viewer' } = await req.json();
+    const { itinerary_id, method, value, role = 'collaborator' } = await req.json();
+    if (!itinerary_id || !method || !value) {
+      throw new Error('itinerary_id, method, and value are required');
+    }
 
-    // Check if user is an attendee of the itinerary
-    const { data: attendee } = await supabaseClient
+    const normalizedValue = value.toLowerCase().trim();
+
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Only owners can invite
+    const { data: senderAttendee } = await supabaseAdmin
       .from('itinerary_attendees')
       .select('role')
       .eq('itinerary_id', itinerary_id)
@@ -38,56 +48,77 @@ serve(async (req) => {
       .eq('status', 'accepted')
       .single();
 
-    if (!attendee) {
-      throw new Error('Not authorized to invite to this itinerary');
+    if (!senderAttendee || senderAttendee.role !== 'owner') {
+      throw new Error('Only the trip owner can send invitations');
     }
 
-    // Create admin client early — needed for cross-user lookups and notification insertion
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Check if target is already an attendee
+    let recipientId: string | null = null;
+    if (method === 'email') {
+      const { data: recipient } = await supabaseAdmin
+        .from('users')
+        .select('userid')
+        .ilike('email', normalizedValue)
+        .single();
+      recipientId = recipient?.userid ?? null;
+    } else if (method === 'username') {
+      const { data: recipient } = await supabaseAdmin
+        .from('users')
+        .select('userid')
+        .ilike('username', normalizedValue)
+        .single();
+      recipientId = recipient?.userid ?? null;
+    }
+
+    if (recipientId) {
+      // Check if already an attendee
+      const { data: existingAttendee } = await supabaseAdmin
+        .from('itinerary_attendees')
+        .select('id')
+        .eq('itinerary_id', itinerary_id)
+        .eq('user_id', recipientId)
+        .single();
+
+      if (existingAttendee) {
+        throw new Error('This user is already a member of this trip');
+      }
+    }
+
+    // Check for existing pending invitation
+    const { data: existingInvite } = await supabaseAdmin
+      .from('itinerary_invitations')
+      .select('id')
+      .eq('itinerary_id', itinerary_id)
+      .ilike('invite_value', normalizedValue)
+      .eq('status', 'pending')
+      .single();
+
+    if (existingInvite) {
+      throw new Error('A pending invitation already exists for this user');
+    }
 
     // Get itinerary details
-    const { data: itinerary } = await supabaseClient
+    const { data: itinerary } = await supabaseAdmin
       .from('itinerary')
-      .select('itin_name, itin_date_start, itin_date_end')
+      .select('itin_name')
       .eq('id', itinerary_id)
       .single();
 
-    // Create invitation
-    const { data: invitation, error: inviteError } = await supabaseClient
+    // Create invitation with normalized value
+    const { data: invitation, error: inviteError } = await supabaseAdmin
       .from('itinerary_invitations')
       .insert({
         itinerary_id,
         invited_by: user.id,
         invite_method: method,
-        invite_value: value,
+        invite_value: normalizedValue,
       })
       .select()
       .single();
 
     if (inviteError) throw inviteError;
 
-    // Use admin client to find recipient (bypasses RLS on users table)
-    let recipientId = null;
-    if (method === 'email') {
-      const { data: recipient } = await supabaseAdmin
-        .from('users')
-        .select('userid')
-        .eq('email', value)
-        .single();
-      recipientId = recipient?.userid;
-    } else if (method === 'username') {
-      const { data: recipient } = await supabaseAdmin
-        .from('users')
-        .select('userid')
-        .eq('username', value)
-        .single();
-      recipientId = recipient?.userid;
-    }
-
-    // Create notification for recipient if they exist
+    // Create notification for recipient if they exist in the system
     if (recipientId) {
       const { data: inviter } = await supabaseAdmin
         .from('users')

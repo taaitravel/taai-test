@@ -21,10 +21,11 @@ export const NotificationCenter = () => {
   const handleNotificationClick = (notification: any) => {
     markAsRead(notification.id);
 
-    if (notification.reference_type === 'itinerary') {
+    if (notification.reference_type === 'itinerary' && notification.reference_id) {
       navigate(`/itinerary?id=${notification.reference_id}`);
     } else if (notification.reference_type === 'itinerary_invitation') {
-      // Open invitations section (could be handled by a modal or separate page)
+      // Navigate to dashboard where PendingInvitationsCard lives
+      navigate('/home');
     }
   };
 
