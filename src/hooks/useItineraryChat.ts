@@ -112,19 +112,19 @@ export const useItineraryChat = (itineraryId: number | null) => {
       reactions = (reactData || []) as ChatReaction[];
     }
 
-    // Fetch sender info
-    const senderIds = [...new Set((data || []).map((m: any) => m.sender_id))];
+    // Fetch sender info using safe RPC
     const senderMap: Record<string, any> = {};
-    await Promise.all(
-      senderIds.map(async (sid) => {
-        const { data: u } = await supabase
-          .from('users')
-          .select('first_name, last_name, username, avatar_url')
-          .eq('userid', sid)
-          .single();
-        senderMap[sid as string] = u;
-      })
-    );
+    const { data: profiles } = await supabase.rpc('get_itinerary_participant_profiles', {
+      p_itinerary_id: itineraryId
+    });
+    (profiles || []).forEach((p: any) => {
+      senderMap[p.user_id] = {
+        first_name: p.first_name,
+        last_name: p.last_name,
+        username: p.username,
+        avatar_url: p.avatar_url,
+      };
+    });
 
     // Build reply references (only 1 level deep)
     const msgMap: Record<string, any> = {};
