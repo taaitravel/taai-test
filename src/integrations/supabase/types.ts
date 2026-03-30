@@ -1243,6 +1243,17 @@ export type Database = {
         Args: { p_itinerary_id: number; p_user_id: string }
         Returns: string
       }
+      get_itinerary_participant_profiles: {
+        Args: { p_itinerary_id: number }
+        Returns: {
+          avatar_url: string
+          first_name: string
+          last_name: string
+          role: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_itinerary_role: {
         Args: { itinerary_id_param: number; user_id_param: string }
         Returns: string
