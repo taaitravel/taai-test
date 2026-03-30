@@ -63,16 +63,25 @@ export const useItineraryChat = (itineraryId: number | null) => {
 
     if (!data) return;
 
-    const withUsers = await Promise.all(
-      data.map(async (p: any) => {
-        const { data: u } = await supabase
-          .from('users')
-          .select('first_name, last_name, username, avatar_url')
-          .eq('userid', p.user_id)
-          .single();
-        return { ...p, user: u };
-      })
-    );
+    // Use safe RPC for profiles instead of direct users table query
+    const { data: profiles } = await supabase.rpc('get_itinerary_participant_profiles', {
+      p_itinerary_id: itineraryId
+    });
+
+    const profileMap: Record<string, any> = {};
+    (profiles || []).forEach((p: any) => {
+      profileMap[p.user_id] = {
+        first_name: p.first_name,
+        last_name: p.last_name,
+        username: p.username,
+        avatar_url: p.avatar_url,
+      };
+    });
+
+    const withUsers = data.map((p: any) => ({
+      ...p,
+      user: profileMap[p.user_id] || null,
+    }));
     setParticipants(withUsers);
   }, [itineraryId]);
 
