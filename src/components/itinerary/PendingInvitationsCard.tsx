@@ -4,13 +4,23 @@ import { Badge } from '@/components/ui/badge';
 import { useInvitations } from '@/hooks/useInvitations';
 import { format } from 'date-fns';
 import { Calendar, Check, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const PendingInvitationsCard = () => {
   const { receivedInvitations, loading, acceptInvitation, declineInvitation } = useInvitations();
+  const navigate = useNavigate();
 
   if (loading || receivedInvitations.length === 0) {
     return null;
   }
+
+  const handleAccept = async (invitationId: string) => {
+    const itineraryId = await acceptInvitation(invitationId);
+    if (itineraryId) {
+      // Navigate to the shared trip after accepting
+      navigate(`/itinerary?id=${itineraryId}`);
+    }
+  };
 
   return (
     <Card className="bg-card border-border">
@@ -57,7 +67,7 @@ export const PendingInvitationsCard = () => {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  onClick={() => acceptInvitation(invitation.id)}
+                  onClick={() => handleAccept(invitation.id)}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                 >
                   <Check className="h-4 w-4 mr-1" />

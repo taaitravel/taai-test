@@ -32,56 +32,82 @@ export const useInvitations = () => {
   const fetchInvitations = async () => {
     if (!user) return;
 
-    // Get user info to match against invitations
-    const { data: userData } = await supabase
-      .from('users')
-      .select('email, username, cell')
-      .eq('userid', user.id)
-      .single();
+    try {
+      // Get user info to match against invitations (case-insensitive)
+      const { data: userData } = await supabase
+        .from('users')
+        .select('email, username, cell')
+        .eq('userid', user.id)
+        .single();
 
-    if (!userData) return;
+      if (!userData) return;
 
-    // Build filter for invitations sent to this user
-    const filters = [];
-    if (userData.email) filters.push(userData.email);
-    if (userData.username) filters.push(userData.username);
-    if (userData.cell) filters.push(userData.cell.toString());
+      // Build filter for invitations sent to this user (normalized/lowercase)
+      const filters: string[] = [];
+      if (userData.email) filters.push(userData.email.toLowerCase().trim());
+      if (userData.username) filters.push(userData.username.toLowerCase().trim());
+      if (userData.cell) filters.push(userData.cell.toString());
 
-    const { data, error } = await supabase
-      .from('itinerary_invitations')
-      .select(`
-        *,
-        itinerary(itin_name, itin_date_start, itin_date_end)
-      `)
-      .in('invite_value', filters)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
+      if (filters.length === 0) return;
 
-    if (error) {
-      console.error('Error fetching invitations:', error);
-      return;
+      const { data, error } = await supabase
+        .from('itinerary_invitations')
+        .select(`
+          *,
+          itinerary(itin_name, itin_date_start, itin_date_end)
+        `)
+        .in('invite_value', filters)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching invitations:', error);
+        return;
+      }
+
+      // Fetch inviter details using the safe RPC or admin approach
+      // Since we can't read other users directly, we'll use what we can
+      const invitationsWithInviters = (data || []).map((inv) => {
+        // inviter info comes from notification message or we show fallback
+        return { ...inv, inviter: null as any };
+      });
+
+      // Try fetching inviter info - may fail due to RLS, that's OK
+      const enriched = await Promise.all(
+        invitationsWithInviters.map(async (inv) => {
+          try {
+            // For each unique itinerary, try using the safe profile RPC
+            const { data: profiles } = await supabase.rpc('get_itinerary_participant_profiles', {
+              p_itinerary_id: inv.itinerary_id
+            });
+            
+            const inviterProfile = profiles?.find((p: any) => p.user_id === inv.invited_by);
+            if (inviterProfile) {
+              return {
+                ...inv,
+                inviter: {
+                  first_name: inviterProfile.first_name,
+                  last_name: inviterProfile.last_name,
+                  username: inviterProfile.username,
+                }
+              };
+            }
+          } catch {
+            // RPC may fail if user isn't an attendee yet - that's expected
+          }
+          return inv;
+        })
+      );
+
+      setReceivedInvitations(enriched);
+    } finally {
+      setLoading(false);
     }
-
-    // Fetch inviter details
-    const invitationsWithInviters = await Promise.all(
-      (data || []).map(async (inv) => {
-        const { data: inviter } = await supabase
-          .from('users')
-          .select('first_name, last_name, username')
-          .eq('userid', inv.invited_by)
-          .single();
-
-        return { ...inv, inviter };
-      })
-    );
-
-    setReceivedInvitations(invitationsWithInviters);
-    setLoading(false);
   };
 
   const acceptInvitation = async (invitationId: string) => {
     try {
-      const { error } = await supabase.functions.invoke('accept-invitation', {
+      const { data, error } = await supabase.functions.invoke('accept-invitation', {
         body: {
           invitation_id: invitationId,
           accept: true,
@@ -89,26 +115,31 @@ export const useInvitations = () => {
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
-        title: 'Invitation accepted',
-        description: 'You have joined the trip!',
+        title: 'Invitation accepted!',
+        description: 'You have joined the trip. It will now appear in your shared itineraries.',
       });
 
       fetchInvitations();
-    } catch (error) {
+      
+      // Return the itinerary_id so the UI can navigate
+      return data?.itinerary_id;
+    } catch (error: any) {
       console.error('Error accepting invitation:', error);
       toast({
         title: 'Error',
-        description: 'Failed to accept invitation',
+        description: error.message || 'Failed to accept invitation',
         variant: 'destructive',
       });
+      return null;
     }
   };
 
   const declineInvitation = async (invitationId: string) => {
     try {
-      const { error } = await supabase.functions.invoke('accept-invitation', {
+      const { data, error } = await supabase.functions.invoke('accept-invitation', {
         body: {
           invitation_id: invitationId,
           accept: false,
@@ -116,6 +147,7 @@ export const useInvitations = () => {
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: 'Invitation declined',
@@ -123,11 +155,11 @@ export const useInvitations = () => {
       });
 
       fetchInvitations();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error declining invitation:', error);
       toast({
         title: 'Error',
-        description: 'Failed to decline invitation',
+        description: error.message || 'Failed to decline invitation',
         variant: 'destructive',
       });
     }

@@ -56,27 +56,27 @@ export const useSharedItineraries = () => {
         return;
       }
 
-      // Fetch owner names
-      const ownerIds = [...new Set((itineraries || []).map(i => i.userid).filter(Boolean))];
-      let ownerMap = new Map<string, string>();
-
-      if (ownerIds.length > 0) {
-        // Use service role isn't available client-side, so we query attendees for owner info
-        // Since we can't read other users' profiles directly, get owner names from itinerary_attendees
-        const { data: ownerAttendees } = await supabase
-          .from('itinerary_attendees')
-          .select('itinerary_id, user_id')
-          .in('itinerary_id', itineraryIds)
-          .eq('role', 'owner');
-
-        // We can't directly query other users' profiles due to RLS
-        // So we'll show "Trip Owner" as fallback - the owner name will come from attendee data if available
-        if (ownerAttendees) {
-          ownerAttendees.forEach(a => {
-            ownerMap.set(a.itinerary_id.toString(), 'Trip Owner');
-          });
-        }
-      }
+      // Fetch owner names using the safe RPC for each itinerary
+      const ownerMap = new Map<number, string>();
+      
+      await Promise.all(
+        itineraryIds.map(async (itinId) => {
+          try {
+            const { data: profiles } = await supabase.rpc('get_itinerary_participant_profiles', {
+              p_itinerary_id: itinId
+            });
+            const ownerProfile = profiles?.find((p: any) => p.role === 'owner');
+            if (ownerProfile) {
+              const name = ownerProfile.first_name
+                ? `${ownerProfile.first_name} ${ownerProfile.last_name || ''}`.trim()
+                : ownerProfile.username || 'Trip Owner';
+              ownerMap.set(itinId, name);
+            }
+          } catch {
+            // fallback
+          }
+        })
+      );
 
       const enriched: SharedItinerary[] = (itineraries || []).map(itin => ({
         ...itin,
@@ -88,7 +88,7 @@ export const useSharedItineraries = () => {
         activities: itin.activities as any,
         reservations: itin.reservations as any,
         images: itin.images as any,
-        ownerName: ownerMap.get(itin.id.toString()) || 'Trip Owner',
+        ownerName: ownerMap.get(itin.id) || 'Trip Owner',
         myRole: roleMap.get(itin.id) || 'collaborator',
       }));
 
