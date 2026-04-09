@@ -30,6 +30,7 @@ import Search from "./pages/Search";
 import MyItineraries from "./pages/MyItineraries";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
+import BookingSuccess from "./pages/BookingSuccess";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,11 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/booking-success" element={
+                <ProtectedRoute>
+                  <BookingSuccess />
+                </ProtectedRoute>
+              } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -96,6 +96,173 @@ export type Database = {
           },
         ]
       }
+      booking_completions: {
+        Row: {
+          booking_intent_id: string | null
+          change_requests: Json | null
+          created_at: string
+          currency: string | null
+          guest_details: Json | null
+          id: string
+          item_data: Json
+          item_type: string
+          net_revenue: number | null
+          notes: string | null
+          provider: string
+          provider_confirmation_code: string | null
+          provider_contact: Json | null
+          provider_cost: number
+          receipt_url: string | null
+          service_end_date: string | null
+          service_start_date: string | null
+          status: string
+          stripe_fee: number | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          taai_commission: number | null
+          taai_service_fee: number
+          tax_amount: number
+          total_charged: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_intent_id?: string | null
+          change_requests?: Json | null
+          created_at?: string
+          currency?: string | null
+          guest_details?: Json | null
+          id?: string
+          item_data?: Json
+          item_type: string
+          net_revenue?: number | null
+          notes?: string | null
+          provider: string
+          provider_confirmation_code?: string | null
+          provider_contact?: Json | null
+          provider_cost?: number
+          receipt_url?: string | null
+          service_end_date?: string | null
+          service_start_date?: string | null
+          status?: string
+          stripe_fee?: number | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          taai_commission?: number | null
+          taai_service_fee?: number
+          tax_amount?: number
+          total_charged?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_intent_id?: string | null
+          change_requests?: Json | null
+          created_at?: string
+          currency?: string | null
+          guest_details?: Json | null
+          id?: string
+          item_data?: Json
+          item_type?: string
+          net_revenue?: number | null
+          notes?: string | null
+          provider?: string
+          provider_confirmation_code?: string | null
+          provider_contact?: Json | null
+          provider_cost?: number
+          receipt_url?: string | null
+          service_end_date?: string | null
+          service_start_date?: string | null
+          status?: string
+          stripe_fee?: number | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          taai_commission?: number | null
+          taai_service_fee?: number
+          tax_amount?: number
+          total_charged?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_completions_booking_intent_id_fkey"
+            columns: ["booking_intent_id"]
+            isOneToOne: false
+            referencedRelation: "booking_intents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_intents: {
+        Row: {
+          cart_item_id: string | null
+          created_at: string
+          currency: string | null
+          event_type: string
+          guest_details: Json | null
+          id: string
+          item_data: Json
+          item_id: string | null
+          item_type: string
+          itinerary_id: number | null
+          metadata: Json | null
+          price_snapshot: number | null
+          provider: string
+          service_dates: Json | null
+          user_id: string
+        }
+        Insert: {
+          cart_item_id?: string | null
+          created_at?: string
+          currency?: string | null
+          event_type: string
+          guest_details?: Json | null
+          id?: string
+          item_data?: Json
+          item_id?: string | null
+          item_type: string
+          itinerary_id?: number | null
+          metadata?: Json | null
+          price_snapshot?: number | null
+          provider: string
+          service_dates?: Json | null
+          user_id: string
+        }
+        Update: {
+          cart_item_id?: string | null
+          created_at?: string
+          currency?: string | null
+          event_type?: string
+          guest_details?: Json | null
+          id?: string
+          item_data?: Json
+          item_id?: string | null
+          item_type?: string
+          itinerary_id?: number | null
+          metadata?: Json | null
+          price_snapshot?: number | null
+          provider?: string
+          service_dates?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_intents_cart_item_id_fkey"
+            columns: ["cart_item_id"]
+            isOneToOne: false
+            referencedRelation: "cart_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_intents_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_payments: {
         Row: {
           booking_id: string
@@ -216,6 +383,7 @@ export type Database = {
       }
       cart_items: {
         Row: {
+          booking_status: string
           created_at: string
           external_ref: string
           id: string
@@ -228,6 +396,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          booking_status?: string
           created_at?: string
           external_ref: string
           id?: string
@@ -240,6 +409,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          booking_status?: string
           created_at?: string
           external_ref?: string
           id?: string
@@ -437,6 +607,47 @@ export type Database = {
             columns: ["itinerary_id"]
             isOneToOne: false
             referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_ledger: {
+        Row: {
+          amount: number
+          booking_completion_id: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          entry_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          amount: number
+          booking_completion_id?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          entry_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          amount?: number
+          booking_completion_id?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          entry_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_ledger_booking_completion_id_fkey"
+            columns: ["booking_completion_id"]
+            isOneToOne: false
+            referencedRelation: "booking_completions"
             referencedColumns: ["id"]
           },
         ]

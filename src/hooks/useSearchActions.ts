@@ -11,7 +11,25 @@ export const useSearchActions = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const trackIntent = async (eventType: string, item: any, itemType: string) => {
+    if (!user) return;
+    try {
+      await supabase.functions.invoke('track-booking-event', {
+        body: {
+          event_type: eventType,
+          provider: item.source || item.provider || 'unknown',
+          item_type: itemType || 'hotel',
+          item_data: item,
+          price_snapshot: item.min_total_price || item.price || item.cost || 0,
+        },
+      });
+    } catch (e) {
+      console.error('Failed to track intent:', e);
+    }
+  };
+
   const handleAddToItinerary = (item: any) => {
+    trackIntent('add_to_itinerary', item, item.type || 'hotel');
     setSelectedItem(item);
     setShowItineraryModal(true);
   };
@@ -27,6 +45,8 @@ export const useSearchActions = () => {
       });
 
       if (error) throw error;
+
+      trackIntent('view', item, itemType);
 
       toast({
         title: 'Added to Wishlist!',
@@ -53,15 +73,22 @@ export const useSearchActions = () => {
     }
 
     try {
-      const { error } = await supabase.from('cart_items').insert({
+      const { data, error } = await supabase.from('cart_items').insert({
         user_id: user.id,
         external_ref: item.hotel_id || item.id || '',
         type: itemType || 'hotel',
         price: item.min_total_price || item.price || 0,
-        item_data: item,
-      });
+        item_data: {
+          ...item,
+          provider: item.source || item.provider || 'unknown',
+        },
+        booking_status: 'interested',
+      }).select('id').single();
 
       if (error) throw error;
+
+      // Track add_to_cart intent
+      trackIntent('add_to_cart', item, itemType);
 
       toast({
         title: 'Added to Cart!',
@@ -78,6 +105,7 @@ export const useSearchActions = () => {
   };
 
   const handleViewDetails = (item: any) => {
+    trackIntent('view', item, 'hotel');
     navigate(`/hotel/${item.hotel_id}`, { state: { hotel: item } });
   };
 
