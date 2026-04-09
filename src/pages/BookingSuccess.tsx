@@ -43,7 +43,7 @@ const BookingSuccess: React.FC = () => {
           )}
           {status === 'success' && (
             <>
-              <CheckCircle2 className="h-16 w-16 mx-auto mb-4 text-green-500" />
+              <CheckCircle2 className="h-16 w-16 mx-auto mb-4 text-emerald-500 dark:text-emerald-400" />
               <CardTitle>Booking Confirmed! 🎉</CardTitle>
             </>
           )}
