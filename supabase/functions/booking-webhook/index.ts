@@ -109,7 +109,13 @@ serve(async (req) => {
     const userId = session.metadata.user_id;
     const cartItemIds = session.metadata.cart_item_ids?.split(",") || [];
     const providerTotal = parseFloat(session.metadata.provider_total || "0");
-    const serviceFee = parseFloat(session.metadata.service_fee || "0");
+    // Tiered breakdown from checkout metadata. Falls back to legacy 8% flat
+    // for any in-flight session created before tiered pricing shipped.
+    const legacyServiceFee = parseFloat(session.metadata.service_fee || "0");
+    const sessSalesTaxRate = parseFloat(session.metadata.sales_tax_rate || "0");
+    const sessTaaiFeeRate = parseFloat(session.metadata.taai_fee_rate || "0");
+    const subscriptionTier = session.metadata.subscription_tier || "traveler";
+    const hasTieredMeta = sessSalesTaxRate > 0 || sessTaaiFeeRate > 0;
     const itineraryId = session.metadata.itinerary_id ? parseInt(session.metadata.itinerary_id) : null;
     const paymentIntent = session.payment_intent as Stripe.PaymentIntent;
 
@@ -131,8 +137,17 @@ serve(async (req) => {
     for (const item of (cartItems || [])) {
       const itemData = item.item_data as Record<string, unknown> || {};
       const itemPrice = item.price || 0;
-      const itemServiceFee = Math.round(itemPrice * 0.08 * 100) / 100;
-      const stripeFeeEstimate = Math.round((itemPrice + itemServiceFee) * 0.029 * 100) / 100 + 0.30;
+      const itemSalesTax = hasTieredMeta
+        ? Math.round(itemPrice * sessSalesTaxRate * 100) / 100
+        : 0;
+      const itemTaaiFee = hasTieredMeta
+        ? Math.round(itemPrice * sessTaaiFeeRate * 100) / 100
+        : legacyServiceFee && providerTotal
+          ? Math.round((itemPrice / providerTotal) * legacyServiceFee * 100) / 100
+          : Math.round(itemPrice * 0.08 * 100) / 100;
+      const itemTaxesAndFees = Math.round((itemSalesTax + itemTaaiFee) * 100) / 100;
+      const itemTotal = Math.round((itemPrice + itemTaxesAndFees) * 100) / 100;
+      const stripeFeeEstimate = Math.round(itemTotal * 0.029 * 100) / 100 + 0.30;
 
       const { data: completion, error: completionError } = await supabaseClient
         .from("booking_completions")
@@ -142,15 +157,16 @@ serve(async (req) => {
           item_type: item.type,
           item_data: itemData,
           provider_cost: itemPrice,
-          taai_service_fee: itemServiceFee,
-          tax_amount: 0, // Stripe Tax handles this
+          taai_service_fee: itemTaaiFee,
+          tax_amount: itemSalesTax,
           stripe_fee: stripeFeeEstimate,
-          total_charged: itemPrice + itemServiceFee,
-          net_revenue: itemServiceFee - stripeFeeEstimate,
+          total_charged: itemTotal,
+          net_revenue: Math.round((itemTaaiFee - stripeFeeEstimate) * 100) / 100,
           stripe_payment_intent_id: paymentIntent?.id,
           stripe_session_id: session.id,
           status: "confirmed",
           receipt_url: (paymentIntent as any)?.charges?.data?.[0]?.receipt_url || null,
+          notes: `tier=${subscriptionTier}; sales_tax_rate=${sessSalesTaxRate}; taai_fee_rate=${sessTaaiFeeRate}`,
         })
         .select("id")
         .single();
@@ -168,14 +184,20 @@ serve(async (req) => {
           {
             booking_completion_id: completion.id,
             entry_type: "charge",
-            amount: itemPrice + itemServiceFee,
+            amount: itemTotal,
             description: `Booking charge for ${item.type}: ${item.external_ref}`,
           },
           {
             booking_completion_id: completion.id,
+            entry_type: "sales_tax",
+            amount: itemSalesTax,
+            description: `Sales tax (${(sessSalesTaxRate * 100).toFixed(2)}%)`,
+          },
+          {
+            booking_completion_id: completion.id,
             entry_type: "service_fee",
-            amount: itemServiceFee,
-            description: "TAAI travel management fee (8%)",
+            amount: itemTaaiFee,
+            description: `TAAI travel management fee (${(sessTaaiFeeRate * 100).toFixed(3).replace(/\.?0+$/, "")}%, tier=${subscriptionTier})`,
           },
           {
             booking_completion_id: completion.id,
