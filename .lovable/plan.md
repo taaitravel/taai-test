@@ -1,36 +1,60 @@
-# Add Cart Icon to Top Navigation
+# Cart by Itinerary + Book button explanation
 
-## Goal
-Add a cart icon to the top navigation bar with a live badge showing the number of items currently in the user's cart.
+## What the "Book" button does today
 
-## Where it goes
-In `src/components/shared/MobileNavigation.tsx`, place the cart icon in the right-side action cluster, next to `NotificationCenter`. It will render in both desktop and mobile layouts (mobile shows it in the right slot currently used as a spacer).
+The **Book** button on each cart row (and the big **Secure Checkout** button) does the same thing — it calls `useBookingCheckout.startCheckout(items)`, which:
 
-## What to build
+1. Logs a `checkout_start` event into `booking_intents` for each item.
+2. Invokes the `create-booking-checkout` edge function. That function builds a Stripe Checkout Session with:
+   - one Stripe line item per cart item (provider price)
+   - one extra line item for the **8% TAAI Management Fee**
+3. Returns a Stripe-hosted checkout URL and redirects the browser to Stripe.
+4. After the user pays, Stripe calls our `booking-webhook`, which inserts a row into `booking_completions`, writes double-entry rows into `financial_ledger`, and flips the `cart_items.booking_status` to `booked`.
 
-1. **`useCartCount` hook** (`src/hooks/useCartCount.ts`)
-   - Queries `cart_items` for the current user where `booking_status` is not `booked`
-   - Subscribes to realtime `INSERT` / `UPDATE` / `DELETE` on `cart_items` so the badge updates instantly when items are added or removed anywhere in the app
-   - Returns `{ count }`
+So **Book = pay now via Stripe** for that single item; **Secure Checkout = pay now via Stripe** for everything in the cart in one session.
 
-2. **`CartIcon` component** (`src/components/shared/CartIcon.tsx`)
-   - Button with `ShoppingCart` icon (lucide-react)
-   - Small badge in the top-right corner showing the count (hidden when count is 0; shows `9+` when count > 9)
-   - On click, navigates to `/cart`
-   - Uses semantic design tokens (`bg-primary`, `text-primary-foreground`, etc.) — no hardcoded colors
+> Note: this charges the customer through Stripe, but it does **not** yet hit any provider booking API (Booking.com / Amadeus / Expedia). That part of the flow is scaffolded but unwired — confirmation today is "we received your money," not "the hotel has your reservation." Worth flagging before any real launch.
 
-3. **Wire into `MobileNavigation.tsx`**
-   - Import and render `<CartIcon />` next to `<NotificationCenter />` on desktop
-   - Render it in the mobile right-side area (replacing the empty `w-10` spacer) so mobile users can also access it
+## Group cart by itinerary
 
-4. **`/cart` route**
-   - Add a minimal `Cart` page (`src/pages/Cart.tsx`) that renders the existing `BookingCart` component (no `itineraryId` so it shows all cart items across trips)
-   - Wrap with `MobileNavigation` for header consistency
-   - Register the route in `src/App.tsx` under `ProtectedRoute`
+### Goal
+On `/cart` (and inside the embedded BookingCart), group items by the trip they were saved into, so the user can see and check out per trip.
 
-## Out of scope
-- No changes to checkout logic, Stripe flow, or backend
-- No bottom-nav cart tab (can be added later if you want)
-- No changes to "Add to Itinerary" buttons on search cards
+### Data
+`cart_items.itinerary_id` is the `itin_id` (uuid) of the trip the item was saved to. Some items have no `itinerary_id` (added without picking a trip) — those go in an **Unassigned** group.
 
-Once approved I'll implement all four pieces in one pass.
+### UI changes (single file: `src/components/booking/BookingCart.tsx`)
+
+```text
+┌─ Trip: Lisbon Getaway ─────── 4 items ─┐
+│  • Hotel Bairro Alto      $420   [Book] [x] │
+│  • Flight LIS              $310   [Book] [x] │
+│  Subtotal $730 + Fee $58.40 = $788.40        │
+│  [Checkout this trip — $788.40]              │
+└──────────────────────────────────────────────┘
+
+┌─ Trip: Tokyo 2026 ─────────── 2 items ─┐ ...
+
+┌─ Unassigned ─────────────── 1 item ─┐ ...
+
+──────────────────────────────────────────
+Grand total across all trips: $1,942.10
+[Checkout everything]
+```
+
+- Fetch trips referenced by the cart (one extra query: `itinerary` where `itin_id in (...)`) to display trip names.
+- Each group is a collapsible card with: trip name, item count, the existing item rows, its own subtotal/fee/total, and its own **Checkout this trip** button (calls `handleCheckout(groupItems)`).
+- The grand-total Secure Checkout button stays at the bottom for "pay for everything in one Stripe session."
+- The per-row **Book** button stays (single-item checkout).
+- Empty state and "Save quote" behavior unchanged.
+
+### Cart icon badge
+No change — still shows total unbooked items across all trips.
+
+### Out of scope
+- No DB changes.
+- No changes to `create-booking-checkout` (it already accepts an arbitrary subset of items).
+- No changes to the Add-to-Cart flows on search cards.
+- Wiring real provider booking APIs (separate, larger workstream).
+
+Approve and I'll implement the grouping in `BookingCart.tsx`.
