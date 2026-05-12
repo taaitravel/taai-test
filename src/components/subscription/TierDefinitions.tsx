@@ -13,7 +13,8 @@ export const individualTiers: TierData[] = [
       '5 credits for AI/API calls',
       'Up to 3 itineraries',
       'Share with up to 10 friends',
-      'Basic support'
+      'Basic support',
+      'Booking Taxes & Fees: 8.00%'
     ],
     isPaid: false,
     isPopular: false
@@ -35,7 +36,8 @@ export const individualTiers: TierData[] = [
       'Up to 20 itineraries',
       'Share with up to 20 friends',
       'Priority support',
-      'Advanced trip planning'
+      'Advanced trip planning',
+      'Booking Taxes & Fees: 7.70%'
     ],
     isPaid: true,
     isPopular: true
@@ -58,7 +60,8 @@ export const individualTiers: TierData[] = [
       'Unlimited friend sharing',
       'Premium support',
       'Advanced analytics',
-      'Custom itinerary templates'
+      'Custom itinerary templates',
+      'Booking Taxes & Fees: 7.35%'
     ],
     isPaid: true,
     isPopular: false
@@ -84,7 +87,8 @@ export const corporateTiers: TierData[] = [
       'Share with up to 50 team members',
       'Business support',
       'Team management tools',
-      'Expense tracking'
+      'Expense tracking',
+      'Booking Taxes & Fees: 7.35%'
     ],
     isPaid: true,
     isPopular: true
@@ -105,7 +109,8 @@ export const corporateTiers: TierData[] = [
       'Custom integrations',
       'Advanced reporting',
       'Dedicated account manager',
-      'SLA guarantees'
+      'SLA guarantees',
+      'Booking Taxes & Fees: 7.35%'
     ],
     isPaid: false,
     isPopular: false,
