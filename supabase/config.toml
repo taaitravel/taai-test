@@ -28,10 +28,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.search-yelp-businesses]
-verify_jwt = false
+verify_jwt = true
 
 [functions.enhance-city-formatting]
-verify_jwt = false
+verify_jwt = true
 
 [functions.manage-user-roles]
 verify_jwt = true
@@ -49,7 +49,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.categorize-search-results]
-verify_jwt = false
+verify_jwt = true
 
 [functions.chat-with-gpt]
 verify_jwt = true
