@@ -41,32 +41,32 @@ const Index = () => {
 
   const features = [
     {
-      icon: <Plane className="h-8 w-8 text-white" />,
+      icon: <Plane className="h-7 w-7 text-white" />,
       title: "AI-Powered Booking",
       description: "Smart integration with major travel platforms for seamless booking"
     },
     {
-      icon: <Map className="h-8 w-8 text-white" />,
+      icon: <Map className="h-7 w-7 text-white" />,
       title: "Interactive Maps",
       description: "Visual trip planning with location mapping and recommendations"
     },
     {
-      icon: <Calendar className="h-8 w-8 text-white" />,
+      icon: <Calendar className="h-7 w-7 text-white" />,
       title: "Smart Itineraries",
       description: "Comprehensive trip planning with real-time updates and editing"
     },
     {
-      icon: <BarChart3 className="h-8 w-8 text-white" />,
+      icon: <BarChart3 className="h-7 w-7 text-white" />,
       title: "Budget Tracking",
       description: "Real-time expense monitoring with detailed analytics"
     },
     {
-      icon: <MessageCircle className="h-8 w-8 text-white" />,
+      icon: <MessageCircle className="h-7 w-7 text-white" />,
       title: "Trip Chat",
       description: "Stay connected with travel updates and group coordination"
     },
     {
-      icon: <Users className="h-8 w-8 text-white" />,
+      icon: <Users className="h-7 w-7 text-white" />,
       title: "Group Travel",
       description: "Perfect for both individual and corporate travel needs"
     }
@@ -294,7 +294,7 @@ const Index = () => {
             {features.map((feature, index) => (
               <Card key={index} className="group hover:shadow-2xl transition-all duration-300 bg-card/60 border-border hover:border-primary/40">
                 <CardContent className="p-6">
-                  <div className="mb-4 group-hover:scale-105 transition-all duration-300 transform-gpu perspective-1000 group-hover:translate-z-2">
+                  <div className="mb-4 h-14 w-14 rounded-2xl gold-gradient flex items-center justify-center shadow-md group-hover:scale-105 transition-all duration-300">
                     {feature.icon}
                   </div>
                   <h3 className="text-xl font-semibold text-card-foreground mb-2">
