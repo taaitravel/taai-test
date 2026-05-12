@@ -23,13 +23,68 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // For now, handle session lookup by ID (webhook signing can be added with STRIPE_WEBHOOK_SECRET later)
-    const body = await req.json();
-    const { session_id } = body;
+    // Resolve session_id either from a verified Stripe webhook signature
+    // (preferred, when STRIPE_WEBHOOK_SECRET is configured) or from a
+    // signed-in client polling after redirect (fallback). In both cases we
+    // rely on Stripe to validate the session.
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    const stripeSig = req.headers.get("stripe-signature");
+    let session_id: string | undefined;
 
-    if (!session_id) {
-      return new Response(JSON.stringify({ error: "session_id required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (webhookSecret && stripeSig) {
+      const rawBody = await req.text();
+      try {
+        const event = await stripe.webhooks.constructEventAsync(
+          rawBody,
+          stripeSig,
+          webhookSecret,
+        );
+        if (event.type !== "checkout.session.completed") {
+          return new Response(JSON.stringify({ ok: "ignored" }), {
+            status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        session_id = (event.data.object as Stripe.Checkout.Session).id;
+      } catch (err) {
+        console.error("[BOOKING-WEBHOOK] Signature verification failed", err);
+        return new Response(JSON.stringify({ error: "Invalid signature" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      // Authenticated client fallback: must present a Supabase JWT.
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: ud, error: ue } = await supabaseClient.auth.getUser(
+        authHeader.replace("Bearer ", ""),
+      );
+      if (ue || !ud?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const body = await req.json().catch(() => ({}));
+      session_id = body.session_id;
+      if (!session_id) {
+        return new Response(JSON.stringify({ error: "session_id required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Idempotency: skip if this Stripe session already produced completions
+    const { data: existingCompletion } = await supabaseClient
+      .from("booking_completions")
+      .select("id")
+      .eq("stripe_session_id", session_id)
+      .maybeSingle();
+    if (existingCompletion) {
+      return new Response(JSON.stringify({ ok: "already processed" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

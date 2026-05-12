@@ -105,7 +105,7 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in get-stripe-prices", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: 'Unable to load pricing. Please try again.' }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

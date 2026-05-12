@@ -2,6 +2,7 @@
 // Uses YELP_API_KEY secret; returns minimal business data for UI
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +13,23 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: u, error: ue } = await supabaseAuth.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (ue || !u?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { term, location, latitude, longitude } = await req.json().catch(() => ({}));
     if (!term || (typeof term !== "string") || term.length < 2) {
       return new Response(JSON.stringify({ error: "Missing or invalid term" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });

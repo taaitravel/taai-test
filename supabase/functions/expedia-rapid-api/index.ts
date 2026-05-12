@@ -87,6 +87,22 @@ serve(async (req) => {
 
     const { endpoint, method, params, body } = validatedData;
 
+    // SSRF protection — only allow the Expedia RapidAPI host
+    const ALLOWED_HOSTS = ['expedia13.p.rapidapi.com'];
+    let parsedEndpoint: URL;
+    try {
+      parsedEndpoint = new URL(endpoint);
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid endpoint' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!ALLOWED_HOSTS.includes(parsedEndpoint.hostname) || parsedEndpoint.protocol !== 'https:') {
+      return new Response(JSON.stringify({ error: 'Forbidden host' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log('Making RapidAPI request to:', endpoint);
     console.log('Parameters:', params);
 
