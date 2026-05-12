@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase } from 'lucide-react';
+import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,6 +122,21 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     }
   };
 
+  const formatPrice = (n: number) =>
+    `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const getServiceDateRange = (item: CartItem): string | null => {
+    const sd = item.item_data?.service_dates;
+    if (!sd) return null;
+    const start = sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date;
+    const end = sd.checkOut || sd.end || sd.endDate || sd.return;
+    try {
+      if (start && end) return `${format(new Date(start), 'MMM dd')} – ${format(new Date(end), 'MMM dd, yyyy')}`;
+      if (start) return format(new Date(start), 'MMM dd, yyyy');
+    } catch { /* ignore */ }
+    return null;
+  };
+
   const groups = useMemo(() => {
     const map = new Map<string, CartItem[]>();
     cartItems.forEach(item => {
@@ -163,7 +179,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                 const isUnassigned = key === UNASSIGNED_KEY;
                 const tripName = isUnassigned ? 'Unassigned' : (tripNames[key] || 'Trip');
                 return (
-                  <div key={key} className="rounded-lg border border-rental/30 bg-rental/10 p-3">
+                  <div key={key} className="rounded-lg border border-rental/60 bg-rental/30 p-3">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-rental" />
@@ -173,51 +189,60 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                     </div>
 
                     <div className="space-y-2">
-                      {items.map(item => (
-                        <div key={item.id} className="bg-background/60 rounded-md p-3 border border-border">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-3 min-w-0">
-                              {getItemIcon(item.type)}
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className="text-xs">{item.type}</Badge>
-                                  <span className="text-sm truncate">{item.item_data?.name || item.external_ref}</span>
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {item.item_data?.provider || 'Provider TBD'} · Saved {new Date(item.saved_at).toLocaleDateString()}
-                                </div>
-                              </div>
+                      {items.map(item => {
+                        const dateRange = getServiceDateRange(item);
+                        return (
+                          <div key={item.id} className="bg-background rounded-md p-4 border border-border space-y-1.5">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs gap-1">
+                                {getItemIcon(item.type)}
+                                <span>{item.type}</span>
+                              </Badge>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="font-semibold text-rental">${item.price.toFixed(2)}</span>
-                              <Button variant="outline" size="sm" onClick={() => handleCheckout([item])} disabled={isCheckingOut} className="text-xs">
-                                {isCheckingOut ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Book'}
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id)} className="text-destructive hover:text-destructive">
+                            <div className="text-sm font-medium text-foreground break-words">
+                              {item.item_data?.name || item.external_ref}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {item.item_data?.provider || 'Provider TBD'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Saved {format(new Date(item.saved_at), 'MMM dd, yyyy')}
+                            </div>
+                            {dateRange && (
+                              <div className="text-xs text-muted-foreground">
+                                Dates: {dateRange}
+                              </div>
+                            )}
+                            <div className="flex items-center justify-end gap-2 pt-1">
+                              <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id)} className="text-destructive hover:text-destructive h-8 w-8 p-0">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleCheckout([item])} disabled={isCheckingOut} className="text-xs h-8">
+                                {isCheckingOut ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Book'}
+                              </Button>
+                              <span className="text-sm font-medium text-rental tabular-nums">{formatPrice(item.price)}</span>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
-                    <div className="mt-3 pt-3 border-t border-border space-y-1 text-sm">
+                    <div className="mt-3 pt-3 border-t border-rental/40 space-y-1 text-sm">
                       <div className="flex justify-between text-muted-foreground">
-                        <span>Subtotal</span><span>${totals.provider.toFixed(2)}</span>
+                        <span>Subtotal</span><span>{formatPrice(totals.provider)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
-                        <span>TAAI Travel Admin Fee (1%)</span><span>${totals.adminFee.toFixed(2)}</span>
+                        <span>TAAI Travel Admin Fee (1%)</span><span>{formatPrice(totals.adminFee)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
-                        <span>Taxes (7%)</span><span>${totals.tax.toFixed(2)}</span>
+                        <span>Taxes (7%)</span><span>{formatPrice(totals.tax)}</span>
                       </div>
                       <div className="flex justify-between font-semibold">
-                        <span>Trip total</span><span className="text-rental">${totals.total.toFixed(2)}</span>
+                        <span>Trip total</span><span className="text-rental">{formatPrice(totals.total)}</span>
                       </div>
                       <Button onClick={() => handleCheckout(items)} disabled={isCheckingOut} className="w-full mt-2 bg-rental text-rental-foreground hover:bg-rental/90" size="sm">
                         {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                        Checkout this trip — ${totals.total.toFixed(2)}
+                        Checkout this trip — {formatPrice(totals.total)}
                       </Button>
                     </div>
                   </div>
@@ -230,19 +255,19 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Grand subtotal ({cartItems.length} items)</span>
-                <span>${grand.provider.toFixed(2)}</span>
+                <span>{formatPrice(grand.provider)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground flex items-center gap-1">TAAI Travel Admin Fee (1%) <Info className="h-3 w-3" /></span>
-                <span>${grand.adminFee.toFixed(2)}</span>
+                <span>{formatPrice(grand.adminFee)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Taxes (7%)</span>
-                <span>${grand.tax.toFixed(2)}</span>
+                <span>{formatPrice(grand.tax)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
-                <span>Grand total</span><span className="text-primary">${grand.total.toFixed(2)}</span>
+                <span>Grand total</span><span className="text-primary">{formatPrice(grand.total)}</span>
               </div>
             </div>
 
@@ -256,7 +281,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
               <Button onClick={() => handleCheckout(cartItems)} disabled={isCheckingOut} className="w-full" size="lg">
                 {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                Checkout everything — ${grand.total.toFixed(2)}
+                Checkout everything — {formatPrice(grand.total)}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
                 Payments processed securely by Stripe. TAAI never sees your card details.
