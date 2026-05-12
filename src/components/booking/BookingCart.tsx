@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info } from 'lucide-react';
+import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,7 @@ interface CartItem {
   item_data: any;
   saved_at: string;
   booking_status?: string;
+  itinerary_id?: string | null;
   [key: string]: any;
 }
 
@@ -27,30 +28,41 @@ interface BookingCartProps {
 }
 
 const TAAI_FEE_RATE = 0.08;
+const UNASSIGNED_KEY = '__unassigned__';
 
 export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpdate }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [tripNames, setTripNames] = useState<Record<string, string>>({});
   const [quoteName, setQuoteName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { isLoading: isCheckingOut, startCheckout, trackIntent } = useBookingCheckout();
+  const { isLoading: isCheckingOut, startCheckout } = useBookingCheckout();
 
-  useEffect(() => {
-    fetchCartItems();
-  }, [itineraryId]);
+  useEffect(() => { fetchCartItems(); }, [itineraryId]);
 
   const fetchCartItems = async () => {
     try {
       let query = supabase.from('cart_items').select('*').order('saved_at', { ascending: false });
-      if (itineraryId) {
-        query = query.eq('itinerary_id', itineraryId);
-      }
+      if (itineraryId) query = query.eq('itinerary_id', itineraryId);
       const { data, error } = await query;
       if (error) throw error;
-      const typedData = (data || []).filter((d: any) => d.booking_status !== 'booked') as CartItem[];
-      setCartItems(typedData);
-      onCartUpdate?.(typedData);
+      const items = (data || []).filter((d: any) => d.booking_status !== 'booked') as CartItem[];
+      setCartItems(items);
+      onCartUpdate?.(items);
+
+      const ids = Array.from(new Set(items.map(i => i.itinerary_id).filter(Boolean))) as string[];
+      if (ids.length > 0) {
+        const { data: trips } = await supabase
+          .from('itinerary')
+          .select('itin_id, itin_name')
+          .in('itin_id', ids);
+        const map: Record<string, string> = {};
+        (trips || []).forEach((t: any) => { if (t.itin_id) map[t.itin_id] = t.itin_name || 'Untitled trip'; });
+        setTripNames(map);
+      } else {
+        setTripNames({});
+      }
     } catch (error) {
       console.error('Error fetching cart items:', error);
     }
@@ -62,8 +74,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       if (error) throw error;
       toast({ title: 'Item removed', description: 'Item has been removed from your cart.' });
       fetchCartItems();
-    } catch (error) {
-      console.error('Error removing item:', error);
+    } catch {
       toast({ title: 'Error', description: 'Failed to remove item.', variant: 'destructive' });
     }
   };
@@ -72,24 +83,18 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     if (!quoteName.trim() || !user?.id) return;
     setIsSaving(true);
     try {
-      const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
+      const totalPrice = cartItems.reduce((s, i) => s + i.price, 0);
+      const expiresAt = new Date(); expiresAt.setDate(expiresAt.getDate() + 7);
       const { error } = await supabase.from('quotes').insert([{
-        user_id: user.id,
-        quote_name: quoteName,
-        total_price: totalPrice,
-        items: cartItems as any,
-        expires_at: expiresAt.toISOString(),
+        user_id: user.id, quote_name: quoteName, total_price: totalPrice,
+        items: cartItems as any, expires_at: expiresAt.toISOString(),
       }]);
       if (error) throw error;
       toast({ title: 'Price snapshot saved', description: `Quote "${quoteName}" saved (expires in 7 days).` });
       setQuoteName('');
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to save quote.', variant: 'destructive' });
-    } finally {
-      setIsSaving(false);
-    }
+    } finally { setIsSaving(false); }
   };
 
   const handleCheckout = async (items: CartItem[]) => {
@@ -103,7 +108,6 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       guest_details: item.item_data?.guest_details,
       service_dates: item.item_data?.service_dates,
     }));
-
     await startCheckout(checkoutItems, itineraryId ? parseInt(itineraryId) : undefined);
   };
 
@@ -116,9 +120,23 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     }
   };
 
-  const providerTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
-  const serviceFee = Math.round(providerTotal * TAAI_FEE_RATE * 100) / 100;
-  const grandTotal = providerTotal + serviceFee;
+  const groups = useMemo(() => {
+    const map = new Map<string, CartItem[]>();
+    cartItems.forEach(item => {
+      const key = item.itinerary_id || UNASSIGNED_KEY;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(item);
+    });
+    return Array.from(map.entries());
+  }, [cartItems]);
+
+  const computeTotals = (items: CartItem[]) => {
+    const provider = items.reduce((s, i) => s + i.price, 0);
+    const fee = Math.round(provider * TAAI_FEE_RATE * 100) / 100;
+    return { provider, fee, total: provider + fee };
+  };
+
+  const grand = computeTotals(cartItems);
 
   return (
     <Card className="bg-card border-border">
@@ -137,104 +155,99 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
           </div>
         ) : (
           <>
-            <div className="space-y-3">
-              {cartItems.map((item) => (
-                <div key={item.id} className="bg-muted/50 rounded-lg p-3 border border-border">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {getItemIcon(item.type)}
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {item.type}
-                          </Badge>
-                          <span className="text-sm">{item.item_data?.name || item.external_ref}</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {item.item_data?.provider || 'Provider TBD'} · Saved {new Date(item.saved_at).toLocaleDateString()}
-                        </div>
+            <div className="space-y-4">
+              {groups.map(([key, items]) => {
+                const totals = computeTotals(items);
+                const isUnassigned = key === UNASSIGNED_KEY;
+                const tripName = isUnassigned ? 'Unassigned' : (tripNames[key] || 'Trip');
+                return (
+                  <div key={key} className="rounded-lg border border-border bg-muted/30 p-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-primary" />
+                        <span className="font-semibold text-foreground">{tripName}</span>
+                        <Badge variant="outline" className="text-xs">{items.length} item{items.length > 1 ? 's' : ''}</Badge>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-primary">${item.price.toFixed(2)}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCheckout([item])}
-                        disabled={isCheckingOut}
-                        className="text-xs"
-                      >
-                        {isCheckingOut ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Book'}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFromCart(item.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
+
+                    <div className="space-y-2">
+                      {items.map(item => (
+                        <div key={item.id} className="bg-background/60 rounded-md p-3 border border-border">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                              {getItemIcon(item.type)}
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs">{item.type}</Badge>
+                                  <span className="text-sm truncate">{item.item_data?.name || item.external_ref}</span>
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {item.item_data?.provider || 'Provider TBD'} · Saved {new Date(item.saved_at).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-semibold text-primary">${item.price.toFixed(2)}</span>
+                              <Button variant="outline" size="sm" onClick={() => handleCheckout([item])} disabled={isCheckingOut} className="text-xs">
+                                {isCheckingOut ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Book'}
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-border space-y-1 text-sm">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Subtotal</span><span>${totals.provider.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>TAAI Fee (8%)</span><span>${totals.fee.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold">
+                        <span>Trip total</span><span className="text-primary">${totals.total.toFixed(2)}</span>
+                      </div>
+                      <Button onClick={() => handleCheckout(items)} disabled={isCheckingOut} className="w-full mt-2" size="sm">
+                        {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
+                        Checkout this trip — ${totals.total.toFixed(2)}
                       </Button>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <Separator />
 
-            {/* Price Breakdown */}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal ({cartItems.length} items)</span>
-                <span>${providerTotal.toFixed(2)}</span>
+                <span className="text-muted-foreground">Grand subtotal ({cartItems.length} items)</span>
+                <span>${grand.provider.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center gap-1">
-                  TAAI Management Fee (8%)
-                  <Info className="h-3 w-3" />
-                </span>
-                <span>${serviceFee.toFixed(2)}</span>
+                <span className="text-muted-foreground flex items-center gap-1">TAAI Management Fee (8%) <Info className="h-3 w-3" /></span>
+                <span>${grand.fee.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
-                <span>Total</span>
-                <span className="text-primary">${grandTotal.toFixed(2)}</span>
+                <span>Grand total</span><span className="text-primary">${grand.total.toFixed(2)}</span>
               </div>
             </div>
 
             <div className="space-y-3">
-              {/* Save Quote */}
               <div className="flex gap-2">
-                <Input
-                  placeholder="Save as price snapshot..."
-                  value={quoteName}
-                  onChange={(e) => setQuoteName(e.target.value)}
-                  className="text-sm"
-                />
-                <Button
-                  onClick={saveQuote}
-                  disabled={isSaving || !quoteName.trim()}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Save
+                <Input placeholder="Save as price snapshot..." value={quoteName} onChange={(e) => setQuoteName(e.target.value)} className="text-sm" />
+                <Button onClick={saveQuote} disabled={isSaving || !quoteName.trim()} variant="outline" size="sm">
+                  <Calendar className="h-4 w-4 mr-1" /> Save
                 </Button>
               </div>
 
-              {/* Checkout All */}
-              <Button
-                onClick={() => handleCheckout(cartItems)}
-                disabled={isCheckingOut}
-                className="w-full"
-                size="lg"
-              >
-                {isCheckingOut ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <CreditCard className="h-4 w-4 mr-2" />
-                )}
-                Secure Checkout — ${grandTotal.toFixed(2)}
+              <Button onClick={() => handleCheckout(cartItems)} disabled={isCheckingOut} className="w-full" size="lg">
+                {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
+                Checkout everything — ${grand.total.toFixed(2)}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
                 Payments processed securely by Stripe. TAAI never sees your card details.
