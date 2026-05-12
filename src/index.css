@@ -65,13 +65,13 @@
   /* Dark Mode - Current luxury dark theme */
   .dark {
     --background: 240 16% 11%;       /* #171821 */
-    --foreground: 351 85% 75%;       /* rose/coral text */
+    --foreground: 0 0% 98%;          /* near-white text for readability */
 
     --card: 240 14% 11%;             /* #171820 cards */
-    --card-foreground: 351 85% 75%;
+    --card-foreground: 0 0% 98%;
 
     --popover: 23 24% 11%;
-    --popover-foreground: 351 85% 75%;
+    --popover-foreground: 0 0% 98%;
 
     --primary: 351 85% 75%;
     --primary-foreground: 23 24% 11%;
@@ -80,7 +80,7 @@
     --secondary-foreground: 0 0% 90%;
 
     --muted: 240 10% 20%;
-    --muted-foreground: 240 5% 65%;
+    --muted-foreground: 240 5% 72%;
 
     --accent: 240 10% 18%;
     --accent-foreground: 0 0% 90%;
@@ -97,7 +97,7 @@
     
     /* Sidebar - Dark Mode */
     --sidebar-background: 23 24% 11%;
-    --sidebar-foreground: 351 85% 75%;
+    --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 351 85% 75%;
     --sidebar-primary-foreground: 23 24% 11%;
     --sidebar-accent: 240 10% 18%;
