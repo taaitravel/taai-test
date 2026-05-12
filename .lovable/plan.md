@@ -1,25 +1,31 @@
-## BookingCart Visual Updates
+## Mobile Cart Row Redesign
 
-### 1. Split fee line into two rows
-- Replace the single `TAAI_FEE_RATE = 0.08` constant with `ADMIN_FEE_RATE = 0.01` and `TAX_RATE = 0.07`.
-- Update `computeTotals` to return `provider`, `adminFee`, `tax`, and `total`.
-- In every itinerary group card, display:
-  - "TAAI Travel Admin Fee (1%)" — `$adminFee`
-  - "Taxes (7%)" — `$tax`
-- In the grand total section at the bottom, display the same two-line breakdown.
-- Totals remain mathematically identical (1% + 7% = 8%).
+### 1. Restructure each cart item row (vertical, mobile-friendly)
+Replace the current horizontal flex row with a stacked vertical layout per item:
 
-### 2. Gold/yellow accent on individual itinerary groups
-- Use the existing `--rental` / `rental` theme token (the project's gold/yellow brand color) to visually distinguish each trip card.
-- Each group container gets:
-  - `border-rental/30`
-  - `bg-rental/10`
-- Inside each group:
-  - `Briefcase` icon → `text-rental`
-  - per-item price → `text-rental`
-  - trip total amount → `text-rental`
-  - "Checkout this trip" button → `bg-rental text-rental-foreground hover:bg-rental/90`
-- The grand "Checkout everything" button and grand total section at the bottom keep the current primary/rose theme exactly as-is.
+```
+[type badge]
+[Title — full width, can wrap]
+Provider TBD
+Saved Feb 16, 2026
+Dates: Feb 20 – Feb 24, 2026   (only if service_dates exist)
+                              [🗑]  [Book]   $1,219.52
+```
+
+Specifics:
+- **Order**: type badge → title → provider → saved date → service dates (if present) → bottom action row
+- **Title** gets its own line, full width, no truncation (`break-words` instead of `truncate`)
+- **Saved date** formatted as `MMM dd, yyyy` (project standard)
+- **Service dates** line: shown when `item.item_data?.service_dates?.checkIn/start` exists, formatted as `MMM dd – MMM dd, yyyy`
+- **Bottom row**: right-aligned cluster with Trash icon, Book button, then **price** as the rightmost element
+- **Price styling**: smaller (`text-sm` instead of bold/large), `text-rental`, formatted with thousands separator via `toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })` → `$1,219.52`
+- More vertical breathing room: `p-4` and `space-y-1.5` inside each item card
+
+### 2. Darker itinerary group background
+- Change each itinerary group container from `bg-rental/10 border-rental/30` to a darker contrasting tone:
+  - `bg-rental/25 border-rental/50` (light mode-friendly darker gold tint)
+- Keep the inner item rows at `bg-background/80` so they pop against the darker group background.
 
 ### Scope
-Only `src/components/booking/BookingCart.tsx` is touched. No database or edge function changes.
+- Only `src/components/booking/BookingCart.tsx`.
+- No changes to data, totals, or the bottom Grand total / "Checkout everything" section.
