@@ -11,7 +11,22 @@ const corsHeaders = {
   "X-Frame-Options": "DENY",
 };
 
-const TAAI_SERVICE_FEE_RATE = 0.08; // 8% service fee
+// Authoritative server-side fee math. Never trust client-supplied rates.
+const SALES_TAX_RATE = 0.07;
+function getTaaiFeeRate(tier: string | null | undefined): number {
+  switch (tier) {
+    case "taai_traveler":
+      return 0.007;
+    case "taai_traveler_plus":
+    case "corp_taai_traveler_plus":
+    case "taai_enterprise_plus":
+      return 0.0035;
+    case "traveler":
+    default:
+      return 0.01;
+  }
+}
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 const ItemSchema = z.object({
   cart_item_id: z.string().uuid(),
@@ -91,10 +106,22 @@ serve(async (req) => {
 
     const { items, itinerary_id } = parsed.data;
 
+    // Resolve user's subscription tier server-side (never trust the client).
+    const { data: subRow } = await supabaseClient
+      .from("subscribers")
+      .select("subscription_tier, subscribed")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const tier = (subRow?.subscribed ? subRow?.subscription_tier : "traveler") || "traveler";
+    const taaiFeeRate = getTaaiFeeRate(tier);
+    const combinedRate = SALES_TAX_RATE + taaiFeeRate;
+
     // Calculate totals
-    const providerTotal = items.reduce((sum, item) => sum + item.price, 0);
-    const serviceFee = Math.round(providerTotal * TAAI_SERVICE_FEE_RATE * 100) / 100;
-    const totalAmount = providerTotal + serviceFee;
+    const providerTotal = round2(items.reduce((sum, item) => sum + item.price, 0));
+    const salesTax = round2(providerTotal * SALES_TAX_RATE);
+    const taaiFee = round2(providerTotal * taaiFeeRate);
+    const taxesAndFees = round2(salesTax + taaiFee);
+    const totalAmount = round2(providerTotal + taxesAndFees);
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
@@ -127,15 +154,17 @@ serve(async (req) => {
       quantity: 1,
     }));
 
-    // Add TAAI service fee as a separate line item
+    // Single combined "Taxes & Fees" line shown to the user.
+    // The sales-tax / TAAI-fee split lives only in metadata (and the receipt).
+    const combinedPctLabel = `${(combinedRate * 100).toFixed(2).replace(/\.?0+$/, "")}%`;
     lineItems.push({
       price_data: {
         currency: "usd",
         product_data: {
-          name: "TAAI Travel Management Fee",
-          description: "AI-powered trip planning, booking management, and 24/7 support",
+          name: `Taxes & Fees (${combinedPctLabel})`,
+          description: "Includes applicable sales tax and TAAI travel management fee.",
         },
-        unit_amount: Math.round(serviceFee * 100),
+        unit_amount: Math.round(taxesAndFees * 100),
       },
       quantity: 1,
     });
@@ -178,7 +207,13 @@ serve(async (req) => {
         itinerary_id: String(itinerary_id || ""),
         cart_item_ids: items.map((i) => i.cart_item_id).join(","),
         provider_total: String(providerTotal),
-        service_fee: String(serviceFee),
+        taxes_and_fees: String(taxesAndFees),
+        sales_tax: String(salesTax),
+        taai_fee: String(taaiFee),
+        sales_tax_rate: String(SALES_TAX_RATE),
+        taai_fee_rate: String(taaiFeeRate),
+        combined_rate: String(combinedRate),
+        subscription_tier: tier,
       },
     });
 
@@ -193,7 +228,11 @@ serve(async (req) => {
       session_id: session.id,
       breakdown: {
         provider_total: providerTotal,
-        service_fee: serviceFee,
+        taxes_and_fees: taxesAndFees,
+        sales_tax: salesTax,
+        taai_fee: taaiFee,
+        combined_rate: combinedRate,
+        subscription_tier: tier,
         total: totalAmount,
       },
     }), {
