@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserProfileDropdown } from "./UserProfileDropdown";
 import { NotificationCenter } from "./NotificationCenter";
+import { CartIcon } from "./CartIcon";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileNavigationProps {
@@ -178,15 +179,18 @@ export const MobileNavigation = ({
                 )}
                 {showProfileButton && <UserProfileDropdown />}
                 <NotificationCenter />
+                <CartIcon />
                 {customActions}
               </>
             ) : (
-              customActions && <div>{customActions}</div>
+              <div className="flex items-center gap-1">
+                <CartIcon />
+                {customActions}
+              </div>
             )}
           </div>
 
-          {/* Mobile Right Space (for symmetry) */}
-          {isMobile && !customActions && <div className="w-10"></div>}
+          {/* Mobile right cluster handles spacing via CartIcon */}
         </div>
       </div>
     </nav>
