@@ -47,8 +47,24 @@ serve(async (req) => {
 
     console.log('🏨 Booking.com API call:', { endpoint, method, params })
 
+    // SSRF protection — only allow the booking.com RapidAPI host
+    const ALLOWED_HOSTS = ['booking-com15.p.rapidapi.com'];
+    let parsed: URL;
+    try {
+      parsed = new URL(endpoint);
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid endpoint' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!ALLOWED_HOSTS.includes(parsed.hostname) || parsed.protocol !== 'https:') {
+      return new Response(JSON.stringify({ error: 'Forbidden host' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Construct the URL with parameters
-    const url = new URL(endpoint)
+    const url = parsed
     Object.entries(params).forEach(([key, value]) => {
       if (value) {
         url.searchParams.append(key, String(value))
@@ -105,7 +121,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('🏨 Booking.com API error:', error.message)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Unable to process request. Please try again.' }),
       { 
         status: 400, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
