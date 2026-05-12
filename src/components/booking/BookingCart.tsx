@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBookingCheckout } from '@/hooks/useBookingCheckout';
+import { useTaxesAndFeesRate } from '@/hooks/useTaxesAndFeesRate';
 
 interface CartItem {
   id: string;
@@ -28,8 +29,6 @@ interface BookingCartProps {
   onCartUpdate?: (items: CartItem[]) => void;
 }
 
-const ADMIN_FEE_RATE = 0.01;
-const TAX_RATE = 0.07;
 const UNASSIGNED_KEY = '__unassigned__';
 
 export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpdate }) => {
@@ -40,6 +39,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   const { toast } = useToast();
   const { user } = useAuth();
   const { isLoading: isCheckingOut, startCheckout } = useBookingCheckout();
+  const { label: taxesLabel, compute: computeTaxes } = useTaxesAndFeesRate();
 
   useEffect(() => { fetchCartItems(); }, [itineraryId]);
 
@@ -148,10 +148,9 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   }, [cartItems]);
 
   const computeTotals = (items: CartItem[]) => {
-    const provider = items.reduce((s, i) => s + i.price, 0);
-    const adminFee = Math.round(provider * ADMIN_FEE_RATE * 100) / 100;
-    const tax = Math.round(provider * TAX_RATE * 100) / 100;
-    return { provider, adminFee, tax, total: provider + adminFee + tax };
+    const subtotal = items.reduce((s, i) => s + i.price, 0);
+    const t = computeTaxes(subtotal);
+    return { provider: t.subtotal, taxesAndFees: t.taxesAndFees, total: t.total };
   };
 
   const grand = computeTotals(cartItems);
@@ -232,10 +231,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                         <span>Subtotal</span><span>{formatPrice(totals.provider)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
-                        <span>TAAI Travel Admin Fee (1%)</span><span>{formatPrice(totals.adminFee)}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Taxes (7%)</span><span>{formatPrice(totals.tax)}</span>
+                        <span>{taxesLabel}</span><span>{formatPrice(totals.taxesAndFees)}</span>
                       </div>
                       <div className="flex justify-between font-semibold">
                         <span>Trip total</span><span className="text-rental">{formatPrice(totals.total)}</span>
@@ -258,12 +254,10 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                 <span>{formatPrice(grand.provider)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center gap-1">TAAI Travel Admin Fee (1%) <Info className="h-3 w-3" /></span>
-                <span>{formatPrice(grand.adminFee)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Taxes (7%)</span>
-                <span>{formatPrice(grand.tax)}</span>
+                <span className="text-muted-foreground flex items-center gap-1">
+                  {taxesLabel} <Info className="h-3 w-3" />
+                </span>
+                <span>{formatPrice(grand.taxesAndFees)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
