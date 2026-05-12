@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LOGO_URL, AUTHENTICATED_MENU_ITEMS, PUBLIC_MENU_ITEMS } from "@/lib/constants";
@@ -19,11 +19,27 @@ const Index = () => {
   const [userType, setUserType] = useState<'individual' | 'company' | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRouterReady, setIsRouterReady] = useState(false);
+  const heroRef = useRef<HTMLElement | null>(null);
 
   // Ensure router context is ready
   useEffect(() => {
     setIsRouterReady(true);
   }, [location]);
+
+  // Cursor-following spotlight on the hero section
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const handle = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      el.style.setProperty('--mx', `${x}%`);
+      el.style.setProperty('--my', `${y}%`);
+    };
+    el.addEventListener('mousemove', handle);
+    return () => el.removeEventListener('mousemove', handle);
+  }, []);
 
   const handleMenuItemClick = (path: string) => {
     if (isRouterReady) {
@@ -215,25 +231,26 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
-        <div className="max-w-7xl mx-auto text-center relative">
-          <Badge className="mb-6 bg-accent text-foreground hover:bg-accent/80 border-border" variant="secondary">
+      <section ref={heroRef} className="relative overflow-hidden py-20 px-4">
+        <div className="hero-aurora" aria-hidden="true" />
+        <div className="hero-spotlight" aria-hidden="true" />
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <Badge className="mb-6 bg-accent text-foreground hover:bg-accent/80 border-border animate-fade-in" variant="secondary">
             AI-Powered Travel Planning
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6">
+          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 animate-fade-in" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
             Your Ultimate
             <span className="luxury-text-gradient block">
               Travel Companion
             </span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: '180ms', animationFillMode: 'both' }}>
             Experience the future of travel planning with AI-driven itineraries, 
             real-time booking, and intelligent budget tracking all in one luxurious platform.
           </p>
           
           {/* User Type Selection */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12 animate-fade-in" style={{ animationDelay: '280ms', animationFillMode: 'both' }}>
             <Card 
               className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 bg-card/80 border-border ${
                 userType === 'individual' ? 'ring-2 ring-primary shadow-lg' : ''

@@ -483,3 +483,88 @@
 .deck-slot-active {
   animation: deck-pulse 0.8s ease-in-out infinite;
 }
+
+/* Hero ambient animation — slow drifting aurora blobs + cursor-following glow */
+.hero-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-aurora::before,
+.hero-aurora::after {
+  content: '';
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.45;
+  will-change: transform;
+}
+
+.hero-aurora::before {
+  background: radial-gradient(circle at center, hsl(351 85% 65% / 0.55), transparent 70%);
+  top: -15%;
+  left: -10%;
+  animation: aurora-drift-a 18s ease-in-out infinite alternate;
+}
+
+.hero-aurora::after {
+  background: radial-gradient(circle at center, hsl(36 100% 65% / 0.45), transparent 70%);
+  bottom: -20%;
+  right: -10%;
+  animation: aurora-drift-b 22s ease-in-out infinite alternate;
+}
+
+.dark .hero-aurora::before {
+  background: radial-gradient(circle at center, hsl(351 85% 70% / 0.35), transparent 70%);
+  opacity: 0.55;
+}
+
+.dark .hero-aurora::after {
+  background: radial-gradient(circle at center, hsl(36 100% 70% / 0.3), transparent 70%);
+  opacity: 0.5;
+}
+
+@keyframes aurora-drift-a {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(8vw, 4vh, 0) scale(1.1); }
+  100% { transform: translate3d(-4vw, 6vh, 0) scale(0.95); }
+}
+
+@keyframes aurora-drift-b {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-6vw, -3vh, 0) scale(1.08); }
+  100% { transform: translate3d(5vw, -5vh, 0) scale(0.92); }
+}
+
+/* Cursor-following spotlight; --mx/--my set inline via JS, default centered */
+.hero-spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    600px circle at var(--mx, 50%) var(--my, 50%),
+    hsl(351 85% 70% / 0.18),
+    transparent 60%
+  );
+  transition: background 200ms ease-out;
+}
+
+.dark .hero-spotlight {
+  background: radial-gradient(
+    600px circle at var(--mx, 50%) var(--my, 50%),
+    hsl(36 100% 70% / 0.12),
+    transparent 60%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-aurora::before,
+  .hero-aurora::after { animation: none; }
+  .hero-spotlight { transition: none; }
+}
