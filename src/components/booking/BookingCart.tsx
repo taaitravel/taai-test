@@ -27,7 +27,8 @@ interface BookingCartProps {
   onCartUpdate?: (items: CartItem[]) => void;
 }
 
-const TAAI_FEE_RATE = 0.08;
+const ADMIN_FEE_RATE = 0.01;
+const TAX_RATE = 0.07;
 const UNASSIGNED_KEY = '__unassigned__';
 
 export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpdate }) => {
@@ -132,8 +133,9 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
   const computeTotals = (items: CartItem[]) => {
     const provider = items.reduce((s, i) => s + i.price, 0);
-    const fee = Math.round(provider * TAAI_FEE_RATE * 100) / 100;
-    return { provider, fee, total: provider + fee };
+    const adminFee = Math.round(provider * ADMIN_FEE_RATE * 100) / 100;
+    const tax = Math.round(provider * TAX_RATE * 100) / 100;
+    return { provider, adminFee, tax, total: provider + adminFee + tax };
   };
 
   const grand = computeTotals(cartItems);
@@ -161,10 +163,10 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                 const isUnassigned = key === UNASSIGNED_KEY;
                 const tripName = isUnassigned ? 'Unassigned' : (tripNames[key] || 'Trip');
                 return (
-                  <div key={key} className="rounded-lg border border-border bg-muted/30 p-3">
+                  <div key={key} className="rounded-lg border border-rental/30 bg-rental/10 p-3">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4 text-primary" />
+                        <Briefcase className="h-4 w-4 text-rental" />
                         <span className="font-semibold text-foreground">{tripName}</span>
                         <Badge variant="outline" className="text-xs">{items.length} item{items.length > 1 ? 's' : ''}</Badge>
                       </div>
@@ -187,7 +189,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                               </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="font-semibold text-primary">${item.price.toFixed(2)}</span>
+                              <span className="font-semibold text-rental">${item.price.toFixed(2)}</span>
                               <Button variant="outline" size="sm" onClick={() => handleCheckout([item])} disabled={isCheckingOut} className="text-xs">
                                 {isCheckingOut ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Book'}
                               </Button>
@@ -205,12 +207,15 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                         <span>Subtotal</span><span>${totals.provider.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
-                        <span>TAAI Fee (8%)</span><span>${totals.fee.toFixed(2)}</span>
+                        <span>TAAI Travel Admin Fee (1%)</span><span>${totals.adminFee.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Taxes (7%)</span><span>${totals.tax.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between font-semibold">
-                        <span>Trip total</span><span className="text-primary">${totals.total.toFixed(2)}</span>
+                        <span>Trip total</span><span className="text-rental">${totals.total.toFixed(2)}</span>
                       </div>
-                      <Button onClick={() => handleCheckout(items)} disabled={isCheckingOut} className="w-full mt-2" size="sm">
+                      <Button onClick={() => handleCheckout(items)} disabled={isCheckingOut} className="w-full mt-2 bg-rental text-rental-foreground hover:bg-rental/90" size="sm">
                         {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
                         Checkout this trip — ${totals.total.toFixed(2)}
                       </Button>
@@ -228,8 +233,12 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                 <span>${grand.provider.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center gap-1">TAAI Management Fee (8%) <Info className="h-3 w-3" /></span>
-                <span>${grand.fee.toFixed(2)}</span>
+                <span className="text-muted-foreground flex items-center gap-1">TAAI Travel Admin Fee (1%) <Info className="h-3 w-3" /></span>
+                <span>${grand.adminFee.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Taxes (7%)</span>
+                <span>${grand.tax.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
