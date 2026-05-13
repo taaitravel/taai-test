@@ -214,6 +214,36 @@ serve(async (req) => {
         .update({ booking_status: "booked" })
         .eq("id", item.id);
 
+      // ── Cost-splitting: flip splits to "covered" against the organizer
+      // (the user that ran checkout) and recompute the proportional Taxes
+      // & Fees per attendee. The recompute_balances_for_item function then
+      // writes one attendee_balances row per non-organizer attendee.
+      try {
+        const { data: itemSplits } = await supabaseClient
+          .from("cart_item_splits")
+          .select("id, computed_amount")
+          .eq("cart_item_id", item.id);
+        if (itemSplits && itemSplits.length > 0 && itemPrice > 0) {
+          for (const s of itemSplits) {
+            const proportion = (s.computed_amount || 0) / itemPrice;
+            const taxesShare = Math.round(itemTaxesAndFees * proportion * 100) / 100;
+            await supabaseClient
+              .from("cart_item_splits")
+              .update({
+                payment_status: "covered",
+                paid_by_user_id: userId,
+                computed_taxes_and_fees: taxesShare,
+              })
+              .eq("id", s.id);
+          }
+          await supabaseClient.rpc("recompute_balances_for_item", {
+            _cart_item_id: item.id,
+          });
+        }
+      } catch (splitErr) {
+        console.error("[BOOKING-WEBHOOK] split/balance update failed", splitErr);
+      }
+
       // Track booking_complete intent
       await supabaseClient.from("booking_intents").insert({
         user_id: userId,
