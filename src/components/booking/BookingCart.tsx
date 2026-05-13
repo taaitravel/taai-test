@@ -4,13 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase } from 'lucide-react';
+import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBookingCheckout } from '@/hooks/useBookingCheckout';
 import { useTaxesAndFeesRate } from '@/hooks/useTaxesAndFeesRate';
+import { SplitCostDialog } from '@/components/booking/SplitCostDialog';
+import { SplitChip } from '@/components/booking/SplitChip';
+import type { CartItemSplit } from '@/hooks/useCartItemSplits';
 
 interface CartItem {
   id: string;
@@ -34,6 +37,15 @@ const UNASSIGNED_KEY = '__unassigned__';
 export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpdate }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [tripNames, setTripNames] = useState<Record<string, string>>({});
+  const [tripBigintIds, setTripBigintIds] = useState<Record<string, number>>({});
+  const [splitsByItem, setSplitsByItem] = useState<Record<string, CartItemSplit[]>>({});
+  const [splitDialog, setSplitDialog] = useState<{
+    open: boolean;
+    cartItemId: string | null;
+    itineraryId: number | null;
+    itemName: string;
+    itemPrice: number;
+  }>({ open: false, cartItemId: null, itineraryId: null, itemName: '', itemPrice: 0 });
   const [quoteName, setQuoteName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -57,13 +69,38 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       if (ids.length > 0) {
         const { data: trips } = await supabase
           .from('itinerary')
-          .select('itin_id, itin_name')
+          .select('id, itin_id, itin_name')
           .in('itin_id', ids);
         const map: Record<string, string> = {};
-        (trips || []).forEach((t: any) => { if (t.itin_id) map[t.itin_id] = t.itin_name || 'Untitled trip'; });
+        const bigintMap: Record<string, number> = {};
+        (trips || []).forEach((t: any) => {
+          if (t.itin_id) {
+            map[t.itin_id] = t.itin_name || 'Untitled trip';
+            if (typeof t.id === 'number') bigintMap[t.itin_id] = t.id;
+          }
+        });
         setTripNames(map);
+        setTripBigintIds(bigintMap);
       } else {
         setTripNames({});
+        setTripBigintIds({});
+      }
+
+      // Fetch splits for the current cart items.
+      const itemIds = items.map((i) => i.id);
+      if (itemIds.length > 0) {
+        const { data: splitRows } = await supabase
+          .from('cart_item_splits')
+          .select('*')
+          .in('cart_item_id', itemIds);
+        const grouped: Record<string, CartItemSplit[]> = {};
+        ((splitRows as CartItemSplit[]) || []).forEach((s) => {
+          if (!grouped[s.cart_item_id]) grouped[s.cart_item_id] = [];
+          grouped[s.cart_item_id].push(s);
+        });
+        setSplitsByItem(grouped);
+      } else {
+        setSplitsByItem({});
       }
     } catch (error) {
       console.error('Error fetching cart items:', error);
@@ -190,6 +227,8 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                     <div className="space-y-2">
                       {items.map(item => {
                         const dateRange = getServiceDateRange(item);
+                        const itemSplits = splitsByItem[item.id] || [];
+                        const tripBigintId = item.itinerary_id ? tripBigintIds[item.itinerary_id] : undefined;
                         return (
                           <div key={item.id} className="bg-background rounded-md p-4 border border-border space-y-1.5">
                             <div className="flex items-center gap-2">
@@ -197,6 +236,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                                 {getItemIcon(item.type)}
                                 <span>{item.type}</span>
                               </Badge>
+                              <SplitChip splits={itemSplits} />
                             </div>
                             <div className="text-sm font-medium text-foreground break-words">
                               {item.item_data?.name || item.external_ref}
@@ -213,6 +253,24 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                               </div>
                             )}
                             <div className="flex items-center justify-end gap-2 pt-1">
+                              {tripBigintId && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    setSplitDialog({
+                                      open: true,
+                                      cartItemId: item.id,
+                                      itineraryId: tripBigintId,
+                                      itemName: item.item_data?.name || item.external_ref || item.type,
+                                      itemPrice: item.price,
+                                    })
+                                  }
+                                  className="h-8 text-xs gap-1"
+                                >
+                                  <Users className="h-3 w-3" /> Split
+                                </Button>
+                              )}
                               <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id)} className="text-destructive hover:text-destructive h-8 w-8 p-0">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -284,6 +342,15 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
           </>
         )}
       </CardContent>
+      <SplitCostDialog
+        open={splitDialog.open}
+        onOpenChange={(o) => setSplitDialog((s) => ({ ...s, open: o }))}
+        cartItemId={splitDialog.cartItemId}
+        itineraryId={splitDialog.itineraryId}
+        itemName={splitDialog.itemName}
+        itemPrice={splitDialog.itemPrice}
+        onSaved={() => fetchCartItems()}
+      />
     </Card>
   );
 };
