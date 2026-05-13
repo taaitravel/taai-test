@@ -218,6 +218,10 @@ const Itinerary = () => {
         <AttendeesSection itineraryId={itineraryData.id} />
       </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <TripBalancesPanel itineraryId={Number(itineraryData.id)} />
+      </div>
+
       <AddItemDialog
         open={editOpen}
         type={editType}
