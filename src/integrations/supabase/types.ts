@@ -516,6 +516,27 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_mutes: {
+        Row: {
+          created_at: string
+          id: string
+          itinerary_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          itinerary_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          itinerary_id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       collection_itineraries: {
         Row: {
           added_at: string
@@ -1164,6 +1185,51 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          chat_mentions: boolean
+          chat_messages: boolean
+          created_at: string
+          deals: boolean
+          newsletter: boolean
+          traveller_accepts: boolean
+          traveller_requests: boolean
+          trip_reminder_lead_hours: number
+          trip_reminders: boolean
+          trip_updates: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_mentions?: boolean
+          chat_messages?: boolean
+          created_at?: string
+          deals?: boolean
+          newsletter?: boolean
+          traveller_accepts?: boolean
+          traveller_requests?: boolean
+          trip_reminder_lead_hours?: number
+          trip_reminders?: boolean
+          trip_updates?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_mentions?: boolean
+          chat_messages?: boolean
+          created_at?: string
+          deals?: boolean
+          newsletter?: boolean
+          traveller_accepts?: boolean
+          traveller_requests?: boolean
+          trip_reminder_lead_hours?: number
+          trip_reminders?: boolean
+          trip_updates?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1388,6 +1454,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1576,6 +1669,19 @@ export type Database = {
       is_itinerary_attendee: {
         Args: { itinerary_id_param: number; user_id_param: string }
         Returns: boolean
+      }
+      notify_user: {
+        Args: {
+          _itinerary_id?: number
+          _message: string
+          _pref_key: string
+          _reference_id?: string
+          _reference_type?: string
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: string
       }
       recompute_balances_for_item: {
         Args: { _cart_item_id: string }
