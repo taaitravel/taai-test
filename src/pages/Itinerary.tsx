@@ -4,6 +4,7 @@ import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
 import { ItineraryContent } from "@/components/itinerary/ItineraryContent";
 import { ItineraryBreadcrumb } from "@/components/itinerary/ItineraryBreadcrumb";
 import { AttendeesSection } from "@/components/itinerary/AttendeesSection";
+import { TripBalancesPanel } from "@/components/itinerary/TripBalancesPanel";
 import { ItineraryChatModal } from "@/components/itinerary/chat/ItineraryChatModal";
 import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingState";
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
