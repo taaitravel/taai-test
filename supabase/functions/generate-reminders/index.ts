@@ -91,10 +91,23 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Read recipient's preferences to gate reminders + window length.
+    const { data: prefs } = await supabase
+      .from("notification_preferences")
+      .select("trip_reminders, trip_reminder_lead_hours")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (prefs && prefs.trip_reminders === false) {
+      return new Response(
+        JSON.stringify({ generated: 0, message: "Trip reminders are turned off." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const leadHours = (prefs?.trip_reminder_lead_hours as number) || 24;
     const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(23, 59, 59, 999);
+    const cutoff = new Date(now.getTime() + leadHours * 60 * 60 * 1000);
 
     const notifications: Array<{
       user_id: string;
@@ -112,7 +125,7 @@ Deno.serve(async (req) => {
     };
 
     const isUpcoming = (dt: Date | null) =>
-      dt && dt >= now && dt <= tomorrow;
+      !!dt && dt >= now && dt <= cutoff;
 
     const formatTime = (dt: Date) =>
       dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
