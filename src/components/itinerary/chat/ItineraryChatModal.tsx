@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, X, ImageIcon, FileText, Users } from 'lucide-react';
+import { Send, X, ImageIcon, FileText, Users, Bell, BellOff } from 'lucide-react';
 import { useItineraryChat, ChatMessage } from '@/hooks/useItineraryChat';
+import { useChatMutes } from '@/hooks/useChatMutes';
 import { ChatMessageComponent } from './ChatMessage';
 import { ChatAttachmentPicker } from './ChatAttachmentPicker';
 import { ItineraryData } from '@/types/itinerary';
@@ -26,6 +27,9 @@ export const ItineraryChatModal = ({ open, onOpenChange, itineraryId, itineraryD
     filter, setFilter, participantFilter, setParticipantFilter,
     sendMessage, editMessage, deleteMessage, toggleReaction, uploadAttachment,
   } = useItineraryChat(itineraryId);
+
+  const { isMuted, mute, unmute } = useChatMutes();
+  const muted = isMuted(itineraryId);
 
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
@@ -110,6 +114,16 @@ export const ItineraryChatModal = ({ open, onOpenChange, itineraryId, itineraryD
               <span className="text-[10px] text-muted-foreground ml-1">+{participants.length - 5}</span>
             )}
             <span className="text-[10px] text-muted-foreground ml-2">{participants.length} members</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 px-2 ml-auto text-[11px]"
+              onClick={() => (muted ? unmute(itineraryId) : mute(itineraryId))}
+              title={muted ? 'Unmute this chat' : 'Mute this chat'}
+            >
+              {muted ? <BellOff className="h-3.5 w-3.5 mr-1" /> : <Bell className="h-3.5 w-3.5 mr-1" />}
+              {muted ? 'Muted' : 'Mute'}
+            </Button>
           </div>
 
           {/* Filters */}
