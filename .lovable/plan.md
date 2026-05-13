@@ -1,70 +1,88 @@
-# Unified Trip Attendees & Balances Panel
+# Notifications system
 
-Combine the two separate cards (`AttendeesSection` + `TripBalancesPanel`) on `/itinerary?id=...` into a single card where **each attendee is one full-width row** showing identity, role, spending, % of total, balance status, and the kebab menu.
+Five preference groups in Profile, real triggers wiring into them, plus a new follow/friend system for the Travellers group.
 
-## New component
+## 1. Database
 
-Create `src/components/itinerary/TripPeopleAndBalances.tsx` that replaces both panels.
+**`notification_preferences`** (one row per user, auto-created on signup)
+- `chat_messages` bool default true — DMs / group chat from others
+- `chat_mentions` bool default true — @mentions
+- `trip_reminders` bool default true
+- `trip_reminder_lead_hours` int default 4 (choices: 2, 4, 12, 24)
+- `trip_updates` bool default true — collaborator added an item, changed dates, etc.
+- `traveller_requests` bool default true — new follow request
+- `traveller_accepts` bool default true — someone accepted you
+- `newsletter` bool default true
+- `deals` bool default true
 
-### Row layout (per attendee, full width)
+**`chat_mutes`** — `(user_id, itinerary_id)` unique, mutes a single chat.
+
+**`user_follows`** — real follow system
+- `follower_id`, `following_id`, `status` (`pending` | `accepted`), unique pair
+- RLS: see your own follows in either direction; insert as follower; recipient updates status; either party deletes.
+- Trigger on insert/update → write a `notifications` row (gated by recipient's `traveller_requests` / `traveller_accepts` pref).
+
+## 2. Notification gating
+
+A SQL helper `notify_user(_user_id, _pref_key, _payload)` checks the preference (and `chat_mutes` for chat) before inserting into `notifications`. All call sites switch to it:
+- `itinerary_chat_messages` insert trigger → `chat_messages` (skip own messages, skip muted chats)
+- `generate-reminders` edge function → `trip_reminders`, uses `trip_reminder_lead_hours`
+- `accept-invitation` / collaborator added → `trip_updates`
+- `user_follows` triggers → `traveller_requests` / `traveller_accepts`
+- Newsletter / Deals: no automation yet — flags are stored and respected when broadcast functions land later.
+
+## 3. Copy (concise, polite, light sass + useful emojis)
+
+- 💬 "{name} sent you a message" / "💬 {name} mentioned you in {trip}"
+- ✈️ "Wheels up in {n}h — {origin} → {dest}. Travel light, fly easy."
+- 🏨 "Check-in at {hotel} today. Your bed is waiting."
+- 🍽️ "Time to head to {restaurant}! Table for {n} is a lot to keep up with — let's be on time."
+- 🎯 "{activity} in {n}h. Don't keep the day waiting."
+- 👋 "{name} wants to follow you"
+- 🤝 "{name} accepted your follow"
+- 🧳 "{name} added {item} to {trip}"
+- 📰 / 🏷️ Newsletter & Deals reserved for future broadcasts.
+
+## 4. UI — new Profile tab "Notifications"
+
+`Profile.tsx` gains a 4th tab `Notifications` (Bell icon). Renders `NotificationPreferencesSection` with five collapsible group cards:
 
 ```text
-[avatar] Name @username       [Owner|Collaborator badge]   $1,240  •  31% of trip   |   You owe $120  [Mark settled]   [•••]
+🔔 Text & Chat
+   • Messages from others        [toggle]
+   • @mentions                    [toggle]
+   • Muted chats: list with unmute button (sourced from chat_mutes)
+
+✈️ Trips
+   • Upcoming event reminders     [toggle]
+   • Remind me [2h | 4h | 12h | 24h] before
+   • Trip updates from collaborators [toggle]
+
+🤝 Travellers
+   • New follow requests          [toggle]
+   • When someone accepts you     [toggle]
+   • Manage followers / following / pending  → opens FollowsManagerDialog
+
+📰 TAAI Travel Newsletter         [toggle]
+🏷️ TAAI Deals                      [toggle]
 ```
 
-Columns left → right:
-1. Avatar + name + @username (stacked)
-2. Role badge (Owner / Collaborator)
-3. Spending: their share-to-date (sum of `cart_item_splits.computed_amount + computed_taxes_and_fees` where `paid_by_user_id = them` OR they're a participant — see below) and `% of trip total`
-4. Net balance vs. current viewer (e.g. "You owe $X" / "Owes you $X" / "Settled") + Mark settled button when applicable
-5. Kebab `•••` (owner-only): Remove attendee
+A "Mute this chat" item also lives on each chat header (writes to `chat_mutes`) so users don't have to dig into Profile.
 
-Mobile (<768px): stack into 2 lines — row 1 = avatar/name/role, row 2 = spending + balance + actions.
+## 5. Follows surface
 
-### Card header
+Minimal `FollowsManagerDialog` reachable from Travellers card with three tabs: Following, Followers, Pending. Actions: accept, reject, unfollow, cancel request. New entry point in TAAI Connect hub linking to the same dialog.
 
-`Trip people & balances (N)` with `Invite` button (owner only) on the right.
+## Technical details
 
-## Data sources
-
-Reuse existing hooks — no new tables or backend logic:
-- `useItineraryAttendees(itineraryId)` — list, isOwner, removeAttendee
-- `useTripBalances(itineraryId)` — open balances + markSettledOffPlatform
-- `useCartItemSplits` is per-item; instead query `cart_item_splits` once for the trip to compute per-user spending totals.
-
-### Per-user spending calculation (client side)
-
-Add a small hook `useTripSpending(itineraryId)`:
-- Select `cart_item_splits` joined with `cart_items` filtered by `itinerary_id`.
-- For each row, attribute `computed_amount + computed_taxes_and_fees` to that split's user (the attendee whose share it is, not `paid_by_user_id`).
-- Aggregate per `user_id` → `{ amount, pct }` where `pct = amount / sum(all)`.
-- Returns `{ totals: Map<userId, {amount, pct}>, tripTotal }`.
-
-Rows for attendees with no splits yet show `$0 · 0%`.
-
-### Net balance per row
-
-From `useTripBalances`, compute net open amount between current `user.id` and the row's user (reuse the netting logic already in `TripBalancesPanel`). Show:
-- creditor=me → "Owes you $X" + Mark settled
-- debtor=me → "You owe $X" + Mark settled
-- otherwise show pair text "A owes B $X" only if neither is me but both are in row context (skip for own row)
-- 0 → "Settled"
-
-## Wiring
-
-In `src/pages/Itinerary.tsx`:
-- Remove `<AttendeesSection />` and `<TripBalancesPanel />` blocks.
-- Render `<TripPeopleAndBalances itineraryId={...} />` in their place inside one container.
-
-Keep `AttendeesSection.tsx` and `TripBalancesPanel.tsx` files for now (unused) — easy to revert. Delete in a follow-up if approved.
-
-## History section
-
-Move the small "History" list (settled balances) from `TripBalancesPanel` into a collapsible `<details>` at the bottom of the new card, labeled "Settlement history".
+- Hook: `useNotificationPreferences()` — fetch + upsert single row, used in the new section and gating client-side fallbacks.
+- Hook: `useFollows()` — list + mutate.
+- Edge fn `generate-reminders` reads recipient's `notification_preferences` and uses `trip_reminder_lead_hours` to widen the upcoming window.
+- All inserts into `public.notifications` move through `notify_user()` (SECURITY DEFINER) so RLS stays clean and gating is centralized.
+- Realtime listener in `useNotifications` already handles INSERT — no change needed.
 
 ## Out of scope
-
-- No schema changes
-- No edits to splits creation flow / `SplitCostDialog`
-- No mobile bottom-nav changes
-- No FX / multi-currency
+- Email/push delivery (in-app only for now).
+- Newsletter & Deals automation.
+- Per-chat color theming (deferred per your call).
+- Rich notification grouping/threading.
