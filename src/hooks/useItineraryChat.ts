@@ -247,16 +247,11 @@ export const useItineraryChat = (itineraryId: number | null) => {
       return null;
     }
 
-    // Bucket is private; create a long-lived signed URL (1 year)
-    const { data: signed, error: signedErr } = await supabase.storage
+    // Bucket is public; return a stable public URL
+    const { data: pub } = supabase.storage
       .from('chat-attachments')
-      .createSignedUrl(path, 60 * 60 * 24 * 365);
-
-    if (signedErr || !signed) {
-      console.error('Signed URL error:', signedErr);
-      return null;
-    }
-    return signed.signedUrl;
+      .getPublicUrl(path);
+    return pub?.publicUrl ?? null;
   };
 
   // Filtered messages
