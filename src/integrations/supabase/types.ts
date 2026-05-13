@@ -58,6 +58,48 @@ export type Database = {
           },
         ]
       }
+      attendee_balances: {
+        Row: {
+          amount: number
+          created_at: string
+          creditor_user_id: string
+          currency: string
+          debtor_user_id: string
+          id: string
+          itinerary_id: number
+          note: string | null
+          source_split_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          creditor_user_id: string
+          currency?: string
+          debtor_user_id: string
+          id?: string
+          itinerary_id: number
+          note?: string | null
+          source_split_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          creditor_user_id?: string
+          currency?: string
+          debtor_user_id?: string
+          id?: string
+          itinerary_id?: number
+          note?: string | null
+          source_split_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booking_audit_log: {
         Row: {
           action: string
@@ -378,6 +420,57 @@ export type Database = {
           metric_date?: string
           metric_type?: string
           metric_value?: number
+        }
+        Relationships: []
+      }
+      cart_item_splits: {
+        Row: {
+          attendee_label: string | null
+          attendee_user_id: string | null
+          auto_added: boolean
+          cart_item_id: string
+          computed_amount: number
+          computed_taxes_and_fees: number
+          created_at: string
+          id: string
+          itinerary_id: number
+          paid_by_user_id: string | null
+          payment_status: string
+          share_method: string
+          share_value: number | null
+          updated_at: string
+        }
+        Insert: {
+          attendee_label?: string | null
+          attendee_user_id?: string | null
+          auto_added?: boolean
+          cart_item_id: string
+          computed_amount?: number
+          computed_taxes_and_fees?: number
+          created_at?: string
+          id?: string
+          itinerary_id: number
+          paid_by_user_id?: string | null
+          payment_status?: string
+          share_method?: string
+          share_value?: number | null
+          updated_at?: string
+        }
+        Update: {
+          attendee_label?: string | null
+          attendee_user_id?: string | null
+          auto_added?: boolean
+          cart_item_id?: string
+          computed_amount?: number
+          computed_taxes_and_fees?: number
+          created_at?: string
+          id?: string
+          itinerary_id?: number
+          paid_by_user_id?: string | null
+          payment_status?: string
+          share_method?: string
+          share_value?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1483,6 +1576,14 @@ export type Database = {
       is_itinerary_attendee: {
         Args: { itinerary_id_param: number; user_id_param: string }
         Returns: boolean
+      }
+      recompute_balances_for_item: {
+        Args: { _cart_item_id: string }
+        Returns: undefined
+      }
+      recompute_cart_item_splits: {
+        Args: { _cart_item_id: string }
+        Returns: undefined
       }
     }
     Enums: {

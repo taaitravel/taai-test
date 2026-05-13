@@ -4,6 +4,7 @@ import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
 import { ItineraryContent } from "@/components/itinerary/ItineraryContent";
 import { ItineraryBreadcrumb } from "@/components/itinerary/ItineraryBreadcrumb";
 import { AttendeesSection } from "@/components/itinerary/AttendeesSection";
+import { TripBalancesPanel } from "@/components/itinerary/TripBalancesPanel";
 import { ItineraryChatModal } from "@/components/itinerary/chat/ItineraryChatModal";
 import { ItineraryLoadingState } from "@/components/itinerary/ItineraryLoadingState";
 import { useAuthenticatedItineraryData } from "@/hooks/useAuthenticatedItineraryData";
@@ -216,6 +217,10 @@ const Itinerary = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AttendeesSection itineraryId={itineraryData.id} />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <TripBalancesPanel itineraryId={Number(itineraryData.id)} />
       </div>
 
       <AddItemDialog
