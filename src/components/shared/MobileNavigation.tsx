@@ -130,6 +130,11 @@ export const MobileNavigation = ({
                 </Button>
               )
             )}
+            {!isMobile && (
+              <Badge className="bg-accent text-foreground border-border">
+                {travelerLevel}
+              </Badge>
+            )}
           </div>
 
           {/* Centered Logo - sits above action buttons row on mobile */}
@@ -147,9 +152,9 @@ export const MobileNavigation = ({
           <div className="flex items-center space-x-4">
             {!isMobile ? (
               <>
-                <Badge className="bg-accent text-foreground border-border">
-                  {travelerLevel}
-                </Badge>
+                <CartIcon />
+                {showProfileButton && <UserProfileDropdown />}
+                <NotificationCenter />
                 {showTripButtons && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -177,9 +182,6 @@ export const MobileNavigation = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
-                {showProfileButton && <UserProfileDropdown />}
-                <NotificationCenter />
-                <CartIcon />
                 {customActions}
               </>
             ) : (
