@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPen, Settings, Compass } from "lucide-react";
+import { UserPen, Settings, Compass, Bell } from "lucide-react";
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { EditProfileSection } from "@/components/profile/EditProfileSection";
 import { PreferencesSection } from "@/components/profile/PreferencesSection";
+import { NotificationPreferencesSection } from "@/components/profile/NotificationPreferencesSection";
 
 const Profile = () => {
   const [searchParams] = useSearchParams();
@@ -42,6 +43,10 @@ const Profile = () => {
               <Settings className="h-4 w-4" />
               Preferences
             </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2">
+              <Bell className="h-4 w-4" />
+              Notifications
+            </TabsTrigger>
             <TabsTrigger value="setup" className="gap-2">
               <Compass className="h-4 w-4" />
               Traveler Setup
@@ -54,6 +59,10 @@ const Profile = () => {
 
           <TabsContent value="preferences">
             <PreferencesSection />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationPreferencesSection />
           </TabsContent>
         </Tabs>
       </div>
