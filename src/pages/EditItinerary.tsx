@@ -189,7 +189,7 @@ const EditItinerary = () => {
       </section>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 pb-12 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 pb-28 md:pb-12 space-y-6">
         {/* Basic Info */}
         <Card className="group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 bg-card/80 border-border">
           <CardHeader>

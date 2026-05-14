@@ -42,7 +42,7 @@ const Search = () => {
   const displayResults = searchType === 'hotels' ? filteredResults : results;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-28 md:pb-8">
       <MobileNavigation 
         showBackButton={true}
         backPath="/home"
