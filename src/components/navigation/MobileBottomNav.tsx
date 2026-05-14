@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Briefcase, Search, Sparkles, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import taaiTMark from '@/assets/taai-t-mark.png';
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Home', path: '/home' },
@@ -35,7 +36,7 @@ export const MobileBottomNav: React.FC = () => {
     };
 
     resetTimer();
-    const events: (keyof WindowEventMap)[] = ['pointerdown', 'touchstart', 'scroll', 'keydown'];
+    const events: (keyof WindowEventMap)[] = ['pointerdown', 'touchstart', 'keydown'];
     events.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
 
     return () => {
@@ -45,8 +46,6 @@ export const MobileBottomNav: React.FC = () => {
   }, [hidden, location.pathname]);
 
   if (hidden) return null;
-
-  const activeItem = NAV_ITEMS.find((i) => i.path === location.pathname);
 
   const handleNavClick = (path: string) => {
     navigate(path);
@@ -90,10 +89,12 @@ export const MobileBottomNav: React.FC = () => {
             collapsed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           )}
         >
-          {(() => {
-            const Icon = activeItem?.icon ?? Sparkles;
-            return <Icon className="h-5 w-5 text-foreground/80" strokeWidth={2.25} />;
-          })()}
+          <img
+            src={taaiTMark}
+            alt=""
+            aria-hidden
+            className="h-7 w-7 object-contain drop-shadow-sm"
+          />
         </button>
 
         {/* Expanded pill */}
