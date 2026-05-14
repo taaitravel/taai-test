@@ -47,8 +47,6 @@ export const MobileBottomNav: React.FC = () => {
 
   if (hidden) return null;
 
-  const activeItem = NAV_ITEMS.find((i) => i.path === location.pathname);
-
   const handleNavClick = (path: string) => {
     navigate(path);
   };
