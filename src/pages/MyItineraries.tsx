@@ -296,7 +296,7 @@ const MyItineraries = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col pb-28 md:pb-0">
         {/* Consistent Navigation Header */}
         <MobileNavigation 
           showBackButton={true}
