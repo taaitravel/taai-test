@@ -22,7 +22,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-28 md:pb-0">
       <MobileNavigation
         showBackButton={true}
         backPath="/home"

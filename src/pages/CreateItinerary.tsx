@@ -122,7 +122,7 @@ const CreateItinerary = () => {
       />
 
       {/* Main Content - Side by Side Chat Comparison */}
-      <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-6">
+      <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-6 pb-28 md:pb-6">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Perfect Itinerary</h1>
           <p className="text-foreground/70">Compare our traditional booking assistant with the new TAAI Assistant</p>

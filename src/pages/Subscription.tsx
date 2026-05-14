@@ -63,7 +63,7 @@ const Subscription = () => {
   return (
     <div className="min-h-screen bg-background">
       <MobileNavigation showBackButton={true} backPath="/home" backLabel="← Back" showTripButtons={false} />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pb-28 md:pb-8">
         <div className="text-center mb-12">
           <Badge className="mb-6 bg-secondary text-foreground hover:bg-secondary/80 border-border" variant="secondary">
             Choose Your Plan

@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { icon: Home, label: 'Home', path: '/home' },
   { icon: Briefcase, label: 'Itineraries', path: '/itineraries' },
   { icon: Search, label: 'Search', path: '/search' },
-  { icon: Sparkles, label: 'New Itinerary', path: '/new-itinerary' },
+  { icon: Sparkles, label: 'New Trip', path: '/new-itinerary' },
   { icon: User, label: 'Profile', path: '/profile' },
 ];
 
@@ -29,8 +29,11 @@ export const MobileBottomNav: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[9999] flex md:hidden justify-center">
-      <nav className="relative overflow-visible bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-lg shadow-black/10 flex items-center justify-around w-full max-w-md h-[60px] px-1">
+    <div
+      className="fixed left-4 right-4 z-[9999] flex md:hidden justify-center"
+      style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
+    >
+      <nav className="relative overflow-hidden bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-lg shadow-black/10 flex items-center justify-around w-full max-w-md h-[64px] px-1">
         {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
 
@@ -39,7 +42,7 @@ export const MobileBottomNav: React.FC = () => {
               key={path}
               onClick={() => handleNavClick(path)}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full py-1 transition-all duration-200",
+                "flex flex-col items-center justify-center flex-1 h-full py-1.5 px-0.5 min-w-0 transition-all duration-200",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                 isActive 
                   ? "text-primary" 
@@ -50,13 +53,13 @@ export const MobileBottomNav: React.FC = () => {
             >
               <Icon 
                 className={cn(
-                  "h-5 w-5 mb-0.5 transition-transform duration-200",
+                  "h-5 w-5 mb-1 shrink-0 transition-transform duration-200",
                   isActive && "scale-110"
                 )} 
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <span className={cn(
-                "text-[10px] font-medium transition-opacity duration-200",
+                "text-[10px] leading-tight font-medium whitespace-nowrap transition-opacity duration-200",
                 isActive ? "opacity-100 font-semibold" : "opacity-70"
               )}>
                 {label}

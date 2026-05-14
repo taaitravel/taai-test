@@ -501,15 +501,11 @@ const ProfileSetup = () => {
         showTripButtons={false}
         showProfileButton={false}
       />
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4 pb-28 md:pb-4">
         <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/5 pointer-events-none"></div>
         <Card className="w-full max-w-lg shadow-2xl border-border bg-card/95 backdrop-blur-md relative">
           
         <CardHeader className="text-center space-y-4">
-            <div className="flex items-center justify-center">
-              <img src={LOGO_URL} alt="TAAI Travel" className="h-[70px] w-auto" />
-            </div>
-            
             <div className="space-y-2">
               <Badge variant="secondary" className="bg-accent text-foreground border-border">
                 Step {currentStep} of {totalSteps}

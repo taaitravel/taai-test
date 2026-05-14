@@ -133,7 +133,7 @@ const CreateManualItinerary = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#171821] flex flex-col">
+    <div className="min-h-screen bg-[#171821] flex flex-col pb-28 md:pb-0">
       {/* Navigation - Mobile Responsive */}
       <MobileNavigation 
         travelerLevel="Master Traveler"
