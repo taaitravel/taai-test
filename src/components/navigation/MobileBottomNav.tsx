@@ -25,30 +25,33 @@ export const MobileBottomNav: React.FC = () => {
 
   const hidden = !user || HIDDEN_ROUTES.includes(location.pathname);
 
-  // Idle-timer manager
+  // Schedule a collapse only in response to nav-local activity (mount, route change,
+  // or user expanding the orb). No global listeners — typing in form fields or
+  // interacting elsewhere on the page must NOT re-expand the menu.
+  const scheduleCollapse = () => {
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => setCollapsed(true), IDLE_MS);
+  };
+
   useEffect(() => {
     if (hidden) return;
-
-    const resetTimer = () => {
-      setCollapsed(false);
-      if (timerRef.current) window.clearTimeout(timerRef.current);
-      timerRef.current = window.setTimeout(() => setCollapsed(true), IDLE_MS);
-    };
-
-    resetTimer();
-    const events: (keyof WindowEventMap)[] = ['pointerdown', 'touchstart', 'keydown'];
-    events.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
-
+    setCollapsed(false);
+    scheduleCollapse();
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
-      events.forEach((e) => window.removeEventListener(e, resetTimer));
     };
+    // Re-run on route change so the pill briefly reveals itself, then collapses.
   }, [hidden, location.pathname]);
 
   if (hidden) return null;
 
   const handleNavClick = (path: string) => {
     navigate(path);
+  };
+
+  const handleOrbClick = () => {
+    setCollapsed(false);
+    scheduleCollapse();
   };
 
   return (
@@ -79,7 +82,7 @@ export const MobileBottomNav: React.FC = () => {
         {/* Collapsed orb button */}
         <button
           type="button"
-          onClick={() => setCollapsed(false)}
+          onClick={handleOrbClick}
           aria-label="Open navigation"
           aria-expanded={!collapsed}
           className={cn(
