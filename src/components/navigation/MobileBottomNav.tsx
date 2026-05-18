@@ -59,20 +59,20 @@ export const MobileBottomNav: React.FC = () => {
       <nav
         aria-label="Primary"
         className={cn(
-          'relative bg-card/80 backdrop-blur-2xl border border-border/40 shadow-lg shadow-black/10',
-          'transition-[width,height,border-radius,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+          'relative backdrop-blur-2xl',
+          'transition-[width,height,border-radius,padding,box-shadow,background] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
           'overflow-hidden flex items-center',
           collapsed
-            ? 'w-14 h-14 rounded-full justify-center px-0'
-            : 'w-full max-w-md h-[64px] rounded-2xl justify-around px-1'
+            ? 'w-14 h-14 rounded-full justify-center px-0 border border-transparent glass-orb-base glass-orb-bezel'
+            : 'w-full max-w-md h-[64px] rounded-2xl justify-around px-1 bg-card/80 border border-border/40 shadow-lg shadow-black/10'
         )}
       >
         {/* Iridescent sheen — only when collapsed */}
         <span
           aria-hidden
           className={cn(
-            'glass-orb-sheen transition-opacity duration-300',
-            collapsed ? 'opacity-100' : 'opacity-0'
+            'glass-orb-sheen transition-opacity duration-300 z-0',
+            collapsed ? 'opacity-60' : 'opacity-0'
           )}
         />
 
@@ -83,7 +83,7 @@ export const MobileBottomNav: React.FC = () => {
           aria-label="Open navigation"
           aria-expanded={!collapsed}
           className={cn(
-            'absolute inset-0 flex items-center justify-center rounded-full',
+            'absolute inset-0 z-10 flex items-center justify-center rounded-full',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
             'transition-opacity duration-200',
             collapsed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
