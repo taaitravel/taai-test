@@ -576,73 +576,114 @@
 
 .glass-orb-sheen {
   position: absolute;
-  inset: -20%;
+  inset: -10%;
   border-radius: 9999px;
   background: conic-gradient(
     from 0deg,
-    hsl(351 85% 70% / 0.45),
-    hsl(20 90% 65% / 0.35),
-    hsl(36 100% 70% / 0.4),
-    hsl(var(--primary) / 0.4),
-    hsl(351 85% 70% / 0.45)
+    hsl(351 85% 70% / 0.55),
+    hsl(20 90% 65% / 0.45),
+    hsl(36 100% 70% / 0.5),
+    hsl(var(--primary) / 0.5),
+    hsl(351 85% 70% / 0.55)
   );
-  filter: blur(10px);
+  filter: blur(18px) saturate(140%);
   animation: orbShimmer 12s linear infinite;
   pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+.dark .glass-orb-sheen {
+  mix-blend-mode: plus-lighter;
+  opacity: 0.5;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .glass-orb-sheen { animation: none; }
 }
 
-/* Glass orb base — theme-aware contrast for the TAAI "t" mark */
+/* Liquid Glass orb — base tint, frost refraction, sphere bezel */
 .glass-orb-base {
   background:
-    linear-gradient(160deg, hsl(0 0% 100% / 0.92) 0%, hsl(240 16% 11% / 0.06) 100%);
+    linear-gradient(155deg, hsl(0 0% 100% / 0.55) 0%, hsl(240 16% 92% / 0.35) 100%);
 }
 .dark .glass-orb-base {
   background:
-    linear-gradient(160deg, hsl(240 16% 14% / 0.78) 0%, hsl(351 85% 70% / 0.10) 100%);
+    linear-gradient(155deg, hsl(240 14% 22% / 0.55) 0%, hsl(240 16% 8% / 0.4) 100%);
 }
 
-/* Glass orb bezel — soft 3D rim with top highlight + bottom shading */
+/* Frost refraction — blurs and boosts saturation of content behind */
+.glass-orb-frost {
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+/* Sphere illusion via layered insets + crisp rim + drops */
 .glass-orb-bezel {
   box-shadow:
-    inset 0 1px 0 hsl(0 0% 100% / 0.55),
-    inset 0 0 0 1px hsl(0 0% 100% / 0.12),
-    inset 0 -6px 12px -6px hsl(240 16% 8% / 0.12),
-    0 8px 24px -8px hsl(240 16% 8% / 0.25),
-    0 2px 6px -2px hsl(240 16% 8% / 0.15);
+    inset 0 1.5px 0 hsl(0 0% 100% / 0.7),
+    inset 0 -1px 0 hsl(0 0% 100% / 0.25),
+    inset 0 8px 14px -8px hsl(0 0% 100% / 0.45),
+    inset 0 -10px 16px -10px hsl(240 16% 5% / 0.35),
+    0 1px 0 hsl(0 0% 100% / 0.4),
+    0 10px 30px -10px hsl(240 16% 5% / 0.35),
+    0 2px 8px -2px hsl(240 16% 5% / 0.2);
 }
 .dark .glass-orb-bezel {
   box-shadow:
-    inset 0 1px 0 hsl(0 0% 100% / 0.22),
-    inset 0 0 0 1px hsl(0 0% 100% / 0.06),
-    inset 0 -6px 14px -6px hsl(0 0% 0% / 0.45),
-    0 10px 28px -10px hsl(0 0% 0% / 0.55),
-    0 2px 6px -2px hsl(0 0% 0% / 0.4);
+    inset 0 1.5px 0 hsl(0 0% 100% / 0.35),
+    inset 0 -1px 0 hsl(0 0% 100% / 0.12),
+    inset 0 8px 14px -8px hsl(0 0% 100% / 0.18),
+    inset 0 -12px 18px -10px hsl(0 0% 0% / 0.55),
+    0 1px 0 hsl(0 0% 100% / 0.15),
+    0 12px 32px -12px hsl(0 0% 0% / 0.6),
+    0 2px 8px -2px hsl(0 0% 0% / 0.4);
 }
 
-/* Top specular highlight */
+/* Top specular catch-light */
 .glass-orb-bezel::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: radial-gradient(
-    ellipse 60% 45% at 30% 22%,
-    hsl(0 0% 100% / 0.55) 0%,
-    hsl(0 0% 100% / 0.15) 35%,
-    transparent 60%
+    ellipse 45% 28% at 32% 18%,
+    hsl(0 0% 100% / 0.75) 0%,
+    hsl(0 0% 100% / 0.2) 25%,
+    transparent 45%
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+.dark .glass-orb-bezel::before {
+  background: radial-gradient(
+    ellipse 45% 28% at 32% 18%,
+    hsl(0 0% 100% / 0.4) 0%,
+    hsl(0 0% 100% / 0.1) 30%,
+    transparent 50%
+  );
+}
+
+/* Bottom caustic glow — warm refracted light pooled under the sphere */
+.glass-orb-bezel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 60% 35% at 50% 78%,
+    hsl(var(--primary) / 0.22) 0%,
+    hsl(var(--primary) / 0.08) 25%,
+    transparent 45%
   );
   pointer-events: none;
   z-index: 2;
 }
-.dark .glass-orb-bezel::before {
+.dark .glass-orb-bezel::after {
   background: radial-gradient(
-    ellipse 60% 45% at 30% 22%,
-    hsl(0 0% 100% / 0.28) 0%,
-    hsl(0 0% 100% / 0.06) 40%,
-    transparent 65%
+    ellipse 60% 35% at 50% 78%,
+    hsl(var(--primary) / 0.28) 0%,
+    hsl(var(--primary) / 0.1) 28%,
+    transparent 50%
   );
 }

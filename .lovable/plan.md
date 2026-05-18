@@ -1,37 +1,64 @@
-## Glass Orb Refinement
+## Liquid Glass Orb
 
-Scope: only the collapsed orb in `src/components/navigation/MobileBottomNav.tsx` and supporting styles in `src/index.css`. Expanded pill stays unchanged.
+Push the collapsed orb toward Apple's "Liquid Glass" look from the reference: a true refractive bubble — chunky inner rim, crisp top specular, soft bottom caustic, color living *inside* the sphere rather than as a halo around it.
 
-### 1. Background contrast with the "t" logo
+### Visual targets (from reference)
 
-The TAAI "t" mark reads as a warm rose/coral dark glyph. To make it pop in both themes:
+1. **Spherical depth, not a flat disc.** Two layered inset rims + a thick top highlight to fake curvature.
+2. **Refractive interior.** Color shimmer sits *inside* the orb behind a frosted layer, with edges that bend light.
+3. **Crisp glass edge.** A bright 1px hairline + a soft outer halo — no hard border.
+4. **Restraint.** The logo stays the hero. Effects sit behind/around it, never on top.
 
-- **Light mode orb base**: near-white with a whisper of the dark theme navy — `hsl(240 16% 11% / 0.06)` over `hsl(0 0% 100% / 0.85)`. Logo stays its natural dark rose → strong contrast.
-- **Dark mode orb base**: near-black warmed with a hint of rose — `hsl(351 85% 70% / 0.08)` over `hsl(240 16% 11% / 0.7)`. Logo's warm tones lift off the deep base.
+### Layer stack (collapsed state only)
 
-Applied via a new `.glass-orb-base` utility that swaps under `.dark`.
+Rendered inside `<nav>` in this order, all `pointer-events: none` except the click target:
 
-### 2. Transparent border
+```
+┌─ outer halo shadow (soft drop + 1px crisp rim)
+│  ┌─ backdrop-blur-2xl (refracts content behind)
+│  │  ┌─ liquid base gradient (theme-aware, very low opacity)
+│  │  │  ┌─ interior color blob (sheen, blurred, clipped inside)
+│  │  │  │  ┌─ frosted veil (white/black 4% + saturate filter)
+│  │  │  │  │  ┌─ bottom caustic (soft warm glow at 70% height)
+│  │  │  │  │  │  ┌─ top specular highlight (crescent, brightest point)
+│  │  │  │  │  │  │  ┌─ inner bezel rim (inset white 1px + inset shadow)
+│  │  │  │  │  │  │  │  └─ logo (z-10, drop-shadow)
+```
 
-Replace `border border-border/40` on the collapsed state with `border border-transparent`. Definition comes from the bezel highlight/shadow instead of a hard stroke. Expanded pill keeps its current border.
+### Concrete changes
 
-### 3. 3D bezel / glass ball
+**`src/index.css` — replace orb utilities:**
 
-Layered, restrained — no skeuomorphism. Three stacked effects only when `collapsed`:
+- `.glass-orb-base`
+  - Light: `linear-gradient(155deg, hsl(0 0% 100% / 0.55) 0%, hsl(240 16% 92% / 0.35) 100%)`
+  - Dark: `linear-gradient(155deg, hsl(240 14% 22% / 0.55) 0%, hsl(240 16% 8% / 0.4) 100%)`
+- `.glass-orb-sheen` — drop blur from 10px → 18px, opacity ceiling ~0.5, scale `inset: -10%` (kept inside), add `mix-blend-mode: screen` (light) / `plus-lighter` (dark) so color reads as refracted light, not paint.
+- `.glass-orb-bezel` box-shadow becomes the full sphere illusion:
+  ```
+  inset 0  1.5px 0   hsl(0 0% 100% / 0.7),     /* top edge gleam */
+  inset 0 -1px   0   hsl(0 0% 100% / 0.25),    /* bottom edge gleam */
+  inset 0  8px  14px -8px hsl(0 0% 100% / 0.45),/* upper inner glow */
+  inset 0 -10px 16px -10px hsl(240 16% 5% / 0.35), /* lower inner shadow */
+  0 1px 0 hsl(0 0% 100% / 0.4),                /* crisp outer rim */
+  0 10px 30px -10px hsl(240 16% 5% / 0.35),    /* main drop */
+  0 2px 8px  -2px hsl(240 16% 5% / 0.2)        /* contact shadow */
+  ```
+  Dark variant swaps inner shadow to deeper black and reduces top white to 0.35.
+- `.glass-orb-bezel::before` (top specular) — narrow it to an ellipse `45% × 28% at 32% 18%`, raise center white to 0.75 (light) / 0.4 (dark), fade harder (transparent by 45%) so it reads as a single sharp catch-light, not a wash.
+- **New** `.glass-orb-bezel::after` (bottom caustic) — small radial at `50% 78%`, warm primary tint `hsl(var(--primary) / 0.18)` fading to transparent by 40%, gives the sphere a glowing underbelly.
+- Add `backdrop-filter: blur(20px) saturate(140%)` to a new `.glass-orb-frost` utility for the refraction layer.
 
-1. **Top inner highlight** — `::before` pseudo: small radial gradient at ~30% 25%, white at 35% opacity fading to transparent by 55%. Reads as a single soft specular.
-2. **Bottom inner shadow** — `inset 0 -6px 12px -6px rgba(0,0,0,0.25)` (dark) / `rgba(0,0,0,0.12)` (light). Gives the lower hemisphere weight.
-3. **Outer rim** — `box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 0 0 1px rgba(255,255,255,0.08) inset, 0 8px 24px -8px rgba(0,0,0,0.35)`. The two inset shadows create the bezel rim; the outer drop shadow lifts the orb off the page.
+**`src/components/navigation/MobileBottomNav.tsx`:**
 
-Existing iridescent `.glass-orb-sheen` stays but drops to ~60% opacity and moves behind the bezel so it reads as refracted color inside the glass, not a halo.
-
-`backdrop-blur-2xl` stays for the frosted-glass refraction of content behind.
-
-### Files to change
-
-- `src/index.css` — add `.glass-orb-base` (theme-aware), `.glass-orb-bezel` (pseudo-element highlight + inset shadows), tone down `.glass-orb-sheen` opacity.
-- `src/components/navigation/MobileBottomNav.tsx` — swap collapsed-state classes: remove `bg-card/80 border-border/40`, add `glass-orb-base glass-orb-bezel border-transparent`. Wrap sheen + logo so bezel highlight sits on top.
+- Collapsed `<nav>` classes: `glass-orb-base glass-orb-frost glass-orb-bezel border-transparent` (drop the old `backdrop-blur-2xl` from collapsed branch; it's now in `glass-orb-frost` with saturation).
+- Sheen `<span>`: change `inset` via class to stay clipped, add `mix-blend-mode-screen dark:mix-blend-plus-lighter` (use inline style — Tailwind has no util), keep `z-0`.
+- Logo button stays `z-10`, no change.
+- No structural/animation changes; idle timer and expanded pill untouched.
 
 ### Out of scope
 
-Expanded pill styling, idle timer, logo asset, light/dark token definitions in `:root`/`.dark`.
+Expanded pill, logo asset, idle/expand behavior, any other page. Performance: all effects are CSS-only on a single 56px element — no perf risk.
+
+### QA after build
+
+Take screenshots in both light and dark on `/home`, zoom into the orb, verify: visible crescent highlight top-left, faint warm glow bottom, crisp 1px rim, color shimmer reads as inside the sphere, logo legible.
