@@ -1,43 +1,37 @@
-# Glass Orb Bottom Nav
+## Glass Orb Refinement
 
-After 4.5s of no interaction, the mobile bottom tab bar smoothly morphs into a single floating glass orb. Any tap, scroll, or touch on the page expands it back to the full pill nav. Tapping the orb itself also expands it. Desktop is unaffected.
+Scope: only the collapsed orb in `src/components/navigation/MobileBottomNav.tsx` and supporting styles in `src/index.css`. Expanded pill stays unchanged.
 
-## Visual direction (sleek + clean)
+### 1. Background contrast with the "t" logo
 
-- **Orb size:** 56px circle, centered at the same bottom position as the current pill (respects `safe-area-inset-bottom`).
-- **Glass material:** `backdrop-blur-2xl` over a near-transparent card surface, 1px hairline border at `border/40`, soft elevated shadow.
-- **Iridescence:** subtle conic-gradient sheen using the app's brand hues (rose → coral → amber → primary), rotating very slowly (~12s loop) at low opacity so it reads as a living glass marble, not a busy animation. Matches the homepage gradient palette.
-- **Center mark:** small `Sparkles` icon at 60% opacity — no text, no badge.
-- **Active route hint:** a 2px gradient ring around the orb indicates the current tab's accent color, so the user still gets a sense of place.
+The TAAI "t" mark reads as a warm rose/coral dark glyph. To make it pop in both themes:
 
-## Motion
+- **Light mode orb base**: near-white with a whisper of the dark theme navy — `hsl(240 16% 11% / 0.06)` over `hsl(0 0% 100% / 0.85)`. Logo stays its natural dark rose → strong contrast.
+- **Dark mode orb base**: near-black warmed with a hint of rose — `hsl(351 85% 70% / 0.08)` over `hsl(240 16% 11% / 0.7)`. Logo's warm tones lift off the deep base.
 
-- **Collapse (pill → orb):** 420ms cubic-bezier(0.22, 1, 0.36, 1). Width shrinks from full pill to 56px, labels fade out first (120ms), icons cross-fade into the central sparkle, border-radius interpolates to full.
-- **Expand (orb → pill):** 320ms same easing, reverse — width grows, icons fade in staggered (30ms each), labels fade last.
-- **Idle iridescence:** continuous, GPU-only (transform/opacity), pauses when `prefers-reduced-motion` is set.
+Applied via a new `.glass-orb-base` utility that swaps under `.dark`.
 
-## Behavior
+### 2. Transparent border
 
-- **Idle timer:** 4500ms. Resets on any of: `pointerdown`, `touchstart`, `scroll`, `keydown`, route change.
-- **Initial state:** expanded on every route change, then collapses after 4.5s if no activity.
-- **Tap target:** the orb is a single button — first tap expands (does NOT navigate), subsequent taps within the expanded pill behave normally.
-- **Reduced motion:** skip the morph; cross-fade between pill and orb in 150ms; iridescence frozen.
-- **Accessibility:** orb has `aria-label="Open navigation"` and `aria-expanded`. Pill buttons keep their existing labels. Focus moves to the first nav item when expanded via keyboard.
+Replace `border border-border/40` on the collapsed state with `border border-transparent`. Definition comes from the bezel highlight/shadow instead of a hard stroke. Expanded pill keeps its current border.
 
-## Files touched
+### 3. 3D bezel / glass ball
 
-- `src/components/navigation/MobileBottomNav.tsx` — add `collapsed` state, idle timer, listeners, conditional render of orb vs pill, motion via Tailwind transitions.
-- `src/index.css` — add `@keyframes orbShimmer` for the slow conic-gradient rotation and a `.glass-orb-sheen` utility.
-- No changes to page padding (the orb sits in the same bottom slot as the pill, so existing `pb-28` clearance still works).
+Layered, restrained — no skeuomorphism. Three stacked effects only when `collapsed`:
 
-## Out of scope
+1. **Top inner highlight** — `::before` pseudo: small radial gradient at ~30% 25%, white at 35% opacity fading to transparent by 55%. Reads as a single soft specular.
+2. **Bottom inner shadow** — `inset 0 -6px 12px -6px rgba(0,0,0,0.25)` (dark) / `rgba(0,0,0,0.12)` (light). Gives the lower hemisphere weight.
+3. **Outer rim** — `box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 0 0 1px rgba(255,255,255,0.08) inset, 0 8px 24px -8px rgba(0,0,0,0.35)`. The two inset shadows create the bezel rim; the outer drop shadow lifts the orb off the page.
 
-- Top header collapse, radial menu, or replacing the bottom nav entirely (already declined).
-- Persisting collapsed preference across sessions.
+Existing iridescent `.glass-orb-sheen` stays but drops to ~60% opacity and moves behind the bezel so it reads as refracted color inside the glass, not a halo.
 
-## Technical notes
+`backdrop-blur-2xl` stays for the frosted-glass refraction of content behind.
 
-- Use a single `useEffect` that attaches passive `pointerdown` / `scroll` / `keydown` listeners on `window` and a `setTimeout` that's cleared/restarted on each event.
-- Use `useLocation` to reset on route change (already imported).
-- Width animation uses `w-14` ↔ `w-full max-w-md` with `transition-[width,border-radius,padding] duration-[420ms]`.
-- Iridescent sheen is a pseudo-element with `background: conic-gradient(from 0deg, hsl(var(--primary)/0.35), hsl(var(--accent)/0.25), hsl(340 90% 70% / 0.3), hsl(30 90% 70% / 0.3), hsl(var(--primary)/0.35))` and `animation: orbShimmer 12s linear infinite`. Masked behind the glass blur for a soft glow.
+### Files to change
+
+- `src/index.css` — add `.glass-orb-base` (theme-aware), `.glass-orb-bezel` (pseudo-element highlight + inset shadows), tone down `.glass-orb-sheen` opacity.
+- `src/components/navigation/MobileBottomNav.tsx` — swap collapsed-state classes: remove `bg-card/80 border-border/40`, add `glass-orb-base glass-orb-bezel border-transparent`. Wrap sheen + logo so bezel highlight sits on top.
+
+### Out of scope
+
+Expanded pill styling, idle timer, logo asset, light/dark token definitions in `:root`/`.dark`.
