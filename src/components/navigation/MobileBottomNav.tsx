@@ -59,12 +59,12 @@ export const MobileBottomNav: React.FC = () => {
       <nav
         aria-label="Primary"
         className={cn(
-          'relative backdrop-blur-2xl',
+          'relative',
           'transition-[width,height,border-radius,padding,box-shadow,background] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
           'overflow-hidden flex items-center',
           collapsed
-            ? 'w-14 h-14 rounded-full justify-center px-0 border border-transparent glass-orb-base glass-orb-bezel'
-            : 'w-full max-w-md h-[64px] rounded-2xl justify-around px-1 bg-card/80 border border-border/40 shadow-lg shadow-black/10'
+            ? 'w-14 h-14 rounded-full justify-center px-0 border border-transparent glass-orb-base glass-orb-frost glass-orb-bezel'
+            : 'w-full max-w-md h-[64px] rounded-2xl justify-around px-1 bg-card/80 backdrop-blur-2xl border border-border/40 shadow-lg shadow-black/10'
         )}
       >
         {/* Iridescent sheen — only when collapsed */}
