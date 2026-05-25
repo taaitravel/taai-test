@@ -1,40 +1,42 @@
 ## Goal
 
-Simplify the My Itineraries page: drop the drag-and-drop interaction entirely (Add to Collection stays in the card's three-dot menu) and replace the mobile 2-column grid with a swipeable stack browser, similar to the home page trip browser, with a top "Stacks" selector (All, Collection A, Collection B, …).
+On mobile, the My Itineraries grid view becomes a vertical list of **stack sections**, one per collection (All, TEST!!!, …, plus a "New Stack" action). Each section shows its itineraries as a deck the user can swipe horizontally through, with looping, and swipe up on the top card to open that itinerary.
 
 ## Changes
 
-### 1. Remove drag-and-drop (desktop + mobile)
-- `src/pages/MyItineraries.tsx`: remove `DndContext`, `DragOverlay`, `pointerWithin`, `handleDragStart`, `handleDragEnd`, `draggingItinerary`, and the `<FloatingCollectionDropZone />` usage. Keep the page wrapper as a plain `<div>`.
-- `src/components/my-itineraries/ItineraryGrid.tsx`: render plain `ItineraryCard` instead of `DraggableItineraryCard`. Keep the same props (`onAddToCollection`, `onRemoveFromCollection`, `showCollectionActions`, `collectionId`) so the three-dot menu continues to expose "Add to Collection" and "Remove from Collection".
-- `src/components/my-itineraries/CollectionsSidebar.tsx`: replace `DroppableCollection` with a normal button row (same look, click → select collection, edit pencil → edit dialog). No drop targets.
-- Delete unused files: `DraggableItineraryCard.tsx`, `DroppableCollection.tsx`, `FloatingCollectionDropZone.tsx` (and any imports referencing them).
+All changes are mobile-only (`useIsMobile()`), grid view, "My Trips" tab. Desktop, map, list, and shared views are untouched.
 
-### 2. Card click goes straight to the itinerary
-- `ItineraryCard` already navigates to `/itinerary?id=…` on click. Confirm the three-dot menu uses `e.stopPropagation()` (it does on lines 89 & 94) so menu interactions don't trigger navigation. No further change needed.
+### 1. New layout: `MobileStacksView`
+`src/components/my-itineraries/MobileStacksView.tsx` (new). Renders, in order:
+- One section per "stack": **All Itineraries** first, then each user collection in the order returned by `useItineraryCollections`.
+- Section header row: stack name (left) + count (right) + small "Open" chevron link that sets `selectedCollectionId` so the existing collection-name header at top reflects the choice (keeps in-page navigation to a stack).
+- Body: `<MobileItineraryStack itineraries={…}/>` rendering that stack's filtered itineraries.
+- A trailing "New Stack" card (dashed border, plus icon) that calls `handleCreateCollection`.
 
-### 3. Mobile: replace 2-column grid with a swipeable stack
-Only applies to the mobile breakpoint (`useIsMobile()`), grid view, "My Trips" tab. Map and list views remain unchanged. Desktop grid unchanged.
+Empty stacks render a small "No itineraries yet" placeholder instead of the deck.
 
-- New component `src/components/my-itineraries/MobileItineraryStack.tsx`:
-  - Receives the already-filtered `itineraries` for the currently selected stack.
-  - Shows one full-width `ItineraryCard` at a time, centered, with a deck-of-cards visual (the next 1–2 cards peeking behind, matching the dashboard "deck" aesthetic referenced in the trip-card pattern).
-  - Horizontal swipe (touch) + left/right arrow buttons to navigate. Position indicator (e.g. `3 / 12`) underneath.
-  - Tapping the top card navigates to `/itinerary?id=…` (reuses `ItineraryCard`'s own click handler).
-  - Empty state: same copy as `ItineraryGrid`'s empty state.
+`MyItineraries.tsx` mobile grid branch: replace the single `<MobileItineraryStack itineraries={filteredItineraries}/>` with `<MobileStacksView />`. The existing top **Stacks** bubble row stays — tapping a bubble still filters to a single stack (and in that filtered state we show only that one section, not all of them). Tapping the **All** bubble shows every section.
 
-- Stacks selector on mobile: reuse the existing `MobileCollections` horizontal bubble row already in `MyItineraries.tsx`. Rename the section heading shown above it to **"Stacks"** and keep order: All → user collections → New. Selecting a bubble switches which stack is rendered in `MobileItineraryStack`.
+### 2. `MobileItineraryStack` updates
+- **Bidirectional looping**: arrow buttons and swipes wrap around (5 → 1, 1 → 5). Remove the disabled/edge-resistance behavior; edges no longer exist.
+- **Swipe directions**:
+  - Horizontal drag (left/right) → cycle through items in the stack, with the current snap + spring-back animation. Left = next, right = previous.
+  - Vertical drag **up** past threshold → navigate to `/itinerary?id=<top card id>` (this becomes the open gesture; the card's tap also still opens it).
+  - Vertical drag **down** → ignored (snap back). Lets the page still scroll normally when the touch begins outside the card.
+- Lock axis at the start of a drag: once horizontal vs vertical intent is detected (whichever exceeds ~8px first), only that axis is tracked for the rest of the gesture. Prevents accidental opens while swiping sideways.
+- Position indicator stays (`3 / 12`). Arrow buttons remain for accessibility.
 
-- `MyItineraries.tsx` rendering logic for the grid view:
-  - If `isMobile` → render `<MobileCollections />` (labeled "Stacks") + `<MobileItineraryStack itineraries={filteredItineraries} />`.
-  - Else → existing `GridFilters` + `ItineraryGrid` (desktop unchanged).
+### 3. Section ordering & data
+- Pull all collections from `useItineraryCollections`.
+- For each collection, derive its itineraries via the existing `getCollectionItineraries(collectionId)` (already called for the currently-selected one); extend `MyItineraries.tsx` to fetch and cache a `{collectionId: number[]}` map on mount so each section can resolve its own list. Reuse `activeItineraries` as the source of truth and filter by those IDs.
+- "All" section uses the full sorted `filteredItineraries` (respects existing grid sort settings, even though `GridFilters` UI is desktop-only).
 
-### 4. Cleanup
-- Remove `@dnd-kit/core` and `@dnd-kit/utilities` imports from the touched files. Package itself can stay installed (still referenced elsewhere if any); no package.json change required.
-- No backend, schema, or business-logic changes.
+### 4. Out of scope
+- AI categorization (explicitly excluded by user).
+- Desktop layout, map view, list view, shared tab.
+- Backend / schema changes.
 
-## Out of scope
-- Desktop grid layout
-- Map view, list view, shared tab behavior
-- Collection CRUD dialogs (unchanged)
-- Animations beyond a simple swipe transition
+## Technical notes
+- Looping math: `(index + n) % length` for next, `(index - 1 + length) % length` for prev.
+- Swipe thresholds: horizontal 60px, vertical-up 80px, axis-lock 8px.
+- For the per-collection ID map, add one `useEffect` in `MyItineraries.tsx` that, when `collections` changes, fires `getCollectionItineraries` for each in parallel and stores `Record<string, number[]>` in local state.

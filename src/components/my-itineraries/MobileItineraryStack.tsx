@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ItineraryCard } from './ItineraryCard';
 import { ItineraryData } from '@/types/itinerary';
@@ -11,69 +12,92 @@ interface MobileItineraryStackProps {
   collectionId?: string;
 }
 
+const AXIS_LOCK = 8;
+const H_THRESHOLD = 60;
+const V_THRESHOLD = 80;
+
 export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
   itineraries,
   onAddToCollection,
   onRemoveFromCollection,
   collectionId,
 }) => {
+  const navigate = useNavigate();
   const [index, setIndex] = useState(0);
-  const [dragX, setDragX] = useState(0);
-  const startX = useRef<number | null>(null);
+  const [drag, setDrag] = useState({ x: 0, y: 0 });
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const axis = useRef<'x' | 'y' | null>(null);
   const isDragging = useRef(false);
 
   if (itineraries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <span className="text-2xl">✈️</span>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-3">
+          <span className="text-xl">✈️</span>
         </div>
-        <h3 className="text-lg font-medium text-foreground mb-2">No itineraries found</h3>
-        <p className="text-muted-foreground">Create a new itinerary to get started</p>
+        <p className="text-sm text-muted-foreground">No itineraries in this stack</p>
       </div>
     );
   }
 
-  const safeIndex = Math.min(index, itineraries.length - 1);
-  const prev = () => setIndex((i) => Math.max(0, i - 1));
-  const next = () => setIndex((i) => Math.min(itineraries.length - 1, i + 1));
+  const len = itineraries.length;
+  const safeIndex = ((index % len) + len) % len;
+  const prev = () => setIndex((i) => (i - 1 + len) % len);
+  const next = () => setIndex((i) => (i + 1) % len);
+  const openTop = () => navigate(`/itinerary?id=${itineraries[safeIndex].id}`);
 
-  const beginDrag = (x: number) => {
-    startX.current = x;
+  const beginDrag = (x: number, y: number) => {
+    start.current = { x, y };
+    axis.current = null;
     isDragging.current = true;
   };
-  const moveDrag = (x: number) => {
-    if (!isDragging.current || startX.current === null) return;
-    let dx = x - startX.current;
-    // Resistance at edges
-    if ((safeIndex === 0 && dx > 0) || (safeIndex >= itineraries.length - 1 && dx < 0)) {
-      dx = dx / 3;
+  const moveDrag = (x: number, y: number) => {
+    if (!isDragging.current || !start.current) return;
+    const dx = x - start.current.x;
+    const dy = y - start.current.y;
+    if (!axis.current) {
+      if (Math.abs(dx) > AXIS_LOCK || Math.abs(dy) > AXIS_LOCK) {
+        axis.current = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      } else {
+        return;
+      }
     }
-    setDragX(dx);
+    if (axis.current === 'x') setDrag({ x: dx, y: 0 });
+    else setDrag({ x: 0, y: Math.min(0, dy) });
   };
   const endDrag = () => {
     if (!isDragging.current) return;
+    const currentAxis = axis.current;
+    const { x, y } = drag;
     isDragging.current = false;
-    startX.current = null;
-    const threshold = 60;
-    if (dragX < -threshold) next();
-    else if (dragX > threshold) prev();
-    setDragX(0);
+    start.current = null;
+    axis.current = null;
+    setDrag({ x: 0, y: 0 });
+    if (currentAxis === 'x') {
+      if (x < -H_THRESHOLD) next();
+      else if (x > H_THRESHOLD) prev();
+    } else if (currentAxis === 'y') {
+      if (y < -V_THRESHOLD) openTop();
+    }
   };
 
-  const onTouchStart = (e: React.TouchEvent) => beginDrag(e.touches[0].clientX);
-  const onTouchMove = (e: React.TouchEvent) => moveDrag(e.touches[0].clientX);
+  const onTouchStart = (e: React.TouchEvent) =>
+    beginDrag(e.touches[0].clientX, e.touches[0].clientY);
+  const onTouchMove = (e: React.TouchEvent) =>
+    moveDrag(e.touches[0].clientX, e.touches[0].clientY);
   const onTouchEnd = () => endDrag();
-  const onMouseDown = (e: React.MouseEvent) => beginDrag(e.clientX);
-  const onMouseMove = (e: React.MouseEvent) => moveDrag(e.clientX);
+  const onMouseDown = (e: React.MouseEvent) => beginDrag(e.clientX, e.clientY);
+  const onMouseMove = (e: React.MouseEvent) => moveDrag(e.clientX, e.clientY);
   const onMouseUp = () => endDrag();
   const onMouseLeave = () => endDrag();
 
-  // Show up to 3 cards stacked (current + 2 behind)
-  const visible = itineraries.slice(safeIndex, safeIndex + 3);
+  const visible = Array.from({ length: Math.min(3, len) }, (_, i) => ({
+    it: itineraries[(safeIndex + i) % len],
+    i,
+  }));
 
   return (
-    <div className="flex flex-col items-center gap-6 py-4">
+    <div className="flex flex-col items-center gap-4 py-2">
       <div
         className="relative w-[255px] h-[375px] touch-pan-y select-none"
         onTouchStart={onTouchStart}
@@ -85,16 +109,16 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
         onMouseLeave={onMouseLeave}
       >
         {visible
-          .map((it, i) => ({ it, i }))
+          .slice()
           .reverse()
           .map(({ it, i }) => (
             <div
-              key={it.id}
+              key={`${it.id}-${i}`}
               className={`absolute inset-0 ${isDragging.current && i === 0 ? '' : 'transition-all duration-300'}`}
               style={{
                 transform:
                   i === 0
-                    ? `translateX(${dragX}px) rotate(${dragX * 0.04}deg)`
+                    ? `translate(${drag.x}px, ${drag.y}px) rotate(${drag.x * 0.04}deg)`
                     : `translateY(${i * 10}px) translateX(${i * 5}px) scale(${1 - i * 0.04})`,
                 zIndex: 10 - i,
                 opacity: i === 0 ? 1 : 0.6,
@@ -112,28 +136,19 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
           ))}
       </div>
 
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={prev}
-          disabled={safeIndex === 0}
-          className="h-10 w-10 rounded-full"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <span className="text-sm text-muted-foreground tabular-nums min-w-[60px] text-center">
-          {safeIndex + 1} / {itineraries.length}
-        </span>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={next}
-          disabled={safeIndex >= itineraries.length - 1}
-          className="h-10 w-10 rounded-full"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </Button>
+      <div className="flex flex-col items-center gap-1.5">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon" onClick={prev} className="h-9 w-9 rounded-full">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-xs text-muted-foreground tabular-nums min-w-[52px] text-center">
+            {safeIndex + 1} / {len}
+          </span>
+          <Button variant="outline" size="icon" onClick={next} className="h-9 w-9 rounded-full">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-[10px] text-muted-foreground/60">Swipe ↔ browse · ↑ open</p>
       </div>
     </div>
   );
