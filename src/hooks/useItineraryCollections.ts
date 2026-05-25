@@ -246,21 +246,24 @@ export const useItineraryCollections = () => {
     }
   };
 
-  const getCollectionItineraries = async (collectionId: string): Promise<number[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('collection_itineraries')
-        .select('itinerary_id')
-        .eq('collection_id', collectionId);
+  const getCollectionItineraries = useCallback(
+    async (collectionId: string): Promise<number[]> => {
+      try {
+        const { data, error } = await supabase
+          .from('collection_itineraries')
+          .select('itinerary_id')
+          .eq('collection_id', collectionId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      return (data || []).map(i => i.itinerary_id);
-    } catch (error) {
-      console.error('Error fetching collection itineraries:', error);
-      return [];
-    }
-  };
+        return (data || []).map((i) => i.itinerary_id);
+      } catch (error) {
+        console.error('Error fetching collection itineraries:', error);
+        return [];
+      }
+    },
+    []
+  );
 
   return {
     collections,

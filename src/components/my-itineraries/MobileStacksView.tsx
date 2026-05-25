@@ -28,6 +28,7 @@ export const MobileStacksView: React.FC<MobileStacksViewProps> = ({
 }) => {
   const [idMap, setIdMap] = useState<Record<string, number[]>>({});
 
+  const collectionIdsKey = collections.map((c) => c.id).join(',');
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -37,8 +38,11 @@ export const MobileStacksView: React.FC<MobileStacksViewProps> = ({
       if (cancelled) return;
       setIdMap(Object.fromEntries(entries));
     })();
-    return () => { cancelled = true; };
-  }, [collections, getCollectionItineraries]);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collectionIdsKey]);
 
   const renderSection = (
     key: string,
