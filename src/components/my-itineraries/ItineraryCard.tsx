@@ -21,6 +21,7 @@ interface ItineraryCardProps {
   collectionId?: string;
   isShared?: boolean;
   ownerName?: string;
+  size?: 'responsive' | 'stack';
 }
 
 export const ItineraryCard: React.FC<ItineraryCardProps> = ({
@@ -31,6 +32,7 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
   collectionId,
   isShared = false,
   ownerName,
+  size = 'responsive',
 }) => {
   const navigate = useNavigate();
 
@@ -76,12 +78,31 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
   const status = getStatus();
   const locations = itinerary.itin_locations?.slice(0, 2) || [];
 
+  const isStack = size === 'stack';
+  const cardSize = isStack
+    ? 'w-[255px] h-[375px]'
+    : 'w-[165px] h-[243px] sm:w-[191px] sm:h-[281px] lg:w-[255px] lg:h-[375px]';
+  const contentPad = isStack ? 'p-4' : 'p-2 sm:p-3 lg:p-4';
+  const emojiCls = isStack ? 'text-2xl mb-2 opacity-60' : 'text-base sm:text-xl lg:text-2xl mb-1 sm:mb-2 opacity-60';
+  const titleCls = isStack
+    ? 'font-bold text-white text-base mb-1 line-clamp-2 drop-shadow-sm'
+    : 'font-bold text-white text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 drop-shadow-sm';
+  const dateCls = isStack ? 'text-muted-foreground text-sm mb-2' : 'text-muted-foreground text-xs sm:text-sm mb-1 sm:mb-2';
+  const badgeRow = isStack ? 'flex flex-wrap gap-1 mb-2' : 'flex flex-wrap gap-0.5 sm:gap-1 mb-1 sm:mb-2';
+  const badgeCls = isStack
+    ? 'text-sm bg-muted text-muted-foreground border-border px-2'
+    : 'text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2';
+  const bottomWrap = isStack ? 'space-y-2' : 'space-y-1 sm:space-y-2';
+  const attendeeCls = isStack ? 'flex items-center text-sm text-muted-foreground' : 'flex items-center text-xs sm:text-sm text-muted-foreground';
+  const attendeeIcon = isStack ? 'h-3 w-3 mr-1' : 'h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1';
+  const ownerCls = isStack ? 'text-xs text-muted-foreground truncate' : 'text-[10px] sm:text-xs text-muted-foreground truncate';
+
   return (
     <Card 
-      className="w-[165px] h-[243px] sm:w-[191px] sm:h-[281px] lg:w-[255px] lg:h-[375px] trip-card-past cursor-pointer hover:shadow-lg hover:shadow-foreground/5 transition-all duration-300 group"
+      className={`${cardSize} trip-card-past cursor-pointer hover:shadow-lg hover:shadow-foreground/5 transition-all duration-300 group`}
       onClick={handleClick}
     >
-      <CardContent className="p-2 sm:p-3 lg:p-4 h-full flex flex-col justify-between relative">
+      <CardContent className={`${contentPad} h-full flex flex-col justify-between relative`}>
         {/* Collection Menu */}
         {showCollectionActions && (
           <div className="absolute top-2 right-2 z-10">
@@ -109,17 +130,17 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
         {/* Top Content */}
         <div>
-          <div className="text-base sm:text-xl lg:text-2xl mb-1 sm:mb-2 opacity-60">{getEmoji()}</div>
-          <h4 className="font-bold text-white text-sm sm:text-base mb-0.5 sm:mb-1 line-clamp-2 drop-shadow-sm">
+          <div className={emojiCls}>{getEmoji()}</div>
+          <h4 className={titleCls}>
             {itinerary.itin_name || 'Untitled Trip'}
           </h4>
-          <p className="text-muted-foreground text-xs sm:text-sm mb-1 sm:mb-2">{formatDates()}</p>
-          <div className="flex flex-wrap gap-0.5 sm:gap-1 mb-1 sm:mb-2">
+          <p className={dateCls}>{formatDates()}</p>
+          <div className={badgeRow}>
             {locations.slice(0, 1).map((location, idx) => (
               <Badge 
                 key={idx} 
                 variant="secondary" 
-                className="text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2"
+                className={badgeCls}
               >
                 {location}
               </Badge>
@@ -127,7 +148,7 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
             {(itinerary.itin_locations?.length || 0) > 1 && (
               <Badge 
                 variant="secondary" 
-                className="text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2"
+                className={badgeCls}
               >
                 +{(itinerary.itin_locations?.length || 0) - 1}
               </Badge>
@@ -136,23 +157,23 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
         </div>
 
         {/* Bottom Content */}
-        <div className="space-y-1 sm:space-y-2">
-          <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
-            <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+        <div className={bottomWrap}>
+          <div className={attendeeCls}>
+            <Users className={attendeeIcon} />
             {itinerary.attendees?.length || 1}
           </div>
           <div className="flex flex-wrap gap-1">
-            <Badge className="text-[10px] sm:text-xs lg:text-sm bg-muted text-muted-foreground border-border px-1 sm:px-2">
+            <Badge className={badgeCls}>
               {status}
             </Badge>
             {isShared && (
-              <Badge variant="secondary" className="text-[10px] sm:text-xs bg-primary/10 text-primary border-primary/20 px-1 sm:px-2">
+              <Badge variant="secondary" className={`${isStack ? 'text-xs' : 'text-[10px] sm:text-xs'} bg-primary/10 text-primary border-primary/20 px-1 sm:px-2`}>
                 Shared
               </Badge>
             )}
           </div>
           {isShared && ownerName && (
-            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+            <p className={ownerCls}>
               by {ownerName}
             </p>
           )}

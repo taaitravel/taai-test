@@ -133,6 +133,7 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
                 onRemoveFromCollection={onRemoveFromCollection}
                 showCollectionActions={showCollectionActions}
                 collectionId={collectionId}
+                size="stack"
               />
             </div>
           ))}
