@@ -1,42 +1,52 @@
-## Goal
+Make the home page Upcoming/Past Trips stacks and the My Itineraries mobile stacks behave and look identical: one reusable swipe-enabled stack, sized 255×375 (the current home dimensions), wrapped in the home page's centered titled section layout.
 
-On mobile, the My Itineraries grid view becomes a vertical list of **stack sections**, one per collection (All, TEST!!!, …, plus a "New Stack" action). Each section shows its itineraries as a deck the user can swipe horizontally through, with looping, and swipe up on the top card to open that itinerary.
+## 1. Reusable stack component
 
-## Changes
+Treat `MobileItineraryStack` as the single source of truth for "stack of trip cards".
 
-All changes are mobile-only (`useIsMobile()`), grid view, "My Trips" tab. Desktop, map, list, and shared views are untouched.
+- Already 255×375, already supports: horizontal swipe to cycle (looping 1↔N), vertical-up swipe to open, axis lock, indicator. No behavior changes needed.
+- Add a small visual prop pass-through so it can be used outside the My Itineraries page without the collection action buttons (i.e. `showCollectionActions` defaults to `false` and is only enabled by `MobileStacksView`).
+- Keep render of `ItineraryCard` inside; that component already mirrors the home page card content (emoji/dates/locations/people/status).
 
-### 1. New layout: `MobileStacksView`
-`src/components/my-itineraries/MobileStacksView.tsx` (new). Renders, in order:
-- One section per "stack": **All Itineraries** first, then each user collection in the order returned by `useItineraryCollections`.
-- Section header row: stack name (left) + count (right) + small "Open" chevron link that sets `selectedCollectionId` so the existing collection-name header at top reflects the choice (keeps in-page navigation to a stack).
-- Body: `<MobileItineraryStack itineraries={…}/>` rendering that stack's filtered itineraries.
-- A trailing "New Stack" card (dashed border, plus icon) that calls `handleCreateCollection`.
+## 2. New shared section wrapper
 
-Empty stacks render a small "No itineraries yet" placeholder instead of the deck.
+Create `src/components/itinerary-stacks/StackSection.tsx`:
 
-`MyItineraries.tsx` mobile grid branch: replace the single `<MobileItineraryStack itineraries={filteredItineraries}/>` with `<MobileStacksView />`. The existing top **Stacks** bubble row stays — tapping a bubble still filters to a single stack (and in that filtered state we show only that one section, not all of them). Tapping the **All** bubble shows every section.
+- Centered header: icon + title + count, matching the home page style (`text-lg font-semibold`, icon `h-5 w-5 mr-2`, centered on mobile).
+- Body: renders `MobileItineraryStack` with the items, centered, with the existing 255×375 footprint and the `↔ browse · ↑ open` hint.
+- Empty/loading states ported from `TripsSection` (Plane spinner, calendar/clock empty icons).
 
-### 2. `MobileItineraryStack` updates
-- **Bidirectional looping**: arrow buttons and swipes wrap around (5 → 1, 1 → 5). Remove the disabled/edge-resistance behavior; edges no longer exist.
-- **Swipe directions**:
-  - Horizontal drag (left/right) → cycle through items in the stack, with the current snap + spring-back animation. Left = next, right = previous.
-  - Vertical drag **up** past threshold → navigate to `/itinerary?id=<top card id>` (this becomes the open gesture; the card's tap also still opens it).
-  - Vertical drag **down** → ignored (snap back). Lets the page still scroll normally when the touch begins outside the card.
-- Lock axis at the start of a drag: once horizontal vs vertical intent is detected (whichever exceeds ~8px first), only that axis is tracked for the rest of the gesture. Prevents accidental opens while swiping sideways.
-- Position indicator stays (`3 / 12`). Arrow buttons remain for accessibility.
+## 3. Home page (`TripsSection.tsx`)
 
-### 3. Section ordering & data
-- Pull all collections from `useItineraryCollections`.
-- For each collection, derive its itineraries via the existing `getCollectionItineraries(collectionId)` (already called for the currently-selected one); extend `MyItineraries.tsx` to fetch and cache a `{collectionId: number[]}` map on mount so each section can resolve its own list. Reuse `activeItineraries` as the source of truth and filter by those IDs.
-- "All" section uses the full sorted `filteredItineraries` (respects existing grid sort settings, even though `GridFilters` UI is desktop-only).
+Rewrite to use `StackSection` twice:
 
-### 4. Out of scope
-- AI categorization (explicitly excluded by user).
-- Desktop layout, map view, list view, shared tab.
-- Backend / schema changes.
+- "Upcoming" (Calendar icon) — upcoming trips
+- "Past Trips" (Clock icon) — past trips
+
+Remove the static `renderTripCard` stack and the `onTripClick` prop. Tap/up-swipe on the top card now navigates straight to `/itinerary?id=...` via `MobileItineraryStack`. Layout stays `grid grid-cols-1 md:grid-cols-2 gap-6`, centered on mobile.
+
+## 4. Dashboard wiring (`DashboardContent.tsx`)
+
+- Remove `TripBrowser` import + render and the `showTripBrowser` / `openTripBrowser` / `closeTripBrowser` props passed to `TripsSection`. Keep the existing "Browse trips" hero button working if it's still wanted, otherwise delete that hook usage. (Will check `useDashboardData` for unused state and prune.)
+- Delete `src/components/dashboard/TripBrowser.tsx` (no longer used).
+
+## 5. My Itineraries page (`MobileStacksView.tsx`)
+
+- Replace its current left-aligned header row with the new `StackSection` wrapper so headers, spacing, and the stack itself are identical to home.
+- Section order unchanged: "All Itineraries" (Globe icon) first, then each collection (Folder icon). Keep the "Open" affordance — move it to a small chevron link under/next to the centered title.
+- Keep the "New Stack" dashed button at the bottom.
+- Keep existing `idMap` fetch fix.
+
+## 6. Out of scope
+
+- Desktop My Itineraries grid/map/list views.
+- Any AI categorization.
+- Backend / data hooks (besides pruning the now-unused TripBrowser hook fields).
+- Card visual restyle — `ItineraryCard` already provides the right look; we are only unifying size, gestures, and section chrome.
 
 ## Technical notes
-- Looping math: `(index + n) % length` for next, `(index - 1 + length) % length` for prev.
-- Swipe thresholds: horizontal 60px, vertical-up 80px, axis-lock 8px.
-- For the per-collection ID map, add one `useEffect` in `MyItineraries.tsx` that, when `collections` changes, fires `getCollectionItineraries` for each in parallel and stores `Record<string, number[]>` in local state.
+
+- New file: `src/components/itinerary-stacks/StackSection.tsx`.
+- Edited: `TripsSection.tsx`, `DashboardContent.tsx`, `MobileStacksView.tsx`, possibly `useDashboardData` (prune unused TripBrowser state).
+- Deleted: `src/components/dashboard/TripBrowser.tsx`.
+- `MobileItineraryStack` gains an optional `showCollectionActions` flag (default `false`); My Itineraries passes `true`, home passes nothing.
