@@ -13,6 +13,7 @@ import { AddToCollectionDialog } from '@/components/my-itineraries/AddToCollecti
 import { ItineraryCard } from '@/components/my-itineraries/ItineraryCard';
 import { GridFilters, GridSortField, GridSortDirection } from '@/components/my-itineraries/GridFilters';
 import { MobileItineraryStack } from '@/components/my-itineraries/MobileItineraryStack';
+import { MobileStacksView } from '@/components/my-itineraries/MobileStacksView';
 import { useItineraryCollections, Collection } from '@/hooks/useItineraryCollections';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useSharedItineraries } from '@/hooks/useSharedItineraries';
@@ -358,11 +359,17 @@ const MyItineraries = () => {
                 {viewMode === 'grid' && (
                   <>
                     {isMobile ? (
-                      <MobileItineraryStack
-                        itineraries={filteredItineraries}
+                      <MobileStacksView
+                        allItineraries={activeItineraries}
+                        collections={collections}
+                        selectedCollectionId={selectedCollectionId}
+                        onSelectCollection={setSelectedCollectionId}
+                        onCreateCollection={handleCreateCollection}
                         onAddToCollection={handleAddToCollection}
-                        onRemoveFromCollection={selectedCollectionId ? handleRemoveFromCollection : undefined}
-                        collectionId={selectedCollectionId || undefined}
+                        onRemoveFromCollection={(collectionId, itineraryId) =>
+                          removeFromCollection(collectionId, itineraryId)
+                        }
+                        getCollectionItineraries={getCollectionItineraries}
                       />
                     ) : (
                       <>
