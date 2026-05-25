@@ -18,7 +18,9 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
   collectionId,
 }) => {
   const [index, setIndex] = useState(0);
-  const touchStartX = useRef<number | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const startX = useRef<number | null>(null);
+  const isDragging = useRef(false);
 
   if (itineraries.length === 0) {
     return (
@@ -36,18 +38,36 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
   const prev = () => setIndex((i) => Math.max(0, i - 1));
   const next = () => setIndex((i) => Math.min(itineraries.length - 1, i + 1));
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+  const beginDrag = (x: number) => {
+    startX.current = x;
+    isDragging.current = true;
   };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) > 50) {
-      if (dx < 0) next();
-      else prev();
+  const moveDrag = (x: number) => {
+    if (!isDragging.current || startX.current === null) return;
+    let dx = x - startX.current;
+    // Resistance at edges
+    if ((safeIndex === 0 && dx > 0) || (safeIndex >= itineraries.length - 1 && dx < 0)) {
+      dx = dx / 3;
     }
-    touchStartX.current = null;
+    setDragX(dx);
   };
+  const endDrag = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    startX.current = null;
+    const threshold = 60;
+    if (dragX < -threshold) next();
+    else if (dragX > threshold) prev();
+    setDragX(0);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => beginDrag(e.touches[0].clientX);
+  const onTouchMove = (e: React.TouchEvent) => moveDrag(e.touches[0].clientX);
+  const onTouchEnd = () => endDrag();
+  const onMouseDown = (e: React.MouseEvent) => beginDrag(e.clientX);
+  const onMouseMove = (e: React.MouseEvent) => moveDrag(e.clientX);
+  const onMouseUp = () => endDrag();
+  const onMouseLeave = () => endDrag();
 
   // Show up to 3 cards stacked (current + 2 behind)
   const visible = itineraries.slice(safeIndex, safeIndex + 3);
@@ -55,9 +75,14 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
   return (
     <div className="flex flex-col items-center gap-6 py-4">
       <div
-        className="relative w-[255px] h-[375px]"
+        className="relative w-[255px] h-[375px] touch-pan-y select-none"
         onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
       >
         {visible
           .map((it, i) => ({ it, i }))
@@ -65,9 +90,12 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
           .map(({ it, i }) => (
             <div
               key={it.id}
-              className="absolute inset-0 transition-all duration-300"
+              className={`absolute inset-0 ${isDragging.current && i === 0 ? '' : 'transition-all duration-300'}`}
               style={{
-                transform: `translateY(${i * 10}px) translateX(${i * 5}px) scale(${1 - i * 0.04})`,
+                transform:
+                  i === 0
+                    ? `translateX(${dragX}px) rotate(${dragX * 0.04}deg)`
+                    : `translateY(${i * 10}px) translateX(${i * 5}px) scale(${1 - i * 0.04})`,
                 zIndex: 10 - i,
                 opacity: i === 0 ? 1 : 0.6,
                 pointerEvents: i === 0 ? 'auto' : 'none',
