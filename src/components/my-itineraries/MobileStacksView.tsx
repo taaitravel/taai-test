@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, ChevronRight, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { MobileItineraryStack } from './MobileItineraryStack';
+import { Plus, Globe, Folder } from 'lucide-react';
+import { StackSection } from '@/components/itinerary-stacks/StackSection';
 import { Collection } from '@/hooks/useItineraryCollections';
 import { ItineraryData } from '@/types/itinerary';
 
@@ -44,45 +43,6 @@ export const MobileStacksView: React.FC<MobileStacksViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collectionIdsKey]);
 
-  const renderSection = (
-    key: string,
-    label: string,
-    items: ItineraryData[],
-    collectionId?: string,
-    icon?: React.ReactNode,
-  ) => (
-    <section key={key} className="space-y-3">
-      <header className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2 min-w-0">
-          {icon}
-          <h2 className="text-base font-semibold text-foreground truncate">{label}</h2>
-          <span className="text-xs text-muted-foreground">({items.length})</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1 text-xs text-muted-foreground"
-          onClick={() => onSelectCollection(collectionId ?? null)}
-        >
-          Open <ChevronRight className="h-3 w-3" />
-        </Button>
-      </header>
-
-      {items.length === 0 ? (
-        <div className="border border-dashed border-border rounded-lg p-6 text-center text-sm text-muted-foreground">
-          No itineraries in this stack yet
-        </div>
-      ) : (
-        <MobileItineraryStack
-          itineraries={items}
-          onAddToCollection={onAddToCollection}
-          onRemoveFromCollection={collectionId ? (id) => onRemoveFromCollection(collectionId, id) : undefined}
-          collectionId={collectionId}
-        />
-      )}
-    </section>
-  );
-
   // If a specific stack is selected via the top bubble row, only show that section
   const sectionsToRender: Array<{
     key: string;
@@ -97,7 +57,7 @@ export const MobileStacksView: React.FC<MobileStacksViewProps> = ({
       key: 'all',
       label: 'All Itineraries',
       items: allItineraries,
-      icon: <Globe className="h-4 w-4 text-muted-foreground" />,
+      icon: <Globe className="h-5 w-5" />,
     });
     collections.forEach((c) => {
       const ids = idMap[c.id] || [];
@@ -106,6 +66,7 @@ export const MobileStacksView: React.FC<MobileStacksViewProps> = ({
         label: c.name,
         items: allItineraries.filter((it) => ids.includes(it.id)),
         collectionId: c.id,
+        icon: <Folder className="h-5 w-5" />,
       });
     });
   } else {
@@ -117,18 +78,34 @@ export const MobileStacksView: React.FC<MobileStacksViewProps> = ({
         label: c.name,
         items: allItineraries.filter((it) => ids.includes(it.id)),
         collectionId: c.id,
+        icon: <Folder className="h-5 w-5" />,
       });
     }
   }
 
   return (
-    <div className="space-y-8 pb-8">
-      {sectionsToRender.map((s) => renderSection(s.key, s.label, s.items, s.collectionId, s.icon))}
+    <div className="space-y-10 pb-8">
+      {sectionsToRender.map((s) => (
+        <StackSection
+          key={s.key}
+          title={s.label}
+          icon={s.icon}
+          items={s.items}
+          showCollectionActions
+          collectionId={s.collectionId}
+          onAddToCollection={onAddToCollection}
+          onRemoveFromCollection={
+            s.collectionId ? (id) => onRemoveFromCollection(s.collectionId!, id) : undefined
+          }
+          onOpen={() => onSelectCollection(s.collectionId ?? null)}
+          emptyMessage="No itineraries in this stack yet"
+        />
+      ))}
 
       {/* New Stack action */}
       <button
         onClick={onCreateCollection}
-        className="w-full border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center gap-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+        className="mx-auto w-full max-w-[255px] border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center gap-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
       >
         <Plus className="h-6 w-6" />
         <span className="text-sm font-medium">New Stack</span>

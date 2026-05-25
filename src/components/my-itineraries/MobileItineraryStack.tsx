@@ -10,6 +10,7 @@ interface MobileItineraryStackProps {
   onAddToCollection?: (itineraryId: number) => void;
   onRemoveFromCollection?: (itineraryId: number) => void;
   collectionId?: string;
+  showCollectionActions?: boolean;
 }
 
 const AXIS_LOCK = 8;
@@ -21,6 +22,7 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
   onAddToCollection,
   onRemoveFromCollection,
   collectionId,
+  showCollectionActions = false,
 }) => {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
@@ -129,7 +131,7 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
                 itinerary={it}
                 onAddToCollection={onAddToCollection}
                 onRemoveFromCollection={onRemoveFromCollection}
-                showCollectionActions={true}
+                showCollectionActions={showCollectionActions}
                 collectionId={collectionId}
               />
             </div>
