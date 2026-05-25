@@ -1,7 +1,6 @@
 import { HeroSection } from "@/components/dashboard/HeroSection";
 import { StatsSection } from "@/components/dashboard/StatsSection";
 import { TripsSection } from "@/components/dashboard/TripsSection";
-import { TripBrowser } from "@/components/dashboard/TripBrowser";
 import { TripsFilter } from "@/components/dashboard/TripsFilter";
 import { PendingInvitationsCard } from "@/components/itinerary/PendingInvitationsCard";
 import { useDashboard } from "@/hooks/useDashboard";
@@ -13,11 +12,7 @@ export const DashboardContent = () => {
     userProfile,
     fullUserStats,
     visitedCountries,
-    showTripBrowser,
-    currentTripIndex,
-    setCurrentTripIndex,
     openTripBrowser,
-    closeTripBrowser,
     sortBy,
     dateFrom,
     dateTo,
@@ -62,20 +57,9 @@ export const DashboardContent = () => {
           <TripsSection 
             activeItineraries={activeItineraries} 
             loading={loading} 
-            onTripClick={openTripBrowser}
           />
         </div>
       </div>
-
-
-      {/* Trip Browser Modal */}
-      <TripBrowser 
-        isOpen={showTripBrowser}
-        onClose={closeTripBrowser}
-        activeItineraries={activeItineraries}
-        currentTripIndex={currentTripIndex}
-        onTripIndexChange={setCurrentTripIndex}
-      />
     </div>
   );
 };
