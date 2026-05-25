@@ -1,5 +1,5 @@
 import React from 'react';
-import { DraggableItineraryCard } from './DraggableItineraryCard';
+import { ItineraryCard } from './ItineraryCard';
 import { ItineraryData } from '@/types/itinerary';
 
 interface ItineraryGridProps {
@@ -30,7 +30,7 @@ export const ItineraryGrid: React.FC<ItineraryGridProps> = ({
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 justify-items-center">
       {itineraries.map((itinerary) => (
-        <DraggableItineraryCard
+        <ItineraryCard
           key={itinerary.id}
           itinerary={itinerary}
           onAddToCollection={onAddToCollection}

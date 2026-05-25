@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
 import { LayoutGrid, Map, List, Plus, Globe, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,7 +12,7 @@ import { CollectionDialog } from '@/components/my-itineraries/CollectionDialog';
 import { AddToCollectionDialog } from '@/components/my-itineraries/AddToCollectionDialog';
 import { ItineraryCard } from '@/components/my-itineraries/ItineraryCard';
 import { GridFilters, GridSortField, GridSortDirection } from '@/components/my-itineraries/GridFilters';
-import { FloatingCollectionDropZone } from '@/components/my-itineraries/FloatingCollectionDropZone';
+import { MobileItineraryStack } from '@/components/my-itineraries/MobileItineraryStack';
 import { useItineraryCollections, Collection } from '@/hooks/useItineraryCollections';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useSharedItineraries } from '@/hooks/useSharedItineraries';
@@ -51,8 +50,7 @@ const MyItineraries = () => {
   const [addToCollectionOpen, setAddToCollectionOpen] = useState(false);
   const [selectedItineraryIds, setSelectedItineraryIds] = useState<number[]>([]);
   const [collectionItineraryIds, setCollectionItineraryIds] = useState<number[]>([]);
-  const [draggingItinerary, setDraggingItinerary] = useState<ItineraryData | null>(null);
-  
+
   // Grid sorting state
   const [gridSortField, setGridSortField] = useState<GridSortField>('date');
   const [gridSortDirection, setGridSortDirection] = useState<GridSortDirection>('desc');
@@ -176,49 +174,13 @@ const MyItineraries = () => {
     }
   };
 
-  const handleDragStart = (event: any) => {
-    const { active } = event;
-    if (active.data.current?.type === 'itinerary') {
-      setDraggingItinerary(active.data.current.itinerary);
-    }
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setDraggingItinerary(null);
-    
-    if (!over) return;
-    
-    // Check if dropped on a collection
-    const overId = over.id.toString();
-    if (overId.startsWith('collection-') && active.data.current?.type === 'itinerary') {
-      const itinerary = active.data.current.itinerary as ItineraryData;
-      
-      // Handle "Create new collection" drop
-      if (overId === 'collection-new') {
-        setSelectedItineraryIds([itinerary.id]);
-        setAddToCollectionOpen(true);
-        return;
-      }
-      
-      const collectionId = overId.replace('collection-', '');
-      const collection = collections.find(c => c.id === collectionId);
-      
-      await addToCollection(collectionId, [itinerary.id]);
-      
-      toast({
-        title: 'Added to collection',
-        description: `"${itinerary.itin_name || 'Untitled Trip'}" added to "${collection?.name}"`,
-      });
-    }
-  };
-
   const loading = collectionsLoading || itinerariesLoading || sharedLoading;
   const isMobile = useIsMobile();
 
   // Mobile collections component (circular avatars)
   const MobileCollections = () => (
     <div className="w-full bg-secondary border-b border-border p-4">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Stacks</p>
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide justify-start">
         {/* All Itineraries */}
         <button
@@ -291,12 +253,7 @@ const MyItineraries = () => {
   );
 
   return (
-    <DndContext
-      collisionDetection={pointerWithin}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="min-h-screen bg-background flex flex-col pb-28 md:pb-0">
+    <div className="min-h-screen bg-background flex flex-col pb-28 md:pb-0">
         {/* Consistent Navigation Header */}
         <MobileNavigation 
           showBackButton={true}
@@ -400,17 +357,28 @@ const MyItineraries = () => {
               <>
                 {viewMode === 'grid' && (
                   <>
-                    <GridFilters
-                      sortField={gridSortField}
-                      sortDirection={gridSortDirection}
-                      onSortChange={handleGridSortChange}
-                    />
-                    <ItineraryGrid
-                      itineraries={filteredItineraries}
-                      onAddToCollection={handleAddToCollection}
-                      onRemoveFromCollection={selectedCollectionId ? handleRemoveFromCollection : undefined}
-                      collectionId={selectedCollectionId || undefined}
-                    />
+                    {isMobile ? (
+                      <MobileItineraryStack
+                        itineraries={filteredItineraries}
+                        onAddToCollection={handleAddToCollection}
+                        onRemoveFromCollection={selectedCollectionId ? handleRemoveFromCollection : undefined}
+                        collectionId={selectedCollectionId || undefined}
+                      />
+                    ) : (
+                      <>
+                        <GridFilters
+                          sortField={gridSortField}
+                          sortDirection={gridSortDirection}
+                          onSortChange={handleGridSortChange}
+                        />
+                        <ItineraryGrid
+                          itineraries={filteredItineraries}
+                          onAddToCollection={handleAddToCollection}
+                          onRemoveFromCollection={selectedCollectionId ? handleRemoveFromCollection : undefined}
+                          collectionId={selectedCollectionId || undefined}
+                        />
+                      </>
+                    )}
                   </>
                 )}
                 {viewMode === 'map' && (
@@ -453,24 +421,7 @@ const MyItineraries = () => {
           onCreateNew={handleCreateAndAdd}
           itineraryCount={selectedItineraryIds.length}
         />
-
-        {/* Floating Collection Drop Zone - appears during drag */}
-        <FloatingCollectionDropZone
-          collections={collections}
-          isVisible={draggingItinerary !== null}
-          onCreateCollection={handleCreateCollection}
-        />
-
-        {/* Drag Overlay - shrunk card like placing into a deck */}
-        <DragOverlay dropAnimation={null}>
-          {draggingItinerary ? (
-            <div className="scale-[0.4] rotate-[8deg] origin-center pointer-events-none drop-shadow-2xl opacity-95">
-              <ItineraryCard itinerary={draggingItinerary} />
-            </div>
-          ) : null}
-        </DragOverlay>
       </div>
-    </DndContext>
   );
 };
 

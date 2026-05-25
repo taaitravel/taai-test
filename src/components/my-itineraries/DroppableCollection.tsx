@@ -1,5 +1,4 @@
 import React from 'react';
-import { useDroppable } from '@dnd-kit/core';
 import { Folder, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collection } from '@/hooks/useItineraryCollections';
@@ -18,38 +17,22 @@ export const DroppableCollection: React.FC<DroppableCollectionProps> = ({
   onSelect,
   onEdit,
 }) => {
-  const { isOver, setNodeRef } = useDroppable({
-    id: `collection-${collection.id}`,
-    data: {
-      type: 'collection',
-      collection,
-    },
-  });
-
   return (
     <div
-      ref={setNodeRef}
       className={cn(
         "group flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
         isSelected
           ? "bg-primary/20 text-primary"
-          : "hover:bg-accent text-muted-foreground",
-        isOver && "bg-primary/20 border-2 border-primary scale-[1.02]"
+          : "hover:bg-accent text-muted-foreground"
       )}
     >
       <button
         className="flex-1 flex items-center gap-3 text-left min-w-0"
         onClick={onSelect}
       >
-        <Folder className={cn(
-          "h-5 w-5 shrink-0 transition-colors",
-          isOver && "text-primary"
-        )} />
+        <Folder className="h-5 w-5 shrink-0 transition-colors" />
         <div className="flex-1 min-w-0">
-          <p className={cn(
-            "font-medium truncate",
-            isOver && "text-primary"
-          )}>
+          <p className="font-medium truncate">
             {collection.name}
           </p>
           <p className="text-xs text-muted-foreground">
