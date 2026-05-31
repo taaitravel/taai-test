@@ -43,6 +43,7 @@ const CheckoutSchema = z.object({
   items: z.array(ItemSchema).min(1).max(50).optional(),
   quote_id: z.string().uuid().optional(),
   itinerary_id: z.number().optional(),
+  ui_mode: z.enum(["embedded", "hosted"]).optional().default("hosted"),
 }).refine((d) => d.quote_id || (d.items && d.items.length), {
   message: "Either quote_id or items[] is required",
 });
@@ -109,6 +110,7 @@ serve(async (req) => {
 
     let { items, itinerary_id } = parsed.data;
     const quote_id = parsed.data.quote_id;
+    const ui_mode = parsed.data.ui_mode;
 
     // Quote-first path: server-validated cart snapshot from pre-checkout-validate.
     let quoteRow: any = null;
@@ -153,6 +155,26 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "No items to checkout" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // For embedded checkout, require traveler details for every cart item in the quote.
+    if (ui_mode === "embedded" && quote_id) {
+      const cartItemIds = items.map((i) => i.cart_item_id);
+      const { data: travelers } = await supabaseClient
+        .from("quote_travelers")
+        .select("cart_item_id")
+        .eq("quote_id", quote_id)
+        .in("cart_item_id", cartItemIds);
+      const haveIds = new Set((travelers || []).map((t: any) => t.cart_item_id));
+      const missing = cartItemIds.filter((id) => !haveIds.has(id));
+      if (missing.length > 0) {
+        return new Response(JSON.stringify({
+          error: "Traveler details required before payment",
+          missing_cart_item_ids: missing,
+        }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Resolve user's subscription tier server-side (never trust the client).
@@ -242,13 +264,12 @@ serve(async (req) => {
         .eq("user_id", user.id);
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const origin = req.headers.get("origin") || "";
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       customer_update: { address: "auto" },
       line_items: lineItems,
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/search`,
       automatic_tax: { enabled: true },
       metadata: {
         type: "booking",
@@ -265,7 +286,15 @@ serve(async (req) => {
         combined_rate: String(combinedRate),
         subscription_tier: tier,
       },
-    });
+    };
+    if (ui_mode === "embedded") {
+      sessionParams.ui_mode = "embedded";
+      sessionParams.return_url = `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}`;
+    } else {
+      sessionParams.success_url = `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}`;
+      sessionParams.cancel_url = `${origin}/cart`;
+    }
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     if (quoteRow) {
       await supabaseClient
@@ -283,6 +312,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       url: session.url,
       session_id: session.id,
+      client_secret: (session as any).client_secret ?? null,
       breakdown: {
         provider_total: providerTotal,
         taxes_and_fees: taxesAndFees,
