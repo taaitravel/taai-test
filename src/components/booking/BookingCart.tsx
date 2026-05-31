@@ -280,7 +280,16 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
         <CardTitle className="flex items-center gap-2 text-primary">
           <ShoppingCart className="h-5 w-5" />
           Booking Cart ({cartItems.length} items)
+          {isValidating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
         </CardTitle>
+        {validation && (
+          <p className="text-xs text-muted-foreground">
+            {validation.all_available
+              ? 'All items verified & ready to book.'
+              : `${validation.diffs.length} item(s) need attention.`}
+            {' '}Quote expires {format(new Date(validation.expires_at), 'h:mm a')}.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {cartItems.length === 0 ? (
