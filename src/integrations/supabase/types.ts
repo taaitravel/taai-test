@@ -1457,6 +1457,39 @@ export type Database = {
           },
         ]
       }
+      quote_travelers: {
+        Row: {
+          cart_item_id: string
+          created_at: string
+          id: string
+          item_type: string
+          quote_id: string
+          traveler_data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cart_item_id: string
+          created_at?: string
+          id?: string
+          item_type: string
+          quote_id: string
+          traveler_data?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cart_item_id?: string
+          created_at?: string
+          id?: string
+          item_type?: string
+          quote_id?: string
+          traveler_data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       quotes: {
         Row: {
           created_at: string
