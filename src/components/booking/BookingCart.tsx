@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users } from 'lucide-react';
+import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users, CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBookingCheckout } from '@/hooks/useBookingCheckout';
+import { useBookingCheckout, type ValidationItem, type ValidationResult } from '@/hooks/useBookingCheckout';
 import { useTaxesAndFeesRate } from '@/hooks/useTaxesAndFeesRate';
 import { SplitCostDialog } from '@/components/booking/SplitCostDialog';
 import { SplitChip } from '@/components/booking/SplitChip';
@@ -48,12 +48,85 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   }>({ open: false, cartItemId: null, itineraryId: null, itemName: '', itemPrice: 0 });
   const [quoteName, setQuoteName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { isLoading: isCheckingOut, startCheckout } = useBookingCheckout();
+  const { isLoading: isCheckingOut, startCheckout, validateCart } = useBookingCheckout();
   const { label: taxesLabel, compute: computeTaxes } = useTaxesAndFeesRate();
 
   useEffect(() => { fetchCartItems(); }, [itineraryId]);
+
+  // Re-verify availability whenever the cart contents change.
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      setValidation(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setIsValidating(true);
+      const ids = cartItems.map((c) => c.id);
+      const itinNum = itineraryId ? tripBigintIds[itineraryId] : undefined;
+      const result = await validateCart(ids, itinNum);
+      if (!cancelled) setValidation(result);
+      setIsValidating(false);
+    })();
+    return () => { cancelled = true; };
+    // Intentionally key on item ids + count so adding/removing re-runs validation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartItems.map((c) => c.id).join(','), itineraryId, tripBigintIds]);
+
+  const statusByItem = useMemo(() => {
+    const m = new Map<string, ValidationItem>();
+    validation?.items.forEach((v) => m.set(v.cart_item_id, v));
+    return m;
+  }, [validation]);
+
+  const renderStatusBadge = (item: CartItem) => {
+    const v = statusByItem.get(item.id);
+    if (isValidating && !v) {
+      return (
+        <Badge variant="outline" className="text-xs gap-1">
+          <Loader2 className="h-3 w-3 animate-spin" /> Checking availability…
+        </Badge>
+      );
+    }
+    if (!v) return null;
+    switch (v.status) {
+      case 'available':
+        return (
+          <Badge variant="outline" className="text-xs gap-1 border-emerald-500/40 text-emerald-700 dark:text-emerald-400">
+            <CheckCircle2 className="h-3 w-3" /> Available
+          </Badge>
+        );
+      case 'price_changed':
+        return (
+          <Badge variant="outline" className="text-xs gap-1 border-amber-500/40 text-amber-700 dark:text-amber-400">
+            <AlertTriangle className="h-3 w-3" />
+            Price moved {formatPrice(v.old_price)} → {formatPrice(v.new_price)}
+          </Badge>
+        );
+      case 'expired_date':
+        return (
+          <Badge variant="outline" className="text-xs gap-1 border-destructive/40 text-destructive">
+            <XCircle className="h-3 w-3" /> Date is in the past
+          </Badge>
+        );
+      case 'sold_out':
+        return (
+          <Badge variant="outline" className="text-xs gap-1 border-destructive/40 text-destructive">
+            <XCircle className="h-3 w-3" /> Sold out
+          </Badge>
+        );
+      case 'needs_review':
+        return (
+          <Badge variant="outline" className="text-xs gap-1 border-amber-500/40 text-amber-700 dark:text-amber-400">
+            <Info className="h-3 w-3" /> Needs manual confirmation
+          </Badge>
+        );
+    }
+  };
 
   const fetchCartItems = async () => {
     try {
@@ -137,17 +210,26 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   };
 
   const handleCheckout = async (items: CartItem[]) => {
-    const checkoutItems = items.map(item => ({
-      cart_item_id: item.id,
-      type: item.type,
-      name: item.item_data?.name || item.external_ref || item.type,
-      price: item.price,
-      provider: item.item_data?.provider || item.item_data?.source || 'unknown',
-      item_data: item.item_data || {},
-      guest_details: item.item_data?.guest_details,
-      service_dates: item.item_data?.service_dates,
-    }));
-    await startCheckout(checkoutItems, itineraryId ? parseInt(itineraryId) : undefined);
+    // Always validate immediately before charging so we use a fresh quote.
+    const ids = items.map((i) => i.id);
+    const itinNum = itineraryId ? tripBigintIds[itineraryId] : undefined;
+    const fresh = await validateCart(ids, itinNum);
+    if (!fresh) return;
+    setValidation(fresh);
+
+    const blocking = fresh.items.filter(
+      (v) => v.status === 'expired_date' || v.status === 'sold_out' || v.status === 'needs_review'
+    );
+    if (blocking.length > 0) {
+      toast({
+        title: 'Cannot proceed yet',
+        description: `${blocking.length} item(s) need your attention before checkout.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    await startCheckout({ quote_id: fresh.quote_id }, itinNum);
   };
 
   const getItemIcon = (type: string) => {
@@ -198,7 +280,16 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
         <CardTitle className="flex items-center gap-2 text-primary">
           <ShoppingCart className="h-5 w-5" />
           Booking Cart ({cartItems.length} items)
+          {isValidating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
         </CardTitle>
+        {validation && (
+          <p className="text-xs text-muted-foreground">
+            {validation.all_available
+              ? 'All items verified & ready to book.'
+              : `${validation.diffs.length} item(s) need attention.`}
+            {' '}Quote expires {format(new Date(validation.expires_at), 'h:mm a')}.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {cartItems.length === 0 ? (
@@ -236,6 +327,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                                 {getItemIcon(item.type)}
                                 <span>{item.type}</span>
                               </Badge>
+                              {renderStatusBadge(item)}
                               <SplitChip splits={itemSplits} />
                             </div>
                             <div className="text-sm font-medium text-foreground break-words">

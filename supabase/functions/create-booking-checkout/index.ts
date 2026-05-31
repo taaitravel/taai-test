@@ -40,8 +40,11 @@ const ItemSchema = z.object({
 });
 
 const CheckoutSchema = z.object({
-  items: z.array(ItemSchema).min(1).max(50),
+  items: z.array(ItemSchema).min(1).max(50).optional(),
+  quote_id: z.string().uuid().optional(),
   itinerary_id: z.number().optional(),
+}).refine((d) => d.quote_id || (d.items && d.items.length), {
+  message: "Either quote_id or items[] is required",
 });
 
 // Rate limiting
@@ -104,7 +107,53 @@ serve(async (req) => {
       });
     }
 
-    const { items, itinerary_id } = parsed.data;
+    let { items, itinerary_id } = parsed.data;
+    const quote_id = parsed.data.quote_id;
+
+    // Quote-first path: server-validated cart snapshot from pre-checkout-validate.
+    let quoteRow: any = null;
+    if (quote_id) {
+      const { data: q, error: qErr } = await supabaseClient
+        .from("booking_quotes")
+        .select("*")
+        .eq("id", quote_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (qErr || !q) {
+        return new Response(JSON.stringify({ error: "Quote not found" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (q.status !== "active" || new Date(q.expires_at) < new Date()) {
+        return new Response(JSON.stringify({ error: "Quote expired — please re-verify your cart" }), {
+          status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      quoteRow = q;
+      itinerary_id = q.itinerary_id ?? itinerary_id;
+      // Hydrate items from validated quote, ignoring anything the client tried to send.
+      const bookable = (q.items as any[]).filter(
+        (v) => v.status === "available" || v.status === "price_changed"
+      );
+      if (bookable.length === 0) {
+        return new Response(JSON.stringify({ error: "No bookable items in quote" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      items = bookable.map((v: any) => ({
+        cart_item_id: v.cart_item_id,
+        type: v.type,
+        name: v.name,
+        price: Number(v.new_price),
+        provider: v.provider,
+        item_data: { external_id: v.external_id, service_dates: v.service_dates },
+      }));
+    }
+    if (!items || items.length === 0) {
+      return new Response(JSON.stringify({ error: "No items to checkout" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Resolve user's subscription tier server-side (never trust the client).
     const { data: subRow } = await supabaseClient
@@ -205,6 +254,7 @@ serve(async (req) => {
         type: "booking",
         user_id: user.id,
         itinerary_id: String(itinerary_id || ""),
+        quote_id: quote_id || "",
         cart_item_ids: items.map((i) => i.cart_item_id).join(","),
         provider_total: String(providerTotal),
         taxes_and_fees: String(taxesAndFees),
@@ -216,6 +266,13 @@ serve(async (req) => {
         subscription_tier: tier,
       },
     });
+
+    if (quoteRow) {
+      await supabaseClient
+        .from("booking_quotes")
+        .update({ stripe_session_id: session.id })
+        .eq("id", quoteRow.id);
+    }
 
     console.log("[BOOKING-CHECKOUT] Session created", {
       sessionId: session.id,

@@ -20,6 +20,28 @@ interface CheckoutBreakdown {
   total: number;
 }
 
+export interface ValidationItem {
+  cart_item_id: string;
+  type: string;
+  name: string;
+  provider: string;
+  external_id: string | null;
+  old_price: number;
+  new_price: number;
+  status: 'available' | 'price_changed' | 'sold_out' | 'expired_date' | 'needs_review';
+  reason?: string;
+  service_dates: Record<string, unknown> | null;
+}
+
+export interface ValidationResult {
+  quote_id: string;
+  expires_at: string;
+  items: ValidationItem[];
+  diffs: Array<{ cart_item_id: string; status: string; reason?: string; old_price: number; new_price: number }>;
+  breakdown: { provider_total: number; taxes_and_fees: number; total: number; subscription_tier: string };
+  all_available: boolean;
+}
+
 export const useBookingCheckout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [breakdown, setBreakdown] = useState<CheckoutBreakdown | null>(null);
@@ -49,7 +71,34 @@ export const useBookingCheckout = () => {
     }
   };
 
-  const startCheckout = async (items: CheckoutItem[], itineraryId?: number) => {
+  const validateCart = async (
+    cartItemIds: string[],
+    itineraryId?: number
+  ): Promise<ValidationResult | null> => {
+    if (!user) {
+      toast({ title: 'Login required', variant: 'destructive' });
+      return null;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('pre-checkout-validate', {
+        body: { cart_item_ids: cartItemIds, itinerary_id: itineraryId },
+      });
+      if (error) throw error;
+      return data as ValidationResult;
+    } catch (e: any) {
+      toast({
+        title: 'Could not verify availability',
+        description: e.message || 'Please try again.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
+  const startCheckout = async (
+    items: CheckoutItem[] | { quote_id: string },
+    itineraryId?: number
+  ) => {
     if (!user) {
       toast({
         title: 'Login Required',
@@ -61,8 +110,13 @@ export const useBookingCheckout = () => {
 
     setIsLoading(true);
     try {
+      const body: Record<string, unknown> =
+        'quote_id' in items
+          ? { quote_id: items.quote_id, itinerary_id: itineraryId }
+          : { items, itinerary_id: itineraryId };
+
       const { data, error } = await supabase.functions.invoke('create-booking-checkout', {
-        body: { items, itinerary_id: itineraryId },
+        body,
       });
 
       if (error) throw error;
@@ -103,6 +157,7 @@ export const useBookingCheckout = () => {
     isLoading,
     breakdown,
     trackIntent,
+    validateCart,
     startCheckout,
     confirmBooking,
   };

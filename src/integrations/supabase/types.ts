@@ -100,6 +100,57 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_attempts: {
+        Row: {
+          cart_item_id: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          external_booking_ref: string | null
+          id: string
+          itinerary_id: number | null
+          phase: string
+          provider: string
+          quote_id: string | null
+          request: Json | null
+          response: Json | null
+          success: boolean
+          user_id: string
+        }
+        Insert: {
+          cart_item_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          external_booking_ref?: string | null
+          id?: string
+          itinerary_id?: number | null
+          phase: string
+          provider: string
+          quote_id?: string | null
+          request?: Json | null
+          response?: Json | null
+          success?: boolean
+          user_id: string
+        }
+        Update: {
+          cart_item_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          external_booking_ref?: string | null
+          id?: string
+          itinerary_id?: number | null
+          phase?: string
+          provider?: string
+          quote_id?: string | null
+          request?: Json | null
+          response?: Json | null
+          success?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_audit_log: {
         Row: {
           action: string
@@ -346,45 +397,117 @@ export type Database = {
           },
         ]
       }
+      booking_quotes: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          currency: string
+          diffs: Json
+          expires_at: string
+          id: string
+          items: Json
+          itinerary_id: number | null
+          provider_total: number
+          status: string
+          stripe_session_id: string | null
+          taxes_and_fees: number
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          currency?: string
+          diffs?: Json
+          expires_at: string
+          id?: string
+          items: Json
+          itinerary_id?: number | null
+          provider_total: number
+          status?: string
+          stripe_session_id?: string | null
+          taxes_and_fees: number
+          total: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          currency?: string
+          diffs?: Json
+          expires_at?: string
+          id?: string
+          items?: Json
+          itinerary_id?: number | null
+          provider_total?: number
+          status?: string
+          stripe_session_id?: string | null
+          taxes_and_fees?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booked_at: string
           booking_details: Json
           booking_ref: string | null
+          cancellation_policy: Json | null
+          commission: number | null
           created_at: string
           id: string
           itinerary_id: string | null
+          provider: string | null
+          provider_booking_ref: string | null
           quote_id: string | null
           status: string | null
+          supplier_charge: number | null
           total_amount: number
           updated_at: string
           user_id: string | null
+          voucher_url: string | null
         }
         Insert: {
           booked_at?: string
           booking_details: Json
           booking_ref?: string | null
+          cancellation_policy?: Json | null
+          commission?: number | null
           created_at?: string
           id?: string
           itinerary_id?: string | null
+          provider?: string | null
+          provider_booking_ref?: string | null
           quote_id?: string | null
           status?: string | null
+          supplier_charge?: number | null
           total_amount: number
           updated_at?: string
           user_id?: string | null
+          voucher_url?: string | null
         }
         Update: {
           booked_at?: string
           booking_details?: Json
           booking_ref?: string | null
+          cancellation_policy?: Json | null
+          commission?: number | null
           created_at?: string
           id?: string
           itinerary_id?: string | null
+          provider?: string | null
+          provider_booking_ref?: string | null
           quote_id?: string | null
           status?: string | null
+          supplier_charge?: number | null
           total_amount?: number
           updated_at?: string
           user_id?: string | null
+          voucher_url?: string | null
         }
         Relationships: [
           {
@@ -478,11 +601,17 @@ export type Database = {
         Row: {
           booking_status: string
           created_at: string
+          external_id: string | null
           external_ref: string
           id: string
           item_data: Json | null
           itinerary_id: string | null
+          last_price: number | null
+          last_repriced_at: string | null
           price: number
+          provider: string
+          provider_ref: Json
+          rate_expires_at: string | null
           saved_at: string
           type: string
           updated_at: string
@@ -491,11 +620,17 @@ export type Database = {
         Insert: {
           booking_status?: string
           created_at?: string
+          external_id?: string | null
           external_ref: string
           id?: string
           item_data?: Json | null
           itinerary_id?: string | null
+          last_price?: number | null
+          last_repriced_at?: string | null
           price: number
+          provider?: string
+          provider_ref?: Json
+          rate_expires_at?: string | null
           saved_at?: string
           type: string
           updated_at?: string
@@ -504,11 +639,17 @@ export type Database = {
         Update: {
           booking_status?: string
           created_at?: string
+          external_id?: string | null
           external_ref?: string
           id?: string
           item_data?: Json | null
           itinerary_id?: string | null
+          last_price?: number | null
+          last_repriced_at?: string | null
           price?: number
+          provider?: string
+          provider_ref?: Json
+          rate_expires_at?: string | null
           saved_at?: string
           type?: string
           updated_at?: string
