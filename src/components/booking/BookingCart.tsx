@@ -318,6 +318,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                                 {getItemIcon(item.type)}
                                 <span>{item.type}</span>
                               </Badge>
+                              {renderStatusBadge(item)}
                               <SplitChip splits={itemSplits} />
                             </div>
                             <div className="text-sm font-medium text-foreground break-words">
