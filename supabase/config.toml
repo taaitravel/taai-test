@@ -68,3 +68,12 @@ verify_jwt = false
 
 [functions.booking-webhook]
 verify_jwt = false
+
+[functions.pre-checkout-validate]
+verify_jwt = false
+
+[functions.save-traveler-details]
+verify_jwt = false
+
+[functions.get-checkout-quote]
+verify_jwt = false
