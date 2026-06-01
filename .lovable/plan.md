@@ -1,89 +1,38 @@
-# Embedded Checkout with Traveler Details
+## Wire up embedded Stripe Checkout
 
-Today `/cart` redirects to Stripe's hosted page. We'll keep the cart as the basket, add a new `/checkout` page that collects traveler info, then mounts **Stripe Embedded Checkout** inline so the user never leaves our domain.
+Now that `STRIPE_PUBLISHABLE_KEY` is stored as a secret, here's the plan to connect it to the UI.
 
-## Flow
+### 1. New edge function: `get-stripe-config`
+- Returns `{ publishable_key: Deno.env.get("STRIPE_PUBLISHABLE_KEY") }`
+- `verify_jwt = false` (publishable key is safe to expose, but routing it through an edge fn keeps test/live switching server-side)
+- Registered in `supabase/config.toml`
 
-```text
-/cart  ──[ "Checkout this trip" ]──►  /checkout?quote_id=…
-                                          │
-                                          ├─ 1. Review summary
-                                          ├─ 2. Traveler details forms
-                                          └─ 3. Embedded Stripe Checkout (inline)
-                                                       │
-                                                       └─ on success → /booking-success
-```
+### 2. New hook: `useStripePublishableKey`
+- Calls `get-stripe-config` once on mount, caches via React Query
+- Used to lazy-init `loadStripe(...)` so the Stripe.js bundle only loads when needed
 
-## 1. Cart page (`/cart`)
-- Keep current `BookingCart`. Change `handleCheckout` so that after `pre-checkout-validate` succeeds, it **navigates to `/checkout?quote_id=<id>&itin=<itinNum>`** instead of calling `startCheckout` → Stripe redirect.
-- Block navigation if any item is `expired_date | sold_out | needs_review` (already in place).
+### 3. New checkout route: `/checkout`
+- `CheckoutPage.tsx` with two stages:
+  1. **Traveler details form** — renders one section per cart item based on `item_type` (flight: DOB + passport; hotel: name + email; activity/car/dining: name). On submit calls `save-traveler-details`.
+  2. **Embedded Stripe Checkout** — once travelers are saved, calls `create-booking-checkout` with `ui_mode: "embedded"`, gets `client_secret`, and mounts `<EmbeddedCheckoutProvider>` + `<EmbeddedCheckout>`.
+- On refresh, calls `get-checkout-quote` to hydrate state (handles expired quotes with a "Return to cart" CTA).
 
-## 2. New `/checkout` route + page
-`src/pages/Checkout.tsx` with three sections:
+### 4. New route: `/checkout/return`
+- `CheckoutReturnPage.tsx` reads `session_id` from query string, polls `create-booking-checkout` (or a small `get-checkout-status` fn) for `status`, and routes to a success or retry view.
 
-**a. Order Summary (sticky right, full-width on mobile)**
-- Trip name, per-item rows (icon, name, dates, price), subtotal, taxes/fees, total, quote-expiry countdown.
-- Hydrates from `booking_quotes` row via new `get-checkout-quote` edge function (or reuse `pre-checkout-validate` result passed via state).
+### 5. Update `BookingCart.tsx`
+- "Proceed to Checkout" button → creates quote via `pre-checkout-validate`, then navigates to `/checkout?quote_id=...` (instead of directly opening Stripe).
 
-**b. Traveler details (left)**
-- Form fields rendered per item type, validated with Zod:
-  - **Flight**: Lead traveler full legal name, DOB, gender, nationality, passport #, passport expiry, contact email + phone. Additional travelers if `pax > 1`.
-  - **Hotel**: Lead guest full name, email, phone, special requests (optional), guest count.
-  - **Activity / Car / Dining**: Lead name, email, phone, pax count, pickup/dropoff (cars).
-- Save partial state to `localStorage` keyed on `quote_id` for refresh resilience.
-- "Use my profile" autofill button (pulls from `profiles` table).
-- On submit → POST to new edge function `save-traveler-details` which stores per-item JSON into a new `quote_travelers` table and returns `ready: true`.
+### 6. Router
+- Add `/checkout` and `/checkout/return` to `App.tsx` (authenticated routes).
 
-**c. Embedded Stripe Checkout**
-- Only mounts after traveler details are valid + saved.
-- Calls updated `create-booking-checkout` with `{ quote_id, ui_mode: 'embedded' }`.
-- Edge function returns `client_secret` (Stripe `ui_mode: 'embedded'`).
-- Frontend uses `@stripe/react-stripe-js` `<EmbeddedCheckoutProvider>` + `<EmbeddedCheckout />` to mount inline.
-- On `onComplete` → router push to `/booking-success?session_id=…`.
+### Technical notes
+- `@stripe/stripe-js` + `@stripe/react-stripe-js` are already installed.
+- `return_url` passed to Stripe will be `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`.
+- Traveler validation is enforced server-side in `create-booking-checkout` (409 if missing), so the UI just has to surface that error.
+- No DB changes — `quote_travelers` table already exists.
 
-## 3. Backend changes
-
-**Migration**
-- New `quote_travelers` table:
-  ```text
-  id uuid pk
-  quote_id uuid fk → booking_quotes
-  cart_item_id uuid
-  item_type text
-  traveler_data jsonb   -- validated payload
-  created_at, updated_at
-  ```
-  RLS: user owns the parent quote. Grants: `authenticated` select/insert/update, `service_role` all.
-
-**Edge functions**
-- `create-booking-checkout` (update): accept `ui_mode: 'embedded' | 'hosted'`. When embedded, create Stripe session with `ui_mode: 'embedded'` + `return_url`, return `{ client_secret, session_id }` instead of `url`. Require `quote_travelers` rows to exist for every cart item before creating the session — else return 409 with missing-item ids.
-- `save-traveler-details` (new): validates + upserts `quote_travelers` rows for a `quote_id`. Server-side Zod by item type.
-- `get-checkout-quote` (new, optional): returns the quote + cart items + saved traveler data so refresh works.
-
-## 4. Frontend additions
-- Add `@stripe/stripe-js` + `@stripe/react-stripe-js` (publishable key already injected by Lovable payments).
-- New components under `src/components/checkout/`:
-  - `OrderSummary.tsx`
-  - `TravelerDetailsForm.tsx` (switches by item type)
-  - `EmbeddedStripeCheckout.tsx`
-- New hook `useCheckoutQuote(quoteId)`.
-- Route added in `App.tsx`: `/checkout` (protected).
-
-## Validation rules
-- Reject submission if any service date is in the past (quote re-validated server-side).
-- Names must match passport (flights).
-- Email regex + E.164 phone format.
-- Block "Pay" button until all required traveler fields per item are filled.
-
-## Out of scope (for this pass)
-- Real provider booking (Amadeus/Expedia/Booking) — still queued for the orchestrator. Embedded checkout will still trigger the existing `booking-webhook` on `checkout.session.completed`, which will read `quote_travelers` when it's ready to call providers.
-- Saved travelers library / per-trip traveler reuse.
-- Apple Pay / Google Pay button outside Stripe Element (Stripe handles inside).
-
-## Deliverable order
-1. Migration: `quote_travelers` table.
-2. Edge fn: `save-traveler-details`, update `create-booking-checkout` for embedded mode.
-3. Install Stripe React SDK.
-4. `Checkout.tsx` page + components + route.
-5. Cart navigation switch from Stripe redirect → `/checkout`.
-6. Smoke test in test mode end-to-end.
+### Out of scope
+- Real Booking.com / Amadeus inventory confirmation
+- Refund / cancellation UI
+- 3DS edge cases beyond what embedded Checkout handles natively
