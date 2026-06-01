@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   const { user } = useAuth();
   const { isLoading: isCheckingOut, startCheckout, validateCart } = useBookingCheckout();
   const { label: taxesLabel, compute: computeTaxes } = useTaxesAndFeesRate();
+  const navigate = useNavigate();
 
   useEffect(() => { fetchCartItems(); }, [itineraryId]);
 
@@ -229,7 +231,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       return;
     }
 
-    await startCheckout({ quote_id: fresh.quote_id }, itinNum);
+    navigate(`/checkout?quote_id=${fresh.quote_id}`);
   };
 
   const getItemIcon = (type: string) => {
