@@ -451,6 +451,51 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_receipts: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          pdf_path: string | null
+          quote_id: string | null
+          receipt_json: Json
+          receipt_number: string
+          sent_to: string[] | null
+          stripe_session_id: string | null
+          total: number
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          pdf_path?: string | null
+          quote_id?: string | null
+          receipt_json?: Json
+          receipt_number: string
+          sent_to?: string[] | null
+          stripe_session_id?: string | null
+          total?: number
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          pdf_path?: string | null
+          quote_id?: string | null
+          receipt_json?: Json
+          receipt_number?: string
+          sent_to?: string[] | null
+          stripe_session_id?: string | null
+          total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booked_at: string
@@ -1529,6 +1574,63 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_travelers: {
+        Row: {
+          created_at: string
+          dob: string | null
+          email: string | null
+          first_name: string
+          frequent_flyer: Json | null
+          gender: string | null
+          id: string
+          is_self: boolean
+          label: string | null
+          last_name: string
+          nationality: string | null
+          passport_expiry: string | null
+          passport_number: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          first_name: string
+          frequent_flyer?: Json | null
+          gender?: string | null
+          id?: string
+          is_self?: boolean
+          label?: string | null
+          last_name: string
+          nationality?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          first_name?: string
+          frequent_flyer?: Json | null
+          gender?: string | null
+          id?: string
+          is_self?: boolean
+          label?: string | null
+          last_name?: string
+          nationality?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       search_history: {
         Row: {
           created_at: string | null
@@ -1604,6 +1706,54 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_balances_ledger: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          debtor_label: string | null
+          debtor_user_id: string | null
+          id: string
+          itinerary_id: number
+          note: string | null
+          payer_user_id: string
+          source_cart_item_id: string | null
+          source_receipt_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          debtor_label?: string | null
+          debtor_user_id?: string | null
+          id?: string
+          itinerary_id: number
+          note?: string | null
+          payer_user_id: string
+          source_cart_item_id?: string | null
+          source_receipt_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          debtor_label?: string | null
+          debtor_user_id?: string | null
+          id?: string
+          itinerary_id?: number
+          note?: string | null
+          payer_user_id?: string
+          source_cart_item_id?: string | null
+          source_receipt_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       usage_tracking: {
         Row: {
           created_at: string
@@ -1625,6 +1775,45 @@ export type Database = {
           id?: string
           usage_type?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_booking_preferences: {
+        Row: {
+          default_payer_mode: string
+          last_traveler_doc_used: string | null
+          preferred_bed: string | null
+          preferred_cabin_class: string | null
+          preferred_currency: string
+          preferred_meal: string | null
+          preferred_room_type: string | null
+          preferred_seat: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          default_payer_mode?: string
+          last_traveler_doc_used?: string | null
+          preferred_bed?: string | null
+          preferred_cabin_class?: string | null
+          preferred_currency?: string
+          preferred_meal?: string | null
+          preferred_room_type?: string | null
+          preferred_seat?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          default_payer_mode?: string
+          last_traveler_doc_used?: string | null
+          preferred_bed?: string | null
+          preferred_cabin_class?: string | null
+          preferred_currency?: string
+          preferred_meal?: string | null
+          preferred_room_type?: string | null
+          preferred_seat?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

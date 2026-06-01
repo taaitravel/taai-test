@@ -54,9 +54,32 @@ serve(async (req) => {
       .select("cart_item_id, item_type, traveler_data")
       .eq("quote_id", quoteId);
 
+    // Profile, saved travelers, and booking preferences so the client can
+    // prefill the traveler form and currency/payer-mode defaults.
+    const { data: profile } = await supabase
+      .from("users")
+      .select("first_name, last_name, email, cell, currency")
+      .eq("userid", user.id)
+      .maybeSingle();
+    const { data: savedTravelers } = await supabase
+      .from("saved_travelers")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("is_self", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(20);
+    const { data: prefs } = await supabase
+      .from("user_booking_preferences")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
     return new Response(JSON.stringify({
       quote,
       travelers: travelers ?? [],
+      profile: profile ?? null,
+      saved_travelers: savedTravelers ?? [],
+      preferences: prefs ?? null,
       expired: quote.status !== "active" || new Date(quote.expires_at) < new Date(),
     }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },

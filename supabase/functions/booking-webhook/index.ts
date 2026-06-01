@@ -267,6 +267,16 @@ serve(async (req) => {
       reference_type: "booking_completion",
     });
 
+    // Generate receipt PDF + email (fire-and-forget; it also kicks off
+    // preference learning).
+    try {
+      await supabaseClient.functions.invoke("generate-booking-receipt", {
+        body: { stripe_session_id: session.id },
+      });
+    } catch (e) {
+      console.error("[BOOKING-WEBHOOK] receipt generation failed", e);
+    }
+
     return new Response(JSON.stringify({
       success: true,
       completions: completions.length,
