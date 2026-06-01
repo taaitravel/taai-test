@@ -28,22 +28,25 @@ interface TravelerRow {
 
 type Stage = 'loading' | 'travelers' | 'payment' | 'expired';
 
-function fieldsFor(type: string): { key: string; label: string; type?: string; required?: boolean }[] {
-  switch (type) {
-    case 'flight':
-      return [
-        { key: 'full_name', label: 'Full name (as on passport)', required: true },
-        { key: 'date_of_birth', label: 'Date of birth', type: 'date', required: true },
-        { key: 'passport_number', label: 'Passport number', required: true },
-      ];
-    case 'hotel':
-      return [
-        { key: 'full_name', label: 'Guest name', required: true },
-        { key: 'email', label: 'Email', type: 'email', required: true },
-      ];
-    default:
-      return [{ key: 'full_name', label: 'Full name', required: true }];
+type FieldDef = { key: string; label: string; type?: string; required?: boolean; placeholder?: string };
+
+function fieldsFor(type: string): FieldDef[] {
+  const base: FieldDef[] = [
+    { key: 'first_name', label: 'First name', required: true },
+    { key: 'last_name', label: 'Last name', required: true },
+    { key: 'email', label: 'Email', type: 'email', required: true },
+    { key: 'phone', label: 'Phone', type: 'tel', required: true, placeholder: '+1 555 555 5555' },
+  ];
+  if (type.toLowerCase() === 'flight') {
+    return [
+      ...base,
+      { key: 'dob', label: 'Date of birth', type: 'date', required: true },
+      { key: 'nationality', label: 'Nationality (e.g. US)', required: true },
+      { key: 'passport_number', label: 'Passport number', required: true },
+      { key: 'passport_expiry', label: 'Passport expiry', type: 'date', required: true },
+    ];
   }
+  return base;
 }
 
 export default function Checkout() {
@@ -86,7 +89,8 @@ export default function Checkout() {
       const map: Record<string, Record<string, string>> = {};
       bookable.forEach((it) => {
         const found = existing.find((t) => t.cart_item_id === it.cart_item_id);
-        map[it.cart_item_id] = (found?.traveler_data as Record<string, string>) || {};
+        const lead = (found?.traveler_data as any)?.lead || {};
+        map[it.cart_item_id] = lead;
       });
       setTravelers(map);
       setStage('travelers');
@@ -122,7 +126,8 @@ export default function Checkout() {
       const payload = items.map((it) => ({
         cart_item_id: it.cart_item_id,
         item_type: it.type,
-        traveler_data: travelers[it.cart_item_id] || {},
+        lead: travelers[it.cart_item_id] || {},
+        additional: [],
       }));
       const { error: saveErr } = await supabase.functions.invoke('save-traveler-details', {
         body: { quote_id: quoteId, travelers: payload },
