@@ -80,3 +80,15 @@ verify_jwt = false
 
 [functions.get-stripe-config]
 verify_jwt = false
+
+[functions.generate-booking-receipt]
+verify_jwt = false
+
+[functions.send-booking-receipt]
+verify_jwt = false
+
+[functions.learn-booking-preferences]
+verify_jwt = false
+
+[functions.download-receipt]
+verify_jwt = false

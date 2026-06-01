@@ -3,8 +3,9 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Loader2, XCircle, ArrowRight, Receipt } from 'lucide-react';
+import { CheckCircle2, Loader2, XCircle, ArrowRight, Receipt, Download } from 'lucide-react';
 import { useBookingCheckout } from '@/hooks/useBookingCheckout';
+import { supabase } from '@/integrations/supabase/client';
 
 const BookingSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -13,6 +14,7 @@ const BookingSuccess: React.FC = () => {
   const { confirmBooking } = useBookingCheckout();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [bookingData, setBookingData] = useState<any>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!sessionId) {
@@ -30,6 +32,24 @@ const BookingSuccess: React.FC = () => {
     };
     confirm();
   }, [sessionId]);
+
+  const handleDownload = async () => {
+    if (!sessionId) return;
+    setDownloading(true);
+    try {
+      // Try a few times — the webhook generates the receipt async.
+      for (let i = 0; i < 5; i++) {
+        const { data } = await supabase.functions.invoke('download-receipt', { body: { session_id: sessionId } });
+        if ((data as any)?.url) {
+          window.open((data as any).url, '_blank');
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -65,6 +85,10 @@ const BookingSuccess: React.FC = () => {
                 A receipt has been sent to your email
               </Badge>
               <div className="flex flex-col gap-2 pt-4">
+                <Button variant="outline" onClick={handleDownload} disabled={downloading}>
+                  {downloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                  Download receipt (PDF)
+                </Button>
                 <Button onClick={() => navigate('/dashboard')}>
                   Go to Dashboard <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
