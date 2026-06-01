@@ -53,7 +53,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   const [isValidating, setIsValidating] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { isLoading: isCheckingOut, startCheckout, validateCart } = useBookingCheckout();
+  const { isLoading: isCheckingOut, validateCart } = useBookingCheckout();
   const { label: taxesLabel, compute: computeTaxes } = useTaxesAndFeesRate();
   const navigate = useNavigate();
 
