@@ -25,7 +25,7 @@ serve(async (req) => {
     }
 
     // Get Mapbox token from environment
-    const mapboxToken = Deno.env.get('MAPBOX-TAAI-TOKEN')
+    const mapboxToken = Deno.env.get('MAPBOX_TAAI_TOKEN') || Deno.env.get('MAPBOX-TAAI-TOKEN')
     
     if (!mapboxToken) {
       return new Response(
