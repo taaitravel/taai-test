@@ -242,7 +242,10 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
             className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
           >
             <UtensilsCrossed className="h-4 w-4" />
-            <span>Dining</span>
+            <span className="flex items-center gap-1">
+              Dining
+              <span className="text-[9px] uppercase tracking-wide px-1 py-0.5 rounded bg-primary/20 text-primary font-semibold">Soon</span>
+            </span>
           </TabsTrigger>
         </TabsList>
 
