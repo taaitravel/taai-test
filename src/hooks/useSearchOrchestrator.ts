@@ -370,6 +370,17 @@ export const useSearchOrchestrator = () => {
 
             if (yelpError) throw new Error('Yelp search failed');
 
+            // Graceful "Coming Soon" handling when Yelp key is not yet enabled
+            if (yelpData?.disabled) {
+              toast({
+                title: 'Dining — Coming Soon',
+                description: 'Restaurant search rolls out shortly after launch. Stay tuned!',
+                variant: 'default',
+              });
+              searchResults = [];
+              break;
+            }
+
             const dateStr = params.date || '';
             const timeStr = params.time || '19:00';
             const covers = params.partySize || 2;

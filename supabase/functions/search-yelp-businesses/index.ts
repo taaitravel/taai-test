@@ -37,7 +37,11 @@ serve(async (req) => {
 
     const apiKey = Deno.env.get("YELP_API_KEY");
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Yelp API key not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // Graceful soft-fail: dining is "coming soon" until Yelp is enabled post-launch
+      return new Response(
+        JSON.stringify({ businesses: [], disabled: true, reason: "coming_soon" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const params = new URLSearchParams({ term, limit: "20" });
