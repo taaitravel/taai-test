@@ -5,7 +5,7 @@ import { format, addDays, differenceInCalendarDays, parseISO } from 'date-fns';
 import {
   Loader2, ArrowLeft, ShieldCheck, Calendar, Users, BedDouble, Plane, MapPin,
   Hotel as HotelIcon, ChevronDown, ChevronUp, Info, AlertTriangle, Minus, Plus,
-  Sparkles,
+  Sparkles, RefreshCw,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStripePublishableKey } from '@/hooks/useStripePublishableKey';
@@ -168,6 +168,9 @@ export default function Checkout() {
   const [showDocs, setShowDocs] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [repricing, setRepricing] = useState(false);
+  const [lastRepricedAt, setLastRepricedAt] = useState<Date | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     if (!quoteId) {
@@ -225,6 +228,7 @@ export default function Checkout() {
       setPaxByItem(paxMap);
       setTravelers(trMap);
       setStage('review');
+      setHasLoaded(true);
     })();
   }, [quoteId, navigate, toast]);
 
@@ -260,6 +264,41 @@ export default function Checkout() {
   const setPax = (cartItemId: string, delta: number) =>
     setPaxByItem((prev) => ({ ...prev, [cartItemId]: Math.max(1, Math.min(20, (prev[cartItemId] || 1) + delta)) }));
 
+  // Live re-quote: on first load AND whenever dates/pax change, ask the
+  // server to recompute the quote. Debounced 600ms so date pickers /
+  // guest steppers don't fire on every keystroke.
+  useEffect(() => {
+    if (!hasLoaded || !quoteId || items.length === 0) return;
+    const t = setTimeout(() => {
+      const overrides = items.map((it) => {
+        const d = datesByItem[it.cart_item_id];
+        return {
+          cart_item_id: it.cart_item_id,
+          check_in: d?.start,
+          check_out: d?.end,
+          pax: paxByItem[it.cart_item_id] || 1,
+        };
+      });
+      setRepricing(true);
+      supabase.functions
+        .invoke('reprice-quote', { body: { quote_id: quoteId, overrides } })
+        .then(({ data, error }) => {
+          if (error || !data) return;
+          const next = (data as any).items as QuoteItem[];
+          if (Array.isArray(next)) {
+            setItems(next);
+          }
+          setLastRepricedAt(new Date());
+        })
+        .catch(() => {/* silent — keep last good prices */})
+        .finally(() => setRepricing(false));
+    }, 600);
+    return () => clearTimeout(t);
+    // We intentionally key off serialized dates + pax so React re-fires when
+    // any per-item value changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasLoaded, quoteId, JSON.stringify(datesByItem), JSON.stringify(paxByItem)]);
+
   const validateForms = (): string | null => {
     for (const it of items) {
       const flds = fieldsFor(it.type).filter((f) => !f.advanced || (it.type === 'flight'));
@@ -290,12 +329,15 @@ export default function Checkout() {
       const { error: saveErr } = await supabase.functions.invoke('save-traveler-details', {
         body: { quote_id: quoteId, travelers: payload },
       });
-      if (saveErr) throw saveErr;
+      if (saveErr) throw new Error((saveErr as any)?.message || 'Could not save traveler details');
 
       const { data, error } = await supabase.functions.invoke('create-booking-checkout', {
         body: { quote_id: quoteId, ui_mode: 'embedded', payer_mode: payerMode, currency },
       });
-      if (error) throw error;
+      if (error) {
+        const serverMsg = (data as any)?.error || (error as any)?.message;
+        throw new Error(typeof serverMsg === 'string' ? serverMsg : 'Checkout failed');
+      }
       const secret = (data as any)?.client_secret;
       if (!secret) throw new Error('Stripe did not return a client secret');
       setClientSecret(secret);
@@ -596,7 +638,18 @@ export default function Checkout() {
 
             {/* Breakdown */}
             <Card>
-              <CardHeader><CardTitle className="text-base">Price breakdown</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base">Price breakdown</CardTitle>
+                {repricing ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Checking live availability…
+                  </span>
+                ) : lastRepricedAt ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <RefreshCw className="h-3 w-3" /> Updated {format(lastRepricedAt, 'HH:mm')}
+                  </span>
+                ) : null}
+              </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {items.map((it) => {
                   const d = datesByItem[it.cart_item_id];
@@ -622,9 +675,12 @@ export default function Checkout() {
                   <span className="tabular-nums">{formatMoney(taxesAndFees, currency)}</span>
                 </div>
                 <Separator className="my-2" />
-                <div className="flex justify-between font-semibold">
-                  <span>Total</span>
-                  <span className="tabular-nums">{formatMoney(grandTotal, currency, { showCode: true })}</span>
+                <div className="flex items-baseline justify-between pt-1">
+                  <span className="text-base font-semibold">Total</span>
+                  <span className="tabular-nums text-2xl font-bold text-primary">
+                    {formatMoney(grandTotal, currency)}
+                    <span className="ml-1 text-xs font-medium text-muted-foreground">{currency}</span>
+                  </span>
                 </div>
                 {payerMode === 'slice' && (
                   <div className="text-xs text-muted-foreground pt-1">
@@ -663,12 +719,14 @@ export default function Checkout() {
             <div className="flex-1 min-w-0">
               <div className="text-[11px] text-muted-foreground">
                 {items.length} item{items.length === 1 ? '' : 's'} · {taxesLabel}
+                {repricing && <span className="ml-2 inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> updating…</span>}
               </div>
-              <div className="font-semibold tabular-nums">
-                {formatMoney(payerMode === 'slice' ? perPersonTotal : grandTotal, currency, { showCode: true })}
+              <div className="tabular-nums text-xl font-bold text-primary">
+                {formatMoney(payerMode === 'slice' ? perPersonTotal : grandTotal, currency)}
+                <span className="ml-1 text-[11px] font-medium text-muted-foreground">{currency}</span>
               </div>
             </div>
-            <Button size="lg" onClick={handleContinue} disabled={submitting} className="shrink-0">
+            <Button size="lg" onClick={handleContinue} disabled={submitting || repricing} className="shrink-0">
               {submitting ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Preparing…</>
               ) : (

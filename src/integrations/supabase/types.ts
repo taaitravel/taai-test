@@ -1502,6 +1502,53 @@ export type Database = {
           },
         ]
       }
+      quote_reprice_events: {
+        Row: {
+          cart_item_id: string | null
+          created_at: string
+          id: string
+          inputs: Json
+          new_price: number
+          old_price: number
+          quote_id: string
+          reason: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          cart_item_id?: string | null
+          created_at?: string
+          id?: string
+          inputs?: Json
+          new_price?: number
+          old_price?: number
+          quote_id: string
+          reason?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          cart_item_id?: string | null
+          created_at?: string
+          id?: string
+          inputs?: Json
+          new_price?: number
+          old_price?: number
+          quote_id?: string
+          reason?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_reprice_events_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "booking_quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_travelers: {
         Row: {
           cart_item_id: string

@@ -267,10 +267,9 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "";
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
-      customer_update: { address: "auto" },
       line_items: lineItems,
       mode: "payment",
-      automatic_tax: { enabled: true },
+      billing_address_collection: "auto",
       metadata: {
         type: "booking",
         user_id: user.id,
@@ -293,6 +292,8 @@ serve(async (req) => {
     } else {
       sessionParams.success_url = `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}`;
       sessionParams.cancel_url = `${origin}/cart`;
+      sessionParams.customer_update = { address: "auto" };
+      sessionParams.automatic_tax = { enabled: true };
     }
     const session = await stripe.checkout.sessions.create(sessionParams);
 
@@ -326,10 +327,9 @@ serve(async (req) => {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("create-booking-checkout error:", error);
-    return new Response(JSON.stringify({
-      error: "Unable to create checkout session. Please try again.",
-    }), {
+    const msg = (error as any)?.message || "Unable to create checkout session.";
+    console.error("create-booking-checkout error:", msg, error);
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
