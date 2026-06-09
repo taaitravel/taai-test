@@ -168,6 +168,9 @@ export default function Checkout() {
   const [showDocs, setShowDocs] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [repricing, setRepricing] = useState(false);
+  const [lastRepricedAt, setLastRepricedAt] = useState<Date | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     if (!quoteId) {
@@ -225,6 +228,7 @@ export default function Checkout() {
       setPaxByItem(paxMap);
       setTravelers(trMap);
       setStage('review');
+      setHasLoaded(true);
     })();
   }, [quoteId, navigate, toast]);
 
@@ -260,6 +264,41 @@ export default function Checkout() {
   const setPax = (cartItemId: string, delta: number) =>
     setPaxByItem((prev) => ({ ...prev, [cartItemId]: Math.max(1, Math.min(20, (prev[cartItemId] || 1) + delta)) }));
 
+  // Live re-quote: on first load AND whenever dates/pax change, ask the
+  // server to recompute the quote. Debounced 600ms so date pickers /
+  // guest steppers don't fire on every keystroke.
+  useEffect(() => {
+    if (!hasLoaded || !quoteId || items.length === 0) return;
+    const t = setTimeout(() => {
+      const overrides = items.map((it) => {
+        const d = datesByItem[it.cart_item_id];
+        return {
+          cart_item_id: it.cart_item_id,
+          check_in: d?.start,
+          check_out: d?.end,
+          pax: paxByItem[it.cart_item_id] || 1,
+        };
+      });
+      setRepricing(true);
+      supabase.functions
+        .invoke('reprice-quote', { body: { quote_id: quoteId, overrides } })
+        .then(({ data, error }) => {
+          if (error || !data) return;
+          const next = (data as any).items as QuoteItem[];
+          if (Array.isArray(next)) {
+            setItems(next);
+          }
+          setLastRepricedAt(new Date());
+        })
+        .catch(() => {/* silent — keep last good prices */})
+        .finally(() => setRepricing(false));
+    }, 600);
+    return () => clearTimeout(t);
+    // We intentionally key off serialized dates + pax so React re-fires when
+    // any per-item value changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasLoaded, quoteId, JSON.stringify(datesByItem), JSON.stringify(paxByItem)]);
+
   const validateForms = (): string | null => {
     for (const it of items) {
       const flds = fieldsFor(it.type).filter((f) => !f.advanced || (it.type === 'flight'));
@@ -290,12 +329,15 @@ export default function Checkout() {
       const { error: saveErr } = await supabase.functions.invoke('save-traveler-details', {
         body: { quote_id: quoteId, travelers: payload },
       });
-      if (saveErr) throw saveErr;
+      if (saveErr) throw new Error((saveErr as any)?.message || 'Could not save traveler details');
 
       const { data, error } = await supabase.functions.invoke('create-booking-checkout', {
         body: { quote_id: quoteId, ui_mode: 'embedded', payer_mode: payerMode, currency },
       });
-      if (error) throw error;
+      if (error) {
+        const serverMsg = (data as any)?.error || (error as any)?.message;
+        throw new Error(typeof serverMsg === 'string' ? serverMsg : 'Checkout failed');
+      }
       const secret = (data as any)?.client_secret;
       if (!secret) throw new Error('Stripe did not return a client secret');
       setClientSecret(secret);
