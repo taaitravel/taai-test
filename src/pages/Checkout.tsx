@@ -5,7 +5,7 @@ import { format, addDays, differenceInCalendarDays, parseISO } from 'date-fns';
 import {
   Loader2, ArrowLeft, ShieldCheck, Calendar, Users, BedDouble, Plane, MapPin,
   Hotel as HotelIcon, ChevronDown, ChevronUp, Info, AlertTriangle, Minus, Plus,
-  Sparkles,
+  Sparkles, RefreshCw,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStripePublishableKey } from '@/hooks/useStripePublishableKey';
