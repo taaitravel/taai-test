@@ -638,7 +638,18 @@ export default function Checkout() {
 
             {/* Breakdown */}
             <Card>
-              <CardHeader><CardTitle className="text-base">Price breakdown</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base">Price breakdown</CardTitle>
+                {repricing ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Checking live availability…
+                  </span>
+                ) : lastRepricedAt ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <RefreshCw className="h-3 w-3" /> Updated {format(lastRepricedAt, 'HH:mm')}
+                  </span>
+                ) : null}
+              </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {items.map((it) => {
                   const d = datesByItem[it.cart_item_id];
@@ -664,9 +675,12 @@ export default function Checkout() {
                   <span className="tabular-nums">{formatMoney(taxesAndFees, currency)}</span>
                 </div>
                 <Separator className="my-2" />
-                <div className="flex justify-between font-semibold">
-                  <span>Total</span>
-                  <span className="tabular-nums">{formatMoney(grandTotal, currency, { showCode: true })}</span>
+                <div className="flex items-baseline justify-between pt-1">
+                  <span className="text-base font-semibold">Total</span>
+                  <span className="tabular-nums text-2xl font-bold text-primary">
+                    {formatMoney(grandTotal, currency)}
+                    <span className="ml-1 text-xs font-medium text-muted-foreground">{currency}</span>
+                  </span>
                 </div>
                 {payerMode === 'slice' && (
                   <div className="text-xs text-muted-foreground pt-1">
@@ -705,12 +719,14 @@ export default function Checkout() {
             <div className="flex-1 min-w-0">
               <div className="text-[11px] text-muted-foreground">
                 {items.length} item{items.length === 1 ? '' : 's'} · {taxesLabel}
+                {repricing && <span className="ml-2 inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> updating…</span>}
               </div>
-              <div className="font-semibold tabular-nums">
-                {formatMoney(payerMode === 'slice' ? perPersonTotal : grandTotal, currency, { showCode: true })}
+              <div className="tabular-nums text-xl font-bold text-primary">
+                {formatMoney(payerMode === 'slice' ? perPersonTotal : grandTotal, currency)}
+                <span className="ml-1 text-[11px] font-medium text-muted-foreground">{currency}</span>
               </div>
             </div>
-            <Button size="lg" onClick={handleContinue} disabled={submitting} className="shrink-0">
+            <Button size="lg" onClick={handleContinue} disabled={submitting || repricing} className="shrink-0">
               {submitting ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Preparing…</>
               ) : (
