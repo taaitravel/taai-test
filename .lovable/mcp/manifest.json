@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "taai-travel-mcp",
+      "version": "0.1.0",
+      "title": "TAAI Travel"
+    },
+    "tools": [
+      {
+        "name": "search_places",
+        "title": "Search places",
+        "description": "Search for cities, regions, and countries by name using TAAI Travel's place search. Returns up to 8 matches with place name, region/country context, and coordinates.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 2,
+              "description": "Place name to search (city, region, or country). Minimum 2 characters."
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "about_taai",
+        "title": "About TAAI Travel",
+        "description": "Return a short description of TAAI Travel, its capabilities, and website. Useful when an assistant is first connected and wants to know what this MCP server can do.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
