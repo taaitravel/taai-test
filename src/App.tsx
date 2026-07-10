@@ -127,6 +127,11 @@ const App = () => (
                   <Checkout />
                 </ProtectedRoute>
               } />
+              <Route path="/internal/tos" element={
+                <ProtectedRoute>
+                  <InternalTOS />
+                </ProtectedRoute>
+              } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
