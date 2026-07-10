@@ -33,6 +33,7 @@ import Profile from "./pages/Profile";
 import BookingSuccess from "./pages/BookingSuccess";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import InternalTOS from "./pages/InternalTOS";
 
 const queryClient = new QueryClient();
 
