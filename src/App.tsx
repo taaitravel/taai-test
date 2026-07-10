@@ -86,7 +86,7 @@ const App = () => (
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/subscription-success" element={<SubscriptionSuccess />} />
               <Route path="/admin/roles" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAdmin>
                   <AdminRoles />
                 </ProtectedRoute>
               } />
@@ -110,7 +110,11 @@ const App = () => (
                   <Profile />
                 </ProtectedRoute>
               } />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/booking-success" element={
                 <ProtectedRoute>
                   <BookingSuccess />

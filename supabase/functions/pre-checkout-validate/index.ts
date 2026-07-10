@@ -39,6 +39,7 @@ interface ValidatedItem {
   status: ItemStatus;
   reason?: string;
   service_dates: Record<string, unknown> | null;
+  provider_confirmation_ready: boolean;
 }
 
 function pickServiceStart(item_data: any): Date | null {
@@ -71,24 +72,36 @@ async function repriceItem(row: any): Promise<ValidatedItem> {
     new_price: Number(row.price ?? 0),
     status: "available",
     service_dates: row.item_data?.service_dates ?? null,
+    provider_confirmation_ready: false,
   };
 
   if (start && start < today) {
     return { ...base, status: "expired_date", reason: "Service date is in the past" };
   }
 
-  // If we have no provider linkage we can't actually book — mark for manual review.
-  const bookable = row.provider_ref?.bookable;
-  if (bookable === false) {
-    return { ...base, status: "needs_review", reason: "No live inventory link — confirm with provider" };
+  // Live commercial checkout requires explicit provider-confirmation capability.
+  // Do not infer that a saved provider price is bookable.
+  const providerRef = row.provider_ref || row.item_data?.provider_ref || {};
+  const providerConfirmationReady = providerRef.bookable === true && (
+    providerRef.live_booking_enabled === true ||
+    providerRef.provider_confirmation_supported === true ||
+    providerRef.manual_review_approved === true
+  );
+  if (!providerConfirmationReady) {
+    return {
+      ...base,
+      status: "needs_review",
+      reason: "Provider confirmation capability is not verified for live checkout",
+      provider_confirmation_ready: false,
+    };
   }
 
   // Price drift flag (placeholder until real provider reprice).
   if (base.old_price && Math.abs(base.new_price - base.old_price) / base.old_price > 0.02) {
-    return { ...base, status: "price_changed", reason: "Provider rate has moved since you saved this item" };
+    return { ...base, status: "price_changed", reason: "Provider rate has moved since you saved this item", provider_confirmation_ready: true };
   }
 
-  return base;
+  return { ...base, provider_confirmation_ready: true };
 }
 
 serve(async (req) => {
@@ -166,7 +179,9 @@ serve(async (req) => {
       });
     }
 
-    const bookable = validated.filter(v => v.status === "available" || v.status === "price_changed");
+    const bookable = validated.filter(v =>
+      (v.status === "available" || v.status === "price_changed") && v.provider_confirmation_ready
+    );
     const providerTotal = round2(bookable.reduce((s, v) => s + v.new_price, 0));
 
     const { data: subRow } = await supabaseClient

@@ -7,6 +7,41 @@ const corsHeaders = {
   "X-Content-Type-Options": "nosniff",
 };
 
+type TravelerDetails = Record<string, unknown>;
+
+interface TravelerDataForRedaction {
+  lead?: TravelerDetails;
+  additional?: TravelerDetails[];
+  special_requests?: unknown;
+  pax?: unknown;
+}
+
+interface QuoteTravelerRowForRedaction extends Record<string, unknown> {
+  traveler_data?: TravelerDataForRedaction | null;
+}
+
+function redactTravelerData(row: QuoteTravelerRowForRedaction) {
+  const sanitizeTraveler = (traveler: Record<string, unknown> = {}) => ({
+    first_name: traveler.first_name ?? "",
+    last_name: traveler.last_name ?? "",
+    middle_name: traveler.middle_name ?? "",
+    email: traveler.email ?? "",
+    phone: traveler.phone ?? "",
+  });
+
+  return {
+    ...row,
+    traveler_data: {
+      lead: sanitizeTraveler(row?.traveler_data?.lead),
+      additional: Array.isArray(row?.traveler_data?.additional)
+        ? row.traveler_data.additional.map(sanitizeTraveler)
+        : [],
+      special_requests: row?.traveler_data?.special_requests ?? null,
+      pax: row?.traveler_data?.pax ?? 1,
+    },
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -76,7 +111,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       quote,
-      travelers: travelers ?? [],
+      travelers: (travelers ?? []).map(redactTravelerData),
       profile: profile ?? null,
       saved_travelers: savedTravelers ?? [],
       preferences: prefs ?? null,

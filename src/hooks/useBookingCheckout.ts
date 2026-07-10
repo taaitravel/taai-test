@@ -31,6 +31,7 @@ export interface ValidationItem {
   status: 'available' | 'price_changed' | 'sold_out' | 'expired_date' | 'needs_review';
   reason?: string;
   service_dates: Record<string, unknown> | null;
+  provider_confirmation_ready?: boolean;
 }
 
 export interface ValidationResult {

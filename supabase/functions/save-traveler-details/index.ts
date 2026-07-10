@@ -47,6 +47,24 @@ function validateByType(item: z.infer<typeof ItemTravelersSchema>): string | nul
   return null;
 }
 
+function minimizeTravelerData(itemType: string, traveler: z.infer<typeof TravelerSchema>) {
+  const minimized: Record<string, unknown> = {
+    first_name: traveler.first_name,
+    last_name: traveler.last_name,
+    middle_name: traveler.middle_name,
+    email: traveler.email,
+    phone: traveler.phone,
+  };
+  if (itemType.toLowerCase() === "flight") {
+    minimized.dob = traveler.dob;
+    minimized.gender = traveler.gender;
+    minimized.nationality = traveler.nationality;
+    minimized.passport_number = traveler.passport_number;
+    minimized.passport_expiry = traveler.passport_expiry;
+  }
+  return minimized;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -112,8 +130,8 @@ serve(async (req) => {
       user_id: user.id,
       item_type: t.item_type,
       traveler_data: {
-        lead: t.lead,
-        additional: t.additional,
+        lead: minimizeTravelerData(t.item_type, t.lead),
+        additional: t.additional.map((traveler) => minimizeTravelerData(t.item_type, traveler)),
         special_requests: t.special_requests ?? null,
         pax: t.pax ?? 1 + (t.additional?.length ?? 0),
       },
