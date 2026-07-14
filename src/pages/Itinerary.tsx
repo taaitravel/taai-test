@@ -15,6 +15,7 @@ import { Plane, Building2, MapPin, Utensils, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AgentChip } from "@/components/agents/AgentChip";
 
 const Itinerary = () => {
   const [searchParams] = useSearchParams();
@@ -184,6 +185,10 @@ const Itinerary = () => {
         attendeeCount={attendees.length}
         onChatOpen={() => setChatOpen(true)}
       />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3">
+        <AgentChip agent="miles" onClick={() => setChatOpen(true)} />
+      </div>
 
       {userRole === 'collaborator' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
