@@ -1,53 +1,32 @@
-# Issue #5 — Deployment Env Gate: Verification Plan
+# Gate 8 — Slice 1: Ready to Build (10 files)
 
-You will handle the reconnect in the Lovable UI. My job in build mode is verification only — no code edits, no deploy, no publish, no touch to checkout / Stripe / Gate 7 / edge functions / migrations / env secrets / unrelated files.
+Approval received in chat, but I'm still in plan mode — the edit tools are gated until you tap **Implement plan** below. Re-issuing the approved manifest unchanged so the switch to build mode can happen.
 
-## Your side (Lovable UI, before I run verification)
+## Change set (exactly 10 files)
 
-1. **Supabase Dashboard** → project `dhbvweazpqnviqwgpurv` → Project Settings → API Keys → confirm the new default **publishable key** (`sb_publishable_...`) is enabled. Do not touch the secret / service_role key.
-2. **Lovable** → project name (top-left) → **Settings → Cloud** → **Disconnect** the Supabase integration, then **Reconnect** to the same project.
-3. Ping me in chat that reconnect is done.
+Edits:
+1. `src/components/shared/MobileNavigation.tsx` — grid header (`[menu][logo][actions]`), `h-14` mobile top bar, in-flow logo `h-9`, show `CartIcon` + `NotificationCenter` on mobile, drawer typography softened (`text-xl font-medium`, tighter spacing, safe-area footer).
+2. `src/components/navigation/MobileBottomNav.tsx` — expanded `HIDDEN_ROUTES` to include `/checkout`, `/cart`, `/booking-success`, `/subscription-success`; collapsed orb 56→48px; safe-area preserved.
+3. `src/components/shared/CartIcon.tsx` — 40×40 tap target, consistent radius.
+4. `src/components/shared/NotificationCenter.tsx` — matching 40×40 trigger, visible on mobile.
+5. `src/components/ui/sonner.tsx` — mobile `max-w-[92vw]`, smaller padding, offset above bottom orb via safe-area.
+6. `src/components/dashboard/sections/HeroWelcome.tsx` — insert `AgentChip` for **Miles · Travel concierge** (no Sparkles-as-identity).
+7. `src/pages/Itinerary.tsx` — add `AgentChip` for **Miles** below the header container; no logic change. `ItineraryHeader` itself is not opened.
+8. `src/pages/CreateItinerary.tsx` — rename right panel banner to **Bob · Planning specialist**, left panel to neutral "Classic booking assistant". No logic change to chat components.
+9. `src/lib/taai/brand-identity.ts` — export `AGENT_ROLES` constant + `AgentKey`/`AgentRole` types. Miles/Bob `travelerFacing: true`; Ajax/Hermes `travelerFacing: false`.
+10. `src/components/agents/AgentChip.tsx` *(new)* — avatar dot + name + role pill; refuses to render when `travelerFacing: false`. Consumed by files 6 and 7.
 
-## My side (build mode, verification only)
-
-Read-only checks — no file writes:
-
-1. Read `src/integrations/supabase/client.ts`. Confirm:
-   - `SUPABASE_URL` still equals `https://dhbvweazpqnviqwgpurv.supabase.co` (project unchanged).
-   - `SUPABASE_PUBLISHABLE_KEY` now starts with `sb_publishable_`.
-   - No `eyJ...` JWT anywhere in the file.
-2. Read `.env`. Confirm:
-   - `VITE_SUPABASE_PUBLISHABLE_KEY` mirrors the same `sb_publishable_...` value.
-   - `VITE_SUPABASE_URL` and `VITE_SUPABASE_PROJECT_ID` unchanged.
-   - No `SUPABASE_SERVICE_ROLE_KEY` / `sb_secret_` present in this file.
-3. Grep the whole `src/` tree for:
-   - `eyJhbGciOiJIUzI1NiIs` — must return zero hits in frontend code.
-   - `sb_secret_` — must return zero hits anywhere in frontend / `.env` / `VITE_` scope.
-   - `SERVICE_ROLE` — allowed only inside `supabase/functions/**` (server-side), never in `src/**`.
-4. Confirm no other files changed vs. the pre-reconnect state — the only diffs should be `src/integrations/supabase/client.ts` and `.env`.
-
-## Runtime smoke check (optional, drive Playwright)
-
-Only if you want a live confirmation the new key is accepted by the API:
-
-1. Launch Chromium against `http://localhost:8080` with the injected managed session.
-2. Navigate to an authenticated route (e.g. `/dashboard`).
-3. Confirm no `401` / `Invalid API key` errors in the console or on any `dhbvweazpqnviqwgpurv.supabase.co/rest/v1/` request.
-4. Confirm `supabase.auth.getSession()` returns the existing session (no forced re-login).
-
-## Report I'll return
-
-1. Changed files (expected: `src/integrations/supabase/client.ts`, `.env`; nothing else).
-2. Whether `client.ts` now uses `sb_publishable_...` — yes/no.
-3. Whether the legacy `eyJ...` anon JWT is fully removed from frontend config — yes/no.
-4. Confirmation no `sb_secret_` / service_role key is exposed in frontend or `VITE_` scope.
-5. Confirmation no deploy / publish was performed; whether a preview hard-refresh is needed (Vite HMR should suffice since `client.ts` is a module constant).
-6. If the reconnect did **not** flip the prefix (i.e. `eyJ...` still present), I'll stop and report — the fallback is the "paste the `sb_publishable_` value" path, which requires your explicit go-ahead in a new turn.
-
-## Out of scope (will not touch)
-
+## Untouched (protected)
+- `src/integrations/supabase/client.ts` (holds `sb_publishable_`, stays exactly as-is)
 - `supabase/functions/**`, `supabase/migrations/**`, `supabase/config.toml`
-- Any Stripe / checkout / payment / Gate 7 code
-- `AuthContext.tsx` and other auth flow code
-- Any RLS policies or SQL
-- Any secret storage (`add_secret` / `update_secret` / service role)
+- Checkout / Stripe / Gate 7 files, `AuthContext.tsx`, RLS, `.env`, secrets
+- `package.json`, `package-lock.json`
+- No deploy, no publish
+
+## Post-build verification I will run and report
+- Supabase key booleans: `uses_sb_publishable`, `uses_legacy_jwt_like`, `uses_sb_secret`, `mentions_service_role`
+- `git diff --name-only` proving `src/integrations/supabase/client.ts` unchanged and only the 10 files touched
+- Reserved-name grep on `src/pages` + `src/components/dashboard` + `src/components/itinerary` + `src/components/agents` for `Ajax|Hermes|Tom|Scott|Manny|Benny|Piper|Lester|Scout`
+- Typecheck output
+
+Tap **Implement plan** to switch to build mode and I'll execute the 10 edits immediately.
