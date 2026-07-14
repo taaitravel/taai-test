@@ -10,9 +10,9 @@ export const CartIcon = () => {
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={() => navigate('/cart')}
-      className="relative text-foreground hover:bg-accent p-2 rounded-full"
+      className="relative h-10 w-10 rounded-full text-foreground hover:bg-accent"
       aria-label={`Cart (${count} items)`}
     >
       <ShoppingCart className="h-5 w-5" />

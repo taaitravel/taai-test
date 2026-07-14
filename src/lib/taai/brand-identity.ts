@@ -70,3 +70,44 @@ export const getTAAIIntroduction = (): string => {
 export const getTAAIValueProposition = (): string => {
   return TAAI_BRAND.usp;
 };
+
+/**
+ * Gate 8 agent role model.
+ * Miles + Bob are traveler-facing. Ajax + Hermes are internal-only and must
+ * never render in traveler UI. AgentChip enforces this at render time.
+ */
+export type AgentKey = 'miles' | 'bob' | 'ajax' | 'hermes';
+
+export interface AgentRole {
+  name: string;
+  role: string;
+  travelerFacing: boolean;
+  summary: string;
+}
+
+export const AGENT_ROLES: Record<AgentKey, AgentRole> = {
+  miles: {
+    name: 'Miles',
+    role: 'Travel concierge',
+    travelerFacing: true,
+    summary: 'Your traveler-facing companion for trip questions, status, and approvals.',
+  },
+  bob: {
+    name: 'Bob',
+    role: 'Planning specialist',
+    travelerFacing: true,
+    summary: 'Builds itineraries day-by-day inside Create Itinerary and planning flows.',
+  },
+  ajax: {
+    name: 'Ajax',
+    role: 'Commercial ops (internal)',
+    travelerFacing: false,
+    summary: 'Internal commercial and sales automation operator. Not shown to travelers.',
+  },
+  hermes: {
+    name: 'Hermes',
+    role: 'Runtime (internal)',
+    travelerFacing: false,
+    summary: 'Invisible orchestration/runtime layer. Never a traveler-facing personality.',
+  },
+};
