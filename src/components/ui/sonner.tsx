@@ -10,14 +10,19 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      position="bottom-center"
+      offset="calc(env(safe-area-inset-bottom, 0px) + 5rem)"
       toastOptions={{
         classNames: {
-          toast: "group toast toast-default font-medium rounded-xl",
-          success: "group toast toast-success font-semibold rounded-xl",
-          error: "group toast toast-error font-medium rounded-xl",
-          description: "group-[.toast]:opacity-90",
-          actionButton: "bg-white/20 text-white border border-white/30 hover:bg-white/30 rounded-lg font-medium",
-          cancelButton: "bg-black/20 text-white border border-white/20 hover:bg-black/30 rounded-lg",
+          toast:
+            "group toast toast-default rounded-xl text-sm py-2.5 px-3.5 max-w-[92vw] sm:max-w-sm shadow-lg",
+          success: "group toast toast-success rounded-xl text-sm py-2.5 px-3.5 max-w-[92vw] sm:max-w-sm shadow-lg",
+          error: "group toast toast-error rounded-xl text-sm py-2.5 px-3.5 max-w-[92vw] sm:max-w-sm shadow-lg",
+          description: "group-[.toast]:opacity-90 text-xs",
+          actionButton:
+            "bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium text-xs px-2.5 py-1",
+          cancelButton:
+            "bg-muted text-muted-foreground hover:bg-muted/80 rounded-lg text-xs px-2.5 py-1",
         },
       }}
       {...props}
