@@ -11,6 +11,7 @@ import { UserProfileDropdown } from "./UserProfileDropdown";
 import { NotificationCenter } from "./NotificationCenter";
 import { CartIcon } from "./CartIcon";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 interface MobileNavigationProps {
   travelerLevel?: string;
