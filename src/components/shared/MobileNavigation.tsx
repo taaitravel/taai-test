@@ -55,16 +55,21 @@ export const MobileNavigation = ({
   return (
     <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 relative">
-          {/* Left Side - Mobile Menu or Back Button */}
-          <div className="flex items-center space-x-4">
+        <div className={cn(
+          "grid items-center relative gap-2",
+          "grid-cols-[auto_1fr_auto]",
+          isMobile ? "h-14" : "h-16"
+        )}>
+          {/* Left cluster */}
+          <div className="flex items-center gap-2 min-w-0 justify-self-start">
             {isMobile ? (
               <Drawer open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <DrawerTrigger asChild>
                   <Button 
                     variant="ghost"
-                    size="sm"
-                    className="text-foreground hover:bg-accent p-2 rounded-full"
+                    size="icon"
+                    aria-label="Open menu"
+                    className="text-foreground hover:bg-accent h-10 w-10 rounded-full"
                   >
                     <Menu className="h-6 w-6" />
                   </Button>
@@ -76,12 +81,13 @@ export const MobileNavigation = ({
                       <img 
                         src={LOGO_URL} 
                         alt="TAAI Travel" 
-                        className="h-12" 
+                        className="h-10" 
                       />
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="text-foreground hover:bg-accent p-2 rounded-full"
+                        size="icon"
+                        aria-label="Close menu"
+                        className="text-foreground hover:bg-accent h-10 w-10 rounded-full"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <X className="h-6 w-6" />
@@ -89,12 +95,12 @@ export const MobileNavigation = ({
                     </div>
                     
                     {/* Menu Items */}
-                    <div className="flex-1 flex flex-col justify-center space-y-8 px-6 overflow-y-auto">
+                    <div className="flex-1 flex flex-col justify-center gap-1 px-6 py-4 overflow-y-auto">
                       {menuItems.map((item) => (
                         <button
                           key={item.path}
                           onClick={() => handleMenuItemClick(item.path)}
-                          className="text-foreground text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
+                          className="text-foreground text-xl font-medium tracking-tight text-left hover:text-primary transition-colors duration-200 py-3 border-b border-border/40 last:border-b-0"
                         >
                           {item.label}
                         </button>
@@ -102,16 +108,20 @@ export const MobileNavigation = ({
                     </div>
                     
                     {/* Footer with traveler level and sign out - always visible */}
-                    <div className="p-6 pb-24 border-t border-border space-y-4">
-                      <Badge className="bg-accent text-foreground border-border text-lg px-4 py-2">
+                    <div
+                      className="px-6 pt-4 border-t border-border space-y-3"
+                      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
+                    >
+                      <Badge className="bg-accent text-foreground border-border text-sm px-3 py-1">
                         {travelerLevel}
                       </Badge>
                       <Button
                         onClick={handleSignOut}
                         variant="destructive"
-                        className="w-full justify-start text-base"
+                        size="sm"
+                        className="w-full justify-start text-sm"
                       >
-                        <LogOut className="h-5 w-5 mr-2" />
+                        <LogOut className="h-4 w-4 mr-2" />
                         Sign Out
                       </Button>
                     </div>
@@ -137,19 +147,17 @@ export const MobileNavigation = ({
             )}
           </div>
 
-          {/* Centered Logo - sits above action buttons row on mobile */}
-          {isMobile ? (
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-1">
-              <img src={LOGO_URL} alt="TAAI Travel" className="h-[50px]" />
-            </div>
-          ) : (
-            <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img src={LOGO_URL} alt="TAAI Travel" className="h-[70px]" />
-            </div>
-          )}
+          {/* Centered Logo (in-flow so it cannot overlap the action clusters) */}
+          <div className="justify-self-center flex items-center">
+            <img
+              src={LOGO_URL}
+              alt="TAAI Travel"
+              className={isMobile ? 'h-9' : 'h-[64px]'}
+            />
+          </div>
 
-          {/* Right Side - Desktop or Custom Actions */}
-          <div className="flex items-center space-x-4">
+          {/* Right cluster */}
+          <div className="flex items-center gap-1 justify-self-end">
             {!isMobile ? (
               <>
                 <CartIcon />
@@ -160,6 +168,7 @@ export const MobileNavigation = ({
                     <DropdownMenuTrigger asChild>
                       <Button 
                         className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold p-2 rounded-full w-10 h-10"
+                        aria-label="Create trip"
                       >
                         <Plus className="h-5 w-5" />
                       </Button>
@@ -185,14 +194,13 @@ export const MobileNavigation = ({
                 {customActions}
               </>
             ) : (
-              <div className="flex items-center gap-1">
+              <>
                 <CartIcon />
+                <NotificationCenter />
                 {customActions}
-              </div>
+              </>
             )}
           </div>
-
-          {/* Mobile right cluster handles spacing via CartIcon */}
         </div>
       </div>
     </nav>
