@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { format, differenceInDays } from "date-fns";
+import { AgentChip } from "@/components/agents/AgentChip";
 
 interface HeroWelcomeProps {
   userProfile: any;
@@ -11,10 +12,13 @@ export const HeroWelcome = ({ userProfile, nextTrip }: HeroWelcomeProps) => {
 
   return (
     <div className="flex-1 lg:pr-8">
-      <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
-        Welcome back, {userProfile?.first_name || 'Traveler'}!
-      </h1>
-      
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+          Welcome back, {userProfile?.first_name || 'Traveler'}!
+        </h1>
+        <AgentChip agent="miles" className="shrink-0" />
+      </div>
+
       {/* Mobile next trip info */}
       <div className="lg:hidden mt-4">
         {nextTrip ? (
