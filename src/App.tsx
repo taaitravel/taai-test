@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ChromeStateProvider } from "@/contexts/ChromeStateContext";
 import { ExpediaSwipeProvider } from "@/components/swipe/ExpediaSwipeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
@@ -42,6 +43,7 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <ThemeProvider defaultTheme="dark" storageKey="taai-theme">
+          <ChromeStateProvider>
           <ExpediaSwipeProvider>
             <Toaster />
             <Sonner />
@@ -138,6 +140,7 @@ const App = () => (
             <MobileBottomNav />
           </BrowserRouter>
         </ExpediaSwipeProvider>
+          </ChromeStateProvider>
         </ThemeProvider>
       </AuthProvider>
     </TooltipProvider>
