@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Briefcase, Search, Sparkles, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useChromeState } from '@/contexts/ChromeStateContext';
 import { cn } from '@/lib/utils';
 import taaiTMark from '@/assets/taai-t-mark.png';
 
@@ -29,6 +30,7 @@ export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { drawerOpen } = useChromeState();
   const [collapsed, setCollapsed] = useState(false);
   const timerRef = useRef<number | null>(null);
 
@@ -65,7 +67,12 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <div
-      className="fixed left-0 right-0 z-[9999] flex md:hidden justify-center px-4"
+      className={cn(
+        'fixed left-0 right-0 z-[9999] flex md:hidden justify-center px-4',
+        'transition-opacity duration-200',
+        drawerOpen && 'opacity-0 pointer-events-none'
+      )}
+      aria-hidden={drawerOpen || undefined}
       style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
     >
       <nav
