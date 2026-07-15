@@ -41,7 +41,13 @@ export const MobileActionCluster: React.FC<MobileActionClusterProps> = ({
     return null;
   };
 
-  const hasOverflow = overflow.length > 0;
+  // Defensive: never let the visible primary re-appear inside More.
+  const filteredOverflow = overflow.filter((item) => {
+    if (primary === 'cart' && item.id === 'cart') return false;
+    if (primary === 'notifications' && item.id === 'notifications') return false;
+    return true;
+  });
+  const hasOverflow = filteredOverflow.length > 0;
 
   return (
     <div className={cn('flex items-center gap-1', className)}>
@@ -63,7 +69,7 @@ export const MobileActionCluster: React.FC<MobileActionClusterProps> = ({
             sideOffset={5}
             className="bg-card/95 backdrop-blur-md border-border text-card-foreground min-w-[180px]"
           >
-            {overflow.map((item) => (
+            {filteredOverflow.map((item) => (
               <DropdownMenuItem
                 key={item.id}
                 onClick={() => {
