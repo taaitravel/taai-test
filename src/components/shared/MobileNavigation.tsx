@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Menu, X, LogOut } from "lucide-react";
+import { Plus, Menu, X, LogOut, ChevronLeft, Home } from "lucide-react";
 import { LOGO_URL, AUTHENTICATED_MENU_ITEMS } from "@/lib/constants";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
@@ -42,6 +42,7 @@ export const MobileNavigation = ({
   const { signOut, userProfile } = useAuth();
   const { setDrawerOpen } = useChromeState();
   const chrome = getRouteChrome(location.pathname);
+  const mobileVariant = chrome.variant;
 
   const menuItems = [...AUTHENTICATED_MENU_ITEMS];
 
@@ -74,6 +75,27 @@ export const MobileNavigation = ({
           {/* Left cluster */}
           <div className="flex items-center gap-2 min-w-0 justify-self-start">
             {isMobile ? (
+              mobileVariant === 'back' ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Go back"
+                  onClick={() => navigate(-1)}
+                  className="text-foreground hover:bg-accent h-10 w-10 rounded-full"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+              ) : mobileVariant === 'home' ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Go home"
+                  onClick={() => navigate('/home')}
+                  className="text-foreground hover:bg-accent h-10 w-10 rounded-full"
+                >
+                  <Home className="h-6 w-6" />
+                </Button>
+              ) : (
               <Drawer open={isMenuOpen} onOpenChange={handleDrawerChange}>
                 <DrawerTrigger asChild>
                   <Button 
@@ -139,6 +161,7 @@ export const MobileNavigation = ({
                   </div>
                 </DrawerContent>
               </Drawer>
+              )
             ) : (
               showBackButton && (
                 <Button 
