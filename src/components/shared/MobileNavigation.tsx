@@ -4,12 +4,15 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Menu, X, LogOut } from "lucide-react";
 import { LOGO_URL, AUTHENTICATED_MENU_ITEMS } from "@/lib/constants";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserProfileDropdown } from "./UserProfileDropdown";
 import { NotificationCenter } from "./NotificationCenter";
 import { CartIcon } from "./CartIcon";
+import { MobileActionCluster } from "./MobileActionCluster";
+import { getRouteChrome } from "@/lib/chrome/route-config";
+import { useChromeState } from "@/contexts/ChromeStateContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -33,9 +36,12 @@ export const MobileNavigation = ({
   customActions
 }: MobileNavigationProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { signOut, userProfile } = useAuth();
+  const { setDrawerOpen } = useChromeState();
+  const chrome = getRouteChrome(location.pathname);
 
   const menuItems = [...AUTHENTICATED_MENU_ITEMS];
 
@@ -50,7 +56,12 @@ export const MobileNavigation = ({
 
   const handleMenuItemClick = (path: string) => {
     navigate(path);
-    setIsMenuOpen(false);
+    handleDrawerChange(false);
+  };
+
+  const handleDrawerChange = (open: boolean) => {
+    setIsMenuOpen(open);
+    setDrawerOpen(open);
   };
 
   return (
@@ -58,13 +69,12 @@ export const MobileNavigation = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={cn(
           "grid items-center relative gap-2",
-          "grid-cols-[auto_1fr_auto]",
-          isMobile ? "h-14" : "h-16"
+          isMobile ? "grid-cols-[96px_1fr_96px] h-14" : "grid-cols-[auto_1fr_auto] h-16"
         )}>
           {/* Left cluster */}
           <div className="flex items-center gap-2 min-w-0 justify-self-start">
             {isMobile ? (
-              <Drawer open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <Drawer open={isMenuOpen} onOpenChange={handleDrawerChange}>
                 <DrawerTrigger asChild>
                   <Button 
                     variant="ghost"
@@ -89,7 +99,7 @@ export const MobileNavigation = ({
                         size="icon"
                         aria-label="Close menu"
                         className="text-foreground hover:bg-accent h-10 w-10 rounded-full"
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={() => handleDrawerChange(false)}
                       >
                         <X className="h-6 w-6" />
                       </Button>
@@ -195,11 +205,10 @@ export const MobileNavigation = ({
                 {customActions}
               </>
             ) : (
-              <>
-                <CartIcon />
-                <NotificationCenter />
-                {customActions}
-              </>
+              <MobileActionCluster
+                primary={chrome.primary}
+                overflow={chrome.overflow}
+              />
             )}
           </div>
         </div>
