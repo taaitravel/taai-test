@@ -32,13 +32,13 @@ export interface RouteChrome {
 
 const CART: OverflowItem = { id: 'cart', label: 'Cart', to: '/cart' };
 const PROFILE: OverflowItem = { id: 'profile', label: 'Profile', to: '/profile' };
-const CREATE_AI: OverflowItem = { id: 'create-ai', label: 'New AI Trip', to: '/new-itinerary' };
+const SUBSCRIPTION: OverflowItem = { id: 'subscription', label: 'Subscription', to: '/subscription' };
 
 const DEFAULT_CHROME: RouteChrome = {
   variant: 'menu',
   hideBottomNav: false,
   primary: 'notifications',
-  overflow: [CART, PROFILE],
+  overflow: [CART],
 };
 
 /**
@@ -50,31 +50,31 @@ const ROUTE_TABLE: Record<string, RouteChrome> = {
     variant: 'menu',
     hideBottomNav: false,
     primary: 'notifications',
-    overflow: [CART, CREATE_AI, PROFILE],
+    overflow: [CART],
   },
   '/search': {
     variant: 'menu',
     hideBottomNav: false,
     primary: 'notifications',
-    overflow: [CART, PROFILE],
+    overflow: [CART],
   },
   '/itineraries': {
     variant: 'menu',
     hideBottomNav: false,
     primary: 'notifications',
-    overflow: [CART, PROFILE],
+    overflow: [CART],
   },
   '/my-itineraries': {
     variant: 'menu',
     hideBottomNav: false,
     primary: 'notifications',
-    overflow: [CART, PROFILE],
+    overflow: [CART],
   },
   '/itinerary': {
     variant: 'back',
     hideBottomNav: false,
     primary: 'notifications',
-    overflow: [CART, PROFILE],
+    overflow: [CART],
   },
   '/profile': {
     variant: 'menu',
@@ -86,13 +86,13 @@ const ROUTE_TABLE: Record<string, RouteChrome> = {
     variant: 'back',
     hideBottomNav: false,
     primary: 'none',
-    overflow: [PROFILE],
+    overflow: [],
   },
   '/cart': {
     variant: 'back',
     hideBottomNav: true,
     primary: 'none',
-    overflow: [PROFILE],
+    overflow: [PROFILE, SUBSCRIPTION],
   },
   '/new-itinerary': {
     variant: 'back',
