@@ -26,6 +26,10 @@ interface ChatInterfaceProps {
   embedded?: boolean;
   itineraryId?: string;
   onLocationAdded?: () => void;
+  assistantName?: string;
+  assistantSubtitle?: string;
+  greeting?: string;
+  mobileComposerAssist?: boolean;
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
@@ -33,7 +37,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   placeholder = "Ask TAAI about flights, hotels, budgets, or trip planning...",
   embedded = false,
   itineraryId,
-  onLocationAdded
+  onLocationAdded,
+  assistantName = "TAAI Assistant",
+  assistantSubtitle,
+  greeting = "Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?",
+  mobileComposerAssist = false,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -110,6 +118,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  const handleComposerFocus = mobileComposerAssist
+    ? (e: React.FocusEvent<HTMLInputElement>) => {
+        const el = e.currentTarget;
+        requestAnimationFrame(() => {
+          const r = el.getBoundingClientRect();
+          if (r.bottom > window.innerHeight || r.top < 0) {
+            el.scrollIntoView({ block: 'nearest' });
+          }
+        });
+      }
+    : undefined;
+
   // Render message content with optional search results
   const renderMessage = (message: Message) => {
     const hasResults = message.searchResults && message.searchResults.length > 0 && message.resultType;
@@ -155,7 +175,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             {messages.length === 0 && (
               <div className="text-center text-white/60 py-8">
                 <Bot className="h-8 w-8 mx-auto mb-3 text-orange-400" />
-                <p className="text-sm text-white/80">Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?</p>
+                <p className="text-sm text-white/80">{greeting}</p>
               </div>
             )}
             
@@ -167,7 +187,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   <div className="flex items-center gap-2">
                     <Bot className="h-4 w-4 text-orange-400" />
                     <Loader2 className="h-4 w-4 animate-spin text-orange-400" />
-                    <span className="text-sm text-white/80">Thinking...</span>
+                    <span className="text-sm text-white/80">{`${assistantName} is thinking...`}</span>
                   </div>
                 </div>
               </div>
@@ -175,12 +195,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-white/20">
+        <div className={`p-4 border-t border-white/20${mobileComposerAssist ? ' pb-[calc(1rem+env(safe-area-inset-bottom))]' : ''}`}>
           <div className="flex gap-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
+              onFocus={handleComposerFocus}
               placeholder={placeholder}
               disabled={isLoading}
               className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-orange-400"
@@ -222,7 +243,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
-          <h3 className="font-semibold">TAAI Assistant</h3>
+          <div className="flex flex-col leading-tight">
+            <h3 className="font-semibold">{assistantName}</h3>
+            {assistantSubtitle && (
+              <span className="text-xs text-muted-foreground">{assistantSubtitle}</span>
+            )}
+          </div>
         </div>
         <Button
           variant="ghost"
@@ -240,7 +266,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             {messages.length === 0 && (
               <div className="text-center text-muted-foreground py-8">
                 <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?</p>
+                <p className="text-sm">{greeting}</p>
               </div>
             )}
             
@@ -252,7 +278,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   <div className="flex items-center gap-2">
                     <Bot className="h-4 w-4" />
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                    <span className="text-sm text-muted-foreground">{`${assistantName} is thinking...`}</span>
                   </div>
                 </div>
               </div>
@@ -260,12 +286,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t">
+        <div className={`p-4 border-t${mobileComposerAssist ? ' pb-[calc(1rem+env(safe-area-inset-bottom))]' : ''}`}>
           <div className="flex gap-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
+              onFocus={handleComposerFocus}
               placeholder={placeholder}
               disabled={isLoading}
               className="flex-1"

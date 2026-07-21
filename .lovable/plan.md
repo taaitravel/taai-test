@@ -1,93 +1,86 @@
-# Gate 8 Slice 2C — Authenticated Mobile Drawer Cleanup (Ready to Build)
+# Gate 8 Slice 2D — New Itinerary Mobile Planning Shell (final, ready to build)
 
-Ready to implement. Manual Itinerary mobile-reachability audit complete: reachable via `src/components/dashboard/sections/TravelHub.tsx` line 22 ("New Itinerary" action → `/new-manual-itinerary`) which renders on the mobile Home dashboard. Removing it from the drawer leaves no access gap.
+Frontend-only. Two files. Single mounted Bob instance via `useIsMobile()` conditional. Opt-in composer assistance defaults off to preserve every existing caller.
 
-## Files (2)
+## Files (exactly 2)
 
-### 1. `src/lib/constants.ts` — append (no edits to existing exports)
+### 1. `src/components/chat/ChatInterface.tsx`
 
-```ts
-export type DrawerItem = { label: string; path: string };
-export type DrawerSection = { id: string; title: string; items: DrawerItem[] };
-
-export const AUTHENTICATED_DRAWER_SECTIONS: DrawerSection[] = [
-  { id: "account", title: "Account", items: [
-    { label: "Profile & Settings", path: "/profile" },
-    { label: "Traveler Preferences", path: "/profile?tab=preferences" },
-    { label: "Traveler Setup", path: "/profile-setup" },
-  ]},
-  { id: "plan", title: "Plan", items: [
-    { label: "Subscription", path: "/subscription" },
-  ]},
-  { id: "support", title: "Support", items: [
-    { label: "Contact Support", path: "/contact" },
-  ]},
-  { id: "info-legal", title: "Info & Legal", items: [
-    { label: "What We Do", path: "/what-we-do" },
-    { label: "Privacy Policy", path: "/privacy-policy" },
-    { label: "Terms of Service", path: "/terms" },
-  ]},
-];
-```
-
-`AUTHENTICATED_MENU_ITEMS` untouched → `src/pages/Index.tsx` diff empty.
-
-### 2. `src/components/shared/MobileNavigation.tsx`
-
-- Swap import: add `AUTHENTICATED_DRAWER_SECTIONS` (drop unused `AUTHENTICATED_MENU_ITEMS` import).
-- Remove `const menuItems = [...AUTHENTICATED_MENU_ITEMS];`.
-- Sign Out handler (drawer close is synchronous — state setter — so no `await`):
+Add optional props with safe defaults:
 
 ```ts
-const handleSignOut = async () => {
-  handleDrawerChange(false);
-  try {
-    await signOut();
-    navigate("/");
-  } catch (error) {
-    console.error("Error signing out:", error);
-  }
-};
+assistantName?: string;         // default "TAAI Assistant"
+assistantSubtitle?: string;     // default undefined (rendered only in floating header)
+greeting?: string;              // default: current empty-state copy
+mobileComposerAssist?: boolean; // default false
 ```
 
-- Add `DrawerTitle` + `DrawerDescription` imports from `@/components/ui/drawer` and render a visually hidden title ("Account menu") inside `DrawerContent` (using `sr-only`) so Radix a11y is satisfied.
-- Replace the flat `menuItems.map` block with grouped sections:
+Apply in both `embedded` and floating branches:
+- Empty-state paragraph text ← `greeting`.
+- Floating header title ← `assistantName`; render `assistantSubtitle` as a small line below when provided.
+- Both typing indicators ← `${assistantName} is thinking...` (replacing "Thinking...").
 
-```tsx
-<div className="flex-1 flex flex-col gap-6 px-6 py-6 overflow-y-auto">
-  {AUTHENTICATED_DRAWER_SECTIONS.map((section) => (
-    <div key={section.id} className="flex flex-col">
-      <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-2">
-        {section.title}
-      </h3>
-      <div className="flex flex-col">
-        {section.items.map((item) => (
-          <button
-            key={item.path}
-            onClick={() => handleMenuItemClick(item.path)}
-            className="text-foreground text-lg font-medium tracking-tight text-left hover:text-primary transition-colors duration-200 py-2.5 border-b border-border/30 last:border-b-0"
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  ))}
-</div>
-```
+Composer behavior gated on `mobileComposerAssist === true`:
+- Composer container class conditionally appends `pb-[calc(1rem+env(safe-area-inset-bottom))]`.
+- `Input` receives an `onFocus` handler only when enabled:
+  ```ts
+  const el = e.currentTarget;
+  requestAnimationFrame(() => {
+    const r = el.getBoundingClientRect();
+    if (r.bottom > window.innerHeight || r.top < 0) {
+      el.scrollIntoView({ block: 'nearest' });
+    }
+  });
+  ```
+- When `false` (default): composer markup and behavior are identical to today for every existing caller. No new `onFocus`, no extra padding.
 
-- Left zone (Menu/Back/Home variants), centered logo, right-zone `MobileActionCluster`, desktop branch, traveler-level Badge, Sign Out button, `handleDrawerChange` → `setDrawerOpen` (bottom-nav suppression) all preserved.
+No prompt, payload, edge-function, results, persistence, or internal render-branch changes beyond the above.
 
-## Manual Itinerary reachability
-- `TravelHub.tsx:22` — mobile Home dashboard action → `/new-manual-itinerary` ✓
-- Desktop-only header dropdown at `MobileNavigation.tsx:219` (inside `!isMobile` branch).
-- Conclusion: safely removable from drawer; no `planning` section needed.
+### 2. `src/pages/CreateItinerary.tsx`
+
+- `import { useIsMobile } from "@/hooks/use-mobile";` and call `const isMobile = useIsMobile();`.
+- Inner container: `pb-28 md:pb-6` → `pb-4 md:pb-6` (mobile bottom nav is hidden on this route).
+- Replace the body with `{isMobile ? <MobileBobShell /> : <DesktopComparisonShell />}` so exactly one `ChatInterface` mounts. No `md:hidden` / `hidden md:*` duplication.
+
+**Mobile shell**
+- `<h1>Plan with Bob</h1>`, subtitle "Your taai planning specialist" (semantic tokens only).
+- `flex-1 min-h-0 flex flex-col` panel containing only:
+  ```tsx
+  <ChatInterface
+    context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
+    placeholder="Ask Bob about planning your perfect trip..."
+    embedded
+    itineraryId={savedItineraryId || undefined}
+    assistantName="Bob"
+    assistantSubtitle="Planning specialist"
+    greeting="Hi, I'm Bob — your taai planning specialist. Where should we begin?"
+    mobileComposerAssist
+  />
+  ```
+- No Classic panel, no Save/View CTA, no `QuickAddToCart`, no `BookingCart`, no placeholder Save, no synthetic saved state.
+
+**Desktop shell**
+- Current heading, two-column grid with `AIReservationChat` (left) and `ChatInterface` (right) preserved. The right-column `ChatInterface` receives `assistantName="Bob"`, `assistantSubtitle="Planning specialist"`, and the same Bob `greeting`. **Does not** receive `mobileComposerAssist`.
+- `savedItineraryId`-gated Booking Section (`QuickAddToCart` + `BookingCart`) preserved.
+- Save/View CTA block preserved.
+- All existing state, effects, `saveItinerary`, `updateItineraryData` remain.
+
+## Viewport-resize / remount
+
+Crossing the `md` breakpoint unmounts one shell and mounts the other; the corresponding `ChatInterface` instance is remounted and its transient in-memory message state resets. Accepted for this bounded slice; Bob→itinerary bridge and cross-viewport chat persistence remain deferred.
+
+## Explicitly untouched
+
+`AIReservationChat.tsx`, `MobileNavigation.tsx`, `MobileBottomNav.tsx`, `route-config.ts`, `ChromeStateContext.tsx`, `MobileActionCluster.tsx`, `AgentChip.tsx`, `brand-identity.ts`, `App.tsx`, `UserProfileDropdown.tsx`, drawer, desktop navigation, itinerary chat modal, booking widget internals, `useBookingCheckout`, `Checkout.tsx`, `BookingSuccess.tsx`, Supabase client/types, all `supabase/functions/**` and `supabase/migrations/**`, `.env*`, `package.json`, lockfile, Gate 7. No Miles work, no `MilesMobileEntry.tsx`, no global assistant mount, no `milesVisible`. No Bob→`itineraryData` bridge. No result-selection wiring. No prompt or edge-function changes. No deploy or publish.
 
 ## Validation
-`tsgo --noEmit` clean; route-by-route 390px check on `/home`, `/search`, `/itineraries`, `/profile`, `/itinerary`, `/cart`, `/new-itinerary`; drawer close on item tap / Sign Out (synchronous close then await) / Escape; `Index.tsx` git-diff empty; grep confirms `AUTHENTICATED_MENU_ITEMS` still present and used only by `Index.tsx`.
 
-## Protected — untouched
-Supabase files, edge functions, migrations, `.env*`, `package.json`, lockfile, checkout/payment/provider code, Gate 7, `route-config.ts`, `MobileBottomNav.tsx`, `ChromeStateContext.tsx`, `MobileActionCluster.tsx`, desktop navigation, `UserProfileDropdown.tsx`. No deploy or publish.
+- Typecheck `bunx tsgo --noEmit` clean.
+- 390px `/new-itinerary`: only Bob rendered; no Classic, Save CTA, `QuickAddToCart`, or `BookingCart` in DOM; safe-area padding present on mobile Bob composer; keyboard-focus scroll behaves; single scroll region; Slice 2A/2B chrome intact; bottom nav hidden; no Miles entry.
+- ≥ md: both panels render; Save flow works; post-save cart widgets render; right-column `ChatInterface` empty-state and typing indicator identify as "Bob"; desktop Bob composer has no safe-area padding and no focus hook.
+- Grep confirms other `ChatInterface` callers unchanged and render with pre-slice identity and composer behavior.
+- DOM check: exactly one Bob composer input at each viewport.
 
-## Out of scope
-Slice 2D orb; new support surfaces; Miles/Bob/Ajax/Hermes additions; route config edits.
+## Completion report will document
+
+Exact files changed; single Bob instance mounted; `useIsMobile()` ternary mechanism; no hidden duplicate; `mobileComposerAssist` defaults to `false`; safe-area + focus handler affect only the mobile Bob instance; all other callers preserved; viewport-remount behavior accepted; Bob→itinerary bridge deferred; protected files untouched; no deploy or publish; Slice 2E not begun.
