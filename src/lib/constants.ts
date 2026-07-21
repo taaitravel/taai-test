@@ -9,6 +9,44 @@ export const AUTHENTICATED_MENU_ITEMS = [
   { label: "Profile & Settings", path: "/profile" },
 ] as const;
 
+export type DrawerItem = { label: string; path: string };
+export type DrawerSection = { id: string; title: string; items: DrawerItem[] };
+
+// Authenticated mobile drawer — secondary account/plan/support/legal surface.
+// Primary navigation (Home, Itineraries, Search, New Trip, Profile) lives in
+// the bottom nav; do NOT duplicate it here. Profile & Settings is retained
+// as the documented account-management entry point.
+export const AUTHENTICATED_DRAWER_SECTIONS: DrawerSection[] = [
+  {
+    id: "account",
+    title: "Account",
+    items: [
+      { label: "Profile & Settings", path: "/profile" },
+      { label: "Traveler Preferences", path: "/profile?tab=preferences" },
+      { label: "Traveler Setup", path: "/profile-setup" },
+    ],
+  },
+  {
+    id: "plan",
+    title: "Plan",
+    items: [{ label: "Subscription", path: "/subscription" }],
+  },
+  {
+    id: "support",
+    title: "Support",
+    items: [{ label: "Contact Support", path: "/contact" }],
+  },
+  {
+    id: "info-legal",
+    title: "Info & Legal",
+    items: [
+      { label: "What We Do", path: "/what-we-do" },
+      { label: "Privacy Policy", path: "/privacy-policy" },
+      { label: "Terms of Service", path: "/terms" },
+    ],
+  },
+];
+
 export const PUBLIC_MENU_ITEMS = [
   { label: "What We Do", path: "/what-we-do" },
   { label: "Subscription", path: "/subscription" },
