@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ItineraryData {
   name?: string;
@@ -35,6 +36,7 @@ const CreateItinerary = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { enhanceCityFormatting } = useEnhancedCityFormatting();
+  const isMobile = useIsMobile();
   const [itineraryData, setItineraryData] = useState<ItineraryData>({});
   const [isSaving, setIsSaving] = useState(false);
   const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
@@ -121,100 +123,118 @@ const CreateItinerary = () => {
         showTripButtons={false}
       />
 
-      {/* Main Content - Side by Side Chat Comparison */}
-      <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-6 pb-28 md:pb-6">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Perfect Itinerary</h1>
-          <p className="text-foreground/70">Compare our traditional booking assistant with the new TAAI Assistant</p>
+      {isMobile ? (
+        <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-4 pb-4 min-h-0">
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-bold text-foreground mb-1">Plan with Bob</h1>
+            <p className="text-sm text-foreground/70">Your taai planning specialist</p>
+          </div>
+          <div className="flex-1 min-h-0 flex flex-col border border-primary/40 rounded-lg bg-secondary relative">
+            <ChatInterface
+              context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
+              placeholder="Ask Bob about planning your perfect trip..."
+              embedded={true}
+              itineraryId={savedItineraryId || undefined}
+              assistantName="Bob"
+              assistantSubtitle="Planning specialist"
+              greeting="Hi, I'm Bob — your taai planning specialist. Where should we begin?"
+              mobileComposerAssist
+            />
+          </div>
         </div>
+      ) : (
+        <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-6 md:pb-6">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Perfect Itinerary</h1>
+            <p className="text-foreground/70">Compare our traditional booking assistant with the new TAAI Assistant</p>
+          </div>
 
-        {/* Two Column Layout for Chat Comparison */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Side - Traditional AI Reservation Chat */}
-          <div className="flex flex-col">
-            <div className="bg-muted text-foreground text-center py-2 rounded-t-lg font-medium text-sm border border-border border-b-0">
-              Classic booking assistant
+          {/* Two Column Layout for Chat Comparison */}
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Side - Traditional AI Reservation Chat */}
+            <div className="flex flex-col">
+              <div className="bg-muted text-foreground text-center py-2 rounded-t-lg font-medium text-sm border border-border border-b-0">
+                Classic booking assistant
+              </div>
+              <div className="flex-1 border border-border rounded-b-lg bg-secondary p-4">
+                <AIReservationChat 
+                  itineraryData={itineraryData}
+                  onUpdateData={updateItineraryData}
+                  onSaveItinerary={saveItinerary}
+                  isSaving={isSaving}
+                  prefilledMessage={prefilledMessage}
+                />
+              </div>
             </div>
-            <div className="flex-1 border border-border rounded-b-lg bg-secondary p-4">
-              <AIReservationChat 
-                itineraryData={itineraryData}
-                onUpdateData={updateItineraryData}
-                onSaveItinerary={saveItinerary}
-                isSaving={isSaving}
-                prefilledMessage={prefilledMessage}
-              />
+
+            {/* Right Side - Bob */}
+            <div className="flex flex-col">
+              <div className="bg-primary text-primary-foreground text-center py-2 rounded-t-lg font-semibold text-sm border border-primary border-b-0">
+                Bob · Planning specialist
+              </div>
+              <div className="flex-1 border border-primary/40 rounded-b-lg bg-secondary relative">
+                <ChatInterface 
+                  context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
+                  placeholder="Ask Bob about planning your perfect trip..."
+                  embedded={true}
+                  itineraryId={savedItineraryId || undefined}
+                  assistantName="Bob"
+                  assistantSubtitle="Planning specialist"
+                  greeting="Hi, I'm Bob — your taai planning specialist. Where should we begin?"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Right Side - TAAI Assistant */}
-          <div className="flex flex-col">
-            <div className="bg-primary text-primary-foreground text-center py-2 rounded-t-lg font-semibold text-sm border border-primary border-b-0">
-              Bob · Planning specialist
-            </div>
-            <div className="flex-1 border border-primary/40 rounded-b-lg bg-secondary relative">
-              <ChatInterface 
-                context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
-                placeholder="Ask TAAI about planning your perfect trip..."
-                embedded={true}
-                itineraryId={savedItineraryId || undefined}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Booking Section */}
-        {savedItineraryId && (
-          <div className="mt-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-foreground mb-2">Book Your Trip</h2>
-              <p className="text-foreground/70">Add items to cart, save price snapshots, or book individual items</p>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left - Quick Add to Cart */}
-              <QuickAddToCart 
-                itineraryId={savedItineraryId}
-                onItemAdded={() => {
-                  // Refresh cart when item is added
-                }}
-              />
+          {/* Booking Section */}
+          {savedItineraryId && (
+            <div className="mt-8">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Book Your Trip</h2>
+                <p className="text-foreground/70">Add items to cart, save price snapshots, or book individual items</p>
+              </div>
               
-              {/* Right - Booking Cart */}
-              <BookingCart 
-                itineraryId={savedItineraryId}
-                onCartUpdate={(items) => {
-                  console.log('Cart updated:', items);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Save/Continue Button Section */}
-        <div className="mt-6 text-center space-y-4">
-          {!savedItineraryId ? (
-            <Button
-              onClick={saveItinerary}
-              disabled={isSaving || !itineraryData.name}
-              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold"
-            >
-              {isSaving ? "Saving..." : "Save Itinerary & Enable Booking"}
-            </Button>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-foreground/70 text-sm">
-                ✅ Itinerary saved! You can now add items to your booking cart above.
-              </p>
-              <Button
-                onClick={() => navigate(`/itinerary?id=${savedItineraryId}`)}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg"
-              >
-                View Complete Itinerary
-              </Button>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <QuickAddToCart 
+                  itineraryId={savedItineraryId}
+                  onItemAdded={() => {}}
+                />
+                <BookingCart 
+                  itineraryId={savedItineraryId}
+                  onCartUpdate={(items) => {
+                    console.log('Cart updated:', items);
+                  }}
+                />
+              </div>
             </div>
           )}
+
+          {/* Save/Continue Button Section */}
+          <div className="mt-6 text-center space-y-4">
+            {!savedItineraryId ? (
+              <Button
+                onClick={saveItinerary}
+                disabled={isSaving || !itineraryData.name}
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold"
+              >
+                {isSaving ? "Saving..." : "Save Itinerary & Enable Booking"}
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-foreground/70 text-sm">
+                  ✅ Itinerary saved! You can now add items to your booking cart above.
+                </p>
+                <Button
+                  onClick={() => navigate(`/itinerary?id=${savedItineraryId}`)}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg"
+                >
+                  View Complete Itinerary
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
