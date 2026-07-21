@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Menu, X, LogOut, ChevronLeft, Home } from "lucide-react";
-import { LOGO_URL, AUTHENTICATED_MENU_ITEMS } from "@/lib/constants";
+import { LOGO_URL, AUTHENTICATED_DRAWER_SECTIONS } from "@/lib/constants";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -44,9 +44,9 @@ export const MobileNavigation = ({
   const chrome = getRouteChrome(location.pathname);
   const mobileVariant = chrome.variant;
 
-  const menuItems = [...AUTHENTICATED_MENU_ITEMS];
-
   const handleSignOut = async () => {
+    // Close drawer synchronously (React state setter) before awaiting sign-out.
+    handleDrawerChange(false);
     try {
       await signOut();
       navigate("/");
@@ -108,6 +108,10 @@ export const MobileNavigation = ({
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent className="h-[100dvh] bg-background/95 backdrop-blur-md border-none">
+                  <DrawerTitle className="sr-only">Account menu</DrawerTitle>
+                  <DrawerDescription className="sr-only">
+                    Account, plan, support, and legal links.
+                  </DrawerDescription>
                   <div className="flex flex-col h-full">
                     {/* Header with close button */}
                     <div className="flex justify-between items-center p-6 border-b border-border">
@@ -127,16 +131,25 @@ export const MobileNavigation = ({
                       </Button>
                     </div>
                     
-                    {/* Menu Items */}
-                    <div className="flex-1 flex flex-col justify-center gap-1 px-6 py-4 overflow-y-auto">
-                      {menuItems.map((item) => (
-                        <button
-                          key={item.path}
-                          onClick={() => handleMenuItemClick(item.path)}
-                          className="text-foreground text-xl font-medium tracking-tight text-left hover:text-primary transition-colors duration-200 py-3 border-b border-border/40 last:border-b-0"
-                        >
-                          {item.label}
-                        </button>
+                    {/* Grouped drawer sections */}
+                    <div className="flex-1 flex flex-col gap-6 px-6 py-6 overflow-y-auto">
+                      {AUTHENTICATED_DRAWER_SECTIONS.map((section) => (
+                        <div key={section.id} className="flex flex-col">
+                          <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-2">
+                            {section.title}
+                          </h3>
+                          <div className="flex flex-col">
+                            {section.items.map((item) => (
+                              <button
+                                key={item.path}
+                                onClick={() => handleMenuItemClick(item.path)}
+                                className="text-foreground text-lg font-medium tracking-tight text-left hover:text-primary transition-colors duration-200 py-2.5 border-b border-border/30 last:border-b-0"
+                              >
+                                {item.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
                     
