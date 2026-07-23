@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ChatResultsCarousel } from '@/components/chat/ChatResultsCarousel';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import type { ResultInteraction, PlanningDraftResultType } from '@/types/planning-draft';
 interface Message {
   id: string;
   content: string;
@@ -30,6 +31,7 @@ interface ChatInterfaceProps {
   assistantSubtitle?: string;
   greeting?: string;
   mobileComposerAssist?: boolean;
+  interaction?: ResultInteraction;
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
@@ -42,6 +44,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   assistantSubtitle,
   greeting = "Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?",
   mobileComposerAssist = false,
+  interaction,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -157,8 +160,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <div className="flex justify-start">
             <ChatResultsCarousel
               results={message.searchResults!}
-              resultType={message.resultType as 'hotels' | 'flights' | 'activities' | 'restaurants'}
+              resultType={message.resultType as PlanningDraftResultType}
               constraintSummary={message.constraintSummary}
+              interaction={interaction}
             />
           </div>
         )}
