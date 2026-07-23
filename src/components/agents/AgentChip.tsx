@@ -9,10 +9,10 @@ interface AgentChipProps {
 }
 
 /**
- * Traveler-visible identity chip for Miles / Bob.
+ * Traveler-visible identity chip for approved traveler-facing agents.
  *
  * Hard rule: if the AGENT_ROLES entry is not travelerFacing, this component
- * renders nothing. Ajax and Hermes must never appear in traveler UI.
+ * renders nothing. Internal-only agents must never appear in traveler UI.
  */
 export const AgentChip = ({ agent, onClick, className, compact }: AgentChipProps) => {
   const role = AGENT_ROLES[agent];
