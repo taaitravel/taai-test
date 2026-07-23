@@ -153,18 +153,18 @@ const CreateItinerary = () => {
       {isMobile ? (
         <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-4 pb-4 min-h-0">
           <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-foreground mb-1">Plan with Bob</h1>
-            <p className="text-sm text-foreground/70">Your taai planning specialist</p>
+            <h1 className="text-2xl font-bold text-foreground mb-1">Plan with Miles</h1>
+            <p className="text-sm text-foreground/70">Your taai travel companion</p>
           </div>
           <div className="flex-1 min-h-0 flex flex-col border border-primary/40 rounded-lg bg-secondary relative">
             <ChatInterface
               context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
-              placeholder="Ask Bob about planning your perfect trip..."
+              placeholder="Ask Miles about planning your perfect trip..."
               embedded={true}
               itineraryId={savedItineraryId || undefined}
-              assistantName="Bob"
-              assistantSubtitle="Planning specialist"
-              greeting="Hi, I'm Bob — your taai planning specialist. Where should we begin?"
+              assistantName="Miles"
+              assistantSubtitle="Travel companion"
+              greeting="Hi, I'm Miles — your taai travel companion. Where should we begin?"
               mobileComposerAssist
               interaction={bobInteraction}
             />
@@ -196,20 +196,19 @@ const CreateItinerary = () => {
               </div>
             </div>
 
-            {/* Right Side - Bob */}
             <div className="flex flex-col">
               <div className="bg-primary text-primary-foreground text-center py-2 rounded-t-lg font-semibold text-sm border border-primary border-b-0">
-                Bob · Planning specialist
+                Miles · Travel companion
               </div>
               <div className="flex-1 border border-primary/40 rounded-b-lg bg-secondary relative">
                 <ChatInterface 
                   context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
-                  placeholder="Ask Bob about planning your perfect trip..."
+                  placeholder="Ask Miles about planning your perfect trip..."
                   embedded={true}
                   itineraryId={savedItineraryId || undefined}
-                  assistantName="Bob"
-                  assistantSubtitle="Planning specialist"
-                  greeting="Hi, I'm Bob — your taai planning specialist. Where should we begin?"
+                  assistantName="Miles"
+                  assistantSubtitle="Travel companion"
+                  greeting="Hi, I'm Miles — your taai travel companion. Where should we begin?"
                 />
               </div>
             </div>
