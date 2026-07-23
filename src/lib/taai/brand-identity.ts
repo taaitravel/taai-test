@@ -73,10 +73,13 @@ export const getTAAIValueProposition = (): string => {
 
 /**
  * Gate 8 agent role model.
- * Miles + Bob are traveler-facing. Ajax + Hermes are internal-only and must
- * never render in traveler UI. AgentChip enforces this at render time.
+ * Miles is the primary traveler-facing assistant (discovery, planning,
+ * recommendations, itinerary building). Benny is traveler-facing for support
+ * only (complaints, cancellations, refunds, post-booking service recovery).
+ * Bob, Ajax, and Hermes are internal-only and must never render in traveler
+ * UI. AgentChip enforces this at render time.
  */
-export type AgentKey = 'miles' | 'bob' | 'ajax' | 'hermes';
+export type AgentKey = 'miles' | 'benny' | 'bob' | 'ajax' | 'hermes';
 
 export interface AgentRole {
   name: string;
@@ -88,15 +91,21 @@ export interface AgentRole {
 export const AGENT_ROLES: Record<AgentKey, AgentRole> = {
   miles: {
     name: 'Miles',
-    role: 'Travel concierge',
+    role: 'Travel companion',
     travelerFacing: true,
-    summary: 'Your traveler-facing companion for trip questions, status, and approvals.',
+    summary: 'Your taai travel companion for discovery, planning, recommendations, and trip building.',
+  },
+  benny: {
+    name: 'Benny',
+    role: 'Support specialist',
+    travelerFacing: true,
+    summary: 'Traveler-facing for complaints, cancellations, refunds, and post-booking service recovery.',
   },
   bob: {
     name: 'Bob',
-    role: 'Planning specialist',
-    travelerFacing: true,
-    summary: 'Builds itineraries day-by-day inside Create Itinerary and planning flows.',
+    role: 'Planning specialist (internal)',
+    travelerFacing: false,
+    summary: 'Internal planning specialist that may support Miles behind the scenes.',
   },
   ajax: {
     name: 'Ajax',
