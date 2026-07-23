@@ -5,13 +5,15 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
+import type { PlanningDraftCardAction } from '@/types/planning-draft';
 
 interface ActivityResultCardProps {
   activity: any;
   searchParams?: any;
+  planningAction?: PlanningDraftCardAction;
 }
 
-export const ActivityResultCard = ({ activity, searchParams }: ActivityResultCardProps) => {
+export const ActivityResultCard = ({ activity, searchParams, planningAction }: ActivityResultCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
@@ -177,27 +179,44 @@ export const ActivityResultCard = ({ activity, searchParams }: ActivityResultCar
 
         {/* Add to Itinerary Button */}
         <div className="pt-4 border-t border-white/10 mt-auto">
-          <Button
-            onClick={handleAddToItinerary}
-            disabled={saving}
-            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {saving ? 'Saving...' : 'Activity'}
-          </Button>
+          {planningAction === undefined ? (
+            <Button
+              onClick={handleAddToItinerary}
+              disabled={saving}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {saving ? 'Saving...' : 'Activity'}
+            </Button>
+          ) : planningAction.mode === 'enabled' ? (
+            <Button
+              onClick={planningAction.onToggle}
+              variant={planningAction.selected ? 'secondary' : 'default'}
+              className="w-full"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {planningAction.selected ? 'Added to draft' : 'Add to draft'}
+            </Button>
+          ) : (
+            <Button disabled className="w-full" title={planningAction.reason}>
+              Cannot add
+            </Button>
+          )}
         </div>
       </div>
 
-      <ItineraryMatcherModal
-        open={showModal}
-        onOpenChange={setShowModal}
-        searchDates={{
-          checkin: searchParams?.checkin || new Date().toISOString().split('T')[0],
-          checkout: searchParams?.checkout || new Date().toISOString().split('T')[0]
-        }}
-        item={activity}
-        onConfirm={handleModalConfirm}
-      />
+      {planningAction === undefined && (
+        <ItineraryMatcherModal
+          open={showModal}
+          onOpenChange={setShowModal}
+          searchDates={{
+            checkin: searchParams?.checkin || new Date().toISOString().split('T')[0],
+            checkout: searchParams?.checkout || new Date().toISOString().split('T')[0]
+          }}
+          item={activity}
+          onConfirm={handleModalConfirm}
+        />
+      )}
     </div>
   );
 };

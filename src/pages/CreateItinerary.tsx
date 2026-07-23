@@ -14,6 +14,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { normalizeResult } from "@/lib/itinerary/planning-draft";
+import { PlanningDraftReview } from "@/components/itinerary/PlanningDraftReview";
+import type {
+  PlanningDraftItem,
+  PlanningDraftResultType,
+  ResultInteraction,
+} from "@/types/planning-draft";
 
 interface ItineraryData {
   name?: string;
@@ -40,6 +47,26 @@ const CreateItinerary = () => {
   const [itineraryData, setItineraryData] = useState<ItineraryData>({});
   const [isSaving, setIsSaving] = useState(false);
   const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
+  // In-memory Bob planning draft. Not persisted — refresh/navigation clears it.
+  const [draft, setDraft] = useState<PlanningDraftItem[]>([]);
+
+  const addToDraft = (resultType: PlanningDraftResultType, raw: unknown) => {
+    const normalized = normalizeResult(resultType, raw);
+    if (!normalized) return;
+    setDraft((prev) =>
+      prev.some((d) => d.draftId === normalized.draftId) ? prev : [...prev, normalized],
+    );
+  };
+  const removeFromDraft = (draftId: string) => {
+    setDraft((prev) => prev.filter((d) => d.draftId !== draftId));
+  };
+
+  const bobInteraction: ResultInteraction = {
+    mode: 'planning-draft',
+    selectedDraftIds: new Set(draft.map((d) => d.draftId)),
+    onAddToDraft: addToDraft,
+    onRemoveFromDraft: removeFromDraft,
+  };
   
   // Get prefilled message from navigation state
   const prefilledMessage = location.state?.prefilledMessage || null;
@@ -139,8 +166,10 @@ const CreateItinerary = () => {
               assistantSubtitle="Planning specialist"
               greeting="Hi, I'm Bob — your taai planning specialist. Where should we begin?"
               mobileComposerAssist
+              interaction={bobInteraction}
             />
           </div>
+          <PlanningDraftReview items={draft} onRemove={removeFromDraft} />
         </div>
       ) : (
         <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-6 md:pb-6">
