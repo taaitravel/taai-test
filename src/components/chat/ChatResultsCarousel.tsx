@@ -5,17 +5,25 @@ import { Badge } from '@/components/ui/badge';
 import { FlightResultCard } from '@/components/search/cards/FlightResultCard';
 import { HotelResultCard } from '@/components/search/cards/HotelResultCard';
 import { ActivityResultCard } from '@/components/search/cards/ActivityResultCard';
+import { normalizeResult } from '@/lib/itinerary/planning-draft';
+import type {
+  PlanningDraftCardAction,
+  PlanningDraftResultType,
+  ResultInteraction,
+} from '@/types/planning-draft';
 
 interface ChatResultsCarouselProps {
   results: any[];
-  resultType: 'hotels' | 'flights' | 'activities' | 'restaurants';
+  resultType: PlanningDraftResultType;
   constraintSummary?: string;
+  interaction?: ResultInteraction;
 }
 
 export const ChatResultsCarousel: React.FC<ChatResultsCarouselProps> = ({
   results,
   resultType,
   constraintSummary,
+  interaction = { mode: 'default' },
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -32,6 +40,25 @@ export const ChatResultsCarousel: React.FC<ChatResultsCarouselProps> = ({
   };
 
   const currentResult = results[currentIndex];
+
+  // In planning-draft mode we ALWAYS pass a discriminated planningAction to the
+  // card. Failed normalization renders as `disabled` — never as undefined —
+  // which keeps the default persistence path unreachable.
+  let planningAction: PlanningDraftCardAction | undefined;
+  if (interaction.mode === 'planning-draft') {
+    const normalized = normalizeResult(resultType, currentResult);
+    planningAction = normalized
+      ? {
+          mode: 'enabled',
+          draftId: normalized.draftId,
+          selected: interaction.selectedDraftIds.has(normalized.draftId),
+          onToggle: () =>
+            interaction.selectedDraftIds.has(normalized.draftId)
+              ? interaction.onRemoveFromDraft(normalized.draftId)
+              : interaction.onAddToDraft(resultType, currentResult),
+        }
+      : { mode: 'disabled', reason: 'This result cannot be added to your draft.' };
+  }
 
   const getDiversityLabelColor = (label: string) => {
     switch (label) {
@@ -51,14 +78,15 @@ export const ChatResultsCarousel: React.FC<ChatResultsCarouselProps> = ({
   const renderCard = () => {
     switch (resultType) {
       case 'flights':
-        return <FlightResultCard flight={currentResult} />;
+        return <FlightResultCard flight={currentResult} planningAction={planningAction} />;
       case 'hotels':
-        return <HotelResultCard hotel={currentResult} />;
+        return <HotelResultCard hotel={currentResult} planningAction={planningAction} />;
       case 'activities':
-        return <ActivityResultCard activity={currentResult} />;
+        return <ActivityResultCard activity={currentResult} planningAction={planningAction} />;
       case 'restaurants':
-        // Render restaurant as activity for now
-        return <ActivityResultCard activity={currentResult} />;
+        // Visual reuse only; the callback pipeline (normalizeResult + onAddToDraft)
+        // still receives 'restaurants' as the category.
+        return <ActivityResultCard activity={currentResult} planningAction={planningAction} />;
       default:
         return null;
     }
