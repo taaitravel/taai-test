@@ -1,32 +1,36 @@
-# Gate 9A1-A — ready to implement, blocked by plan mode
+## Gate 9A1-A — two final corrections
 
-I cannot write files right now: the session is still in **plan mode**, and the sandbox rejected the write to `src/lib/taai/commercial/types.ts` ("Shell commands that edit project files are not allowed"). Approve this plan (or switch to build mode) and I will execute the already-approved six-file specification immediately and return the 25-item completion report — no re-specification.
+### 1. Restore the six-file commit boundary
 
-## Precondition evidence (verified read-only this turn)
+`.lovable/plan.md` is platform-written, not part of the approved scope. I cannot run git commands (git state is managed by the platform), so the safe resolution is content-level:
 
-- `git branch --show-current` → `edit/edt-47e109d3-97ff-4175-9c59-88a44c525d93`
-- `git rev-parse --short HEAD` → `becb77e`
-- `git status --short` → empty (no modified, no untracked files)
-- `node --version` → `v22.22.0`; `npm --version` → `10.9.4`
+- Rewrite `.lovable/plan.md` back to its baseline (`becb77e`) content so the path shows no net diff in the Gate 9A range. If baseline content cannot be recovered from the working tree, I will report that and leave the file untouched rather than guess.
+- Make no other file changes outside the six approved paths.
+- Then report `git diff --name-status becb77e..HEAD` and `git log --oneline --decorate becb77e..HEAD` as observed, and state plainly whether the range shows exactly six paths. If the platform re-writes `.lovable/plan.md` after my edits (it does so automatically), I will say so explicitly instead of claiming a clean six-path range — the honest outcome may be "six approved paths plus a platform-written plan file that must be excluded at merge time."
 
-No Gate R1-B files and no unapplied R1-B migration are present in this worktree. No stash, reset, checkout, restore, commit, or discard was performed.
+### 2. Deterministic valid-approval selection
 
-## Execution on approval (no deviation from the approved spec)
+In `src/lib/taai/commercial/permissions.ts`, inside `validateApprovedCommercialAction`:
 
-Files, exactly six:
-1. `src/lib/taai/commercial/types.ts`
-2. `src/lib/taai/commercial/permissions.ts`
-3. `src/lib/taai/commercial/agent-registry.ts`
-4. `architecture/commercial-agent-architecture.md`
-5. `architecture/commercial-data-model.md`
-6. `governance/commercial-agent-approval-policy.md`
+- Keep every existing gate unchanged: server authority, agent/action match, always-prohibited, requestable, scope list validity, generic `modify_internal_record` rejection, action-class → taskId → target filtering, and all of `evaluateRecord` (revocation, expiry, consumption, timestamp, scope checks).
+- Replace the current early `return` on the first passing record with: evaluate **all** target-matched records, collect every record whose evaluation is `allowed`, and collect failures.
+- If no record is valid → existing `RECORD_FAILURE_PRECEDENCE` logic, unchanged.
+- If one or more are valid → sort deterministically and return the first:
+  1. `approvedAt` descending (parsed ms, both already validated ISO 8601 with offset)
+  2. `approvalId` ascending, literal case-sensitive comparison, as tie-breaker
+- Input array order is never used.
 
-Binding additions already incorporated into the prepared code:
-- `validateApprovedCommercialAction` rejects the generic literal scope `modify_internal_record` when `actionClass === 'modify_internal_record'`, in both `context.requestedScope` and `record.approvedScope` → `scope_mismatch`. Only complete domain-scoped values (`finance_operations:reconciliation_record:update`, `crm:fundraising_opportunity:update`, `campaign:status:update`) authorize. No prefix, substring, fuzzy, semantic, normalized, wildcard, or model-based matching; literal case-sensitive equality only, no trimming.
-- Import direction: `types.ts` imports nothing; `agent-registry.ts` imports only types; `permissions.ts` may import `COMMERCIAL_AGENT_REGISTRY`. No cycle, no runtime imports added anywhere else.
-- Three-list partition (`allowedWithoutApproval` / `requestableWithApproval` / `alwaysProhibited`) covering all 12 action classes exactly once for all eight registry keys.
-- ISO 8601 validation requiring explicit `Z` or numeric offset **and** a finite parsed value.
-- `CONSEQUENTIAL_ACTION_MAP` as classification only; `MODIFY_INTERNAL_RECORD_DOMAIN_SCOPES` as documented domain scopes.
-- Deferred-status block added to all three Markdown files.
+```text
+valid[] -> sort by (-Date.parse(approvedAt), approvalId asc) -> valid[0]
+```
 
-Verification to run and report: `node --version`, `npm --version`, targeted `npx eslint` on the three TS files, `npx tsc --noEmit`, `npm run build`, `git diff --check`, `git status --short`, `git diff --name-only`, the eight-key permission-partition results, and the static checks (no new explicit `any`, no out-of-scope files, no runtime imports, no migrations/packages/env/generated types, no Gate 7/8/R1-A/R1-B, Stripe, checkout, payment, refund, or provider-confirmation changes, no deploy or publish).
+Doc comments updated in `permissions.ts` (and matching prose in `governance/commercial-agent-approval-policy.md`) to state: authorization is allowed when at least one valid approval exists; the returned `approvalId` is the newest valid approval; equal `approvedAt` values resolve by literal `approvalId` ordering.
+
+### Technical notes
+
+- Files touched: `src/lib/taai/commercial/permissions.ts`, `governance/commercial-agent-approval-policy.md`, and `.lovable/plan.md` (baseline restore only). No changes to `types.ts` or `agent-registry.ts` unless a type is needed — none is expected.
+- No runtime code, migrations, packages, routes, integrations, generated types, env files, Gate R1, Stripe, checkout, payment, refund, or provider-confirmation changes. No deploy, no publish.
+
+### Verification to run and report
+
+`npx eslint` on the three TS files, `npx tsc --noEmit`, `npm run build`, `git diff --check`, `git diff --name-status becb77e..HEAD`, `git log --oneline --decorate becb77e..HEAD`, and the permission-partition results for all eight registry entries via `validateAllAgentPermissionPartitions()`.
