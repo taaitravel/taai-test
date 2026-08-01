@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { ItineraryHeader } from "@/components/itinerary/ItineraryHeader";
@@ -16,11 +17,13 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AgentChip } from "@/components/agents/AgentChip";
+import { normalizeTripWorkspaceSection, type TripWorkspaceSection } from "@/lib/trip-workspace/sections";
 
 const Itinerary = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const itineraryId = searchParams.get('id');
+  const selectedSection = normalizeTripWorkspaceSection(searchParams.get('section'));
 
   useEffect(() => {
     if (!itineraryId) {
@@ -49,6 +52,12 @@ const Itinerary = () => {
 
   // Attendees for chat button visibility
   const { attendees } = useItineraryAttendees(itineraryData?.id ? Number(itineraryData.id) : null);
+
+  const handleWorkspaceSectionChange = (section: TripWorkspaceSection) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('section', section);
+    setSearchParams(nextParams);
+  };
 
   const openEdit = (type: ItemType, index: number) => {
     if (!itineraryData) return;
@@ -217,11 +226,11 @@ const Itinerary = () => {
         onDelete={handleDelete}
         refreshMapData={refreshMapData}
         userRole={userRole}
+        selectedSection={selectedSection}
+        onSectionChange={handleWorkspaceSectionChange}
+        peopleContent={<TripPeopleAndBalances itineraryId={Number(itineraryData.id)} />}
+        onChatOpen={() => setChatOpen(true)}
       />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <TripPeopleAndBalances itineraryId={Number(itineraryData.id)} />
-      </div>
 
       <AddItemDialog
         open={editOpen}
