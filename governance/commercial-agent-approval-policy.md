@@ -206,6 +206,14 @@ Gate order: record source, agent-key match, action-class match, always-prohibite
 
 When no record passes, the returned reason follows this precedence: `approval_revoked`, `approval_expired`, `approval_consumed`, `approval_timestamp_missing`, `approval_timestamp_invalid`, `approval_not_approved`, `scope_mismatch`.
 
+## Multiple valid approvals
+
+- Authorization is allowed when at least one valid approval record exists for the agent, action class, task, and target.
+- Every target-matched record is evaluated; evaluation never short-circuits on the first passing record.
+- Valid records are sorted deterministically by `approvedAt` descending, then by `approvalId` ascending as tie-breaker. Comparison of `approvalId` is literal and case-sensitive.
+- The returned `approvalId` is the newest valid approval. Equal `approvedAt` values are resolved by literal `approvalId` ordering.
+- Selection never depends on the order of the input `records` array.
+
 ## Consequential action mapping
 
 Classification only; it is not approval, execution authority, or proof that all action classes a workflow requires were authorized.
