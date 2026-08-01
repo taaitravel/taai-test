@@ -4,6 +4,15 @@
 
 This document defines contracts only. It does not create or apply Supabase migrations.
 
+## Deferred status
+
+```text
+Gate 9A is accepted as deferred internal governance.
+It is not part of the active Gate R1 revenue implementation path.
+No runtime integration, migration, agent execution, investor CRM, outreach,
+dashboard, deployment, or production use is authorized.
+```
+
 ## Data system responsibilities
 
 - taai_Atlas: source-of-truth operational records for investors, CRM, commercial agent tasks, approvals, evidence, artifacts, and commercial planning entities.
@@ -17,11 +26,17 @@ Every investor fact, investor score, briefing, financial metric, and traction cl
 - source
 - source type
 - captured date
-- verification date
+- verification date (optional; unverified evidence must not be presented as verified)
 - confidence
 - data-quality status
 - known exclusions
 - responsible agent or person
+
+Confidence is a finite value between 0 and 1 inclusive.
+
+## Money contract
+
+Monetary contract fields use `MoneyAmount { amount, currency }` with an ISO 4217 currency code. Fund check-size minimum, check-size maximum, and fund size are currency-aware and optional. No implicit FX conversion is performed anywhere in these contracts.
 
 ## Data-quality states
 
@@ -82,12 +97,50 @@ Core fields:
 - investor organization id
 - fund name
 - fund stage focus
-- check-size minimum and maximum
+- check-size minimum and maximum, each as a currency-aware MoneyAmount
 - lead/follow preference
 - geography focus
 - sector focus
-- fund size, if verified
+- fund size, if verified, as a currency-aware MoneyAmount
 - source and verification metadata
+
+## Approval record contract
+
+| Field | Required | Notes |
+|---|---|---|
+| approvalId | Yes | Returned on a successful authorization |
+| taskId | Yes | Must match the evaluated task exactly |
+| requester | Yes | Recorded for audit |
+| approver | Yes | marco or authorized_delegate |
+| actionClass | Yes | Must match the evaluated action class exactly |
+| targetEntityType | Yes | Must match the evaluated target type exactly |
+| targetEntityId | Yes | Must match the evaluated target id exactly |
+| approvedScope | Yes | Non-empty literal domain-scoped values, no wildcards |
+| status | Yes | requested, approved, denied, expired, revoked |
+| approvedAt | Yes when approved | ISO 8601 with Z or numeric offset |
+| expiresAt | No | When present, valid and later than approvedAt |
+| revokedAt / revokedReason | No | When revokedAt is present the record is revoked |
+| consumedAt | No | Invalidates only one-time-use approvals |
+| oneTimeUse | Yes | One-time approvals cannot be reused |
+| requiredCompletionEvidence | Yes | Durable evidence required at completion |
+
+Requirement status (`not_required`, `required`) is separate from record status. An absent `expiresAt` grants no broader authority.
+
+### Domain scope format for modify_internal_record
+
+`domain:entity:operation`, for example:
+
+- `finance_operations:reconciliation_record:update`
+- `crm:fundraising_opportunity:update`
+- `campaign:status:update`
+
+The generic literal `modify_internal_record` is rejected in both requested and approved scope. A domain prefix is never broad authorization. Comparison is literal and case-sensitive with no trimming, normalization, prefix, substring, semantic, wildcard, or model-based matching.
+
+### Authorization outcome reasons
+
+Machine-readable reasons: `allowed`, `unverified_approval_source`, `agent_action_prohibited`, `agent_cannot_request_action`, `no_matching_approval`, `task_mismatch`, `target_mismatch`, `approval_revoked`, `approval_expired`, `approval_consumed`, `approval_timestamp_missing`, `approval_timestamp_invalid`, `approval_not_approved`, `scope_mismatch`.
+
+Failure precedence when no record passes: `approval_revoked`, `approval_expired`, `approval_consumed`, `approval_timestamp_missing`, `approval_timestamp_invalid`, `approval_not_approved`, `scope_mismatch`.
 
 ### fund_portfolio_companies
 
