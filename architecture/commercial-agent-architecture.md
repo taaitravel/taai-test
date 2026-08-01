@@ -4,6 +4,17 @@
 
 Gate 9A1-A defines internal commercial-agent contracts and governance only. It does not create database migrations, runtime agent execution, dashboards, routes, external communications, investor outreach, deployment, publication, payment changes, provider-confirmation changes, or production changes.
 
+## Deferred status
+
+```text
+Gate 9A is accepted as deferred internal governance.
+It is not part of the active Gate R1 revenue implementation path.
+No runtime integration, migration, agent execution, investor CRM, outreach,
+dashboard, deployment, or production use is authorized.
+```
+
+The TypeScript contracts in `src/lib/taai/commercial/` compile as deferred definitions only. No route, page, component, hook, edge function, Ajax runtime, Hermes runtime, Miles, Benny, Supabase operation, or production authorization flow imports them.
+
 ## Operating model
 
 ### Traveler-facing boundary
@@ -41,11 +52,11 @@ Business rules and permissions → taai_Nucleus
 
 ## Internal commercial capabilities
 
-### Investor Intelligence
+### Investor Intelligence (unnamed capability)
 
 Purpose: investor discovery, thesis matching, portfolio analysis, check-size and stage qualification, warm-path research, investor scoring, and briefing generation.
 
-Primary owner capability: Scout may expand into investor research only when the workflow remains internal, evidence-backed, source-cited, and approval-gated for external use.
+Owner: none. Registry key `investor_intelligence_capability` carries `permanentAgentNameApproved: false` and contains no assigned agent. Scout is not assigned to this capability; Scout's canonical travel-research identity is unchanged and lives outside these deferred commercial contracts.
 
 Allowed without approval:
 
@@ -66,7 +77,7 @@ Requires deterministic approval:
 
 Purpose: MRR, ARR, GMV, revenue, commissions, service fees, expenses, burn, runway, forecasts, fundraising scenarios, use of funds, valuation assumptions, and investor financial summaries.
 
-Boundary: Lester owns financial operations, reconciliation, commissions, payment reporting, and payment evidence. Lester is not automatically the FP&A or investor-modeling owner. Gate 9A1-A reserves FP&A/investor-modeling ownership as a separate commercial finance capability until Marco approves a permanent owner.
+Boundary: Lester owns finance operations only — `financial_operations_summary`, `payment_reconciliation`, `commission_reconciliation`, `payment_reporting`, `revenue_source_reconciliation`. FP&A and investor modeling belong to the separate unnamed capability `fpna_investor_modeling_capability` (`permanentAgentNameApproved: false`, no runtime authority), which holds `financial_kpi_snapshot`, `investor_financial_summary`, `fundraising_scenario`, `use_of_funds_plan`, and `valuation_assumption_summary`.
 
 Allowed without approval:
 
@@ -132,27 +143,37 @@ Requires deterministic approval:
 | Benny | support and service recovery | Yes | No |
 | Ajax | owner/admin interface | No | No |
 | Hermes | internal orchestration | No | No |
-| Scout / Investor Intelligence | research and investor intelligence | No | No |
+| Investor Intelligence capability (unnamed) | investor research and intelligence | No | No |
 | Scott / Growth | growth, performance, attribution | No | No |
 | Manny / Creative | content, pitch, and campaign collateral | No | No |
-| Lester / Finance Ops | reconciliation, commissions, payment reporting | No | No |
+| Lester / Finance Ops | reconciliation, commissions, payment reporting only | No | No |
+| FP&A and Investor Modeling capability (unnamed) | KPI snapshots, investor modeling | No | No |
 | Sales/IR capability | CRM, outreach drafts, investor relations workflow | No | No |
+
+## Permission partition rule
+
+Each registry entry partitions all action classes exactly once across `allowedWithoutApproval`, `requestableWithApproval`, and `alwaysProhibited`. Missing or duplicated action classes are contract errors.
+
+`execute_internal` is replaced by `execute_internal_ephemeral` (no durable record change) and `modify_internal_record` (durable change, domain-scoped approval required).
 
 ## Required task envelope
 
 Every commercial workflow must define:
 
+- task id
 - objective
 - requesting user
 - capability or agent key
+- task type
 - source systems
 - permitted actions
 - prohibited actions
 - approval requirements
-- required output
+- required artifact types
 - success criteria
 - completion evidence
-- data-quality requirements
+- minimum data quality
+- created timestamp
 
 ## Completion evidence
 
