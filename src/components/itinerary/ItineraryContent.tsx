@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useRef, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { ItineraryData } from "@/types/itinerary";
 import { ItineraryInfoHeader } from "./ItineraryInfoHeader";
 import { TripOverviewSection } from "./TripOverviewSection";
@@ -7,21 +9,28 @@ import { Map } from "@/components/Map";
 import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItineraryCalendarView } from "./ItineraryCalendarView";
-import { ItinerarySidebar } from "./ItinerarySidebar";
+import { BudgetPieChart } from "./BudgetPieChart";
+import { BookingCart } from "@/components/booking/BookingCart";
 import { AddItemDialog, ItemType } from "./AddItemDialog";
 import { AddDestinationDialog } from "./AddDestinationDialog";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { List, CalendarDays } from "lucide-react";
+import { CalendarDays, List, MessageCircle, Search, Sparkles } from "lucide-react";
 
 import { useEnhancedCityFormatting } from "@/hooks/useEnhancedCityFormatting";
 import { useExpediaMapSync } from "@/hooks/useExpediaMapSync";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/hooks/useAuthenticatedItineraryData";
 import { toast } from "sonner";
+import { type TripWorkspaceSection } from "@/lib/trip-workspace/sections";
+import { TripWorkspaceNavigation } from "./workspace/TripWorkspaceNavigation";
+import { TripWorkspaceOverview } from "./workspace/TripWorkspaceOverview";
+import { TripWorkspacePlan } from "./workspace/TripWorkspacePlan";
+import { TripWorkspaceBookings, type TripWorkspaceCartItem } from "./workspace/TripWorkspaceBookings";
+import { TripWorkspaceCosts } from "./workspace/TripWorkspaceCosts";
+import { TripWorkspacePeople } from "./workspace/TripWorkspacePeople";
 
 interface ItineraryContentProps {
   itineraryData: ItineraryData;
@@ -35,6 +44,10 @@ interface ItineraryContentProps {
   onDelete?: (type: string, index: number) => void;
   refreshMapData?: () => void;
   userRole?: UserRole;
+  selectedSection: TripWorkspaceSection;
+  onSectionChange: (section: TripWorkspaceSection) => void;
+  peopleContent: ReactNode;
+  onChatOpen: () => void;
 }
 
 export const ItineraryContent = ({
@@ -49,6 +62,10 @@ export const ItineraryContent = ({
   onDelete,
   refreshMapData,
   userRole,
+  selectedSection,
+  onSectionChange,
+  peopleContent,
+  onChatOpen,
 }: ItineraryContentProps) => {
   const duration = Math.ceil(
     (new Date(itineraryData.itin_date_end).getTime() - 
@@ -70,13 +87,49 @@ export const ItineraryContent = ({
     supabase.functions.invoke('generate-reminders', {
       body: { itinerary_id: itineraryData.id },
     }).catch(console.warn);
-  }, [user, itineraryData.id]);
+  }, [user, itineraryData.id, itineraryData.itin_date_start]);
 
   // Local add modal state and handlers
   const [addOpen, setAddOpen] = useState(false);
   const [addType, setAddType] = useState<ItemType | null>(null);
   const [addDestinationOpen, setAddDestinationOpen] = useState(false);
   const [scheduleView, setScheduleView] = useState<'list' | 'calendar'>('calendar');
+  const [cartItems, setCartItems] = useState<TripWorkspaceCartItem[]>([]);
+
+  const itineraryRecord = itineraryData as ItineraryData & { itin_id?: string | null };
+  const cartItineraryId = itineraryRecord.itin_id ?? String(itineraryData.id);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchCartSummary = async () => {
+      const { data, error } = await supabase
+        .from('cart_items')
+        .select('id, type, price, booking_status')
+        .eq('itinerary_id', cartItineraryId)
+        .order('saved_at', { ascending: false });
+
+      if (error) {
+        console.warn('Failed to load trip cart summary', error);
+        return;
+      }
+
+      if (!cancelled) {
+        setCartItems((data || []).map((item) => ({
+          id: String(item.id),
+          type: item.type || 'item',
+          price: Number(item.price) || 0,
+          bookingStatus: item.booking_status || null,
+        })));
+      }
+    };
+
+    fetchCartSummary();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cartItineraryId]);
 
   const openAdd = (type: ItemType) => {
     setAddType(type);
@@ -212,105 +265,215 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
   // Removed auto-geocoding/sync of hotels/activities/reservations to map.
   // We now rely solely on stored itin_map_locations and explicit user-selected coordinates.
 
+  const itineraryItemCount =
+    (itineraryData.flights || []).length +
+    (itineraryData.hotels || []).length +
+    (itineraryData.activities || []).length +
+    (itineraryData.reservations || []).length;
+
+  const cartTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+
+  const now = Date.now();
+  const startMs = new Date(itineraryData.itin_date_start).getTime();
+  const endMs = new Date(itineraryData.itin_date_end).getTime();
+  const tripStatus = now < startMs ? 'Upcoming' : now <= endMs ? 'In progress' : 'Completed';
+  const daysUntilStart = Math.ceil((startMs - now) / (1000 * 60 * 60 * 24));
+  const countdownLabel = daysUntilStart > 0
+    ? `${daysUntilStart} ${daysUntilStart === 1 ? 'day' : 'days'} until departure`
+    : tripStatus;
+
+  type WorkspaceMapCategory = 'flight' | 'hotel' | 'activity' | 'reservation' | 'car' | 'package' | 'destination';
+  const mapLocations = itineraryData.itin_map_locations as Array<{ city: string; lat: number; lng: number; category?: WorkspaceMapCategory }> | undefined;
+
+  const mapView = (
+    <div className="border border-border rounded-xl overflow-hidden bg-background shadow-sm h-[390px]">
+      <Map locations={mapLocations?.filter((loc) =>
+        loc.category === 'destination' || !loc.category
+      ) || []} />
+    </div>
+  );
+
+  const stackedCards = (
+    <ItineraryStackedCards
+      flights={itineraryData.flights || []}
+      hotels={itineraryData.hotels || []}
+      activities={itineraryData.activities || []}
+      reservations={itineraryData.reservations || []}
+      onFlightClick={onFlightClick}
+      onHotelClick={onHotelClick}
+      onActivityClick={onActivityClick}
+      onReservationClick={onReservationClick}
+      onAddFlight={() => openAdd('flights')}
+      onAddHotel={() => openAdd('hotels')}
+      onAddActivity={() => openAdd('activities')}
+      onAddReservation={() => openAdd('reservations')}
+      onEdit={onEdit}
+      onDelete={onDelete}
+    />
+  );
+
+  const scheduleControls = (
+    <div className="flex items-center justify-end mb-2">
+      <ToggleGroup
+        type="single"
+        value={scheduleView}
+        onValueChange={(v) => v && setScheduleView(v as 'list' | 'calendar')}
+        size="sm"
+      >
+        <ToggleGroupItem value="calendar" aria-label="Calendar view">
+          <CalendarDays className="h-3.5 w-3.5 mr-1" /> Calendar
+        </ToggleGroupItem>
+        <ToggleGroupItem value="list" aria-label="List view">
+          <List className="h-3.5 w-3.5 mr-1" /> List
+        </ToggleGroupItem>
+      </ToggleGroup>
+    </div>
+  );
+
+  const scheduleViewContent = scheduleView === 'list' ? (
+    <DailyScheduleSection
+      startDate={itineraryData.itin_date_start}
+      duration={duration}
+      destinations={destinations}
+      itineraryId={itineraryData.id}
+      flights={itineraryData.flights || []}
+      hotels={itineraryData.hotels || []}
+      activities={itineraryData.activities || []}
+      reservations={itineraryData.reservations || []}
+      onViewItem={(type, index) => {
+        if (type === 'flights') return onFlightClick(index);
+        if (type === 'hotels') return onHotelClick(index);
+        if (type === 'activities') return onActivityClick(index);
+        if (type === 'reservations') return onReservationClick(index);
+      }}
+    />
+  ) : (
+    <ItineraryCalendarView
+      startDate={itineraryData.itin_date_start}
+      duration={duration}
+      destinations={destinations}
+      itineraryId={itineraryData.id}
+      flights={itineraryData.flights || []}
+      hotels={itineraryData.hotels || []}
+      activities={itineraryData.activities || []}
+      reservations={itineraryData.reservations || []}
+      onViewItem={(type, index) => {
+        if (type === 'flights') return onFlightClick(index);
+        if (type === 'hotels') return onHotelClick(index);
+        if (type === 'activities') return onActivityClick(index);
+        if (type === 'reservations') return onReservationClick(index);
+      }}
+    />
+  );
+
+  const budgetChart = (
+    <BudgetPieChart
+      itineraryId={itineraryData.id}
+      totalBudget={itineraryData.budget}
+      totalSpent={itineraryData.spending}
+      refreshTrigger={budgetRefreshTrigger}
+    />
+  );
+
+  const renderSelectedSection = () => {
+    switch (selectedSection) {
+      case 'plan':
+        return (
+          <TripWorkspacePlan>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <TripOverviewSection
+                  duration={duration}
+                  budget={Number(itineraryData.budget)}
+                  peopleCount={peopleCount}
+                  destinations={destinations}
+                  description={itineraryData.itin_desc}
+                  onRemoveDestination={isCollaborator ? undefined : handleRemoveDestination}
+                  onAddDestination={isCollaborator ? undefined : () => setAddDestinationOpen(true)}
+                  isUpcoming={isUpcoming}
+                />
+              </div>
+              <div className="lg:col-span-2">{mapView}</div>
+            </div>
+            {stackedCards}
+            {scheduleControls}
+            {scheduleViewContent}
+          </TripWorkspacePlan>
+        );
+      case 'bookings':
+        return (
+          <TripWorkspaceBookings
+            itineraryData={itineraryData}
+            cartItems={cartItems}
+            cartView={(
+              <BookingCart
+                itineraryId={cartItineraryId}
+                onCartUpdate={(items) => setCartItems(items.map((item) => ({
+                  id: String(item.id),
+                  type: item.type || 'item',
+                  price: Number(item.price) || 0,
+                  bookingStatus: item.booking_status || null,
+                })))}
+              />
+            )}
+          />
+        );
+      case 'costs':
+        return (
+          <TripWorkspaceCosts
+            budget={Number(itineraryData.budget) || 0}
+            spending={Number(itineraryData.spending) || 0}
+            cartTotal={cartTotal}
+            travelersCount={peopleCount}
+            budgetChart={budgetChart}
+          />
+        );
+      case 'people':
+        return <TripWorkspacePeople>{peopleContent}</TripWorkspacePeople>;
+      case 'overview':
+      default:
+        return (
+          <TripWorkspaceOverview
+            itineraryData={itineraryData}
+            duration={duration}
+            peopleCount={peopleCount}
+            itineraryItemCount={itineraryItemCount}
+            cartItemCount={cartItems.length}
+            cartTotal={cartTotal}
+            tripStatus={tripStatus}
+            countdownLabel={countdownLabel}
+            onInvite={() => onSectionChange('people')}
+          />
+        );
+    }
+  };
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
       <ItineraryInfoHeader itineraryData={itineraryData} userRole={userRole} />
-      {/* Trip Overview & Map Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <TripOverviewSection
-          duration={duration}
-          budget={Number(itineraryData.budget)}
-          peopleCount={peopleCount}
-          destinations={destinations}
-          description={itineraryData.itin_desc}
-          onRemoveDestination={isCollaborator ? undefined : handleRemoveDestination}
-          onAddDestination={isCollaborator ? undefined : () => setAddDestinationOpen(true)}
-          isUpcoming={isUpcoming}
-        />
-        <div className="lg:col-span-2">
-          <div className="border border-border rounded-xl overflow-hidden bg-background shadow-sm h-[390px]">
-            <Map locations={itineraryData.itin_map_locations?.filter((loc: any) => 
-              loc.category === 'destination' || !loc.category
-            ) || []} />
-          </div>
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-border bg-card/70 p-3 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-foreground">Living trip workspace</p>
+          <p className="text-xs text-muted-foreground">The itinerary stays flexible as plans, people, bookings, and costs change.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={onChatOpen}>
+            <MessageCircle className="mr-2 h-4 w-4" />Chat with the group
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={onChatOpen}>
+            <Sparkles className="mr-2 h-4 w-4" />Ask Miles
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/search"><Search className="mr-2 h-4 w-4" />Search taai</Link>
+          </Button>
         </div>
       </div>
 
-      {/* Stacked Cards Section */}
-      <ItineraryStackedCards
-        flights={itineraryData.flights || []}
-        hotels={itineraryData.hotels || []}
-        activities={itineraryData.activities || []}
-        reservations={itineraryData.reservations || []}
-        onFlightClick={onFlightClick}
-        onHotelClick={onHotelClick}
-        onActivityClick={onActivityClick}
-        onReservationClick={onReservationClick}
-        onAddFlight={() => openAdd('flights')}
-        onAddHotel={() => openAdd('hotels')}
-        onAddActivity={() => openAdd('activities')}
-        onAddReservation={() => openAdd('reservations')}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      <TripWorkspaceNavigation selectedSection={selectedSection} onSectionChange={onSectionChange} />
 
-      {/* Essential Metrics & Daily Schedule */}
-      <div className="flex items-center justify-end mb-2">
-        <ToggleGroup
-          type="single"
-          value={scheduleView}
-          onValueChange={(v) => v && setScheduleView(v as 'list' | 'calendar')}
-          size="sm"
-        >
-          <ToggleGroupItem value="calendar" aria-label="Calendar view">
-            <CalendarDays className="h-3.5 w-3.5 mr-1" /> Calendar
-          </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label="List view">
-            <List className="h-3.5 w-3.5 mr-1" /> List
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-start">
-{scheduleView === 'list' ? (
-  <DailyScheduleSection
-    startDate={itineraryData.itin_date_start}
-    duration={duration}
-    destinations={destinations}
-    itineraryId={itineraryData.id}
-    flights={itineraryData.flights || []}
-    hotels={itineraryData.hotels || []}
-    activities={itineraryData.activities || []}
-    reservations={itineraryData.reservations || []}
-    onViewItem={(type, index) => {
-      if (type === 'flights') return onFlightClick(index);
-      if (type === 'hotels') return onHotelClick(index);
-      if (type === 'activities') return onActivityClick(index);
-      if (type === 'reservations') return onReservationClick(index);
-    }}
-  />
-) : (
-  <ItineraryCalendarView
-    startDate={itineraryData.itin_date_start}
-    duration={duration}
-    destinations={destinations}
-    itineraryId={itineraryData.id}
-    flights={itineraryData.flights || []}
-    hotels={itineraryData.hotels || []}
-    activities={itineraryData.activities || []}
-    reservations={itineraryData.reservations || []}
-    onViewItem={(type, index) => {
-      if (type === 'flights') return onFlightClick(index);
-      if (type === 'hotels') return onHotelClick(index);
-      if (type === 'activities') return onActivityClick(index);
-      if (type === 'reservations') return onReservationClick(index);
-    }}
-  />
-)}
-        <ItinerarySidebar 
-          itineraryData={itineraryData} 
-          refreshTrigger={budgetRefreshTrigger} 
-        />
+      <div className="mt-6">
+        {renderSelectedSection()}
       </div>
 
 
