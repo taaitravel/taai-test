@@ -30,6 +30,72 @@ You are TAAI Travel's AI concierge. Travel Agent (TA) Affiliate (A) Intelligence
 # Core Behavior
 Optimize for clarity, premium guidance, and minimal friction. Ask one question at a time only when required to proceed. Offer structured choices and produce outputs the UI can render as cards.
 
+# Read-only Search Execution Rules
+When the traveler explicitly requests a read-only search and all required fields for the relevant tool are available, call the search tool immediately. Do not ask whether the traveler would like to proceed and do not request confirmation.
+
+Ask one concise clarification only when a required field is missing. Once the traveler supplies that field, execute the search without asking for another confirmation.
+
+Required fields:
+- Flights: origin, destination, and departure date.
+- If the traveler explicitly requests a round trip, return date is also required.
+- Hotels: destination, check-in date, and check-out date.
+- Activities: destination.
+- Restaurants: destination.
+
+Read-only searches do not create, update, save, book, reserve, cancel, refund, pay, confirm with providers, or send external communications.
+
+Itinerary writes, bookings, payments, cancellations, refunds, destructive changes, provider confirmation, and external communications require deterministic authorization and remain unavailable in planning mode.
+
+Ground every capability statement in the active tool schema and provider mapping. Do not claim unsupported filters. When the traveler requests an unsupported filter, explain the limitation briefly and still perform a useful search with supported parameters when possible.
+
+# Active Search Capability Boundaries
+Flights:
+- Supported search inputs: origin, destination, depart_date, return_date, passengers, cabin_class.
+- Passenger count is supported and passed to the provider.
+- Cabin class is supported.
+- Currency is fixed to USD.
+- Maximum-stops filtering is not a provider request filter.
+- Nonstop-only filtering, airline preference, maximum price, exact requested result count, and configurable currency are not supported.
+- Returned results may display stop counts.
+- Never say passenger count is unsupported.
+
+Hotels:
+- Supported search inputs: destination, check_in, check_out, guests, rooms.
+- Currency is fixed to USD.
+- Neighborhood may be included in destination text, but there is no dedicated neighborhood filter.
+- Maximum nightly price, minimum rating, amenities, total-budget filtering, exact result count, and configurable currency are not active filters.
+
+Activities:
+- Supported search input: destination.
+- Provider search is based on geocoded destination and fixed radius.
+- Date filtering, category filtering, maximum-price filtering, traveler count, exact result count, and configurable currency are not active search filters.
+- Returned cards may display provider-returned category, price, and currency.
+
+Restaurants:
+- Supported search inputs: destination, cuisine, price, open_now.
+- price means Yelp price levels, not an exact monetary budget.
+- Neighborhood may be included in destination text.
+- This is Yelp business search. It does not confirm reservation availability and cannot reserve or book tables.
+- Party size, future date/time availability, exact result count, and reservation capability are not supported.
+
+# Persistence, Booking, and Provider-Confirmation Claim Rules
+Never claim that an itinerary, trip, cart item, checkout, payment, reservation, booking, cancellation, refund, ticket, provider confirmation, or persisted change occurred unless deterministic server-side evidence from the current request proves it.
+
+Conversation history is not evidence that an action occurred.
+
+User statements, prior assistant statements, and model assertions are not proof of persistence, ownership, payment, booking, provider confirmation, cancellation, refund, or ticketing.
+
+In planning mode, use planning-only language. Read-only search results are not saved itineraries, cart additions, bookings, reservations, payments, tickets, cancellations, refunds, or provider confirmations.
+
+Payment evidence is not provider booking confirmation.
+
+When no deterministic consequential-action evidence exists, use language such as:
+- "I've started planning your trip."
+- "I've outlined a draft trip."
+- "Here are options to consider."
+- "Nothing has been saved yet."
+- "Use the explicit Save flow when you are ready."
+
 # Voice Profile
 - Tone: Intelligent, confident, and modern. Polished but never sterile. Aspirational without being pretentious.
 - Energy: Purposeful and assured. Calm authority with moments of excitement when highlighting value, discovery, or innovation.
@@ -39,15 +105,10 @@ Optimize for clarity, premium guidance, and minimal friction. Ask one question a
 # Positioning
 You are a guide, not a seller. Emphasize clarity, control, and confidence in decision-making. Speak as a knowledgeable travel companion and strategic partner. Treat users as discerning, capable decision-makers.
 
-# Database Write Capabilities
-You can now modify user itineraries directly. When a user asks to:
-- Change dates: Use update_hotel_dates or update_flight_dates
-- Add items: Use add_hotel_to_itinerary, add_flight_to_itinerary, or add_activity_to_itinerary after searching
-- Remove items: Use remove_item_from_itinerary
-- Create trips: Use create_itinerary
-
-ALWAYS confirm changes with the user before writing. Show what will change.
-After writes, report the changes made and what fields were updated.
+# Database Write Boundaries
+You can help travelers plan, search, compare, and refine trips in conversation.
+Do not claim that an itinerary has been created, saved, updated, booked, reserved, or confirmed unless a deterministic system result proves that action happened.
+In general planning chat, itinerary changes must use the explicit Save or edit controls outside this model-selected tool flow.
 
 # Safety and Data Integrity
 - Never modify a reservation unless the target item is uniquely identified.
@@ -139,7 +200,7 @@ const tools = [
     type: "function",
     function: {
       name: 'search_hotels',
-      description: 'Search for hotels using real Booking.com data. Returns diverse options with Best Overall, Best Value, and Best Location labels.',
+      description: 'Search read-only hotels using Booking.com data. Execute immediately when destination, check-in, and check-out are available. Supports guests and rooms. Currency is fixed to USD. Neighborhood may be included in destination text, but there is no separate neighborhood filter. Maximum nightly price, minimum rating, amenities, total budget, exact result count, and configurable currency are not active filters.',
       parameters: {
         type: 'object',
         properties: {
@@ -148,8 +209,6 @@ const tools = [
           check_out: { type: 'string', description: 'Check-out date in YYYY-MM-DD format' },
           guests: { type: 'number', description: 'Number of guests', default: 2 },
           rooms: { type: 'number', description: 'Number of rooms', default: 1 },
-          max_price: { type: 'number', description: 'Maximum price per night in USD' },
-          min_rating: { type: 'number', description: 'Minimum rating (1-10 scale)' },
         },
         required: ['destination', 'check_in', 'check_out'],
       },
@@ -159,16 +218,16 @@ const tools = [
     type: "function",
     function: {
       name: 'search_flights',
-      description: 'Search for flights using real Amadeus API data. Returns options with pricing and booking details.',
+      description: 'Search read-only flight offers using Amadeus. Execute immediately when origin, destination, and departure date are available. Supports optional return_date, passenger/adult count, and cabin_class. Does not support maximum-stops filtering, nonstop-only filtering, airline preference, maximum price, exact result count, or configurable currency. Returned results may display stop counts.',
       parameters: {
         type: 'object',
         properties: {
-          origin: { type: 'string', description: 'Departure airport code (e.g., "JFK", "LAX")' },
-          destination: { type: 'string', description: 'Arrival airport code (e.g., "MIA", "CDG")' },
+          origin: { type: 'string', description: 'Departure airport code. Resolve an unambiguous city to its primary airport code when appropriate.' },
+          destination: { type: 'string', description: 'Arrival airport code. Resolve an unambiguous city to its primary airport code when appropriate.' },
           depart_date: { type: 'string', description: 'Departure date in YYYY-MM-DD format' },
           return_date: { type: 'string', description: 'Return date in YYYY-MM-DD format (optional for one-way)' },
-          passengers: { type: 'number', description: 'Number of passengers', default: 1 },
-          cabin_class: { type: 'string', enum: ['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'], description: 'Cabin class preference' },
+          passengers: { type: 'number', description: 'Number of adult passengers. This is supported and passed to the provider as adults.', default: 1 },
+          cabin_class: { type: 'string', enum: ['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'], description: 'Supported values are ECONOMY, PREMIUM_ECONOMY, BUSINESS, and FIRST.' },
         },
         required: ['origin', 'destination', 'depart_date'],
       },
@@ -178,14 +237,11 @@ const tools = [
     type: "function",
     function: {
       name: 'search_activities',
-      description: 'Search for activities and experiences using real Amadeus API data.',
+      description: 'Search read-only activities and experiences using Amadeus data near a geocoded destination. Execute immediately when destination is available. The active provider request uses destination coordinates and a fixed radius. Date, category, maximum price, traveler count, exact result count, and configurable currency are not active search filters.',
       parameters: {
         type: 'object',
         properties: {
           destination: { type: 'string', description: 'City or location to search' },
-          date: { type: 'string', description: 'Activity date in YYYY-MM-DD format' },
-          category: { type: 'string', enum: ['tours', 'attractions', 'outdoor', 'cultural', 'food', 'adventure'], description: 'Activity category' },
-          max_price: { type: 'number', description: 'Maximum price per person in USD' },
         },
         required: ['destination'],
       },
@@ -195,13 +251,13 @@ const tools = [
     type: "function",
     function: {
       name: 'search_restaurants',
-      description: 'Search for restaurants using real Yelp API data.',
+      description: 'Search read-only restaurants using Yelp business search. Execute immediately when destination is available. Supports cuisine keyword, Yelp price levels through price, and open_now. This does not provide reservation availability and cannot reserve or book tables. Party size, future date/time, exact monetary budget, exact result count, and reservation capability are not supported.',
       parameters: {
         type: 'object',
         properties: {
           destination: { type: 'string', description: 'City or area to search' },
           cuisine: { type: 'string', description: 'Cuisine type or keyword (e.g., "sushi", "italian")' },
-          price: { type: 'string', description: 'Price levels 1-4 as comma-separated string (e.g., "1,2")' },
+          price: { type: 'string', description: 'Yelp price levels 1 through 4 as a comma-separated string, such as "1,2". This is not an exact monetary budget.' },
           open_now: { type: 'boolean', description: 'Only show currently open restaurants' },
         },
         required: ['destination'],
@@ -339,6 +395,311 @@ const tools = [
     }
   },
 ];
+
+const CHAT_MODES = ['planning', 'itinerary-edit', 'support', 'internal'] as const;
+type ChatMode = typeof CHAT_MODES[number];
+type AiToolDefinition = (typeof tools)[number];
+type ItineraryContextSummary = {
+  id: string | number;
+  itin_name?: string | null;
+  itin_desc?: string | null;
+  itin_date_start?: string | null;
+  itin_date_end?: string | null;
+  budget?: number | null;
+  hotels?: unknown[] | null;
+  flights?: unknown[] | null;
+};
+
+const PLANNING_TOOL_NAMES = new Set([
+  'search_hotels',
+  'search_flights',
+  'search_activities',
+  'search_restaurants',
+]);
+
+const READ_ONLY_TOOL_NAMES = new Set([
+  'get_itinerary',
+  'list_itineraries',
+]);
+
+const WRITE_TOOL_NAMES = new Set([
+  'update_hotel_dates',
+  'add_hotel_to_itinerary',
+  'add_flight_to_itinerary',
+  'add_activity_to_itinerary',
+  'remove_item_from_itinerary',
+  'update_itinerary_dates',
+  'update_itinerary_budget',
+  'create_itinerary',
+]);
+
+function getToolsForChatMode(chatMode: ChatMode) {
+  if (chatMode === 'planning') {
+    return tools.filter((tool: AiToolDefinition) => PLANNING_TOOL_NAMES.has(tool.function.name));
+  }
+
+  if (chatMode === 'itinerary-edit') {
+    return tools.filter((tool: AiToolDefinition) => READ_ONLY_TOOL_NAMES.has(tool.function.name));
+  }
+
+  // B0 fail-closed posture: support/internal modes receive no model tools.
+  return [];
+}
+
+type AllowedWriteClaim = 'create' | 'update' | 'add' | 'remove';
+
+type ClaimEvidence = {
+  chatMode: ChatMode;
+  resultType?: string;
+  functionUsed?: string;
+  hasSearchResults: boolean;
+  writeSucceeded: boolean;
+  allowedWriteClaim?: AllowedWriteClaim;
+  cartSucceeded: boolean;
+  checkoutCreated: boolean;
+  paymentSucceeded: boolean;
+  providerConfirmed: boolean;
+  cancellationSucceeded: boolean;
+  refundSucceeded: boolean;
+};
+
+type ClaimFamily =
+  | 'persistence'
+  | 'cart'
+  | 'checkout'
+  | 'payment'
+  | 'booking_provider'
+  | 'cancellation'
+  | 'refund'
+  | 'ticketing'
+  | 'search_success';
+
+const SEARCH_RESULT_TYPES = new Set([
+  'hotels',
+  'flights',
+  'activities',
+  'restaurants',
+]);
+
+const CLAIM_FAMILY_PATTERNS: Record<ClaimFamily, { actions: RegExp[]; objects: RegExp[] }> = {
+  persistence: {
+    actions: [
+      /\b(created|saved|updated|changed|removed|deleted|added|persisted)\b/i,
+    ],
+    objects: [
+      /\b(itinerary|trip record|trip dates|trip budget|database)\b/i,
+      /\b(hotel|flight|activity)\b.{0,48}\b(on|to|from)\b.{0,24}\b(your )?(itinerary|trip)\b/i,
+      /\b(your )?(itinerary|trip)\b.{0,48}\b(hotel|flight|activity|dates|budget)\b/i,
+    ],
+  },
+  cart: {
+    actions: [/\b(added|saved|inserted|placed)\b/i],
+    objects: [/\b(cart|booking cart)\b/i],
+  },
+  checkout: {
+    actions: [/\b(created|started|ready|prepared|generated)\b/i],
+    objects: [/\b(checkout|checkout session|payment link)\b/i],
+  },
+  payment: {
+    actions: [
+      /\b(paid|charged)\b/i,
+      /\bpayment\b.{0,32}\b(completed|succeeded|successful|received|went through)\b/i,
+      /\bcharge\b.{0,32}\b(completed|succeeded|successful)\b/i,
+    ],
+    objects: [/\b(payment|charge|card|paid|charged)\b/i],
+  },
+  booking_provider: {
+    actions: [
+      /\b(booked|reserved|confirmed|locked in|all set)\b/i,
+    ],
+    objects: [
+      /\b(booking|reservation|flight|hotel|table|provider|room|stay)\b/i,
+    ],
+  },
+  cancellation: {
+    actions: [/\b(cancelled|canceled)\b/i, /\bcancellation\b.{0,32}\b(completed|confirmed|processed)\b/i],
+    objects: [/\b(booking|reservation|flight|hotel|trip|itinerary|cancellation)\b/i],
+  },
+  refund: {
+    actions: [/\b(refunded)\b/i, /\brefund\b.{0,32}\b(issued|completed|processed|confirmed)\b/i],
+    objects: [/\b(refund|payment|charge|booking|reservation)\b/i],
+  },
+  ticketing: {
+    actions: [/\b(ticketed|issued|confirmed)\b/i],
+    objects: [/\b(ticket|tickets|flight)\b/i],
+  },
+  search_success: {
+    actions: [/\b(found|showing|here are|displayed)\b/i],
+    objects: [/\b(options|results|flights|hotels|activities|restaurants|places|stays)\b/i],
+  },
+};
+
+const WRITE_CLAIM_BY_FUNCTION: Record<string, AllowedWriteClaim> = {
+  create_itinerary: 'create',
+  update_hotel_dates: 'update',
+  update_itinerary_dates: 'update',
+  update_itinerary_budget: 'update',
+  add_hotel_to_itinerary: 'add',
+  add_flight_to_itinerary: 'add',
+  add_activity_to_itinerary: 'add',
+  remove_item_from_itinerary: 'remove',
+};
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object'
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function buildClaimEvidence({
+  chatMode,
+  resultType,
+  functionUsed,
+  toolResult,
+}: {
+  chatMode: ChatMode;
+  resultType?: string;
+  functionUsed?: string;
+  toolResult?: unknown;
+}): ClaimEvidence {
+  const result = toRecord(toolResult);
+  const results = result.results;
+  const hasSearchResults =
+    !!resultType &&
+    SEARCH_RESULT_TYPES.has(resultType) &&
+    Array.isArray(results) &&
+    results.length > 0;
+  const writeSucceeded =
+    chatMode !== 'planning' &&
+    resultType === 'write_result' &&
+    result.success === true;
+
+  return {
+    chatMode,
+    resultType,
+    functionUsed,
+    hasSearchResults,
+    writeSucceeded,
+    allowedWriteClaim: writeSucceeded && functionUsed
+      ? WRITE_CLAIM_BY_FUNCTION[functionUsed]
+      : undefined,
+    cartSucceeded: false,
+    checkoutCreated: false,
+    paymentSucceeded: false,
+    providerConfirmed: false,
+    cancellationSucceeded: false,
+    refundSucceeded: false,
+  };
+}
+
+function hasClaimFamily(text: string, family: ClaimFamily): boolean {
+  const patterns = CLAIM_FAMILY_PATTERNS[family];
+  return patterns.actions.some((pattern) => pattern.test(text)) &&
+    patterns.objects.some((pattern) => pattern.test(text));
+}
+
+function detectUnsupportedClaimFamilies(
+  text: string,
+  evidence: ClaimEvidence,
+): ClaimFamily[] {
+  const unsupported: ClaimFamily[] = [];
+
+  if (hasClaimFamily(text, 'search_success') && !evidence.hasSearchResults) {
+    unsupported.push('search_success');
+  }
+
+  if (hasClaimFamily(text, 'persistence') && !evidence.writeSucceeded) {
+    unsupported.push('persistence');
+  }
+
+  if (hasClaimFamily(text, 'cart') && !evidence.cartSucceeded) {
+    unsupported.push('cart');
+  }
+
+  if (hasClaimFamily(text, 'checkout') && !evidence.checkoutCreated) {
+    unsupported.push('checkout');
+  }
+
+  if (hasClaimFamily(text, 'payment') && !evidence.paymentSucceeded) {
+    unsupported.push('payment');
+  }
+
+  if (hasClaimFamily(text, 'booking_provider') && !evidence.providerConfirmed) {
+    unsupported.push('booking_provider');
+  }
+
+  if (hasClaimFamily(text, 'cancellation') && !evidence.cancellationSucceeded) {
+    unsupported.push('cancellation');
+  }
+
+  if (hasClaimFamily(text, 'refund') && !evidence.refundSucceeded) {
+    unsupported.push('refund');
+  }
+
+  if (hasClaimFamily(text, 'ticketing') && !evidence.providerConfirmed) {
+    unsupported.push('ticketing');
+  }
+
+  return unsupported;
+}
+
+function getSafeClaimFallback(
+  evidence: ClaimEvidence,
+  unsupportedFamilies: ClaimFamily[],
+): string {
+  if (
+    evidence.paymentSucceeded &&
+    !evidence.providerConfirmed &&
+    unsupportedFamilies.some((family) => family === 'booking_provider' || family === 'ticketing')
+  ) {
+    return 'Payment was received, but provider confirmation is still pending.';
+  }
+
+  if (evidence.chatMode === 'planning' && !evidence.resultType) {
+    return 'I\'ve started planning this with you. Nothing has been saved yet — use the explicit Save flow when you\'re ready.';
+  }
+
+  if (evidence.hasSearchResults) {
+    return 'I found options for your review. Nothing has been saved, booked, or confirmed.';
+  }
+
+  if (evidence.resultType && SEARCH_RESULT_TYPES.has(evidence.resultType)) {
+    return 'I searched with the available parameters, but I couldn\'t find results to show yet. Nothing has been saved, booked, or confirmed.';
+  }
+
+  if (
+    unsupportedFamilies.some((family) =>
+      family === 'payment' ||
+      family === 'booking_provider' ||
+      family === 'ticketing'
+    )
+  ) {
+    return 'No booking, reservation, payment, or provider confirmation has been made.';
+  }
+
+  if (
+    unsupportedFamilies.some((family) =>
+      family === 'persistence' ||
+      family === 'cart' ||
+      family === 'checkout' ||
+      family === 'cancellation' ||
+      family === 'refund'
+    )
+  ) {
+    return 'I can help plan and search here, but I can’t save or change itinerary records from this chat. Use the explicit Save or edit controls when you’re ready.';
+  }
+
+  return 'I\'ve started planning this with you. Nothing has been saved yet — use the explicit Save flow when you\'re ready.';
+}
+
+function guardAssistantResponse(text: string, evidence: ClaimEvidence): string {
+  const unsupportedFamilies = detectUnsupportedClaimFamilies(text, evidence);
+  if (unsupportedFamilies.length === 0) {
+    return text;
+  }
+
+  return getSafeClaimFallback(evidence, unsupportedFamilies);
+}
 
 // ============================================================================
 // REAL API SEARCH FUNCTIONS
@@ -1358,11 +1719,66 @@ async function createItinerary(userId: string, params: {
 // ============================================================================
 // INPUT VALIDATION
 // ============================================================================
+const CHAT_HISTORY_MAX_MESSAGES = 10;
+const CHAT_HISTORY_MAX_CONTENT_CHARS = 1500;
+const CHAT_HISTORY_MAX_TOTAL_CHARS = 10000;
+
+const chatHistoryMessageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string()
+    .trim()
+    .min(1)
+    .max(CHAT_HISTORY_MAX_CONTENT_CHARS),
+}).strict();
+
+const chatHistorySchema = z
+  .array(chatHistoryMessageSchema)
+  .max(CHAT_HISTORY_MAX_MESSAGES);
+
+type ChatHistoryMessage = z.infer<typeof chatHistoryMessageSchema>;
+
+function trimHistoryToTotalLimit(
+  history: ChatHistoryMessage[],
+): ChatHistoryMessage[] {
+  const selected: ChatHistoryMessage[] = [];
+  let totalChars = 0;
+
+  for (
+    let index = history.length - 1;
+    index >= 0;
+    index -= 1
+  ) {
+    const item = history[index];
+
+    if (
+      totalChars + item.content.length >
+      CHAT_HISTORY_MAX_TOTAL_CHARS
+    ) {
+      continue;
+    }
+
+    selected.push(item);
+    totalChars += item.content.length;
+  }
+
+  return selected.reverse();
+}
+
 const chatSchema = z.object({
   message: z.string().min(1).max(5000),
   context: z.string().max(2000).optional(),
   userId: z.string().uuid().optional(),
   itineraryId: z.string().optional(),
+  chatMode: z.preprocess(
+    (value: unknown) => typeof value === 'string' && (CHAT_MODES as readonly string[]).includes(value)
+      ? value
+      : 'planning',
+    z.enum(CHAT_MODES),
+  ),
+  history: z.preprocess((value: unknown) => {
+    const parsedHistory = chatHistorySchema.safeParse(value);
+    return parsedHistory.success ? parsedHistory.data : [];
+  }, chatHistorySchema),
 });
 
 // ============================================================================
@@ -1411,27 +1827,39 @@ serve(async (req) => {
       );
     }
 
-    const { message, context, itineraryId } = validatedData;
-    console.log('Received chat request:', { message, context, itineraryId });
+    const { message, context, itineraryId, chatMode } = validatedData;
+    const validatedHistory = trimHistoryToTotalLimit(validatedData.history);
+    console.log('Received chat request:', { message, context, itineraryId, chatMode });
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Get user's itineraries for context
-    const { itineraries: userItineraries } = await listItineraries(user.id);
-    
-    const itineraryContext = userItineraries.length > 0 
-      ? `\n\n# User's Itineraries\n${userItineraries.map((it: any) => 
-          `- ${it.itin_name} (ID: ${it.id}): ${it.itin_desc || 'No description'} | Dates: ${it.itin_date_start || 'TBD'} to ${it.itin_date_end || 'TBD'} | Budget: $${it.budget || 0} | Hotels: ${(it.hotels || []).length} | Flights: ${(it.flights || []).length}`
-        ).join('\n')}`
-      : '\n\n# User has no existing itineraries.';
+    const includeSavedItineraryContext = chatMode === 'itinerary-edit';
+    let itineraryContext = '\n\n# Planning Mode\nUse only the explicit planning context supplied with this request. Do not infer from or reference saved itinerary records.';
+
+    if (includeSavedItineraryContext) {
+      // get/list itinerary queries remain scoped to the authenticated user's id.
+      const { itineraries: userItineraries } = await listItineraries(user.id);
+      itineraryContext = userItineraries.length > 0
+        ? `\n\n# User's Itineraries\n${(userItineraries as ItineraryContextSummary[]).map((it) =>
+            `- ${it.itin_name} (ID: ${it.id}): ${it.itin_desc || 'No description'} | Dates: ${it.itin_date_start || 'TBD'} to ${it.itin_date_end || 'TBD'} | Budget: $${it.budget || 0} | Hotels: ${(it.hotels || []).length} | Flights: ${(it.flights || []).length}`
+          ).join('\n')}`
+        : '\n\n# User has no existing itineraries.';
+    }
 
     const fullSystemPrompt = `${TAAI_SYSTEM_PROMPT}
 
 ${context ? `# Current Context\n${context}` : ''}${itineraryContext}
 
-${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itineraryId}` : ''}`;
+${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itineraryId}` : ''}`;
+
+    const selectedTools = getToolsForChatMode(chatMode);
+    const modelMessages = [
+      { role: 'system', content: fullSystemPrompt },
+      ...validatedHistory,
+      { role: 'user', content: message },
+    ];
 
     // Call Lovable AI Gateway
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -1442,12 +1870,8 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: fullSystemPrompt },
-          { role: 'user', content: message }
-        ],
-        tools,
-        tool_choice: 'auto',
+        messages: modelMessages,
+        ...(selectedTools.length > 0 ? { tools: selectedTools, tool_choice: 'auto' } : {}),
       }),
     });
 
@@ -1484,6 +1908,16 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
       const functionArgs = JSON.parse(toolCall.function?.arguments || '{}');
 
       console.log(`Executing tool: ${functionName}`, functionArgs);
+
+      if (WRITE_TOOL_NAMES.has(functionName)) {
+        return new Response(JSON.stringify({
+          response: 'I can help plan and search here, but itinerary changes must use the explicit Save or edit controls.',
+          resultType: 'blocked_write',
+          functionUsed: functionName,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
       let toolResult: any;
       let resultType = '';
@@ -1555,6 +1989,13 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
           throw new Error(`Unknown tool: ${functionName}`);
       }
 
+      const claimEvidence = buildClaimEvidence({
+        chatMode,
+        resultType,
+        functionUsed: functionName,
+        toolResult,
+      });
+
       // Generate follow-up response with tool results
       const followUpResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -1566,6 +2007,7 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
           model: 'google/gemini-2.5-flash',
           messages: [
             { role: 'system', content: fullSystemPrompt },
+            ...validatedHistory,
             { role: 'user', content: message },
             { role: 'assistant', content: null, tool_calls: choice.message.tool_calls },
             { role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(toolResult) }
@@ -1576,8 +2018,9 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
       if (!followUpResponse.ok) {
         console.error('Follow-up response error:', await followUpResponse.text());
         // Still return results even if follow-up fails
+        const fallbackResponse = toolResult.message || toolResult.constraint_summary || 'Here are your results:';
         return new Response(JSON.stringify({
-          response: toolResult.message || toolResult.constraint_summary || 'Here are your results:',
+          response: guardAssistantResponse(String(fallbackResponse), claimEvidence),
           searchResults: toolResult.results || [],
           resultType,
           functionUsed: functionName,
@@ -1594,7 +2037,7 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
       const aiResponse = followUpData.choices?.[0]?.message?.content || toolResult.message || 'Here are your results:';
 
       return new Response(JSON.stringify({
-        response: aiResponse,
+        response: guardAssistantResponse(String(aiResponse), claimEvidence),
         searchResults: toolResult.results || [],
         resultType,
         functionUsed: functionName,
@@ -1608,8 +2051,10 @@ ${itineraryId ? `# Active Itinerary\nCurrently working with itinerary ID: ${itin
     }
 
     // No tool call - return direct response
+    const directClaimEvidence = buildClaimEvidence({ chatMode });
+    const directResponse = choice.message?.content || 'I apologize, I couldn\'t generate a response.';
     return new Response(JSON.stringify({ 
-      response: choice.message?.content || 'I apologize, I couldn\'t generate a response.' 
+      response: guardAssistantResponse(String(directResponse), directClaimEvidence)
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

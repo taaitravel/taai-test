@@ -22,7 +22,7 @@ export const PlanningDraftReview: React.FC<PlanningDraftReviewProps> = ({ items,
   if (items.length === 0) {
     return (
       <section aria-label="Planning draft" className="mt-4 rounded-lg border border-border bg-card/50 p-4 text-sm text-muted-foreground">
-        Nothing in your draft yet. Add results from Bob to plan them locally.
+        Nothing in your draft yet. Add results from Miles to plan them locally.
       </section>
     );
   }

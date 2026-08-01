@@ -21,6 +21,48 @@ interface Message {
   constraintSummary?: string;
 }
 
+type ChatHistoryMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
+const MAX_HISTORY_MESSAGES = 10;
+const MAX_HISTORY_CONTENT_CHARS = 1500;
+const MAX_HISTORY_TOTAL_CHARS = 10000;
+
+const buildChatHistory = (
+  sourceMessages: Message[],
+): ChatHistoryMessage[] => {
+  const selected: ChatHistoryMessage[] = [];
+  let totalChars = 0;
+
+  for (
+    let index = sourceMessages.length - 1;
+    index >= 0 && selected.length < MAX_HISTORY_MESSAGES;
+    index -= 1
+  ) {
+    const source = sourceMessages[index];
+    const content = source.content
+      .trim()
+      .slice(0, MAX_HISTORY_CONTENT_CHARS);
+
+    if (!content) continue;
+
+    if (totalChars + content.length > MAX_HISTORY_TOTAL_CHARS) {
+      continue;
+    }
+
+    selected.push({
+      role: source.role,
+      content,
+    });
+
+    totalChars += content.length;
+  }
+
+  return selected.reverse();
+};
+
 interface ChatInterfaceProps {
   context?: string;
   placeholder?: string;
@@ -32,7 +74,14 @@ interface ChatInterfaceProps {
   greeting?: string;
   mobileComposerAssist?: boolean;
   interaction?: ResultInteraction;
+  chatMode?: ChatMode;
 }
+
+export type ChatMode =
+  | 'planning'
+  | 'itinerary-edit'
+  | 'support'
+  | 'internal';
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
   context, 
@@ -45,6 +94,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   greeting = "Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?",
   mobileComposerAssist = false,
   interaction,
+  chatMode = 'planning',
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -63,6 +113,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
+
+    const history = buildChatHistory(messages);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -83,7 +135,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           message: userMessage.content,
           context: context,
           userId: user?.id,
-          itineraryId: itineraryId
+          itineraryId: itineraryId,
+          chatMode,
+          history
         }
       });
 

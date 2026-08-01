@@ -165,6 +165,7 @@ const CreateItinerary = () => {
               assistantName="Miles"
               assistantSubtitle="Travel companion"
               greeting="Hi, I'm Miles — your taai travel companion. Where should we begin?"
+              chatMode="planning"
               mobileComposerAssist
               interaction={bobInteraction}
             />
@@ -209,6 +210,7 @@ const CreateItinerary = () => {
                   assistantName="Miles"
                   assistantSubtitle="Travel companion"
                   greeting="Hi, I'm Miles — your taai travel companion. Where should we begin?"
+                  chatMode="planning"
                 />
               </div>
             </div>
