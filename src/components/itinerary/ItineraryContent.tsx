@@ -405,6 +405,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           <TripWorkspaceBookings
             itineraryData={itineraryData}
             cartItems={cartItems}
+            userRole={userRole}
             cartView={(
               <BookingCart
                 itineraryId={cartItineraryId}
