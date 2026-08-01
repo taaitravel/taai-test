@@ -381,6 +381,13 @@ function evaluateRecord(
  *  9. records filtered by target entity type and id
  * 10. every remaining record evaluated; allow if any passes, else the highest
  *     precedence failure reason is returned
+ *
+ * Multiple-valid-record selection: authorization is allowed when at least one
+ * valid approval exists. Every target-matched record is evaluated; the valid
+ * records are then sorted deterministically by `approvedAt` descending, with
+ * literal ascending `approvalId` as the tie-breaker for equal `approvedAt`
+ * values. The returned `approvalId` is therefore the newest valid approval and
+ * never depends on `context.records` input-array order.
  */
 export function validateApprovedCommercialAction(
   agentKey: CommercialAgentKey,
@@ -438,10 +445,25 @@ export function validateApprovedCommercialAction(
   }
 
   const failures: CommercialAuthorizationResult[] = [];
+  const valid: { record: CommercialApprovalRecord; result: CommercialAuthorizationResult }[] = [];
   for (const record of byTarget) {
     const result = evaluateRecord(record, context);
-    if (result.allowed) return result;
+    if (result.allowed) {
+      valid.push({ record, result });
+      continue;
+    }
     failures.push(result);
+  }
+
+  if (valid.length > 0) {
+    const sorted = [...valid].sort((a, b) => {
+      const aApprovedAt = parsedTime(a.record.approvedAt as string);
+      const bApprovedAt = parsedTime(b.record.approvedAt as string);
+      if (aApprovedAt !== bApprovedAt) return bApprovedAt - aApprovedAt;
+      if (a.record.approvalId === b.record.approvalId) return 0;
+      return a.record.approvalId < b.record.approvalId ? -1 : 1;
+    });
+    return sorted[0].result;
   }
 
   for (const reason of RECORD_FAILURE_PRECEDENCE) {
