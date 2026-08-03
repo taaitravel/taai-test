@@ -24,12 +24,14 @@ serve(async (req) => {
     );
 
     // Resolve session_id either from a verified Stripe webhook signature
-    // (preferred, when STRIPE_WEBHOOK_SECRET is configured) or from a
-    // signed-in client polling after redirect (fallback). In both cases we
-    // rely on Stripe to validate the session.
+    // (authoritative, when STRIPE_WEBHOOK_SECRET is configured) or from a
+    // signed-in client polling after redirect (guarded fallback). Payment
+    // completion never means provider confirmation.
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     const stripeSig = req.headers.get("stripe-signature");
     let session_id: string | undefined;
+    let fallbackUserId: string | null = null;
+    let verifiedStripeWebhook = false;
 
     if (webhookSecret && stripeSig) {
       const rawBody = await req.text();
@@ -45,6 +47,7 @@ serve(async (req) => {
           });
         }
         session_id = (event.data.object as Stripe.Checkout.Session).id;
+        verifiedStripeWebhook = true;
       } catch (err) {
         console.error("[BOOKING-WEBHOOK] Signature verification failed", err);
         return new Response(JSON.stringify({ error: "Invalid signature" }), {
@@ -67,6 +70,7 @@ serve(async (req) => {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      fallbackUserId = ud.user.id;
       const body = await req.json().catch(() => ({}));
       session_id = body.session_id;
       if (!session_id) {
@@ -107,6 +111,16 @@ serve(async (req) => {
     }
 
     const userId = session.metadata.user_id;
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Booking session missing user metadata" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!verifiedStripeWebhook && fallbackUserId !== userId) {
+      return new Response(JSON.stringify({ error: "Session does not belong to authenticated user" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const cartItemIds = session.metadata.cart_item_ids?.split(",") || [];
     const providerTotal = parseFloat(session.metadata.provider_total || "0");
     // Tiered breakdown from checkout metadata. Falls back to legacy 8% flat
@@ -118,6 +132,9 @@ serve(async (req) => {
     const hasTieredMeta = sessSalesTaxRate > 0 || sessTaaiFeeRate > 0;
     const itineraryId = session.metadata.itinerary_id ? parseInt(session.metadata.itinerary_id) : null;
     const paymentIntent = session.payment_intent as Stripe.PaymentIntent;
+    const paymentState = "payment_completed";
+    const providerState = "provider_pending";
+    const bookingState = "payment_completed_provider_pending";
 
     console.log("[BOOKING-WEBHOOK] Processing payment", {
       sessionId: session.id,
@@ -130,7 +147,14 @@ serve(async (req) => {
     const { data: cartItems } = await supabaseClient
       .from("cart_items")
       .select("*")
-      .in("id", cartItemIds);
+      .in("id", cartItemIds)
+      .eq("user_id", userId);
+
+    if (!cartItems || cartItems.length !== cartItemIds.length) {
+      return new Response(JSON.stringify({ error: "Cart item ownership mismatch" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Create booking completions for each cart item
     const completions = [];
@@ -164,16 +188,20 @@ serve(async (req) => {
           net_revenue: Math.round((itemTaaiFee - stripeFeeEstimate) * 100) / 100,
           stripe_payment_intent_id: paymentIntent?.id,
           stripe_session_id: session.id,
-          status: "confirmed",
+          status: bookingState,
+          payment_status: paymentState,
+          provider_status: providerState,
+          provider_confirmation_required: true,
+          traveler_notification_status: "not_sent",
           receipt_url: (paymentIntent as any)?.charges?.data?.[0]?.receipt_url || null,
-          notes: `tier=${subscriptionTier}; sales_tax_rate=${sessSalesTaxRate}; taai_fee_rate=${sessTaaiFeeRate}`,
+          notes: `tier=${subscriptionTier}; sales_tax_rate=${sessSalesTaxRate}; taai_fee_rate=${sessTaaiFeeRate}; provider_confirmation=pending`,
         })
         .select("id")
         .single();
 
       if (completionError) {
         console.error("[BOOKING-WEBHOOK] Completion insert error:", completionError);
-        continue;
+        throw completionError;
       }
 
       completions.push(completion);
@@ -211,7 +239,11 @@ serve(async (req) => {
       // Update cart item status
       await supabaseClient
         .from("cart_items")
-        .update({ booking_status: "booked" })
+        .update({
+          booking_status: bookingState,
+          payment_status: paymentState,
+          provider_status: providerState,
+        })
         .eq("id", item.id);
 
       // ── Cost-splitting: flip splits to "covered" against the organizer
@@ -247,7 +279,7 @@ serve(async (req) => {
       // Track booking_complete intent
       await supabaseClient.from("booking_intents").insert({
         user_id: userId,
-        event_type: "booking_complete",
+        event_type: "payment_complete_provider_pending",
         provider: (itemData.provider as string) || item.type || "unknown",
         item_type: item.type,
         item_data: itemData,
@@ -257,30 +289,16 @@ serve(async (req) => {
       });
     }
 
-    // Send notification
-    await supabaseClient.from("notifications").insert({
-      user_id: userId,
-      type: "booking_confirmed",
-      title: "Booking Confirmed! 🎉",
-      message: `Your booking for ${cartItems?.length || 0} item(s) has been confirmed. Total: $${(session.amount_total! / 100).toFixed(2)}`,
-      reference_id: completions[0]?.id,
-      reference_type: "booking_completion",
-    });
-
-    // Generate receipt PDF + email (fire-and-forget; it also kicks off
-    // preference learning).
-    try {
-      await supabaseClient.functions.invoke("generate-booking-receipt", {
-        body: { stripe_session_id: session.id },
-      });
-    } catch (e) {
-      console.error("[BOOKING-WEBHOOK] receipt generation failed", e);
-    }
+    // Do not send taai traveler-facing notifications until provider confirmation
+    // evidence exists. Stripe may still issue its payment receipt separately.
 
     return new Response(JSON.stringify({
       success: true,
       completions: completions.length,
       total_charged: (session.amount_total! / 100).toFixed(2),
+      status: bookingState,
+      payment_status: paymentState,
+      provider_status: providerState,
     }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -135,10 +135,10 @@ serve(async (req) => {
       itinerary_id = q.itinerary_id ?? itinerary_id;
       // Hydrate items from validated quote, ignoring anything the client tried to send.
       const bookable = (q.items as any[]).filter(
-        (v) => v.status === "available" || v.status === "price_changed"
+        (v) => (v.status === "available" || v.status === "price_changed") && v.provider_confirmation_ready === true
       );
       if (bookable.length === 0) {
-        return new Response(JSON.stringify({ error: "No bookable items in quote" }), {
+        return new Response(JSON.stringify({ error: "No provider-confirmable items in quote" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -284,6 +284,7 @@ serve(async (req) => {
         taai_fee_rate: String(taaiFeeRate),
         combined_rate: String(combinedRate),
         subscription_tier: tier,
+        booking_state: "payment_completed_provider_pending",
       },
     };
     if (ui_mode === "embedded") {

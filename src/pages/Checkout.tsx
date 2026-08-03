@@ -4,7 +4,7 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe
 import { format, addDays, differenceInCalendarDays, parseISO } from 'date-fns';
 import {
   Loader2, ArrowLeft, ShieldCheck, Calendar, Users, BedDouble, Plane, MapPin,
-  Hotel as HotelIcon, ChevronDown, ChevronUp, Info, AlertTriangle, Minus, Plus,
+  Hotel as HotelIcon, Info, AlertTriangle, Minus, Plus,
   Sparkles, RefreshCw,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,10 +47,6 @@ interface SavedTraveler {
   last_name: string;
   email?: string | null;
   phone?: string | null;
-  dob?: string | null;
-  nationality?: string | null;
-  passport_number?: string | null;
-  passport_expiry?: string | null;
   is_self: boolean;
 }
 
@@ -165,7 +161,6 @@ export default function Checkout() {
   const [savedTravelers, setSavedTravelers] = useState<SavedTraveler[]>([]);
   const [currency, setCurrency] = useState<string>('USD');
   const [payerMode, setPayerMode] = useState<PayerMode>('single_payer');
-  const [showDocs, setShowDocs] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [repricing, setRepricing] = useState(false);
@@ -243,10 +238,6 @@ export default function Checkout() {
         last_name: st.last_name,
         email: st.email || '',
         phone: st.phone || '',
-        dob: st.dob || '',
-        nationality: st.nationality || '',
-        passport_number: st.passport_number || '',
-        passport_expiry: st.passport_expiry || '',
       },
     }));
 
@@ -439,6 +430,12 @@ export default function Checkout() {
             </Card>
 
             {/* Item review cards */}
+            <Card className="border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/10">
+              <CardContent className="p-4 text-sm text-amber-900 dark:text-amber-200">
+                Payment and provider confirmation are separate. Continuing to payment records the payment only; taai will not mark a booking as provider-confirmed until provider confirmation evidence exists.
+              </CardContent>
+            </Card>
+
             <div className="space-y-4">
               {items.map((it) => {
                 const d = datesByItem[it.cart_item_id];
@@ -448,7 +445,6 @@ export default function Checkout() {
                 const t = it.type.toLowerCase();
                 const isHotel = t === 'hotel' || t === 'rental';
                 const nightly = isHotel && d?.nights ? it.new_price / d.nights : null;
-                const docsOpen = !!showDocs[it.cart_item_id];
                 return (
                   <Card key={it.cart_item_id} className="overflow-hidden">
                     <CardHeader className="pb-3">
@@ -577,30 +573,13 @@ export default function Checkout() {
                         ))}
                       </div>
 
-                      {/* Optional travel docs (flight = always; hotel/activity = collapsible) */}
+                      {/* Travel documents: collect only for flight items. */}
                       {t === 'flight' ? (
-                        <div className="grid sm:grid-cols-2 gap-3">
-                          {DOC_FIELDS.map((f) => (
-                            <div key={f.key} className="space-y-1">
-                              <Label htmlFor={`${it.cart_item_id}-${f.key}`} className="text-xs">{f.label}</Label>
-                              <Input
-                                id={`${it.cart_item_id}-${f.key}`}
-                                type={f.type || 'text'}
-                                value={travelers[it.cart_item_id]?.[f.key] || ''}
-                                onChange={(e) => updateField(it.cart_item_id, f.key, e.target.value)}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <Collapsible open={docsOpen} onOpenChange={(o) => setShowDocs((p) => ({ ...p, [it.cart_item_id]: o }))}>
-                          <CollapsibleTrigger asChild>
-                            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
-                              {docsOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                              Add travel docs (optional)
-                            </Button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="grid sm:grid-cols-2 gap-3 pt-2">
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            Flight providers may require traveler document details. taai stores these only for flight checkout records.
+                          </p>
+                          <div className="grid sm:grid-cols-2 gap-3">
                             {DOC_FIELDS.map((f) => (
                               <div key={f.key} className="space-y-1">
                                 <Label htmlFor={`${it.cart_item_id}-${f.key}`} className="text-xs">{f.label}</Label>
@@ -612,9 +591,9 @@ export default function Checkout() {
                                 />
                               </div>
                             ))}
-                          </CollapsibleContent>
-                        </Collapsible>
-                      )}
+                          </div>
+                        </div>
+                      ) : null}
 
                       {/* Policies */}
                       <Collapsible>
@@ -627,7 +606,7 @@ export default function Checkout() {
                           <div><span className="font-medium text-foreground">Cancellation:</span> {policy.cancellation}</div>
                           <div><span className="font-medium text-foreground">Payment:</span> {policy.payment}</div>
                           <div><span className="font-medium text-foreground">Changes:</span> {policy.change}</div>
-                          <div className="italic">Default policy — confirmed with provider after booking.</div>
+                          <div className="italic">Default policy — final terms require provider confirmation after payment.</div>
                         </CollapsibleContent>
                       </Collapsible>
                     </CardContent>
