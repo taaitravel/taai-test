@@ -1,5 +1,10 @@
-import { emptyEarningsContract } from './booking-contract';
+import {
+  buildDateRangeServiceTiming,
+  buildServiceLocation,
+  emptyEarningsContract,
+} from './booking-contract';
 import type { Json } from '@/integrations/supabase/types';
+import { asDateOnly, differenceInDateOnlyDays } from '@/lib/date-time';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -27,24 +32,16 @@ const asPositiveNumber = (...values: unknown[]): number | null => {
   return null;
 };
 
-const asDateOnly = (...values: unknown[]): string | null => {
+const firstDateOnly = (...values: unknown[]): string | null => {
   for (const value of values) {
-    if (typeof value !== 'string' || !value.trim()) continue;
-    const trimmed = value.trim();
-    const dateOnly = trimmed.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
-    if (!dateOnly) continue;
-    const parsed = new Date(`${dateOnly}T00:00:00Z`);
-    if (!Number.isNaN(parsed.getTime())) return dateOnly;
+    const dateOnly = asDateOnly(value);
+    if (dateOnly) return dateOnly;
   }
   return null;
 };
 
 export const nightsBetween = (checkIn: string | null, checkOut: string | null): number => {
-  if (!checkIn || !checkOut) return 0;
-  const start = new Date(`${checkIn}T00:00:00Z`).getTime();
-  const end = new Date(`${checkOut}T00:00:00Z`).getTime();
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
-  return Math.round((end - start) / 86_400_000);
+  return differenceInDateOnlyDays(checkIn, checkOut);
 };
 
 export const buildHotelBookingSnapshot = (
@@ -57,7 +54,7 @@ export const buildHotelBookingSnapshot = (
   const priceBreakdown = asRecord(hotel.priceBreakdown);
   const grossPrice = asRecord(priceBreakdown.grossPrice);
 
-  const checkIn = asDateOnly(
+  const checkIn = firstDateOnly(
     searchParams.checkin,
     searchParams.check_in,
     hotel.check_in,
@@ -67,7 +64,7 @@ export const buildHotelBookingSnapshot = (
     hotel.checkInDate,
     hotel.checkIn,
   );
-  const checkOut = asDateOnly(
+  const checkOut = firstDateOnly(
     searchParams.checkout,
     searchParams.check_out,
     hotel.check_out,
@@ -154,11 +151,35 @@ export const canonicalHotelItemData = (
     ...asRecord(hotel.provider_quote),
     ...asRecord(extras.provider_quote),
   };
+  const hotelLocation = asRecord(hotel.location);
+  const extraLocation = asRecord(extras.location);
+  const serviceTimezone = hotel.service_timezone
+    || hotel.timezone
+    || hotel.time_zone
+    || hotelLocation.timezone
+    || extras.service_timezone
+    || extraLocation.timezone
+    || searchParams.service_timezone
+    || searchParams.timezone
+    || null;
+  const serviceLocation = buildServiceLocation({
+    id: hotel.hotel_id || hotel.hotelId || hotel.id,
+    providerId: hotel.provider_location_id || hotel.property_id || hotel.hotel_id || hotel.hotelId,
+    type: 'property',
+    name: hotel.name || hotel.hotel_name || hotel.hotelName,
+    address: hotel.address || hotelLocation.address || extras.address,
+    latitude: hotel.latitude || hotel.lat || hotelLocation.latitude || hotelLocation.lat || extraLocation.latitude || extraLocation.lat,
+    longitude: hotel.longitude || hotel.lng || hotelLocation.longitude || hotelLocation.lng || extraLocation.longitude || extraLocation.lng,
+  });
+  const serviceTiming = buildDateRangeServiceTiming(snapshot.checkIn, snapshot.checkOut, serviceTimezone);
   const agencyServiceFee = Number(extraPricing.agency_service_fee || 0) || 0;
   return {
     ...extras,
-    booking_contract_version: '1.0',
+    booking_contract_version: '1.1',
     booking_context: extras.booking_context || null,
+    service_timezone: serviceTiming.service_timezone,
+    service_location: serviceLocation,
+    service_timing: serviceTiming,
     check_in: snapshot.checkIn,
     check_out: snapshot.checkOut,
     service_dates: {

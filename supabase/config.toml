@@ -88,6 +88,11 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.learn-booking-preferences]
+verify_jwt = true
+
+# MCP performs OAuth bearer verification itself so its RFC 9728 metadata and
+# 401 challenge remain reachable through the Supabase function gateway.
+[functions.mcp]
 verify_jwt = false
 
 [functions.download-receipt]

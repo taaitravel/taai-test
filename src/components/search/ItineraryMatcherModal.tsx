@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import { useItineraryMatcher } from '@/hooks/useItineraryMatcher';
 import { Input } from '@/components/ui/input';
+import { formatDateOnlyRange } from '@/lib/date-time';
 
 interface ItineraryMatcherModalProps {
   open: boolean;
@@ -96,8 +97,7 @@ export const ItineraryMatcherModal = ({
                   {itin.itin_date_start && itin.itin_date_end && (
                     <div className="flex items-center gap-1 text-sm text-white/60 mt-1">
                       <Calendar className="h-3 w-3" />
-                      {new Date(itin.itin_date_start).toLocaleDateString()} -{' '}
-                      {new Date(itin.itin_date_end).toLocaleDateString()}
+                      {formatDateOnlyRange(itin.itin_date_start, itin.itin_date_end)}
                     </div>
                   )}
                   {itin.matchType === 'partial' && (

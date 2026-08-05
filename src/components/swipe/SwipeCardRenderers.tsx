@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ImageGallery } from '@/components/ui/image-gallery';
 import { Star, MapPin, Calendar, Users, Clock, Plane, Utensils, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { formatDateOnly } from '@/lib/date-time';
 
 const getStatusIcon = (status?: string) => {
   switch (status) {
@@ -151,7 +152,7 @@ export const SwipeActivityRenderer = (activity: any, isTop: boolean) => (
     {activity.date && (
       <div className="flex items-center gap-1 text-white/60 text-sm">
         <Calendar className="h-3 w-3" />
-        {new Date(activity.date).toLocaleDateString()}
+        {formatDateOnly(activity.date) || 'Date TBD'}
       </div>
     )}
   </div>
@@ -198,7 +199,7 @@ export const SwipeRestaurantRenderer = (restaurant: any, isTop: boolean) => (
     <div className="flex items-center justify-between text-white/60 text-sm">
       <div className="flex items-center gap-1">
         <Calendar className="h-3 w-3" />
-        {restaurant.date && new Date(restaurant.date).toLocaleDateString()} • {restaurant.time}
+        {restaurant.date && formatDateOnly(restaurant.date)} • {restaurant.time}
       </div>
       {restaurant.party_size && (
         <div className="flex items-center gap-1">

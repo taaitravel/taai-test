@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Landmark, MapPin, Hotel, UtensilsCrossed, Activity } from "lucide-react";
+import { Building2, Landmark, MapPin, Hotel, UtensilsCrossed, Activity, LocateFixed, Loader2 } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { useOptionalUserLocation } from '@/hooks/useOptionalUserLocation';
 export interface PlaceResult {
   id?: string;
   name: string;
@@ -20,6 +22,7 @@ export interface PlaceResult {
   description?: string;
   // Mapbox place type
   placeType?: string;
+  timezone?: string;
 }
 
 interface PlaceSearchProps {
@@ -71,6 +74,14 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
   const containerRef = useRef<HTMLDivElement>(null);
   const [biasCoords, setBiasCoords] = useState<{ lat: number; lng: number } | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const { status: locationStatus, requestLocation } = useOptionalUserLocation();
+
+  const useCurrentLocation = async () => {
+    const current = await requestLocation();
+    if (!current) return;
+    setBiasCoords({ lat: current.latitude, lng: current.longitude });
+    setOpen(Boolean(query.length >= 2));
+  };
 
   // Resolve city name to coordinates for better provider results
   useEffect(() => {
@@ -237,7 +248,23 @@ export const PlaceSearch: React.FC<PlaceSearchProps> = ({ id, label, placeholder
 
   return (
     <div ref={containerRef} className="relative">
-      <Label htmlFor={id} className="text-xs font-medium text-muted-foreground mb-1.5 block">{label}</Label>
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <Label htmlFor={id} className="text-xs font-medium text-muted-foreground">{label}</Label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-6 px-1.5 text-[11px] text-muted-foreground"
+          onClick={useCurrentLocation}
+          disabled={locationStatus === 'requesting'}
+          title="Use your current location to prioritize nearby results. It is not saved."
+        >
+          {locationStatus === 'requesting'
+            ? <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            : <LocateFixed className="mr-1 h-3 w-3" />}
+          {locationStatus === 'granted' ? 'Nearby on' : 'Use my location'}
+        </Button>
+      </div>
       <Input
         id={id}
         placeholder={placeholder}

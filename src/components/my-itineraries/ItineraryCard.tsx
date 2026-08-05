@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, MoreVertical } from 'lucide-react';
-import { format } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ItineraryData } from '@/types/itinerary';
+import { formatDateOnlyRange, parseDateOnly } from '@/lib/date-time';
 
 interface ItineraryCardProps {
   itinerary: ItineraryData;
@@ -42,8 +42,10 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
   const getStatus = () => {
     const now = new Date();
-    const startDate = new Date(itinerary.itin_date_start);
-    const endDate = new Date(itinerary.itin_date_end);
+    const startDate = parseDateOnly(itinerary.itin_date_start);
+    const endDate = parseDateOnly(itinerary.itin_date_end);
+
+    if (!startDate || !endDate) return 'upcoming';
 
     if (now < startDate) return 'upcoming';
     if (now >= startDate && now <= endDate) return 'active';
@@ -72,7 +74,7 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
 
   const formatDates = () => {
     if (!itinerary.itin_date_start || !itinerary.itin_date_end) return 'Dates TBD';
-    return `${format(new Date(itinerary.itin_date_start), 'MMM d')} - ${format(new Date(itinerary.itin_date_end), 'MMM d, yyyy')}`;
+    return formatDateOnlyRange(itinerary.itin_date_start, itinerary.itin_date_end) || 'Dates TBD';
   };
 
   const status = getStatus();

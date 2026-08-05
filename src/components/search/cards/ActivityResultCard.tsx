@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 import type { PlanningDraftCardAction } from '@/types/planning-draft';
+import { buildTimedServiceContract } from '@/lib/booking/booking-contract';
 
 interface ActivityResultCardProps {
   activity: any;
@@ -95,6 +96,12 @@ export const ActivityResultCard = ({ activity, searchParams, planningAction }: A
           external_ref: activity.id || `activity-${Date.now()}`,
           price: activity.price || 0,
           item_data: {
+            ...buildTimedServiceContract({
+              ...activity,
+              local_start: activity.local_start || activity.start_at || activity.datetime
+                || [searchParams?.checkin, activity.time].filter(Boolean).join('T') || searchParams?.checkin,
+              service_location: activityLocation,
+            }, 'venue'),
             name: activity.name,
             location: activity.location || activity.address,
             date: searchParams?.checkin || new Date().toISOString().split('T')[0],

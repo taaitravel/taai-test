@@ -119,6 +119,16 @@ function reprice(quoteItem: any, override: any) {
   return {
     ...quoteItem,
     service_dates: sd,
+    service_timing: type === "hotel" || type === "rental" ? {
+      ...(quoteItem.service_timing || {}),
+      kind: "date_range",
+      start_date: checkIn,
+      end_date: checkOut,
+      local_start: null,
+      local_end: null,
+      starts_at_utc: null,
+      ends_at_utc: null,
+    } : quoteItem.service_timing,
     occupancy,
     pricing: type === "hotel" || type === "rental" ? {
       ...(quoteItem.pricing || {}),
@@ -243,6 +253,8 @@ serve(async (req) => {
         check_in: it.service_dates?.check_in,
         check_out: it.service_dates?.check_out,
         service_dates: it.service_dates,
+        service_timing: it.service_timing,
+        service_timezone: it.service_timezone || it.service_timing?.service_timezone || null,
         occupancy: it.occupancy,
         pricing: it.pricing,
         price_per_night: it.pricing?.price_per_night,

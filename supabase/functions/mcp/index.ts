@@ -3,10 +3,10 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.1";
 
 // src/lib/mcp/tools/search-places.ts
-import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z } from "npm:zod@^4.4.3";
 var search_places_default = defineTool({
   name: "search_places",
@@ -17,14 +17,14 @@ var search_places_default = defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ query }) => {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    if (!supabaseUrl) {
+    const supabaseUrl2 = process.env.SUPABASE_URL;
+    if (!supabaseUrl2) {
       return {
         content: [{ type: "text", text: "Server not configured (SUPABASE_URL missing)." }],
         isError: true
       };
     }
-    const res = await fetch(`${supabaseUrl}/functions/v1/search-cities`, {
+    const res = await fetch(`${supabaseUrl2}/functions/v1/search-cities`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query })
@@ -53,7 +53,7 @@ var search_places_default = defineTool({
 });
 
 // src/lib/mcp/tools/about-taai.ts
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.1";
 var ABOUT = {
   name: "TAAI Travel",
   tagline: "AI-powered travel planning and booking",
@@ -79,14 +79,19 @@ var about_taai_default = defineTool2({
 });
 
 // src/lib/mcp/index.ts
+var supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://dhbvweazpqnviqwgpurv.supabase.co").replace(/\/+$/, "");
 var mcp_default = defineMcp({
   name: "taai-travel-mcp",
   title: "TAAI Travel",
   version: "0.1.0",
   instructions: "Tools for TAAI Travel. Use `about_taai` to learn what the platform does. Use `search_places` to resolve a city, region, or country name to coordinates before planning a trip.",
+  auth: auth.oauth.issuer({
+    issuer: `${supabaseUrl}/auth/v1`,
+    acceptedAudiences: "authenticated"
+  }),
   tools: [search_places_default, about_taai_default]
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.1/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));

@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ImageGallery } from '@/components/ui/image-gallery';
 import { Star, Calendar, Users, Plane, Utensils } from 'lucide-react';
+import { formatDateOnly } from '@/lib/date-time';
 
 // Enhanced Hotel Card Renderer with Images
 export const EnhancedHotelCardRenderer = (hotel: any, index: number) => {
@@ -116,7 +117,7 @@ export const EnhancedActivityCardRenderer = (activity: any, index: number) => {
         {activity.date && (
           <div className="flex items-center text-sm text-white/50">
             <Calendar className="h-3 w-3 mr-1" />
-            {new Date(activity.date).toLocaleDateString()}
+            {formatDateOnly(activity.date) || 'Date TBD'}
           </div>
         )}
         {activity.duration && (
@@ -168,7 +169,7 @@ export const EnhancedReservationCardRenderer = (reservation: any, index: number)
           {reservation.party_size} people
         </div>
         <p className="text-white/50 text-sm">
-          {new Date(reservation.date).toLocaleDateString()} • {reservation.time}
+          {formatDateOnly(reservation.date) || 'Date TBD'} • {reservation.time}
         </p>
       </div>
     </>

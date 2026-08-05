@@ -15,6 +15,7 @@ import { useTaxesAndFeesRate } from '@/hooks/useTaxesAndFeesRate';
 import { SplitCostDialog } from '@/components/booking/SplitCostDialog';
 import { SplitChip } from '@/components/booking/SplitChip';
 import type { CartItemSplit } from '@/hooks/useCartItemSplits';
+import { formatDateOnlyRange, formatDualTime } from '@/lib/date-time';
 
 interface CartItem {
   id: string;
@@ -252,11 +253,18 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       || item.item_data?.check_in || item.item_data?.checkIn;
     const end = sd.check_out || sd.checkOut || sd.end || sd.endDate || sd.return
       || item.item_data?.check_out || item.item_data?.checkOut;
-    try {
-      if (start && end) return `${format(new Date(start), 'MMM dd')} – ${format(new Date(end), 'MMM dd, yyyy')}`;
-      if (start) return format(new Date(start), 'MMM dd, yyyy');
-    } catch { /* ignore */ }
-    return null;
+    return formatDateOnlyRange(start, end, 'MMM dd', 'MMM dd, yyyy');
+  };
+
+  const getServiceTime = (item: CartItem) => {
+    const timing = item.item_data?.service_timing;
+    if (timing?.kind !== 'scheduled') return null;
+    const dual = formatDualTime(timing.starts_at_utc, timing.service_timezone || item.item_data?.service_timezone);
+    if (!dual.service && !timing.local_start) return null;
+    return {
+      primary: dual.service || `${timing.local_start}${timing.service_timezone ? ` (${timing.service_timezone})` : ''}`,
+      secondary: dual.viewer ? `${dual.viewer} in your time` : null,
+    };
   };
 
   const groups = useMemo(() => {
@@ -321,6 +329,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                     <div className="space-y-2">
                       {items.map(item => {
                         const dateRange = getServiceDateRange(item);
+                        const serviceTime = getServiceTime(item);
                         const itemSplits = splitsByItem[item.id] || [];
                         const tripBigintId = item.itinerary_id ? tripBigintIds[item.itinerary_id] : undefined;
                         return (
@@ -345,6 +354,12 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                             {dateRange && (
                               <div className="text-xs text-muted-foreground">
                                 Dates: {dateRange}
+                              </div>
+                            )}
+                            {serviceTime && (
+                              <div className="text-xs text-muted-foreground">
+                                Time: {serviceTime.primary}
+                                {serviceTime.secondary && <span className="block">{serviceTime.secondary}</span>}
                               </div>
                             )}
                             <div className="flex items-center justify-end gap-2 pt-1">

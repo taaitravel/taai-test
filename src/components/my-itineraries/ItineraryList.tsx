@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import { MapPin, Calendar, Users, MoreVertical, ChevronUp, ChevronDown, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ItineraryData } from '@/types/itinerary';
+import { compareDateOnly, formatDateOnlyRange, parseDateOnly } from '@/lib/date-time';
 
 interface ItineraryListProps {
   itineraries: ItineraryData[];
@@ -46,8 +46,10 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
 
   const getStatus = (itinerary: ItineraryData) => {
     const now = new Date();
-    const startDate = new Date(itinerary.itin_date_start);
-    const endDate = new Date(itinerary.itin_date_end);
+    const startDate = parseDateOnly(itinerary.itin_date_start);
+    const endDate = parseDateOnly(itinerary.itin_date_end);
+
+    if (!startDate || !endDate) return 'upcoming';
 
     if (now < startDate) return 'upcoming';
     if (now >= startDate && now <= endDate) return 'active';
@@ -74,7 +76,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
         comparison = (a.itin_name || '').localeCompare(b.itin_name || '');
         break;
       case 'date':
-        comparison = new Date(a.itin_date_start).getTime() - new Date(b.itin_date_start).getTime();
+        comparison = compareDateOnly(a.itin_date_start, b.itin_date_start);
         break;
       case 'locations':
         comparison = getLocationString(a).localeCompare(getLocationString(b));
@@ -294,7 +296,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
 
                   <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                     {itinerary.itin_date_start && itinerary.itin_date_end
-                      ? `${format(new Date(itinerary.itin_date_start), 'MMM d')} - ${format(new Date(itinerary.itin_date_end), 'MMM d, yyyy')}`
+                      ? formatDateOnlyRange(itinerary.itin_date_start, itinerary.itin_date_end)
                       : 'TBD'}
                   </TableCell>
 

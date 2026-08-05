@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { formatMoney, cn } from '@/lib/utils';
+import { formatDualTime } from '@/lib/date-time';
 
 interface QuoteItem {
   cart_item_id: string;
@@ -37,6 +38,9 @@ interface QuoteItem {
   provider_quote?: Record<string, any> | null;
   earnings?: Record<string, any> | null;
   external_id?: string | null;
+  service_timezone?: string | null;
+  service_location?: Record<string, any> | null;
+  service_timing?: Record<string, any> | null;
 }
 
 interface ProfileLite {
@@ -101,9 +105,10 @@ function defaultDates(type: string): { start: string; end: string; nights: numbe
   const t = type.toLowerCase();
   if (t === 'hotel' || t === 'rental') {
     const end = addDays(today, 2);
-    return { start: today.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10), nights: 2 };
+    return { start: format(today, 'yyyy-MM-dd'), end: format(end, 'yyyy-MM-dd'), nights: 2 };
   }
-  return { start: today.toISOString().slice(0, 10), end: today.toISOString().slice(0, 10), nights: 0 };
+  const dateOnly = format(today, 'yyyy-MM-dd');
+  return { start: dateOnly, end: dateOnly, nights: 0 };
 }
 
 function extractDates(item: QuoteItem): { start: string; end: string; tentative: boolean; nights: number } {
@@ -478,6 +483,17 @@ export default function Checkout() {
                 const rooms = Math.max(1, Number(it.occupancy?.rooms || 1));
                 const nightly = isHotel && d?.nights ? it.new_price / (d.nights * rooms) : null;
                 const docsOpen = !!showDocs[it.cart_item_id];
+                const serviceTime = it.service_timing?.kind === 'scheduled'
+                  ? formatDualTime(
+                      it.service_timing.starts_at_utc,
+                      it.service_timing.service_timezone || it.service_timezone,
+                    )
+                  : null;
+                const localServiceTime = serviceTime?.service || (
+                  it.service_timing?.kind === 'scheduled' && it.service_timing.local_start
+                    ? `${it.service_timing.local_start}${it.service_timing.service_timezone ? ` (${it.service_timing.service_timezone})` : ''}`
+                    : null
+                );
                 return (
                   <Card key={it.cart_item_id} className="overflow-hidden">
                     <CardHeader className="pb-3">
@@ -573,6 +589,16 @@ export default function Checkout() {
                           </div>
                         )}
                       </div>
+
+                      {localServiceTime && (
+                        <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
+                          <div className="font-medium">Local service time</div>
+                          <div className="text-muted-foreground">{localServiceTime}</div>
+                          {serviceTime.viewer && (
+                            <div className="text-xs text-muted-foreground mt-1">Your time: {serviceTime.viewer}</div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Saved-traveler picker */}
                       {savedTravelers.length > 0 && (

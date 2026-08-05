@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { format, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
 import { TravelHub } from "./sections/TravelHub";
 import { useDashboardSections } from "@/hooks/useDashboardSections";
+import { formatDateOnly } from '@/lib/date-time';
 
 interface HeroSectionProps {
   userProfile: any;
@@ -35,7 +36,7 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
             {nextTrip ? (
               <>
                 <p className="text-sm sm:text-lg font-bold text-foreground leading-tight">
-                  {format(new Date(nextTrip.itin_date_start), 'MMM d')}
+                  {formatDateOnly(nextTrip.itin_date_start, 'MMM d')}
                 </p>
                 <p className="text-[10px] sm:text-xs text-foreground/60 truncate">{nextTrip.itin_name}</p>
                 <Badge className="bg-accent text-foreground border-border text-[10px] mt-1 px-1.5 py-0 hidden sm:inline-flex">

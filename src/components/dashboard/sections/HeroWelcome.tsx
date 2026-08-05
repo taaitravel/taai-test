@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
-import { format, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
 import { AgentChip } from "@/components/agents/AgentChip";
+import { formatDateOnly } from '@/lib/date-time';
 
 interface HeroWelcomeProps {
   userProfile: any;
@@ -25,7 +26,7 @@ export const HeroWelcome = ({ userProfile, nextTrip }: HeroWelcomeProps) => {
           <div className="text-left">
             <p className="text-sm text-muted-foreground mb-1">Upcoming Travel</p>
             <div className="text-xl font-bold text-foreground mb-1">
-              {format(new Date(nextTrip.itin_date_start), 'MMM d')}
+              {formatDateOnly(nextTrip.itin_date_start, 'MMM d')}
             </div>
             <p className="text-xs text-muted-foreground mb-2">{nextTrip.itin_name}</p>
             <Badge className="bg-muted text-foreground border-border text-xs">

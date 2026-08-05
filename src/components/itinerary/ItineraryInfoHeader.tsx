@@ -2,6 +2,7 @@ import { Calendar, Users, Wallet } from "lucide-react";
 import { ItineraryData } from "@/types/itinerary";
 import { Badge } from "@/components/ui/badge";
 import { UserRole } from "@/hooks/useAuthenticatedItineraryData";
+import { formatDateOnlyRange } from '@/lib/date-time';
 
 interface ItineraryInfoHeaderProps {
   itineraryData: ItineraryData;
@@ -25,8 +26,7 @@ export const ItineraryInfoHeader = ({ itineraryData, userRole }: ItineraryInfoHe
         <div className="flex items-center space-x-2">
           <Calendar className="h-4 w-4 flex-shrink-0" />
           <span className="text-xs sm:text-base">
-            {new Date(itineraryData.itin_date_start).toLocaleDateString()} - 
-            {new Date(itineraryData.itin_date_end).toLocaleDateString()}
+            {formatDateOnlyRange(itineraryData.itin_date_start, itineraryData.itin_date_end) || 'Dates TBD'}
           </span>
         </div>
         <div className="flex items-center space-x-2">

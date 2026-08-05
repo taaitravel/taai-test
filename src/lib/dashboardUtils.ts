@@ -1,27 +1,18 @@
+import { asDateOnly, compareDateOnly, formatDateOnlyRange, localDateOnlyFromDate } from '@/lib/date-time';
+
 export const formatDateRange = (startDate: string, endDate: string) => {
-  if (!startDate || !endDate) return 'Dates TBD';
-  
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  
-  const formatOptions: Intl.DateTimeFormatOptions = { 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
-  };
-  
-  return `${start.toLocaleDateString('en-US', formatOptions)} - ${end.toLocaleDateString('en-US', formatOptions)}`;
+  return formatDateOnlyRange(startDate, endDate, 'MMM d, yyyy', 'MMM d, yyyy') || 'Dates TBD';
 };
 
 export const getItineraryStatus = (startDate: string, endDate: string) => {
   if (!startDate || !endDate) return 'planning';
   
-  const today = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  
-  if (today < start) return 'upcoming';
-  if (today >= start && today <= end) return 'active';
+  const today = localDateOnlyFromDate();
+  const start = asDateOnly(startDate);
+  const end = asDateOnly(endDate);
+  if (!start || !end) return 'planning';
+  if (compareDateOnly(today, start) < 0) return 'upcoming';
+  if (compareDateOnly(today, start) >= 0 && compareDateOnly(today, end) <= 0) return 'active';
   return 'completed';
 };
 

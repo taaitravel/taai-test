@@ -2,7 +2,8 @@ import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Plane } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
+import { formatDateOnly } from '@/lib/date-time';
 
 interface UpcomingTravelProps {
   nextTrip: any;
@@ -43,7 +44,7 @@ export const UpcomingTravel = ({ nextTrip }: UpcomingTravelProps) => {
         <div className="text-left">
           <p className="text-sm text-muted-foreground mb-1">Upcoming Travel</p>
           <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-            {format(new Date(nextTrip.itin_date_start), 'MMM d')}
+            {formatDateOnly(nextTrip.itin_date_start, 'MMM d')}
           </div>
           <p className="text-xs text-muted-foreground mb-2">{nextTrip.itin_name}</p>
           <Badge className="bg-muted text-foreground border-border text-xs">

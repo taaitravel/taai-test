@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { ImageGallery } from '@/components/ui/image-gallery';
 import { Star, MapPin, Calendar, Users, Clock, Plane, Utensils, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { EnhancedHotelItem, EnhancedFlightItem, EnhancedActivityItem, EnhancedReservationItem } from '@/types/enhanced-itinerary';
+import { formatDateOnly } from '@/lib/date-time';
 
 const getStatusIcon = (status?: string) => {
   switch (status) {
@@ -272,7 +273,7 @@ export const EnhancedActivityRenderer = (activity: EnhancedActivityItem, isTop: 
       {activity.date && (
         <div className="flex items-center gap-1 text-white/60 text-sm">
           <Calendar className="h-3 w-3" />
-          {new Date(activity.date).toLocaleDateString()}
+          {formatDateOnly(activity.date) || 'Date TBD'}
         </div>
       )}
 
@@ -365,7 +366,7 @@ export const EnhancedRestaurantRenderer = (restaurant: EnhancedReservationItem, 
       <div className="flex items-center justify-between text-white/60 text-sm">
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
-          {new Date(restaurant.date).toLocaleDateString()} • {restaurant.time}
+          {formatDateOnly(restaurant.date) || 'Date TBD'} • {restaurant.time}
         </div>
         <div className="flex items-center gap-1">
           <Users className="h-3 w-3" />

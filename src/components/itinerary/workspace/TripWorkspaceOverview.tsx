@@ -3,6 +3,7 @@ import { CalendarDays, MapPin, Search, ShoppingCart, Users, Wallet } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ItineraryData } from '@/types/itinerary';
+import { formatDateOnlyRange } from '@/lib/date-time';
 
 interface TripWorkspaceOverviewProps {
   itineraryData: ItineraryData;
@@ -70,7 +71,7 @@ export const TripWorkspaceOverview = ({
         <Card className="bg-card/80 border-border">
           <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4" />Dates</CardTitle></CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">{new Date(itineraryData.itin_date_start).toLocaleDateString()} – {new Date(itineraryData.itin_date_end).toLocaleDateString()}</p>
+            <p className="font-medium text-foreground">{formatDateOnlyRange(itineraryData.itin_date_start, itineraryData.itin_date_end) || 'Dates TBD'}</p>
             <p>{duration} days · {tripStatus}</p>
             <p>{countdownLabel}</p>
           </CardContent>

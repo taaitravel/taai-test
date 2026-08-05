@@ -38,6 +38,9 @@ export interface ValidationItem {
   policies: Record<string, unknown> | null;
   provider_quote: Record<string, unknown> | null;
   earnings: Record<string, unknown> | null;
+  service_timezone: string | null;
+  service_location: Record<string, unknown> | null;
+  service_timing: Record<string, unknown> | null;
 }
 
 export interface ValidationResult {

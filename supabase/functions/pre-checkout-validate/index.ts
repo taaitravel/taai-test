@@ -46,6 +46,9 @@ interface ValidatedItem {
   policies: Record<string, unknown> | null;
   provider_quote: Record<string, unknown> | null;
   earnings: Record<string, unknown> | null;
+  service_timezone: string | null;
+  service_location: Record<string, unknown> | null;
+  service_timing: Record<string, unknown> | null;
 }
 
 function parseServiceDate(raw: unknown): Date | null {
@@ -103,6 +106,9 @@ async function repriceItem(row: any): Promise<ValidatedItem> {
     policies: row.item_data?.policies ?? null,
     provider_quote: row.item_data?.provider_quote ?? null,
     earnings: row.item_data?.earnings ?? null,
+    service_timezone: row.item_data?.service_timezone ?? row.item_data?.service_timing?.service_timezone ?? null,
+    service_location: row.item_data?.service_location ?? null,
+    service_timing: row.item_data?.service_timing ?? null,
   };
 
   if (!start || (row.type === "hotel" && !end)) {

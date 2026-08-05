@@ -181,6 +181,9 @@ serve(async (req) => {
           policies: v.policies,
           provider_quote: v.provider_quote,
           earnings: v.earnings,
+          service_timezone: v.service_timezone,
+          service_location: v.service_location,
+          service_timing: v.service_timing,
         },
         service_dates: v.service_dates,
       }));

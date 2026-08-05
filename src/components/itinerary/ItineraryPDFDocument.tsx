@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ItineraryData } from '@/types/itinerary';
 import { format } from 'date-fns';
+import { asDateOnly, formatDateOnly } from '@/lib/date-time';
 
 // Type colors for left borders and badges
 const TYPE_COLORS = {
@@ -249,6 +250,8 @@ interface ItineraryPDFDocumentProps {
 // Helper functions
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return 'Not set';
+  const dateOnly = formatDateOnly(dateStr);
+  if (asDateOnly(dateStr) && dateOnly) return dateOnly;
   try {
     return format(new Date(dateStr), 'MMM d, yyyy');
   } catch {
@@ -258,6 +261,8 @@ const formatDate = (dateStr: string | null | undefined): string => {
 
 const formatShortDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return 'Not set';
+  const dateOnly = formatDateOnly(dateStr, 'EEEE, MMMM d, yyyy');
+  if (asDateOnly(dateStr) && dateOnly) return dateOnly;
   try {
     return format(new Date(dateStr), 'EEEE, MMMM d, yyyy');
   } catch {

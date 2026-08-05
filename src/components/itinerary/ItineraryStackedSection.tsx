@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plane, MapPin, Calendar, Users, Star, Utensils, Plus, ChevronLeft, ChevronRight, Edit, Share2, DollarSign, Trash2 } from "lucide-react";
+import { formatDateOnly } from '@/lib/date-time';
 
 interface StackedCardProps {
   title: string;
@@ -267,7 +268,7 @@ export const ActivityCardRenderer = (activity: any, index: number) => (
     <div className="space-y-1">
       <div className="flex items-center text-sm text-white/50">
         <Calendar className="h-3 w-3 mr-1" />
-        {new Date(activity.date).toLocaleDateString()}
+        {formatDateOnly(activity.date) || 'Date TBD'}
       </div>
       <p className="text-white/50 text-sm">{activity.duration}</p>
     </div>
@@ -297,7 +298,7 @@ export const ReservationCardRenderer = (reservation: any, index: number) => (
         {reservation.party_size} people
       </div>
       <p className="text-white/50 text-sm">
-        {new Date(reservation.date).toLocaleDateString()} • {reservation.time}
+        {formatDateOnly(reservation.date) || 'Date TBD'} • {reservation.time}
       </p>
     </div>
   </>

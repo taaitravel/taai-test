@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 import { getAirlineName } from '@/lib/airlineNames';
+import { buildFlightServiceContract } from '@/lib/booking/booking-contract';
 
 interface FlightSearchCardProps {
   flight: any;
@@ -88,6 +89,7 @@ export const FlightSearchCard = ({ flight }: FlightSearchCardProps) => {
           external_ref: flight.id || `flight-${Date.now()}`,
           price: roundedPrice,
           item_data: {
+            ...buildFlightServiceContract(flight),
             airline: airlineName,
             flightNumber: flight.flight_number,
             from: flight.from || flight.origin,

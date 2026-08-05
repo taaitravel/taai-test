@@ -249,7 +249,7 @@ serve(async (req) => {
     // Fire-and-forget preference learning
     try {
       await supabase.functions.invoke("learn-booking-preferences", {
-        body: { user_id: userId, stripe_session_id: sessionId },
+        body: { stripe_session_id: sessionId },
       });
     } catch (e) {
       console.error("learn-booking-preferences failed", e);

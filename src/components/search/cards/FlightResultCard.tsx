@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 import type { PlanningDraftCardAction } from '@/types/planning-draft';
+import { buildFlightServiceContract } from '@/lib/booking/booking-contract';
 
 interface FlightResultCardProps {
   flight: any;
@@ -84,6 +85,7 @@ export const FlightResultCard = ({ flight, planningAction }: FlightResultCardPro
           external_ref: flight.id || `flight-${Date.now()}`,
           price: parseFloat(flight.price?.total || '0'),
           item_data: {
+            ...buildFlightServiceContract(flight),
             airline: flight.validatingAirlineCodes?.[0] || flight.airline,
             flightNumber: flight.flightNumber,
             departure: {

@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { buildHotelBookingSnapshot, canonicalHotelItemData } from '@/lib/booking/hotel-booking';
-import { buildBookingContext } from '@/lib/booking/booking-contract';
+import { buildBookingContext, buildFlightServiceContract, buildTimedServiceContract } from '@/lib/booking/booking-contract';
 
 export const useSearchActions = () => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -102,7 +102,13 @@ export const useSearchActions = () => {
             provider_quote: item.provider_quote,
             availability_status: item.availability_status || 'provider_search_result',
           })
-        : { ...item, provider };
+        : {
+            ...item,
+            ...(itemType === 'flight'
+              ? buildFlightServiceContract(item)
+              : buildTimedServiceContract(item, itemType === 'restaurant' ? 'restaurant' : 'venue')),
+            provider,
+          };
       const { data, error } = await supabase.from('cart_items').insert({
         user_id: user.id,
         external_ref: externalId,

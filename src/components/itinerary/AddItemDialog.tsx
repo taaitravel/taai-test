@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlaceSearch, PlaceResult } from "@/components/inputs/PlaceSearch";
 import { Trash2, X, Check } from "lucide-react";
+import { buildDateRangeServiceTiming, buildServiceLocation, buildTimedServiceContract } from '@/lib/booking/booking-contract';
+import { differenceInDateOnlyDays } from '@/lib/date-time';
 
 export type ItemType = 'flights' | 'hotels' | 'activities' | 'reservations';
 
@@ -138,6 +140,7 @@ if (type === 'hotels') {
     try {
       // Normalize numeric fields
       const item = { ...form };
+      const selectedPlace = item.location && typeof item.location === 'object' ? item.location as PlaceResult : null;
       ['cost', 'nights', 'rating', 'party_size'].forEach((k) => {
         if (k in item && item[k] !== '') item[k] = Number(item[k]);
       });
@@ -173,11 +176,22 @@ if (type === 'hotels') {
         }
       }
 
+      if (selectedPlace) {
+        item.service_location = buildServiceLocation({
+          id: selectedPlace.id,
+          providerId: selectedPlace.property_id || selectedPlace.id,
+          type: type === 'hotels' ? 'property' : type === 'reservations' ? 'restaurant' : 'venue',
+          name: selectedPlace.name,
+          address: selectedPlace.address,
+          latitude: selectedPlace.lat,
+          longitude: selectedPlace.lng,
+        });
+        item.service_timezone = selectedPlace.timezone || item.service_timezone || null;
+      }
+
       // For hotels, calculate total cost and nights
       if (type === 'hotels') {
-        const start = item.check_in ? new Date(item.check_in) : null;
-        const end = item.check_out ? new Date(item.check_out) : null;
-        const nights = start && end ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+        const nights = differenceInDateOnlyDays(item.check_in, item.check_out);
         const perNight = Number(item.cost || 0);
         const rooms = Number(item.rooms || 1);
         item.nights = nights;
@@ -196,6 +210,8 @@ if (type === 'hotels') {
           price_per_night: perNight,
           provider_total: item.cost,
         };
+        item.booking_contract_version = '1.1';
+        item.service_timing = buildDateRangeServiceTiming(item.check_in, item.check_out, item.service_timezone);
       }
 
       // For activities, calculate total group cost
@@ -205,6 +221,17 @@ if (type === 'hotels') {
         item.participants = participants;
         item.cost_per_person = costPerPerson;
         item.cost = costPerPerson * participants;
+        Object.assign(item, buildTimedServiceContract({
+          ...item,
+          local_start: item.time ? `${item.date}T${item.time}` : item.date,
+        }, 'venue'));
+      }
+
+      if (type === 'reservations') {
+        Object.assign(item, buildTimedServiceContract({
+          ...item,
+          local_start: `${item.date}T${item.time}`,
+        }, 'restaurant'));
       }
 
       await onSubmit(type, item);

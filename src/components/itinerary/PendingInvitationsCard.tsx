@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useInvitations } from '@/hooks/useInvitations';
-import { format } from 'date-fns';
 import { Calendar, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatDateOnlyRange } from '@/lib/date-time';
 
 export const PendingInvitationsCard = () => {
   const { receivedInvitations, loading, acceptInvitation, declineInvitation } = useInvitations();
@@ -57,8 +57,7 @@ export const PendingInvitationsCard = () => {
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     <span>
-                      {format(new Date(invitation.itinerary.itin_date_start), 'MMM d')} - 
-                      {format(new Date(invitation.itinerary.itin_date_end), 'MMM d, yyyy')}
+                      {formatDateOnlyRange(invitation.itinerary.itin_date_start, invitation.itinerary.itin_date_end)}
                     </span>
                   </div>
                 </div>
