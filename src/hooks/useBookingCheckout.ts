@@ -31,6 +31,13 @@ export interface ValidationItem {
   status: 'available' | 'price_changed' | 'sold_out' | 'expired_date' | 'needs_review';
   reason?: string;
   service_dates: Record<string, unknown> | null;
+  occupancy: Record<string, unknown> | null;
+  pricing: Record<string, unknown> | null;
+  booking_context: Record<string, unknown> | null;
+  selected_product: Record<string, unknown> | null;
+  policies: Record<string, unknown> | null;
+  provider_quote: Record<string, unknown> | null;
+  earnings: Record<string, unknown> | null;
 }
 
 export interface ValidationResult {

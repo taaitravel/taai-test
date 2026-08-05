@@ -43,7 +43,7 @@ export const SearchResultsSwiper = ({ results, searchType, searchParams }: Searc
   const renderCard = () => {
     switch (searchType) {
       case 'hotel':
-        return <HotelResultCard hotel={currentResult} />;
+        return <HotelResultCard hotel={currentResult} searchParams={searchParams} />;
       case 'flight':
         return <FlightResultCard flight={currentResult} />;
       case 'activity':

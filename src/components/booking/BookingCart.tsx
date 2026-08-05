@@ -247,10 +247,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const getServiceDateRange = (item: CartItem): string | null => {
-    const sd = item.item_data?.service_dates;
-    if (!sd) return null;
-    const start = sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date;
-    const end = sd.checkOut || sd.end || sd.endDate || sd.return;
+    const sd = item.item_data?.service_dates || {};
+    const start = sd.check_in || sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date
+      || item.item_data?.check_in || item.item_data?.checkIn;
+    const end = sd.check_out || sd.checkOut || sd.end || sd.endDate || sd.return
+      || item.item_data?.check_out || item.item_data?.checkOut;
     try {
       if (start && end) return `${format(new Date(start), 'MMM dd')} – ${format(new Date(end), 'MMM dd, yyyy')}`;
       if (start) return format(new Date(start), 'MMM dd, yyyy');

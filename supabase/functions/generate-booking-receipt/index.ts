@@ -178,8 +178,9 @@ serve(async (req) => {
     for (const cmp of completions) {
       const itemData: any = cmp.item_data || {};
       const sd: any = itemData.service_dates || {};
-      const start = sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date;
-      const end = sd.checkOut || sd.end || sd.endDate || sd.return;
+      const selectedProduct: any = itemData.selected_product || {};
+      const start = sd.check_in || sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date;
+      const end = sd.check_out || sd.checkOut || sd.end || sd.endDate || sd.return;
       const tr = travelersByItem.get(itemData.cart_item_id) || null;
       const leadName = tr?.lead ? `${tr.lead.first_name || ""} ${tr.lead.last_name || ""}`.trim() : null;
       lines.push({
@@ -187,7 +188,8 @@ serve(async (req) => {
         name: itemData.name || cmp.provider || "Item",
         amount: Number(cmp.provider_cost || 0),
         dates: start ? (end && end !== start ? `${start} → ${end}` : start) : null,
-        room: sd.room || sd.room_type || null,
+        room: [selectedProduct.room_name, selectedProduct.rate_name].filter(Boolean).join(" · ")
+          || sd.room || sd.room_type || null,
         pax: tr?.pax || sd.pax || null,
         travelers: leadName ? [leadName] : [],
       });

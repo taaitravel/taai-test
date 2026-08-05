@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Star, Plus, ExternalLink } from 'lucide-react';
+import { MapPin, Star, Plus, ExternalLink, BedDouble } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from './ItineraryMatcherModal';
+import { buildHotelBookingSnapshot, canonicalHotelItemData } from '@/lib/booking/hotel-booking';
+import { HotelRateSelectionDialog } from './HotelRateSelectionDialog';
+import { buildBookingContext } from '@/lib/booking/booking-contract';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MapPopupCardProps {
   item: any;
@@ -15,13 +19,18 @@ interface MapPopupCardProps {
 export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showRates, setShowRates] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
   const { toast } = useToast();
+  const { userProfile } = useAuth();
 
   if (!item) return null;
 
   const images = item.images || (item.image ? [item.image] : []);
-  const pricePerNight = item.pricePerNight || item.price || 0;
-  const totalPrice = item.totalPrice || item.min_total_price || pricePerNight || 0;
+  const hotelBooking = buildHotelBookingSnapshot(item);
+  const totalPrice = searchType === 'hotels'
+    ? hotelBooking.totalPrice
+    : (item.totalPrice || item.min_total_price || item.pricePerNight || item.price || 0);
   const location = item.cityName 
     ? `${item.cityName}${item.distanceFromSearch ? `, ${item.distanceFromSearch} mi` : ''}` 
     : (item.location || item.city || '');
@@ -61,6 +70,16 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
   };
 
   const handleAddToItinerary = () => {
+    if (searchType === 'hotels' && hotelBooking.issues.length > 0) {
+      toast({ title: 'Property details incomplete', description: hotelBooking.issues[0], variant: 'destructive' });
+      return;
+    }
+    setSelectedItem(null);
+    setShowModal(true);
+  };
+
+  const handleSelectRate = (itemWithRate: Record<string, unknown>) => {
+    setSelectedItem(itemWithRate);
     setShowModal(true);
   };
 
@@ -77,6 +96,10 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
         });
         return;
       }
+
+      const itemToSave = selectedItem || item;
+      const bookingToSave = searchType === 'hotels' ? buildHotelBookingSnapshot(itemToSave) : null;
+      if (bookingToSave?.issues.length) throw new Error(bookingToSave.issues[0]);
 
       let targetItineraryId = itineraryId;
 
@@ -107,9 +130,9 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
 
       // Prepare location data
       const itemLocation = {
-        city: item.cityName || item.location || item.city || 'Unknown',
-        lat: item.latitude || 0,
-        lng: item.longitude || 0
+        city: itemToSave.cityName || itemToSave.location || itemToSave.city || 'Unknown',
+        lat: itemToSave.latitude || 0,
+        lng: itemToSave.longitude || 0
       };
 
       // Add location to itinerary map if not already present
@@ -127,29 +150,65 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
           .eq('id', parseInt(targetItineraryId));
       }
 
+      const externalId = itemToSave.hotel_id || itemToSave.hotelId || itemToSave.id || `${searchType}-${Date.now()}`;
+      const provider = itemToSave.source || 'Search';
+      const itemData = searchType === 'hotels'
+        ? canonicalHotelItemData(itemToSave, {}, {
+            name: itemToSave.name,
+            city: itemToSave.cityName || itemToSave.city,
+            location: itemLocation,
+            address: itemToSave.address || '',
+            rating: itemToSave.rating,
+            images: itemToSave.images || images,
+            source: provider,
+            bookingUrl: itemToSave.bookingUrl,
+            bookingStatus: 'pending',
+            booking_context: buildBookingContext({
+              userId: user.id,
+              userType: userProfile?.user_type || user.user_metadata?.user_type,
+              companyName: userProfile?.comp_name,
+            }),
+            selected_product: itemToSave.selected_product,
+            policies: itemToSave.policies,
+            provider_quote: itemToSave.provider_quote,
+            availability_status: itemToSave.availability_status || 'provider_search_result',
+          })
+        : {
+            name: itemToSave.name,
+            city: itemToSave.cityName || itemToSave.city,
+            location: itemLocation,
+            address: itemToSave.address || '',
+            rating: itemToSave.rating,
+            images: itemToSave.images || images,
+            source: provider,
+            bookingUrl: itemToSave.bookingUrl,
+            bookingStatus: 'pending',
+          };
+
+      const providerRef = searchType === 'hotels'
+        ? itemToSave.provider_ref || {
+            external_id: externalId,
+            booking_url: itemToSave.bookingUrl || null,
+            bookable: false,
+            availability_status: 'provider_search_result',
+          }
+        : {};
+      const priceToSave = bookingToSave?.totalPrice || totalPrice;
+
       const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
           itinerary_id: itinData.itin_id,
           type: getDbItemType(),
-          external_ref: item.hotel_id || item.hotelId || item.id || `${searchType}-${Date.now()}`,
-          price: totalPrice,
-          item_data: {
-            name: item.name,
-            city: item.cityName || item.city,
-            location: itemLocation,
-            address: item.address || '',
-            checkIn: item.checkin || item.checkInDate,
-            checkOut: item.checkout || item.checkOutDate,
-            pricePerNight: pricePerNight,
-            totalPrice: totalPrice,
-            rating: item.rating,
-            images: images,
-            source: item.source || 'Search',
-            bookingUrl: item.bookingUrl,
-            bookingStatus: 'pending'
-          }
+          external_ref: externalId,
+          external_id: externalId,
+          provider,
+          provider_ref: providerRef,
+          rate_expires_at: itemToSave.rate_expires_at || null,
+          price: priceToSave,
+          last_price: priceToSave,
+          item_data: itemData,
         });
 
       if (error) throw error;
@@ -160,6 +219,7 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
       });
 
       setShowModal(false);
+      setSelectedItem(null);
       onClose?.();
     } catch (error) {
       console.error('Error saving item:', error);
@@ -220,7 +280,7 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
               ${Math.ceil(totalPrice).toLocaleString()}
             </div>
             <div className="text-[9px] text-white/50">
-              {searchType === 'hotels' ? 'per night' : 'total'} • incl. taxes
+              total{searchType === 'hotels' && hotelBooking.nights > 0 ? ` · ${hotelBooking.nights} nights` : ''}
             </div>
           </div>
           {item.reviews && (
@@ -242,6 +302,19 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
             <Plus className="mr-1 h-3 w-3" />
             {saving ? 'Saving...' : getItemTypeLabel()}
           </Button>
+
+          {searchType === 'hotels' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2 border-white/20 text-white/60 hover:text-white hover:bg-white/10"
+              onClick={() => setShowRates(true)}
+              disabled={hotelBooking.issues.length > 0}
+              aria-label="Select a room and rate"
+            >
+              <BedDouble className="h-3 w-3" />
+            </Button>
+          )}
           
           {item.bookingUrl && (
             <Button
@@ -260,12 +333,20 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: item.checkin || item.checkInDate || new Date().toISOString().split('T')[0],
-          checkout: item.checkout || item.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
+          checkin: hotelBooking.checkIn || '',
+          checkout: hotelBooking.checkOut || ''
         }}
-        item={item}
+        item={selectedItem || item}
         onConfirm={handleModalConfirm}
       />
+      {searchType === 'hotels' && (
+        <HotelRateSelectionDialog
+          open={showRates}
+          onOpenChange={setShowRates}
+          hotel={item}
+          onSelect={handleSelectRate}
+        />
+      )}
     </div>
   );
 };

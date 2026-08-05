@@ -112,6 +112,12 @@ serve(async (req) => {
     const quote_id = parsed.data.quote_id;
     const ui_mode = parsed.data.ui_mode;
 
+    if (!quote_id) {
+      return new Response(JSON.stringify({ error: "A validated quote is required before checkout" }), {
+        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Quote-first path: server-validated cart snapshot from pre-checkout-validate.
     let quoteRow: any = null;
     if (quote_id) {
@@ -133,8 +139,25 @@ serve(async (req) => {
       }
       quoteRow = q;
       itinerary_id = q.itinerary_id ?? itinerary_id;
-      // Hydrate items from validated quote, ignoring anything the client tried to send.
-      const bookable = (q.items as any[]).filter(
+      // Hydrate items from the validated quote, ignoring anything the client tried to send.
+      // Never silently drop an invalid selection and charge for only part of the cart.
+      const quoteItems = q.items as any[];
+      const blocking = quoteItems.filter(
+        (v) => v.status !== "available" && v.status !== "price_changed"
+      );
+      if (blocking.length > 0) {
+        return new Response(JSON.stringify({
+          error: "Every item must pass availability validation before checkout",
+          blocking_items: blocking.map((v) => ({
+            cart_item_id: v.cart_item_id,
+            status: v.status,
+            reason: v.reason,
+          })),
+        }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const bookable = quoteItems.filter(
         (v) => v.status === "available" || v.status === "price_changed"
       );
       if (bookable.length === 0) {
@@ -148,7 +171,18 @@ serve(async (req) => {
         name: v.name,
         price: Number(v.new_price),
         provider: v.provider,
-        item_data: { external_id: v.external_id, service_dates: v.service_dates },
+        item_data: {
+          external_id: v.external_id,
+          service_dates: v.service_dates,
+          occupancy: v.occupancy,
+          pricing: v.pricing,
+          booking_context: v.booking_context,
+          selected_product: v.selected_product,
+          policies: v.policies,
+          provider_quote: v.provider_quote,
+          earnings: v.earnings,
+        },
+        service_dates: v.service_dates,
       }));
     }
     if (!items || items.length === 0) {

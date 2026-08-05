@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ImageGallery } from '@/components/ui/image-gallery';
-import { MapPin, Calendar, Clock, Star, Users, Plane, Utensils } from 'lucide-react';
+import { MapPin, Calendar, Clock, Star, Users, Plane, Utensils, BedDouble, ShieldCheck } from 'lucide-react';
 
 interface BaseItem {
   name?: string;
@@ -25,6 +25,16 @@ interface HotelItem extends BaseItem {
   check_in?: string;
   check_out?: string;
   nights?: number;
+  rooms?: number;
+  cost_per_night?: number;
+  selected_product?: {
+    room_name?: string | null;
+    rate_name?: string | null;
+    bed_configuration?: string | null;
+  };
+  policies?: {
+    cancellation_summary?: string | null;
+  };
 }
 
 interface ActivityItem extends BaseItem {
@@ -91,12 +101,24 @@ const OptimizedItineraryCard = memo(({ item, onEdit, onDelete }: OptimizedItiner
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-white/70">
               <Calendar className="h-4 w-4" />
-              <span>{item.check_in} - {item.check_out}</span>
+              <span>{item.check_in && item.check_out ? `${item.check_in} - ${item.check_out}` : 'Dates required before checkout'}</span>
             </div>
             {item.nights && (
               <div className="flex items-center gap-2 text-white/70">
                 <Clock className="h-4 w-4" />
                 <span>{item.nights} nights</span>
+              </div>
+            )}
+            {(item.selected_product?.room_name || item.selected_product?.rate_name) && (
+              <div className="flex items-center gap-2 text-white/70">
+                <BedDouble className="h-4 w-4" />
+                <span>{[item.selected_product.room_name, item.selected_product.rate_name].filter(Boolean).join(' · ')}</span>
+              </div>
+            )}
+            {item.policies?.cancellation_summary && (
+              <div className="flex items-center gap-2 text-white/70">
+                <ShieldCheck className="h-4 w-4" />
+                <span>{item.policies.cancellation_summary}</span>
               </div>
             )}
           </div>
@@ -211,9 +233,14 @@ const OptimizedItineraryCard = memo(({ item, onEdit, onDelete }: OptimizedItiner
           
           <div className="flex items-center gap-2">
             {(item.cost || item.price) && (
-              <span className="text-lg font-semibold text-white">
-                ${item.cost || item.price}
-              </span>
+              <div className="text-right">
+                <div className="text-lg font-semibold text-white">${item.cost || item.price}</div>
+                {item.type === 'hotel' && (
+                  <div className="text-xs text-white/50">
+                    total stay{item.cost_per_night ? ` · $${item.cost_per_night}/night` : ''}
+                  </div>
+                )}
+              </div>
             )}
             
             {(onEdit || onDelete) && (

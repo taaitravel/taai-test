@@ -39,14 +39,35 @@ interface ValidatedItem {
   status: ItemStatus;
   reason?: string;
   service_dates: Record<string, unknown> | null;
+  occupancy: Record<string, unknown> | null;
+  pricing: Record<string, unknown> | null;
+  booking_context: Record<string, unknown> | null;
+  selected_product: Record<string, unknown> | null;
+  policies: Record<string, unknown> | null;
+  provider_quote: Record<string, unknown> | null;
+  earnings: Record<string, unknown> | null;
 }
 
-function pickServiceStart(item_data: any): Date | null {
+function parseServiceDate(raw: unknown): Date | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const dateOnly = raw.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (!dateOnly) return null;
+  const parsed = new Date(`${dateOnly}T00:00:00Z`);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function normalizeServiceDates(item_data: any): Record<string, unknown> | null {
   const sd = item_data?.service_dates ?? {};
-  const raw = sd.start || sd.checkIn || sd.startDate || sd.depart || sd.date;
-  if (!raw) return null;
-  const d = new Date(raw);
-  return isNaN(d.getTime()) ? null : d;
+  const checkIn = sd.check_in || sd.checkIn || sd.start || sd.startDate
+    || item_data?.check_in || item_data?.checkIn || item_data?.checkin;
+  const checkOut = sd.check_out || sd.checkOut || sd.end || sd.endDate
+    || item_data?.check_out || item_data?.checkOut || item_data?.checkout;
+  const start = checkIn || sd.depart || sd.date || item_data?.departure || item_data?.date;
+  const end = checkOut || sd.return || item_data?.arrival;
+  if (!start && !end) return null;
+  return checkIn || checkOut
+    ? { check_in: checkIn ?? null, check_out: checkOut ?? null }
+    : { start: start ?? null, end: end ?? null };
 }
 
 /**
@@ -57,9 +78,13 @@ function pickServiceStart(item_data: any): Date | null {
  *  - flag a price change if the cart row's `price` differs from `last_price`
  */
 async function repriceItem(row: any): Promise<ValidatedItem> {
-  const start = pickServiceStart(row.item_data);
+  const serviceDates = normalizeServiceDates(row.item_data);
+  const startRaw = serviceDates?.check_in || serviceDates?.start;
+  const endRaw = serviceDates?.check_out || serviceDates?.end;
+  const start = parseServiceDate(startRaw);
+  const end = parseServiceDate(endRaw);
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
 
   const base: ValidatedItem = {
     cart_item_id: row.id,
@@ -69,18 +94,70 @@ async function repriceItem(row: any): Promise<ValidatedItem> {
     external_id: row.external_id || row.item_data?.provider_ref?.external_id || null,
     old_price: Number(row.last_price ?? row.price ?? 0),
     new_price: Number(row.price ?? 0),
-    status: "available",
-    service_dates: row.item_data?.service_dates ?? null,
+    status: "needs_review",
+    service_dates: serviceDates,
+    occupancy: row.item_data?.occupancy ?? null,
+    pricing: row.item_data?.pricing ?? null,
+    booking_context: row.item_data?.booking_context ?? null,
+    selected_product: row.item_data?.selected_product ?? null,
+    policies: row.item_data?.policies ?? null,
+    provider_quote: row.item_data?.provider_quote ?? null,
+    earnings: row.item_data?.earnings ?? null,
   };
 
-  if (start && start < today) {
+  if (!start || (row.type === "hotel" && !end)) {
+    return { ...base, reason: row.type === "hotel"
+      ? "Check-in and check-out dates are required before checkout"
+      : "A service date is required before checkout" };
+  }
+
+  if (row.type === "hotel" && end && end <= start) {
+    return { ...base, reason: "Check-out must be after check-in" };
+  }
+
+  if (start < today) {
     return { ...base, status: "expired_date", reason: "Service date is in the past" };
   }
 
-  // If we have no provider linkage we can't actually book — mark for manual review.
+  if (!(base.new_price > 0)) {
+    return { ...base, reason: "A valid total price is required before checkout" };
+  }
+
+  if (row.type === "hotel") {
+    const occupancy = row.item_data?.occupancy ?? {};
+    const rooms = Number(occupancy.rooms ?? row.item_data?.rooms ?? 0);
+    const adults = Number(occupancy.adults ?? row.item_data?.adults ?? row.item_data?.guests ?? 0);
+    if (!(rooms >= 1) || !(adults >= 1)) {
+      return { ...base, reason: "Room and guest occupancy are required before checkout" };
+    }
+
+    const selectedProduct = row.item_data?.selected_product ?? {};
+    if (!selectedProduct.room_id || !selectedProduct.rate_id) {
+      return { ...base, reason: "Select a room and rate before checkout" };
+    }
+
+    const providerQuote = row.item_data?.provider_quote ?? {};
+    const quoteOccupancy = providerQuote.occupancy ?? {};
+    const exactDatesMatch = providerQuote.exact_selection === true
+      && providerQuote.check_in === serviceDates?.check_in
+      && providerQuote.check_out === serviceDates?.check_out;
+    const exactOccupancyMatches = Number(quoteOccupancy.rooms) === rooms
+      && Number(quoteOccupancy.adults) === adults
+      && Number(quoteOccupancy.children ?? 0) === Number(occupancy.children ?? 0);
+    if (!exactDatesMatch || !exactOccupancyMatches) {
+      return { ...base, reason: "The selected room must be refreshed for these exact dates and guests" };
+    }
+
+    const rateExpiresAt = row.rate_expires_at ? new Date(row.rate_expires_at) : null;
+    if (rateExpiresAt && !isNaN(rateExpiresAt.getTime()) && rateExpiresAt <= new Date()) {
+      return { ...base, status: "expired_date", reason: "The selected room rate has expired" };
+    }
+  }
+
+  // A search result or outbound URL is not proof that the selected dates/rate are bookable.
   const bookable = row.provider_ref?.bookable;
-  if (bookable === false) {
-    return { ...base, status: "needs_review", reason: "No live inventory link — confirm with provider" };
+  if (bookable !== true || !base.external_id) {
+    return { ...base, reason: "Live availability has not been confirmed for this exact selection" };
   }
 
   // Price drift flag (placeholder until real provider reprice).
@@ -88,7 +165,7 @@ async function repriceItem(row: any): Promise<ValidatedItem> {
     return { ...base, status: "price_changed", reason: "Provider rate has moved since you saved this item" };
   }
 
-  return base;
+  return { ...base, status: "available" };
 }
 
 serve(async (req) => {

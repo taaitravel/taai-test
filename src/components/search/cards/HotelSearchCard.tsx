@@ -1,12 +1,16 @@
 import { Badge } from '@/components/ui/badge';
 import { ImageGallery } from '@/components/ui/image-gallery';
-import { Star, MapPin, Calendar, Plus } from 'lucide-react';
+import { Star, MapPin, Calendar, Plus, BedDouble } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 import { cn } from '@/lib/utils';
+import { buildHotelBookingSnapshot, canonicalHotelItemData } from '@/lib/booking/hotel-booking';
+import { HotelRateSelectionDialog } from '../HotelRateSelectionDialog';
+import { buildBookingContext } from '@/lib/booking/booking-contract';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HotelSearchCardProps {
   hotel: any;
@@ -22,7 +26,10 @@ const VRBOBadge = () => (
 export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showRates, setShowRates] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState<any>(null);
   const { toast } = useToast();
+  const { userProfile } = useAuth();
 
   if (!hotel || typeof hotel !== 'object') return null;
 
@@ -30,17 +37,26 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
   const isVRBO = hotel.providerTag === 'VRBO';
 
   const images = hotel.images || (hotel.image ? [hotel.image] : []);
-  const pricePerNight = hotel.pricePerNight || hotel.price || 0;
-  const rooms = searchParams?.rooms || 1;
-  const adults = searchParams?.adults || 2;
-  const nights = hotel.nights || 1;
-  const totalPrice = pricePerNight * nights * rooms || hotel.totalPrice || hotel.min_total_price || 0;
+  const booking = buildHotelBookingSnapshot(hotel, searchParams);
+  const { pricePerNight, totalPrice, rooms, adults, nights } = booking;
   const location = hotel.cityName 
     ? `${hotel.cityName}${hotel.distanceFromSearch ? `, ${hotel.distanceFromSearch} mi` : ''}` 
     : (hotel.location || hotel.city || '');
   const source = hotel.source || 'Booking.com';
 
-  const handleAddToItinerary = () => setShowModal(true);
+  const handleAddToItinerary = () => {
+    if (booking.issues.length > 0) {
+      toast({ title: 'Property details incomplete', description: booking.issues[0], variant: 'destructive' });
+      return;
+    }
+    setSelectedHotel(null);
+    setShowModal(true);
+  };
+
+  const handleSelectRate = (hotelWithRate: Record<string, unknown>) => {
+    setSelectedHotel(hotelWithRate);
+    setShowModal(true);
+  };
 
   const handleModalConfirm = async (itineraryId: string | 'new', newItineraryName?: string, startDate?: string, endDate?: string) => {
     setSaving(true);
@@ -50,6 +66,10 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
         toast({ title: 'Authentication Required', description: 'Please sign in to add items to your itinerary', variant: 'destructive' });
         return;
       }
+
+      const hotelToSave = selectedHotel || hotel;
+      const bookingToSave = buildHotelBookingSnapshot(hotelToSave, searchParams);
+      if (bookingToSave.issues.length > 0) throw new Error(bookingToSave.issues[0]);
 
       let targetItineraryId = itineraryId;
       if (itineraryId === 'new') {
@@ -69,9 +89,9 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
       if (itinError) throw itinError;
 
       const hotelLocation = {
-        city: hotel.cityName || hotel.location || hotel.city || 'Unknown',
-        lat: hotel.latitude || 0,
-        lng: hotel.longitude || 0
+        city: hotelToSave.cityName || hotelToSave.location || hotelToSave.city || 'Unknown',
+        lat: hotelToSave.latitude || 0,
+        lng: hotelToSave.longitude || 0
       };
 
       const currentMapLocations = Array.isArray(itinData.itin_map_locations) ? itinData.itin_map_locations : [];
@@ -79,34 +99,54 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
         await supabase.from('itinerary').update({ itin_map_locations: [...currentMapLocations, hotelLocation] }).eq('id', parseInt(targetItineraryId));
       }
 
+      const externalId = hotelToSave.hotel_id || hotelToSave.hotelId || hotelToSave.id || `hotel-${Date.now()}`;
+      const itemData = canonicalHotelItemData(hotelToSave, searchParams, {
+          name: hotelToSave.name,
+          city: hotelToSave.cityName || hotelToSave.city,
+          location: hotelLocation,
+          address: hotelToSave.address || '',
+          rating: hotelToSave.rating,
+          images: hotelToSave.images || images,
+          source: hotelToSave.source || source,
+          bookingUrl: hotelToSave.bookingUrl,
+          bookingStatus: 'pending',
+          booking_context: buildBookingContext({
+            userId: user.id,
+            userType: userProfile?.user_type || user.user_metadata?.user_type,
+            companyName: userProfile?.comp_name,
+          }),
+          selected_product: hotelToSave.selected_product,
+          policies: hotelToSave.policies,
+          provider_quote: hotelToSave.provider_quote,
+          availability_status: hotelToSave.availability_status || 'provider_search_result',
+          propertyCategory: hotelToSave.propertyCategory || 'hotel',
+          providerTag: hotelToSave.providerTag || 'Booking.com',
+      });
+      const providerRef = hotelToSave.provider_ref || {
+        external_id: externalId,
+        booking_url: hotelToSave.bookingUrl || null,
+        bookable: false,
+        availability_status: 'provider_search_result',
+      };
+
       const { error } = await supabase.from('cart_items').insert({
         user_id: user.id,
         itinerary_id: itinData.itin_id,
         type: 'hotel',
-        external_ref: hotel.hotel_id || hotel.hotelId || `hotel-${Date.now()}`,
-        price: totalPrice,
-        item_data: {
-          name: hotel.name,
-          city: hotel.cityName || hotel.city,
-          location: hotelLocation,
-          address: hotel.address || '',
-          checkIn: searchParams?.checkin || hotel.checkin || hotel.checkInDate,
-          checkOut: searchParams?.checkout || hotel.checkout || hotel.checkOutDate,
-          pricePerNight, totalPrice, nights,
-          rooms,
-          adults,
-          rating: hotel.rating,
-          images, source,
-          bookingUrl: hotel.bookingUrl,
-          bookingStatus: 'pending',
-          propertyCategory: hotel.propertyCategory || 'hotel',
-          providerTag: hotel.providerTag || 'Booking.com',
-        }
+        external_ref: externalId,
+        external_id: externalId,
+        provider: hotelToSave.source || source,
+        provider_ref: providerRef,
+        rate_expires_at: hotelToSave.rate_expires_at || null,
+        price: bookingToSave.totalPrice,
+        last_price: bookingToSave.totalPrice,
+        item_data: itemData,
       });
       if (error) throw error;
 
       toast({ title: 'Property Saved', description: 'Added to your itinerary as a pending booking' });
       setShowModal(false);
+      setSelectedHotel(null);
     } catch (error) {
       console.error('Error saving hotel:', error);
       toast({ title: 'Error', description: 'Failed to save property to itinerary', variant: 'destructive' });
@@ -117,7 +157,7 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
 
   return (
     <div className={cn(
-      "w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border pb-[20px] hover:shadow-lg transition-all duration-300",
+      "w-[270px] h-[405px] flex flex-col overflow-hidden rounded-lg border pb-[20px] hover:shadow-lg transition-all duration-300",
       isRental
         ? "border-rental/40 bg-[#1a1c2e] hover:shadow-rental/10"
         : "border-white/20 bg-[#1a1c2e] hover:shadow-gray-500/10"
@@ -176,19 +216,28 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
             </p>
             <p className="text-white/40 text-xs text-center">total for {nights}n · {rooms} room{rooms > 1 ? 's' : ''}</p>
           </div>
-          <div className="pt-2 border-t border-white/10 flex-shrink-0">
+          <div className="pt-2 border-t border-white/10 flex gap-2 flex-shrink-0">
             <Button
               onClick={handleAddToItinerary}
               disabled={saving}
               className={cn(
-                "w-full h-8 text-xs text-white",
+                "flex-1 h-8 px-2 text-xs text-white",
                 isRental
                   ? "bg-gradient-to-r from-rental to-rental/80 hover:from-rental/90 hover:to-rental/70 text-rental-foreground"
                   : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
               )}
             >
               <Plus className="mr-1 h-3 w-3" />
-              {saving ? 'Saving...' : 'Property'}
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+            <Button
+              onClick={() => setShowRates(true)}
+              disabled={saving || booking.issues.length > 0}
+              variant="outline"
+              className="flex-1 h-8 px-2 text-xs border-white/20 text-white hover:bg-white/10"
+            >
+              <BedDouble className="mr-1 h-3 w-3" />
+              Rooms
             </Button>
           </div>
         </div>
@@ -198,11 +247,18 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: searchParams?.checkin || hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
-          checkout: searchParams?.checkout || hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
+          checkin: booking.checkIn || '',
+          checkout: booking.checkOut || ''
         }}
-        item={hotel}
+        item={selectedHotel || hotel}
         onConfirm={handleModalConfirm}
+      />
+      <HotelRateSelectionDialog
+        open={showRates}
+        onOpenChange={setShowRates}
+        hotel={hotel}
+        searchParams={searchParams || {}}
+        onSelect={handleSelectRate}
       />
     </div>
   );

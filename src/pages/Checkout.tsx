@@ -29,6 +29,13 @@ interface QuoteItem {
   provider: string;
   status: string;
   service_dates?: Record<string, any> | null;
+  occupancy?: Record<string, any> | null;
+  pricing?: Record<string, any> | null;
+  booking_context?: Record<string, any> | null;
+  selected_product?: Record<string, any> | null;
+  policies?: Record<string, any> | null;
+  provider_quote?: Record<string, any> | null;
+  earnings?: Record<string, any> | null;
   external_id?: string | null;
 }
 
@@ -101,8 +108,8 @@ function defaultDates(type: string): { start: string; end: string; nights: numbe
 
 function extractDates(item: QuoteItem): { start: string; end: string; tentative: boolean; nights: number } {
   const sd = item.service_dates || {};
-  const start = sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date || null;
-  const end = sd.checkOut || sd.end || sd.endDate || sd.return || null;
+  const start = sd.check_in || sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date || null;
+  const end = sd.check_out || sd.checkOut || sd.end || sd.endDate || sd.return || null;
   if (start) {
     const s = String(start).slice(0, 10);
     const e = end ? String(end).slice(0, 10) : s;
@@ -115,8 +122,25 @@ function extractDates(item: QuoteItem): { start: string; end: string; tentative:
 }
 
 function getRoomLabel(item: QuoteItem): string | null {
+  const selected: any = item.selected_product || {};
+  if (selected.room_name || selected.rate_name) {
+    return [selected.room_name, selected.rate_name].filter(Boolean).join(' · ');
+  }
   const sd: any = item.service_dates || {};
   return sd.room || sd.room_type || sd.bed_type || sd.cabin || sd.fare_class || null;
+}
+
+function getItemPolicy(item: QuoteItem): { cancellation: string; payment: string; change: string; captured: boolean } {
+  const policy: any = item.policies || {};
+  if (policy.cancellation_summary || policy.payment_timing) {
+    return {
+      cancellation: policy.cancellation_summary || 'Review the provider cancellation terms.',
+      payment: policy.payment_timing || 'Payment timing is confirmed by the provider.',
+      change: 'Changes require a refreshed room and rate selection.',
+      captured: true,
+    };
+  }
+  return { ...getDefaultPolicy(item.type), captured: false };
 }
 
 function getDefaultPolicy(type: string): { cancellation: string; payment: string; change: string } {
@@ -208,7 +232,10 @@ export default function Checkout() {
       bookable.forEach((it) => {
         datesMap[it.cart_item_id] = extractDates(it);
         const sd: any = it.service_dates || {};
-        paxMap[it.cart_item_id] = Number(sd.pax || sd.guests || sd.adults || 1) || 1;
+        const occupancy: any = it.occupancy || {};
+        paxMap[it.cart_item_id] = Number(
+          occupancy.adults || sd.pax || sd.guests || sd.adults || 1
+        ) + Number(occupancy.children || 0);
         const existing = existingRows.find((t: any) => t.cart_item_id === it.cart_item_id);
         const lead = existing?.traveler_data?.lead;
         if (lead && Object.keys(lead).length > 0) {
@@ -444,10 +471,12 @@ export default function Checkout() {
                 const d = datesByItem[it.cart_item_id];
                 const pax = paxByItem[it.cart_item_id] || 1;
                 const room = getRoomLabel(it);
-                const policy = getDefaultPolicy(it.type);
+                const policy = getItemPolicy(it);
                 const t = it.type.toLowerCase();
                 const isHotel = t === 'hotel' || t === 'rental';
-                const nightly = isHotel && d?.nights ? it.new_price / d.nights : null;
+                const lockedHotelSelection = isHotel && Boolean(it.selected_product?.room_id && it.selected_product?.rate_id);
+                const rooms = Math.max(1, Number(it.occupancy?.rooms || 1));
+                const nightly = isHotel && d?.nights ? it.new_price / (d.nights * rooms) : null;
                 const docsOpen = !!showDocs[it.cart_item_id];
                 return (
                   <Card key={it.cart_item_id} className="overflow-hidden">
@@ -479,6 +508,7 @@ export default function Checkout() {
                           {nightly && (
                             <div className="text-[11px] text-muted-foreground">
                               {formatMoney(nightly, currency)} × {d.nights} night{d.nights === 1 ? '' : 's'}
+                              {rooms > 1 ? ` × ${rooms} rooms` : ''}
                             </div>
                           )}
                         </div>
@@ -496,6 +526,7 @@ export default function Checkout() {
                             type="date"
                             value={d?.start || ''}
                             onChange={(e) => setDate(it.cart_item_id, 'start', e.target.value)}
+                            disabled={lockedHotelSelection}
                           />
                         </div>
                         {(isHotel || t === 'flight') && (
@@ -508,6 +539,7 @@ export default function Checkout() {
                               type="date"
                               value={d?.end || ''}
                               onChange={(e) => setDate(it.cart_item_id, 'end', e.target.value)}
+                              disabled={lockedHotelSelection}
                             />
                           </div>
                         )}
@@ -516,11 +548,11 @@ export default function Checkout() {
                             <Users className="h-3 w-3" /> Guests
                           </Label>
                           <div className="flex items-center gap-2">
-                            <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => setPax(it.cart_item_id, -1)}>
+                            <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => setPax(it.cart_item_id, -1)} disabled={lockedHotelSelection}>
                               <Minus className="h-3 w-3" />
                             </Button>
                             <div className="w-10 text-center text-sm font-medium tabular-nums">{pax}</div>
-                            <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => setPax(it.cart_item_id, 1)}>
+                            <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => setPax(it.cart_item_id, 1)} disabled={lockedHotelSelection}>
                               <Plus className="h-3 w-3" />
                             </Button>
                           </div>
@@ -533,6 +565,9 @@ export default function Checkout() {
                             <div className="text-sm py-2">
                               {room || (
                                 <span className="text-muted-foreground italic">Standard (to be confirmed)</span>
+                              )}
+                              {lockedHotelSelection && (
+                                <div className="text-xs text-muted-foreground mt-1">Dates and guests are locked to this rate. Reselect the room to change them.</div>
                               )}
                             </div>
                           </div>
@@ -627,7 +662,9 @@ export default function Checkout() {
                           <div><span className="font-medium text-foreground">Cancellation:</span> {policy.cancellation}</div>
                           <div><span className="font-medium text-foreground">Payment:</span> {policy.payment}</div>
                           <div><span className="font-medium text-foreground">Changes:</span> {policy.change}</div>
-                          <div className="italic">Default policy — confirmed with provider after booking.</div>
+                          <div className="italic">
+                            {policy.captured ? 'Policy captured with the selected provider rate.' : 'Default policy — confirmed with provider after booking.'}
+                          </div>
                         </CollapsibleContent>
                       </Collapsible>
                     </CardContent>
@@ -654,12 +691,13 @@ export default function Checkout() {
                 {items.map((it) => {
                   const d = datesByItem[it.cart_item_id];
                   const isHotel = (it.type || '').toLowerCase() === 'hotel';
-                  const nightly = isHotel && d?.nights ? it.new_price / d.nights : null;
+                  const rooms = Math.max(1, Number(it.occupancy?.rooms || 1));
+                  const nightly = isHotel && d?.nights ? it.new_price / (d.nights * rooms) : null;
                   return (
                     <div key={it.cart_item_id} className="flex justify-between gap-2">
                       <div className="text-muted-foreground min-w-0 truncate">
                         {it.name}
-                        {nightly && <span className="text-xs"> · {formatMoney(nightly, currency)} × {d.nights}n</span>}
+                        {nightly && <span className="text-xs"> · {formatMoney(nightly, currency)} × {d.nights}n{rooms > 1 ? ` × ${rooms} rooms` : ''}</span>}
                       </div>
                       <div className="tabular-nums shrink-0">{formatMoney(it.new_price, currency)}</div>
                     </div>

@@ -3,11 +3,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { buildHotelBookingSnapshot, canonicalHotelItemData } from '@/lib/booking/hotel-booking';
+import { buildBookingContext } from '@/lib/booking/booking-contract';
 
 export const useSearchActions = () => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showItineraryModal, setShowItineraryModal] = useState(false);
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -73,15 +75,50 @@ export const useSearchActions = () => {
     }
 
     try {
+      const isHotel = !itemType || itemType === 'hotel' || itemType === 'hotels';
+      const hotelBooking = isHotel ? buildHotelBookingSnapshot(item) : null;
+      if (hotelBooking?.issues.length) {
+        toast({
+          title: 'Property details incomplete',
+          description: hotelBooking.issues[0],
+          variant: 'destructive',
+        });
+        return;
+      }
+      const externalId = item.hotel_id || item.hotelId || item.id || '';
+      const provider = item.source || item.provider || 'unknown';
+      const totalPrice = hotelBooking?.totalPrice || item.min_total_price || item.totalPrice || item.price || 0;
+      const itemData = isHotel
+        ? canonicalHotelItemData(item, {}, {
+            ...item,
+            provider,
+            booking_context: buildBookingContext({
+              userId: user.id,
+              userType: userProfile?.user_type || user.user_metadata?.user_type,
+              companyName: userProfile?.comp_name,
+            }),
+            selected_product: item.selected_product,
+            policies: item.policies,
+            provider_quote: item.provider_quote,
+            availability_status: item.availability_status || 'provider_search_result',
+          })
+        : { ...item, provider };
       const { data, error } = await supabase.from('cart_items').insert({
         user_id: user.id,
-        external_ref: item.hotel_id || item.id || '',
-        type: itemType || 'hotel',
-        price: item.min_total_price || item.price || 0,
-        item_data: {
-          ...item,
-          provider: item.source || item.provider || 'unknown',
-        },
+        external_ref: externalId,
+        external_id: externalId || null,
+        type: isHotel ? 'hotel' : itemType,
+        price: totalPrice,
+        last_price: totalPrice,
+        provider,
+        provider_ref: isHotel ? item.provider_ref || {
+          external_id: externalId || null,
+          booking_url: item.bookingUrl || item.url || null,
+          bookable: false,
+          availability_status: 'provider_search_result',
+        } : {},
+        rate_expires_at: isHotel ? item.rate_expires_at || null : null,
+        item_data: itemData,
         booking_status: 'interested',
       }).select('id').single();
 

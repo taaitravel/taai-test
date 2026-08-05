@@ -164,6 +164,12 @@ export const useSearchOrchestrator = () => {
                 source: 'Booking.com',
                 propertyCategory: isRental ? 'rental' : 'hotel',
                 providerTag: 'Booking.com',
+                check_in: params.checkin,
+                check_out: params.checkout,
+                rooms: params.rooms || 1,
+                adults: params.adults || 2,
+                children: params.children || 0,
+                currency: hotel.property?.priceBreakdown?.grossPrice?.currency || 'USD',
               };
             })
           ) : [];

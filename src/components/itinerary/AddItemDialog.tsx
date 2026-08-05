@@ -39,7 +39,9 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
     if (open && type) {
       // If editing, prefill with existing item
       if (initialItem) {
-        setForm(initialItem);
+        setForm(type === 'hotels'
+          ? { ...initialItem, cost: initialItem.cost_per_night ?? initialItem.pricing?.price_per_night ?? initialItem.cost }
+          : initialItem);
         setErrors({});
         return;
       }
@@ -183,6 +185,17 @@ if (type === 'hotels') {
         item.guests = Number(item.guests || 2);
         item.cost_per_night = perNight;
         item.cost = perNight * Math.max(nights, 0) * rooms;
+        item.service_dates = { check_in: item.check_in, check_out: item.check_out };
+        item.occupancy = { rooms, adults: item.guests, children: Number(item.children || 0) };
+        item.price_per_night = perNight;
+        item.total_price = item.cost;
+        item.pricing = {
+          ...(item.pricing || {}),
+          currency: item.pricing?.currency || 'USD',
+          price_scope: 'stay_total',
+          price_per_night: perNight,
+          provider_total: item.cost,
+        };
       }
 
       // For activities, calculate total group cost

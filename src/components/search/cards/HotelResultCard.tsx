@@ -1,4 +1,4 @@
-import { Star, MapPin, Wifi, Coffee, ParkingCircle, Plus } from 'lucide-react';
+import { Star, MapPin, Wifi, Coffee, ParkingCircle, Plus, BedDouble } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -6,6 +6,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 import type { PlanningDraftCardAction } from '@/types/planning-draft';
+import { buildHotelBookingSnapshot, canonicalHotelItemData } from '@/lib/booking/hotel-booking';
+import { HotelRateSelectionDialog } from '../HotelRateSelectionDialog';
+import { buildBookingContext } from '@/lib/booking/booking-contract';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HotelResultCardProps {
   hotel: any;
@@ -16,9 +20,23 @@ interface HotelResultCardProps {
 export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelResultCardProps) => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showRates, setShowRates] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState<any>(null);
   const { toast } = useToast();
+  const { userProfile } = useAuth();
+  const booking = buildHotelBookingSnapshot(hotel, searchParams);
 
   const handleAddToItinerary = () => {
+    if (booking.issues.length > 0) {
+      toast({ title: 'Property details incomplete', description: booking.issues[0], variant: 'destructive' });
+      return;
+    }
+    setSelectedHotel(null);
+    setShowModal(true);
+  };
+
+  const handleSelectRate = (hotelWithRate: Record<string, unknown>) => {
+    setSelectedHotel(hotelWithRate);
     setShowModal(true);
   };
 
@@ -35,6 +53,10 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
         });
         return;
       }
+
+      const hotelToSave = selectedHotel || hotel;
+      const bookingToSave = buildHotelBookingSnapshot(hotelToSave, searchParams);
+      if (bookingToSave.issues.length > 0) throw new Error(bookingToSave.issues[0]);
 
       let targetItineraryId = itineraryId;
 
@@ -66,9 +88,9 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
 
       // Prepare hotel location data
       const hotelLocation = {
-        city: hotel.city || hotel.location || 'Unknown',
-        lat: hotel.latitude || 0,
-        lng: hotel.longitude || 0
+        city: hotelToSave.city || hotelToSave.location || 'Unknown',
+        lat: hotelToSave.latitude || 0,
+        lng: hotelToSave.longitude || 0
       };
 
       // Add location to itinerary map if not already present
@@ -86,31 +108,52 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
           .eq('id', parseInt(targetItineraryId));
       }
 
+      const externalId = hotelToSave.hotel_id || hotelToSave.hotelId || hotelToSave.id || `hotel-${Date.now()}`;
+      const provider = hotelToSave.source || hotelToSave.provider || 'Booking.com';
+      const itemData = canonicalHotelItemData(hotelToSave, searchParams, {
+        name: hotelToSave.name || hotelToSave.hotel_name || hotelToSave.hotelName,
+        city: hotelToSave.city || hotelToSave.location,
+        rating: hotelToSave.rating || hotelToSave.review_score || hotelToSave.reviewScore,
+        reviewCount: hotelToSave.review_nr || hotelToSave.reviewCount,
+        images: hotelToSave.photos || hotelToSave.images || [],
+        address: hotelToSave.address || '',
+        location: hotelLocation,
+        priceBreakdown: hotelToSave.priceBreakdown,
+        amenities: hotelToSave.amenities,
+        url: hotelToSave.url,
+        bookingStatus: 'pending',
+        booking_context: buildBookingContext({
+          userId: user.id,
+          userType: userProfile?.user_type || user.user_metadata?.user_type,
+          companyName: userProfile?.comp_name,
+        }),
+        selected_product: hotelToSave.selected_product,
+        policies: hotelToSave.policies,
+        provider_quote: hotelToSave.provider_quote,
+        availability_status: hotelToSave.availability_status || 'provider_search_result',
+      });
+
+      const providerRef = hotelToSave.provider_ref || {
+        external_id: externalId,
+        booking_url: hotelToSave.url || hotelToSave.bookingUrl || null,
+        bookable: false,
+        availability_status: 'provider_search_result',
+      };
+
       const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
           itinerary_id: itinData.itin_id,
           type: 'hotel',
-          external_ref: hotel.hotel_id || hotel.hotelId || `hotel-${Date.now()}`,
-          price: hotel.priceBreakdown?.grossPrice?.value || hotel.min_total_price || 0,
-          item_data: {
-            name: hotel.hotel_name || hotel.hotelName,
-            city: hotel.city || hotel.location,
-            checkIn: searchParams?.checkin || hotel.checkin || hotel.checkInDate,
-            checkOut: searchParams?.checkout || hotel.checkout || hotel.checkOutDate,
-            rooms: searchParams?.rooms || 1,
-            adults: searchParams?.adults || 2,
-            rating: hotel.review_score || hotel.reviewScore,
-            reviewCount: hotel.review_nr || hotel.reviewCount,
-            images: hotel.photos || hotel.images || [],
-            address: hotel.address || '',
-            location: hotelLocation,
-            priceBreakdown: hotel.priceBreakdown,
-            amenities: hotel.amenities,
-            url: hotel.url,
-            bookingStatus: 'pending'
-          }
+          external_ref: externalId,
+          external_id: externalId,
+          provider,
+          provider_ref: providerRef,
+          rate_expires_at: hotelToSave.rate_expires_at || null,
+          price: bookingToSave.totalPrice,
+          last_price: bookingToSave.totalPrice,
+          item_data: itemData,
         });
 
       if (error) throw error;
@@ -121,6 +164,7 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
       });
 
       setShowModal(false);
+      setSelectedHotel(null);
     } catch (error) {
       console.error('Error saving hotel:', error);
       toast({
@@ -187,14 +231,14 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
             <div>
               <p className="text-white/60 text-sm">Price per night</p>
               <p className="text-3xl font-bold text-white">
-                ${hotel.price || hotel.cost || '199'}
+                ${booking.pricePerNight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
-            {hotel.duration && (
+            {booking.nights > 0 && (
               <div className="text-right">
-                <p className="text-white/60 text-sm">Total ({hotel.duration} nights)</p>
+                <p className="text-white/60 text-sm">Total ({booking.nights} nights)</p>
                 <p className="text-xl font-semibold text-white">
-                  ${(hotel.price || 199) * hotel.duration}
+                  ${booking.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
             )}
@@ -207,14 +251,19 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
 
         {/* Add to Itinerary Button */}
         {planningAction === undefined ? (
-          <Button
-            onClick={handleAddToItinerary}
-            disabled={saving}
-            className="w-full mt-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {saving ? 'Saving...' : 'Property'}
-          </Button>
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            <Button
+              onClick={handleAddToItinerary}
+              disabled={saving}
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+            <Button variant="outline" onClick={() => setShowRates(true)} disabled={booking.issues.length > 0}>
+              <BedDouble className="mr-1 h-4 w-4" /> Rooms
+            </Button>
+          </div>
         ) : planningAction.mode === 'enabled' ? (
           <Button
             onClick={planningAction.onToggle}
@@ -236,11 +285,20 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
           open={showModal}
           onOpenChange={setShowModal}
           searchDates={{
-            checkin: searchParams?.checkin || hotel.checkin || hotel.checkInDate || new Date().toISOString().split('T')[0],
-            checkout: searchParams?.checkout || hotel.checkout || hotel.checkOutDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]
+            checkin: booking.checkIn || '',
+            checkout: booking.checkOut || ''
           }}
-          item={hotel}
+          item={selectedHotel || hotel}
           onConfirm={handleModalConfirm}
+        />
+      )}
+      {planningAction === undefined && (
+        <HotelRateSelectionDialog
+          open={showRates}
+          onOpenChange={setShowRates}
+          hotel={hotel}
+          searchParams={searchParams || {}}
+          onSelect={handleSelectRate}
         />
       )}
     </div>

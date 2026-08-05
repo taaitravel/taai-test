@@ -85,14 +85,24 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
           cart_id: item.id
         }));
 
-        const cartHotels = (cartItems?.filter(item => item.type === 'hotel') || []).map(item => ({
-          ...(item.item_data as any),
-          cost: item.price,
-          city: (item.item_data as any)?.city || (item.item_data as any)?.location?.city,
-          booking_status: (item.item_data as any)?.bookingStatus || 'pending',
-          from_cart: true,
-          cart_id: item.id
-        }));
+        const cartHotels = (cartItems?.filter(item => item.type === 'hotel') || []).map(item => {
+          const itemData = (item.item_data as any) || {};
+          const serviceDates = itemData.service_dates || {};
+          const nights = Number(itemData.nights || 0);
+          const rooms = Number(itemData.occupancy?.rooms || itemData.rooms || 1);
+          return {
+            ...itemData,
+            check_in: itemData.check_in || serviceDates.check_in || serviceDates.checkIn || itemData.checkIn,
+            check_out: itemData.check_out || serviceDates.check_out || serviceDates.checkOut || itemData.checkOut,
+            cost: item.price,
+            cost_per_night: Number(itemData.price_per_night || itemData.pricing?.price_per_night)
+              || (nights > 0 && rooms > 0 ? item.price / (nights * rooms) : item.price),
+            city: itemData.city || itemData.location?.city,
+            booking_status: itemData.bookingStatus || 'pending',
+            from_cart: true,
+            cart_id: item.id
+          };
+        });
 
         const cartActivities = (cartItems?.filter(item => item.type === 'activity') || []).map(item => ({
           ...(item.item_data as any),

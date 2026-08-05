@@ -143,13 +143,24 @@ export const useBookingAPI = () => {
   };
 
   // Get hotel details
-  const getHotelDetails = async (hotelId: string, arrival_date: string, departure_date: string) => {
+  const getHotelDetails = async (hotelId: string, params: {
+    arrival_date: string;
+    departure_date: string;
+    adults?: number;
+    children_age?: string;
+    room_qty?: number;
+    currency_code?: string;
+  }) => {
     return callBookingAPI({
-      endpoint: 'https://booking-com15.p.rapidapi.com/api/v1/hotels/getHotelDetails',
+      endpoint: 'https://booking-com15.p.rapidapi.com/api/v1/hotels/getRoomListWithAvailability',
       params: {
         hotel_id: hotelId,
-        arrival_date,
-        departure_date
+        arrival_date: params.arrival_date,
+        departure_date: params.departure_date,
+        adults: String(params.adults || 2),
+        ...(params.children_age ? { children_age: params.children_age } : {}),
+        room_qty: String(params.room_qty || 1),
+        currency_code: params.currency_code || 'USD',
       }
     });
   };

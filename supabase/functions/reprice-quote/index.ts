@@ -53,21 +53,42 @@ function reprice(quoteItem: any, override: any) {
   const sd = { ...(quoteItem.service_dates || {}) };
   const oldPrice = Number(quoteItem.new_price ?? quoteItem.old_price ?? 0);
 
-  const checkIn = override?.check_in || sd.checkIn || sd.start || sd.startDate || sd.date;
-  const checkOut = override?.check_out || sd.checkOut || sd.end || sd.endDate;
-  const pax = Number(override?.pax ?? sd.pax ?? sd.guests ?? sd.adults ?? 1) || 1;
+  const checkIn = override?.check_in || sd.check_in || sd.checkIn || sd.start || sd.startDate || sd.date;
+  const checkOut = override?.check_out || sd.check_out || sd.checkOut || sd.end || sd.endDate;
+  const occupancy = { ...(quoteItem.occupancy || {}) };
+  const rooms = Math.max(1, Number(occupancy.rooms || 1));
+  const pax = Number(override?.pax ?? occupancy.adults ?? sd.pax ?? sd.guests ?? sd.adults ?? 1) || 1;
+
+  const selectedProduct = quoteItem.selected_product || {};
+  const providerQuote = quoteItem.provider_quote || {};
+  if ((type === "hotel" || type === "rental") && selectedProduct.room_id && selectedProduct.rate_id) {
+    const quoteOccupancy = providerQuote.occupancy || {};
+    const quotedPax = Number(quoteOccupancy.adults || 0) + Number(quoteOccupancy.children || 0);
+    const selectionChanged = checkIn !== providerQuote.check_in
+      || checkOut !== providerQuote.check_out
+      || pax !== quotedPax;
+    if (selectionChanged) {
+      return {
+        ...quoteItem,
+        old_price: oldPrice,
+        new_price: oldPrice,
+        status: "needs_review",
+        reason: "Dates or guests changed — select a new room and rate",
+      };
+    }
+  }
 
   let newPrice = oldPrice;
   let unit = 0;
   let nights = 0;
 
   if (type === "hotel" || type === "rental") {
-    const prevNights = nightsBetween(sd.checkIn || sd.start, sd.checkOut || sd.end) || 1;
-    unit = oldPrice && prevNights ? oldPrice / prevNights : Number(sd.unit_price || 0);
+    const prevNights = nightsBetween(sd.check_in || sd.checkIn || sd.start, sd.check_out || sd.checkOut || sd.end) || 1;
+    unit = oldPrice && prevNights ? oldPrice / (prevNights * rooms) : Number(sd.unit_price || 0);
     nights = nightsBetween(checkIn, checkOut) || 1;
-    newPrice = round2(unit * nights);
-    sd.checkIn = checkIn;
-    sd.checkOut = checkOut;
+    newPrice = round2(unit * nights * rooms);
+    sd.check_in = checkIn;
+    sd.check_out = checkOut;
     sd.pax = pax;
     sd.unit_price = round2(unit);
     sd.nights = nights;
@@ -98,6 +119,13 @@ function reprice(quoteItem: any, override: any) {
   return {
     ...quoteItem,
     service_dates: sd,
+    occupancy,
+    pricing: type === "hotel" || type === "rental" ? {
+      ...(quoteItem.pricing || {}),
+      price_scope: "stay_total",
+      price_per_night: round2(unit),
+      provider_total: newPrice,
+    } : quoteItem.pricing,
     old_price: oldPrice,
     new_price: newPrice,
     status,
@@ -210,7 +238,16 @@ serve(async (req) => {
         .eq("user_id", user.id)
         .maybeSingle();
       if (!row) continue;
-      const nextData = { ...(row.item_data || {}), service_dates: it.service_dates };
+      const nextData = {
+        ...(row.item_data || {}),
+        check_in: it.service_dates?.check_in,
+        check_out: it.service_dates?.check_out,
+        service_dates: it.service_dates,
+        occupancy: it.occupancy,
+        pricing: it.pricing,
+        price_per_night: it.pricing?.price_per_night,
+        total_price: Number(it.new_price),
+      };
       await supabase
         .from("cart_items")
         .update({
