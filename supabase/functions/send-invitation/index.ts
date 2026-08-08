@@ -6,6 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+class InvitationRequestError extends Error {
+  constructor(
+    message: string,
+    readonly code: string,
+    readonly status = 400,
+  ) {
+    super(message);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -24,12 +34,15 @@ serve(async (req) => {
 
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
-      throw new Error('Unauthorized');
+      throw new InvitationRequestError('Please sign in before inviting travelers.', 'unauthorized', 401);
     }
 
-    const { itinerary_id, method, value, role = 'collaborator' } = await req.json();
+    const { itinerary_id, method, value } = await req.json();
     if (!itinerary_id || !method || !value) {
-      throw new Error('itinerary_id, method, and value are required');
+      throw new InvitationRequestError('Trip, invitation method, and recipient are required.', 'invalid_request');
+    }
+    if (!['email', 'username', 'sms'].includes(method)) {
+      throw new InvitationRequestError('Choose email, username, or SMS as the invitation method.', 'invalid_method');
     }
 
     const normalizedValue = value.toLowerCase().trim();
@@ -38,6 +51,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    await supabaseAdmin
+      .from('itinerary_invitations')
+      .update({ status: 'expired', responded_at: new Date().toISOString() })
+      .eq('itinerary_id', itinerary_id)
+      .eq('status', 'pending')
+      .lte('expires_at', new Date().toISOString());
 
     // Only owners can invite
     const { data: senderAttendee } = await supabaseAdmin
@@ -49,7 +69,7 @@ serve(async (req) => {
       .single();
 
     if (!senderAttendee || senderAttendee.role !== 'owner') {
-      throw new Error('Only the trip owner can send invitations');
+      throw new InvitationRequestError('Only the trip owner can send invitations.', 'owner_required', 403);
     }
 
     // Check if target is already an attendee
@@ -80,7 +100,7 @@ serve(async (req) => {
         .single();
 
       if (existingAttendee) {
-        throw new Error('This user is already a member of this trip');
+        throw new InvitationRequestError('This person is already a collaborator on this trip.', 'already_member', 409);
       }
     }
 
@@ -94,7 +114,7 @@ serve(async (req) => {
       .single();
 
     if (existingInvite) {
-      throw new Error('A pending invitation already exists for this user');
+      throw new InvitationRequestError('A pending invitation already exists for this recipient.', 'already_pending', 409);
     }
 
     // Get itinerary details
@@ -104,7 +124,19 @@ serve(async (req) => {
       .eq('id', itinerary_id)
       .single();
 
-    // Create invitation with normalized value
+    const { data: inviter } = await supabaseAdmin
+      .from('users')
+      .select('first_name, last_name, username')
+      .eq('userid', user.id)
+      .single();
+
+    const inviterName = inviter?.first_name
+      ? `${inviter.first_name} ${inviter.last_name || ''}`.trim()
+      : inviter?.username || 'Trip owner';
+
+    const deliveryStatus = recipientId ? 'in_app' : 'record_only';
+
+    // Create invitation with normalized value and truthful delivery metadata.
     const { data: invitation, error: inviteError } = await supabaseAdmin
       .from('itinerary_invitations')
       .insert({
@@ -112,24 +144,19 @@ serve(async (req) => {
         invited_by: user.id,
         invite_method: method,
         invite_value: normalizedValue,
+        inviter_display_name: inviterName,
+        delivery_status: deliveryStatus,
       })
       .select()
       .single();
 
+    if (inviteError?.code === '23505') {
+      throw new InvitationRequestError('A pending invitation already exists for this recipient.', 'already_pending', 409);
+    }
     if (inviteError) throw inviteError;
 
     // Create notification for recipient if they exist in the system
     if (recipientId) {
-      const { data: inviter } = await supabaseAdmin
-        .from('users')
-        .select('first_name, last_name, username')
-        .eq('userid', user.id)
-        .single();
-
-      const inviterName = inviter?.first_name 
-        ? `${inviter.first_name} ${inviter.last_name || ''}`.trim()
-        : inviter?.username || 'Someone';
-
       await supabaseAdmin
         .from('notifications')
         .insert({
@@ -143,14 +170,25 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, invitation }),
+      JSON.stringify({
+        success: true,
+        invitation,
+        delivery_status: deliveryStatus,
+        delivery_message: recipientId
+          ? 'The recipient can review this invitation in TAAI.'
+          : 'The invitation was recorded, but external email delivery is not configured.',
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error sending invitation:', error);
+    const knownError = error instanceof InvitationRequestError;
     return new Response(
-      JSON.stringify({ error: 'Unable to send invitation. Please try again.' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        error: knownError ? error.message : 'Unable to create the invitation. Please try again.',
+        code: knownError ? error.code : 'invitation_failed',
+      }),
+      { status: knownError ? error.status : 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

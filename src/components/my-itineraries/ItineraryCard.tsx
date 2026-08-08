@@ -162,7 +162,7 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
         <div className={bottomWrap}>
           <div className={attendeeCls}>
             <Users className={attendeeIcon} />
-            {itinerary.attendees?.length || 1}
+            {itinerary.planned_traveler_count ?? itinerary.attendees?.length ?? 1}
           </div>
           <div className="flex flex-wrap gap-1">
             <Badge className={badgeCls}>

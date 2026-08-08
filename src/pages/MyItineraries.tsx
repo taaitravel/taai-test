@@ -108,7 +108,8 @@ const MyItineraries = () => {
           comparison = (a.itin_name || '').localeCompare(b.itin_name || '');
           break;
         case 'attendees':
-          comparison = (a.attendees?.length || 1) - (b.attendees?.length || 1);
+          comparison = (a.planned_traveler_count ?? a.attendees?.length ?? 1)
+            - (b.planned_traveler_count ?? b.attendees?.length ?? 1);
           break;
       }
       

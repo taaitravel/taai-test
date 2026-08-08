@@ -34,9 +34,7 @@ export const PendingInvitationsCard = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {receivedInvitations.map((invitation) => {
-          const inviterName = invitation.inviter?.first_name
-            ? `${invitation.inviter.first_name} ${invitation.inviter.last_name || ''}`.trim()
-            : invitation.inviter?.username || 'Someone';
+          const inviterName = invitation.inviter_display_name || 'Trip owner';
 
           return (
             <div

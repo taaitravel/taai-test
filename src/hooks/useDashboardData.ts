@@ -73,6 +73,7 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
         budget_rate: item.budget_rate,
         b_efficiency_rate: item.b_efficiency_rate,
         user_type: item.user_type,
+        planned_traveler_count: item.planned_traveler_count,
         attendees: Array.isArray(item.attendees) ? item.attendees : [],
         flights: Array.isArray(item.flights) ? item.flights : [],
         hotels: Array.isArray(item.hotels) ? item.hotels : [],

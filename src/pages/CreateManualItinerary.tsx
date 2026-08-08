@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,8 @@ const CreateManualItinerary = () => {
   });
   const [selectedLocations, setSelectedLocations] = useState<Array<{ city: string; lat: number; lng: number }>>([]);
   const [loading, setLoading] = useState(false);
+  const creatingRef = useRef(false);
+  const creationKeyRef = useRef(crypto.randomUUID());
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -55,6 +57,8 @@ const CreateManualItinerary = () => {
       return;
     }
 
+    if (creatingRef.current) return;
+
     // Validate dates
     const startDate = new Date(formData.dateStart);
     const endDate = new Date(formData.dateEnd);
@@ -67,6 +71,7 @@ const CreateManualItinerary = () => {
       return;
     }
 
+    creatingRef.current = true;
     setLoading(true);
 
     try {
@@ -101,6 +106,8 @@ const CreateManualItinerary = () => {
           itin_locations: locationsArray,
           itin_map_locations: finalMapLocations,
           budget: formData.budget ? parseFloat(formData.budget) : null,
+          planned_traveler_count: parseInt(formData.attendeeCount),
+          creation_key: creationKeyRef.current,
           user_type: userProfile?.user_type || 'individual',
           attendees: attendeesArray,
           flights: [],
@@ -111,7 +118,18 @@ const CreateManualItinerary = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const { data: existing } = await supabase
+          .from('itinerary')
+          .select('id')
+          .eq('creation_key', creationKeyRef.current)
+          .maybeSingle();
+        if (existing) {
+          navigate(`/itinerary?id=${existing.id}`);
+          return;
+        }
+        throw error;
+      }
 
       toast({
         title: "Itinerary Created Successfully!",
@@ -128,6 +146,7 @@ const CreateManualItinerary = () => {
         variant: "destructive"
       });
     } finally {
+      creatingRef.current = false;
       setLoading(false);
     }
   };

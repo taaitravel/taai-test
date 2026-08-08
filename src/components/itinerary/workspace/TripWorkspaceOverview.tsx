@@ -8,7 +8,8 @@ import { formatDateOnlyRange } from '@/lib/date-time';
 interface TripWorkspaceOverviewProps {
   itineraryData: ItineraryData;
   duration: number;
-  peopleCount: number;
+  plannedTravelerCount: number;
+  acceptedTravelerCount: number;
   itineraryItemCount: number;
   cartItemCount: number;
   cartTotal: number;
@@ -23,7 +24,8 @@ const formatMoney = (value: number) =>
 export const TripWorkspaceOverview = ({
   itineraryData,
   duration,
-  peopleCount,
+  plannedTravelerCount,
+  acceptedTravelerCount,
   itineraryItemCount,
   cartItemCount,
   cartTotal,
@@ -85,8 +87,10 @@ export const TripWorkspaceOverview = ({
         <Card className="bg-card/80 border-border">
           <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><Users className="h-4 w-4" />Travelers</CardTitle></CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">{peopleCount} {peopleCount === 1 ? 'traveler' : 'travelers'}</p>
-            <p>Includes current itinerary attendees where available.</p>
+            <p className="font-medium text-foreground">
+              {plannedTravelerCount} planned {plannedTravelerCount === 1 ? 'traveler' : 'travelers'}
+            </p>
+            <p>{acceptedTravelerCount} accepted {acceptedTravelerCount === 1 ? 'member' : 'members'}</p>
           </CardContent>
         </Card>
         <Card className="bg-card/80 border-border">

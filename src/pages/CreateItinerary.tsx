@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +47,8 @@ const CreateItinerary = () => {
   const [itineraryData, setItineraryData] = useState<ItineraryData>({});
   const [isSaving, setIsSaving] = useState(false);
   const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
+  const savingRef = useRef(false);
+  const creationKeyRef = useRef(crypto.randomUUID());
   // In-memory Bob planning draft. Not persisted — refresh/navigation clears it.
   const [draft, setDraft] = useState<PlanningDraftItem[]>([]);
 
@@ -86,6 +88,9 @@ const CreateItinerary = () => {
       return;
     }
 
+    if (savingRef.current) return;
+
+    savingRef.current = true;
     setIsSaving(true);
     try {
       // Auto-format destination names before saving
@@ -114,6 +119,8 @@ const CreateItinerary = () => {
           itin_locations: finalLocations,
           itin_map_locations: finalMapLocations,
           budget: itineraryData.budget,
+          planned_traveler_count: Math.max(itineraryData.attendees?.length || 1, 1),
+          creation_key: creationKeyRef.current,
           user_type: itineraryData.userType || 'individual',
           attendees: itineraryData.attendees,
           flights: itineraryData.flights,
@@ -124,7 +131,18 @@ const CreateItinerary = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const { data: existing } = await supabase
+          .from('itinerary')
+          .select('id')
+          .eq('creation_key', creationKeyRef.current)
+          .maybeSingle();
+        if (existing) {
+          setSavedItineraryId(existing.id.toString());
+          return;
+        }
+        throw error;
+      }
 
       toast.success("Itinerary saved successfully!");
       setSavedItineraryId(data.id.toString());
@@ -134,6 +152,7 @@ const CreateItinerary = () => {
       console.error('Error saving itinerary:', error);
       toast.error("Failed to save itinerary. Please try again.");
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
   };

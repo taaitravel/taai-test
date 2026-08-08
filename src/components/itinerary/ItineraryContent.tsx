@@ -47,6 +47,7 @@ interface ItineraryContentProps {
   selectedSection: TripWorkspaceSection;
   onSectionChange: (section: TripWorkspaceSection) => void;
   peopleContent: ReactNode;
+  acceptedTravelerCount: number;
   onChatOpen: () => void;
 }
 
@@ -65,6 +66,7 @@ export const ItineraryContent = ({
   selectedSection,
   onSectionChange,
   peopleContent,
+  acceptedTravelerCount,
   onChatOpen,
 }: ItineraryContentProps) => {
   const duration = Math.ceil(
@@ -72,7 +74,8 @@ export const ItineraryContent = ({
      new Date(itineraryData.itin_date_start).getTime()) / (1000 * 60 * 60 * 24)
   );
   const destinations = itineraryData.itin_locations || [];
-  const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
+  const plannedTravelerCount = itineraryData.planned_traveler_count
+    ?? (itineraryData.attendees?.length || 1);
   const { updateItineraryWithEnhancedCities, enhanceCityFormatting } = useEnhancedCityFormatting();
   const { syncExpediaLocations, isUpdating } = useExpediaMapSync();
   const { user } = useAuth();
@@ -385,7 +388,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
                 <TripOverviewSection
                   duration={duration}
                   budget={Number(itineraryData.budget)}
-                  peopleCount={peopleCount}
+                  peopleCount={plannedTravelerCount}
                   destinations={destinations}
                   description={itineraryData.itin_desc}
                   onRemoveDestination={isCollaborator ? undefined : handleRemoveDestination}
@@ -425,7 +428,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
             budget={Number(itineraryData.budget) || 0}
             spending={Number(itineraryData.spending) || 0}
             cartTotal={cartTotal}
-            travelersCount={peopleCount}
+            travelersCount={Math.max(acceptedTravelerCount, 1)}
             budgetChart={budgetChart}
           />
         );
@@ -437,7 +440,8 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
           <TripWorkspaceOverview
             itineraryData={itineraryData}
             duration={duration}
-            peopleCount={peopleCount}
+            plannedTravelerCount={plannedTravelerCount}
+            acceptedTravelerCount={acceptedTravelerCount}
             itineraryItemCount={itineraryItemCount}
             cartItemCount={cartItems.length}
             cartTotal={cartTotal}
@@ -452,7 +456,11 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
-      <ItineraryInfoHeader itineraryData={itineraryData} userRole={userRole} />
+      <ItineraryInfoHeader
+        itineraryData={itineraryData}
+        userRole={userRole}
+        acceptedTravelerCount={acceptedTravelerCount}
+      />
       <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-border bg-card/70 p-3 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-medium text-foreground">Living trip workspace</p>

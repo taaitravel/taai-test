@@ -21,11 +21,56 @@ interface Attendee {
   profile?: ParticipantProfile;
 }
 
+export interface PendingItineraryInvitation {
+  id: string;
+  invite_method: string;
+  invite_value: string;
+  status: string;
+  delivery_status: string;
+  created_at: string;
+  expires_at: string | null;
+}
+
+const getFunctionErrorMessage = async (error: any, fallback: string) => {
+  try {
+    const context = error?.context;
+    if (context && typeof context.json === 'function') {
+      const body = await context.json();
+      if (body?.error) return body.error as string;
+    }
+  } catch {
+    // Fall through to the SDK message.
+  }
+  return error?.message || fallback;
+};
+
 export const useItineraryAttendees = (itineraryId: number | null) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [pendingInvitations, setPendingInvitations] = useState<PendingItineraryInvitation[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchPendingInvitations = async () => {
+    if (!itineraryId || !user) {
+      setPendingInvitations([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('itinerary_invitations')
+      .select('id, invite_method, invite_value, status, delivery_status, created_at, expires_at')
+      .eq('itinerary_id', itineraryId)
+      .eq('invited_by', user.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching pending invitations:', error);
+      return;
+    }
+    setPendingInvitations((data || []) as PendingItineraryInvitation[]);
+  };
 
   const fetchAttendees = async () => {
     if (!itineraryId) return;
@@ -81,19 +126,41 @@ export const useItineraryAttendees = (itineraryId: number | null) => {
       if (data?.error) throw new Error(data.error);
 
       toast({
-        title: 'Invitation sent',
-        description: `Invitation sent to ${value}`,
+        title: 'Invitation created',
+        description: data?.delivery_message || `Invitation created for ${value}`,
       });
+
+      await fetchPendingInvitations();
 
       return data;
     } catch (error: any) {
       console.error('Error inviting attendee:', error);
+      const description = await getFunctionErrorMessage(error, 'Failed to create invitation');
       toast({
         title: 'Error',
-        description: error.message || 'Failed to send invitation',
+        description,
         variant: 'destructive',
       });
-      throw error;
+      throw new Error(description);
+    }
+  };
+
+  const revokeInvitation = async (invitationId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-invitation', {
+        body: { invitation_id: invitationId, action: 'revoke' },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({
+        title: 'Invitation revoked',
+        description: 'The recipient can no longer accept this invitation.',
+      });
+      await fetchPendingInvitations();
+    } catch (error: any) {
+      const description = await getFunctionErrorMessage(error, 'Failed to revoke invitation');
+      toast({ title: 'Error', description, variant: 'destructive' });
+      throw new Error(description);
     }
   };
 
@@ -147,6 +214,7 @@ export const useItineraryAttendees = (itineraryId: number | null) => {
 
   useEffect(() => {
     fetchAttendees();
+    fetchPendingInvitations();
 
     // Set up realtime subscription
     const channel = supabase
@@ -172,9 +240,11 @@ export const useItineraryAttendees = (itineraryId: number | null) => {
 
   return {
     attendees,
+    pendingInvitations,
     loading,
     isOwner,
     inviteAttendee,
+    revokeInvitation,
     updateAttendeeRole,
     removeAttendee,
     refresh: fetchAttendees,

@@ -57,7 +57,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
   };
 
   const getAttendeeCount = (itinerary: ItineraryData) => {
-    return itinerary.attendees?.length || 1;
+    return itinerary.planned_traveler_count ?? itinerary.attendees?.length ?? 1;
   };
 
   const getSpending = (itinerary: ItineraryData) => {

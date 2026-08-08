@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Users, Shield, Edit, UserMinus, Check, MoreHorizontal, Wallet } from "lucide-react";
+import { Users, Shield, Edit, UserMinus, Check, MoreHorizontal, Wallet, Mail, XCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useItineraryAttendees } from "@/hooks/useItineraryAttendees";
 import { useTripBalances } from "@/hooks/useTripBalances";
@@ -25,7 +25,14 @@ const fmt = (n: number) =>
 
 export const TripPeopleAndBalances: React.FC<Props> = ({ itineraryId }) => {
   const { user } = useAuth();
-  const { attendees, loading: aLoading, isOwner, removeAttendee } = useItineraryAttendees(itineraryId);
+  const {
+    attendees,
+    pendingInvitations,
+    loading: aLoading,
+    isOwner,
+    removeAttendee,
+    revokeInvitation,
+  } = useItineraryAttendees(itineraryId);
   const { balances, loading: bLoading, markSettledOffPlatform } = useTripBalances(itineraryId);
   const { totals, tripTotal } = useTripSpending(itineraryId);
   const [busy, setBusy] = useState<string | null>(null);
@@ -197,6 +204,51 @@ export const TripPeopleAndBalances: React.FC<Props> = ({ itineraryId }) => {
             </div>
           );
         })}
+
+        {isOwner && pendingInvitations.length > 0 && (
+          <div className="mt-5 space-y-2 border-t border-border pt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-foreground">Pending invitations</p>
+              <Badge variant="outline">{pendingInvitations.length}</Badge>
+            </div>
+            {pendingInvitations.map((invitation) => (
+              <div
+                key={invitation.id}
+                className="flex flex-col gap-3 rounded-lg border border-border bg-muted/40 p-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 truncate text-sm font-medium text-foreground">
+                    <Mail className="h-4 w-4 shrink-0" />
+                    {invitation.invite_value}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {invitation.delivery_status === 'in_app'
+                      ? 'In-app invitation available'
+                      : 'Recorded only — external email delivery is not configured'}
+                    {' · '}Created {new Date(invitation.created_at).toLocaleString()}
+                    {invitation.expires_at ? ` · Expires ${new Date(invitation.expires_at).toLocaleDateString()}` : ''}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={busy !== null}
+                  onClick={async () => {
+                    setBusy(invitation.id);
+                    try {
+                      await revokeInvitation(invitation.id);
+                    } finally {
+                      setBusy(null);
+                    }
+                  }}
+                >
+                  <XCircle className="mr-1 h-4 w-4" />Revoke
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {settledHistory.length > 0 && (
           <details className="pt-3 border-t border-border">

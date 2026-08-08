@@ -959,6 +959,7 @@ export type Database = {
           b_efficiency_rate: number | null
           budget: number | null
           budget_rate: number | null
+          creation_key: string | null
           created_at: string
           expedia_data: Json | null
           flights: Json | null
@@ -972,6 +973,7 @@ export type Database = {
           itin_locations: Json | null
           itin_map_locations: Json | null
           itin_name: string | null
+          planned_traveler_count: number
           reservations: Json | null
           spending: number | null
           user_type: string | null
@@ -983,6 +985,7 @@ export type Database = {
           b_efficiency_rate?: number | null
           budget?: number | null
           budget_rate?: number | null
+          creation_key?: string | null
           created_at?: string
           expedia_data?: Json | null
           flights?: Json | null
@@ -996,6 +999,7 @@ export type Database = {
           itin_locations?: Json | null
           itin_map_locations?: Json | null
           itin_name?: string | null
+          planned_traveler_count?: number
           reservations?: Json | null
           spending?: number | null
           user_type?: string | null
@@ -1007,6 +1011,7 @@ export type Database = {
           b_efficiency_rate?: number | null
           budget?: number | null
           budget_rate?: number | null
+          creation_key?: string | null
           created_at?: string
           expedia_data?: Json | null
           flights?: Json | null
@@ -1020,6 +1025,7 @@ export type Database = {
           itin_locations?: Json | null
           itin_map_locations?: Json | null
           itin_name?: string | null
+          planned_traveler_count?: number
           reservations?: Json | null
           spending?: number | null
           user_type?: string | null
@@ -1330,35 +1336,47 @@ export type Database = {
       itinerary_invitations: {
         Row: {
           created_at: string
+          delivery_status: string
           expires_at: string | null
           id: string
           invite_method: string
           invite_token: string | null
           invite_value: string
+          inviter_display_name: string | null
           invited_by: string
           itinerary_id: number
+          responded_at: string | null
+          revoked_at: string | null
           status: string
         }
         Insert: {
           created_at?: string
+          delivery_status?: string
           expires_at?: string | null
           id?: string
           invite_method: string
           invite_token?: string | null
           invite_value: string
+          inviter_display_name?: string | null
           invited_by: string
           itinerary_id: number
+          responded_at?: string | null
+          revoked_at?: string | null
           status?: string
         }
         Update: {
           created_at?: string
+          delivery_status?: string
           expires_at?: string | null
           id?: string
           invite_method?: string
           invite_token?: string | null
           invite_value?: string
+          inviter_display_name?: string | null
           invited_by?: string
           itinerary_id?: number
+          responded_at?: string | null
+          revoked_at?: string | null
           status?: string
         }
         Relationships: [

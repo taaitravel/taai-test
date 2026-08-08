@@ -7,10 +7,12 @@ import { formatDateOnlyRange } from '@/lib/date-time';
 interface ItineraryInfoHeaderProps {
   itineraryData: ItineraryData;
   userRole?: UserRole;
+  acceptedTravelerCount: number;
 }
 
-export const ItineraryInfoHeader = ({ itineraryData, userRole }: ItineraryInfoHeaderProps) => {
-  const peopleCount = itineraryData.attendees ? itineraryData.attendees.length : 1;
+export const ItineraryInfoHeader = ({ itineraryData, userRole, acceptedTravelerCount }: ItineraryInfoHeaderProps) => {
+  const plannedTravelerCount = itineraryData.planned_traveler_count
+    ?? (itineraryData.attendees?.length || 1);
 
   return (
     <div className="text-center mb-8 px-2">
@@ -31,7 +33,9 @@ export const ItineraryInfoHeader = ({ itineraryData, userRole }: ItineraryInfoHe
         </div>
         <div className="flex items-center space-x-2">
           <Users className="h-4 w-4 flex-shrink-0" />
-          <span className="text-xs sm:text-base">{peopleCount} {peopleCount === 1 ? 'Traveler' : 'Travelers'}</span>
+          <span className="text-xs sm:text-base">
+            {plannedTravelerCount} planned · {acceptedTravelerCount} {acceptedTravelerCount === 1 ? 'member' : 'members'}
+          </span>
         </div>
         <div className="flex items-center space-x-2">
           <Wallet className="h-4 w-4 flex-shrink-0" />

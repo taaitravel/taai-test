@@ -9,6 +9,8 @@ interface Invitation {
   invited_by: string;
   invite_method: string;
   invite_value: string;
+  inviter_display_name?: string | null;
+  delivery_status?: string;
   status: string;
   created_at: string;
   itinerary?: {
@@ -16,12 +18,19 @@ interface Invitation {
     itin_date_start: string;
     itin_date_end: string;
   };
-  inviter?: {
-    first_name: string | null;
-    last_name: string | null;
-    username: string | null;
-  };
 }
+
+const getFunctionErrorMessage = async (error: any, fallback: string) => {
+  try {
+    if (error?.context && typeof error.context.json === 'function') {
+      const body = await error.context.json();
+      if (body?.error) return body.error as string;
+    }
+  } catch {
+    // Use the SDK message below when the response body is unavailable.
+  }
+  return error?.message || fallback;
+};
 
 export const useInvitations = () => {
   const { user } = useAuth();
@@ -65,41 +74,7 @@ export const useInvitations = () => {
         return;
       }
 
-      // Fetch inviter details using the safe RPC or admin approach
-      // Since we can't read other users directly, we'll use what we can
-      const invitationsWithInviters = (data || []).map((inv) => {
-        // inviter info comes from notification message or we show fallback
-        return { ...inv, inviter: null as any };
-      });
-
-      // Try fetching inviter info - may fail due to RLS, that's OK
-      const enriched = await Promise.all(
-        invitationsWithInviters.map(async (inv) => {
-          try {
-            // For each unique itinerary, try using the safe profile RPC
-            const { data: profiles } = await supabase.rpc('get_itinerary_participant_profiles', {
-              p_itinerary_id: inv.itinerary_id
-            });
-            
-            const inviterProfile = profiles?.find((p: any) => p.user_id === inv.invited_by);
-            if (inviterProfile) {
-              return {
-                ...inv,
-                inviter: {
-                  first_name: inviterProfile.first_name,
-                  last_name: inviterProfile.last_name,
-                  username: inviterProfile.username,
-                }
-              };
-            }
-          } catch {
-            // RPC may fail if user isn't an attendee yet - that's expected
-          }
-          return inv;
-        })
-      );
-
-      setReceivedInvitations(enriched);
+      setReceivedInvitations((data || []) as Invitation[]);
     } finally {
       setLoading(false);
     }
@@ -128,9 +103,10 @@ export const useInvitations = () => {
       return data?.itinerary_id;
     } catch (error: any) {
       console.error('Error accepting invitation:', error);
+      const description = await getFunctionErrorMessage(error, 'Failed to accept invitation');
       toast({
         title: 'Error',
-        description: error.message || 'Failed to accept invitation',
+        description,
         variant: 'destructive',
       });
       return null;
@@ -157,9 +133,10 @@ export const useInvitations = () => {
       fetchInvitations();
     } catch (error: any) {
       console.error('Error declining invitation:', error);
+      const description = await getFunctionErrorMessage(error, 'Failed to decline invitation');
       toast({
         title: 'Error',
-        description: error.message || 'Failed to decline invitation',
+        description,
         variant: 'destructive',
       });
     }

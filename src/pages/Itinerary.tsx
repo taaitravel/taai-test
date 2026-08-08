@@ -229,6 +229,7 @@ const Itinerary = () => {
         selectedSection={selectedSection}
         onSectionChange={handleWorkspaceSectionChange}
         peopleContent={<TripPeopleAndBalances itineraryId={Number(itineraryData.id)} />}
+        acceptedTravelerCount={attendees.length}
         onChatOpen={() => setChatOpen(true)}
       />
 
