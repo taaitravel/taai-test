@@ -15,7 +15,7 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
-  searchResults?: any[];
+  searchResults?: Array<Record<string, unknown>>;
   resultType?: string;
   functionUsed?: string;
   constraintSummary?: string;
@@ -70,6 +70,7 @@ interface ChatInterfaceProps {
   itineraryId?: string;
   onLocationAdded?: () => void;
   assistantName?: string;
+  assistantKey?: 'miles' | 'bob';
   assistantSubtitle?: string;
   greeting?: string;
   mobileComposerAssist?: boolean;
@@ -90,6 +91,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   itineraryId,
   onLocationAdded,
   assistantName = "TAAI Assistant",
+  assistantKey = 'miles',
   assistantSubtitle,
   greeting = "Hi! I'm TAAI, your elite travel planning assistant. I can help you plan trips, optimize budgets, find flights & hotels, and create amazing itineraries. What adventure can I help you plan?",
   mobileComposerAssist = false,
@@ -137,6 +139,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           userId: user?.id,
           itineraryId: itineraryId,
           chatMode,
+          assistantKey,
           history
         }
       });

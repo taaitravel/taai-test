@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface AgentChipProps {
   agent: AgentKey;
+  surface?: string;
   onClick?: () => void;
   className?: string;
   compact?: boolean;
@@ -14,9 +15,12 @@ interface AgentChipProps {
  * Hard rule: if the AGENT_ROLES entry is not travelerFacing, this component
  * renders nothing. Internal-only agents must never appear in traveler UI.
  */
-export const AgentChip = ({ agent, onClick, className, compact }: AgentChipProps) => {
+export const AgentChip = ({ agent, surface, onClick, className, compact }: AgentChipProps) => {
   const role = AGENT_ROLES[agent];
   if (!role || !role.travelerFacing) return null;
+  if (role.visibility === 'contextual' && (!surface || !role.allowedSurfaces.includes(surface))) {
+    return null;
+  }
 
   const Wrapper = onClick ? 'button' : 'div';
   return (

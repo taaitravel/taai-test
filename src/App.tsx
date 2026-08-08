@@ -35,6 +35,7 @@ import BookingSuccess from "./pages/BookingSuccess";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import InternalTOS from "./pages/InternalTOS";
+import AgentOperations from "./pages/AgentOperations";
 
 const queryClient = new QueryClient();
 
@@ -134,8 +135,13 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/internal/tos" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAdmin>
                   <InternalTOS />
+                </ProtectedRoute>
+              } />
+              <Route path="/internal/agents" element={
+                <ProtectedRoute requireAdmin>
+                  <AgentOperations />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

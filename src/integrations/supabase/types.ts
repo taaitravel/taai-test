@@ -14,6 +14,207 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_task_approvals: {
+        Row: {
+          action_class: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_reason: string | null
+          expires_at: string | null
+          id: string
+          requested_at: string
+          requested_by: string
+          requested_scope: Json
+          status: string
+          task_id: string
+        }
+        Insert: {
+          action_class: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          expires_at?: string | null
+          id?: string
+          requested_at?: string
+          requested_by: string
+          requested_scope?: Json
+          status?: string
+          task_id: string
+        }
+        Update: {
+          action_class?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          expires_at?: string | null
+          id?: string
+          requested_at?: string
+          requested_by?: string
+          requested_scope?: Json
+          status?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_task_approvals_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "agent_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_task_evidence: {
+        Row: {
+          evidence_type: string
+          id: string
+          label: string
+          metadata: Json
+          recorded_at: string
+          recorded_by: string
+          reference_url: string | null
+          summary: string
+          task_id: string
+        }
+        Insert: {
+          evidence_type: string
+          id?: string
+          label: string
+          metadata?: Json
+          recorded_at?: string
+          recorded_by: string
+          reference_url?: string | null
+          summary: string
+          task_id: string
+        }
+        Update: {
+          evidence_type?: string
+          id?: string
+          label?: string
+          metadata?: Json
+          recorded_at?: string
+          recorded_by?: string
+          reference_url?: string | null
+          summary?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_task_evidence_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "agent_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_task_events: {
+        Row: {
+          actor_key: string | null
+          actor_kind: string
+          actor_user_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          summary: string
+          task_id: string
+        }
+        Insert: {
+          actor_key?: string | null
+          actor_kind: string
+          actor_user_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          summary: string
+          task_id: string
+        }
+        Update: {
+          actor_key?: string | null
+          actor_kind?: string
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          summary?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_task_events_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "agent_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_tasks: {
+        Row: {
+          action_class: string
+          approval_required: boolean
+          assigned_agent: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          next_action: string | null
+          objective: string
+          risk_level: string
+          routed_by: string
+          source_context: Json
+          started_at: string | null
+          status: string
+          success_criteria: string | null
+          title: string
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          action_class?: string
+          approval_required?: boolean
+          assigned_agent: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          next_action?: string | null
+          objective: string
+          risk_level?: string
+          routed_by?: string
+          source_context?: Json
+          started_at?: string | null
+          status?: string
+          success_criteria?: string | null
+          title: string
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          action_class?: string
+          approval_required?: boolean
+          assigned_agent?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          next_action?: string | null
+          objective?: string
+          risk_level?: string
+          routed_by?: string
+          source_context?: Json
+          started_at?: string | null
+          status?: string
+          success_criteria?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: []
+      }
       agent_commissions: {
         Row: {
           agent_id: string

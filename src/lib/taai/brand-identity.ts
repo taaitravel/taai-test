@@ -72,51 +72,11 @@ export const getTAAIValueProposition = (): string => {
 };
 
 /**
- * Gate 8 agent role model.
- * Miles is the primary traveler-facing assistant (discovery, planning,
- * recommendations, itinerary building). Benny is traveler-facing for support
- * only (complaints, cancellations, refunds, post-booking service recovery).
- * Bob, Ajax, and Hermes are internal-only and must never render in traveler
- * UI. AgentChip enforces this at render time.
+ * Compatibility exports. The operating-system manifest is the single source
+ * of truth; traveler and internal surfaces must not define local agent roles.
  */
-export type AgentKey = 'miles' | 'benny' | 'bob' | 'ajax' | 'hermes';
-
-export interface AgentRole {
-  name: string;
-  role: string;
-  travelerFacing: boolean;
-  summary: string;
-}
-
-export const AGENT_ROLES: Record<AgentKey, AgentRole> = {
-  miles: {
-    name: 'Miles',
-    role: 'Travel companion',
-    travelerFacing: true,
-    summary: 'Your taai travel companion for discovery, planning, recommendations, and trip building.',
-  },
-  benny: {
-    name: 'Benny',
-    role: 'Support specialist',
-    travelerFacing: true,
-    summary: 'Traveler-facing for complaints, cancellations, refunds, and post-booking service recovery.',
-  },
-  bob: {
-    name: 'Bob',
-    role: 'Planning specialist (internal)',
-    travelerFacing: false,
-    summary: 'Internal planning specialist that may support Miles behind the scenes.',
-  },
-  ajax: {
-    name: 'Ajax',
-    role: 'Commercial ops (internal)',
-    travelerFacing: false,
-    summary: 'Internal commercial and sales automation operator. Not shown to travelers.',
-  },
-  hermes: {
-    name: 'Hermes',
-    role: 'Runtime (internal)',
-    travelerFacing: false,
-    summary: 'Invisible orchestration/runtime layer. Never a traveler-facing personality.',
-  },
-};
+export {
+  TAAI_AGENT_MANIFEST as AGENT_ROLES,
+  type AgentKey,
+  type AgentRole,
+} from './operating-system';

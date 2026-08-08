@@ -14,6 +14,7 @@ import type {
   CommercialAgentKey,
   CommercialTaskType,
 } from './types';
+import { TAAI_AGENT_MANIFEST } from '../operating-system';
 
 /** Local immutable list; intentionally NOT imported from permissions.ts. */
 const READ_ANALYZE_DRAFT_EPHEMERAL: readonly CommercialActionClass[] = [
@@ -30,7 +31,7 @@ const baseAllowed = (): CommercialActionClass[] => [...READ_ANALYZE_DRAFT_EPHEME
 export const COMMERCIAL_AGENT_REGISTRY: Record<CommercialAgentKey, CommercialAgentDefinition> = {
   ajax: {
     key: 'ajax',
-    displayName: 'Ajax',
+    displayName: TAAI_AGENT_MANIFEST.ajax.name,
     permanentAgentNameApproved: true,
     internalOnly: true,
     mission:
@@ -63,7 +64,7 @@ export const COMMERCIAL_AGENT_REGISTRY: Record<CommercialAgentKey, CommercialAge
   },
   hermes: {
     key: 'hermes',
-    displayName: 'Hermes',
+    displayName: TAAI_AGENT_MANIFEST.hermes.name,
     permanentAgentNameApproved: true,
     internalOnly: true,
     mission: 'Internal orchestration runtime for task-scoped, authorized commercial workflows.',
@@ -125,7 +126,7 @@ export const COMMERCIAL_AGENT_REGISTRY: Record<CommercialAgentKey, CommercialAge
   },
   scott_marketing_growth: {
     key: 'scott_marketing_growth',
-    displayName: 'Scott / Marketing and Growth',
+    displayName: `${TAAI_AGENT_MANIFEST.scott.name} / Marketing and Growth`,
     permanentAgentNameApproved: true,
     internalOnly: true,
     mission:
@@ -152,7 +153,7 @@ export const COMMERCIAL_AGENT_REGISTRY: Record<CommercialAgentKey, CommercialAge
   },
   manny_collateral: {
     key: 'manny_collateral',
-    displayName: 'Manny / Creative and Collateral',
+    displayName: `${TAAI_AGENT_MANIFEST.manny.name} / Creative and Collateral`,
     permanentAgentNameApproved: true,
     internalOnly: true,
     mission:
@@ -176,7 +177,7 @@ export const COMMERCIAL_AGENT_REGISTRY: Record<CommercialAgentKey, CommercialAge
   },
   lester_finance_operations: {
     key: 'lester_finance_operations',
-    displayName: 'Lester / Finance Operations',
+    displayName: `${TAAI_AGENT_MANIFEST.lester.name} / Finance Operations`,
     permanentAgentNameApproved: true,
     internalOnly: true,
     mission:

@@ -21,6 +21,7 @@ import type {
   PlanningDraftResultType,
   ResultInteraction,
 } from "@/types/planning-draft";
+import type { Json } from "@/integrations/supabase/types";
 
 interface ItineraryData {
   name?: string;
@@ -32,10 +33,10 @@ interface ItineraryData {
   budget?: number;
   userType?: string;
   attendees?: Array<{id: number, name: string, email: string}>;
-  flights?: Array<any>;
-  hotels?: Array<any>;
-  activities?: Array<any>;
-  reservations?: Array<any>;
+  flights?: Json;
+  hotels?: Json;
+  activities?: Json;
+  reservations?: Json;
 }
 
 const CreateItinerary = () => {
@@ -172,18 +173,19 @@ const CreateItinerary = () => {
       {isMobile ? (
         <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-4 pb-4 min-h-0">
           <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-foreground mb-1">Plan with Miles</h1>
-            <p className="text-sm text-foreground/70">Your taai travel companion</p>
+            <h1 className="text-2xl font-bold text-foreground mb-1">Plan with Bob</h1>
+            <p className="text-sm text-foreground/70">Your Create Itinerary specialist</p>
           </div>
           <div className="flex-1 min-h-0 flex flex-col border border-primary/40 rounded-lg bg-secondary relative">
             <ChatInterface
               context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
-              placeholder="Ask Miles about planning your perfect trip..."
+              placeholder="Ask Bob about planning your perfect trip..."
               embedded={true}
               itineraryId={savedItineraryId || undefined}
-              assistantName="Miles"
-              assistantSubtitle="Travel companion"
-              greeting="Hi, I'm Miles — your taai travel companion. Where should we begin?"
+              assistantName="Bob"
+              assistantKey="bob"
+              assistantSubtitle="Create Itinerary specialist"
+              greeting="Hi, I'm Bob — your Create Itinerary specialist. Tell me where you want to go, when, and what matters most."
               chatMode="planning"
               mobileComposerAssist
               interaction={bobInteraction}
@@ -218,18 +220,20 @@ const CreateItinerary = () => {
 
             <div className="flex flex-col">
               <div className="bg-primary text-primary-foreground text-center py-2 rounded-t-lg font-semibold text-sm border border-primary border-b-0">
-                Miles · Travel companion
+                Bob · Create Itinerary specialist
               </div>
               <div className="flex-1 border border-primary/40 rounded-b-lg bg-secondary relative">
                 <ChatInterface 
                   context={`User is creating an itinerary. Current itinerary data: ${JSON.stringify(itineraryData)}`}
-                  placeholder="Ask Miles about planning your perfect trip..."
+                  placeholder="Ask Bob about planning your perfect trip..."
                   embedded={true}
                   itineraryId={savedItineraryId || undefined}
-                  assistantName="Miles"
-                  assistantSubtitle="Travel companion"
-                  greeting="Hi, I'm Miles — your taai travel companion. Where should we begin?"
+                  assistantName="Bob"
+                  assistantKey="bob"
+                  assistantSubtitle="Create Itinerary specialist"
+                  greeting="Hi, I'm Bob — your Create Itinerary specialist. Tell me where you want to go, when, and what matters most."
                   chatMode="planning"
+                  interaction={bobInteraction}
                 />
               </div>
             </div>

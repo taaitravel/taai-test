@@ -1769,6 +1769,7 @@ const chatSchema = z.object({
   context: z.string().max(2000).optional(),
   userId: z.string().uuid().optional(),
   itineraryId: z.string().optional(),
+  assistantKey: z.enum(['miles', 'bob']).default('miles'),
   chatMode: z.preprocess(
     (value: unknown) => typeof value === 'string' && (CHAT_MODES as readonly string[]).includes(value)
       ? value
@@ -1827,9 +1828,9 @@ serve(async (req) => {
       );
     }
 
-    const { message, context, itineraryId, chatMode } = validatedData;
+    const { message, context, itineraryId, chatMode, assistantKey } = validatedData;
     const validatedHistory = trimHistoryToTotalLimit(validatedData.history);
-    console.log('Received chat request:', { message, context, itineraryId, chatMode });
+    console.log('Received chat request:', { message, context, itineraryId, chatMode, assistantKey });
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
@@ -1848,7 +1849,13 @@ serve(async (req) => {
         : '\n\n# User has no existing itineraries.';
     }
 
+    const assistantIdentity = assistantKey === 'bob'
+      ? `# Assistant Identity\nYou are Bob, TAAI's traveler-facing Create Itinerary specialist. Own destination, date, budget, traveler, and trip-plan interpretation inside Create Itinerary. Do not present yourself as the general concierge or as an internal agent.`
+      : `# Assistant Identity\nYou are Miles, TAAI's general traveler companion and concierge. Help with trip context, recommendations, and traveler guidance. Do not claim ownership of the Create Itinerary planning specialist role.`;
+
     const fullSystemPrompt = `${TAAI_SYSTEM_PROMPT}
+
+${assistantIdentity}
 
 ${context ? `# Current Context\n${context}` : ''}${itineraryContext}
 
