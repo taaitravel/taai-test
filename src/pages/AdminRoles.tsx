@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRoles } from "@/hooks/useUserRoles";
 
@@ -13,7 +14,23 @@ interface UserWithRoles {
   id: string;
   email: string;
   roles: string[];
+  isMasterAdmin: boolean;
 }
+
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
+const functionErrorMessage = async (error: unknown, fallback: string) => {
+  if (error && typeof error === "object" && "context" in error) {
+    const context = (error as { context?: Response }).context;
+    if (context instanceof Response) {
+      const payload = await context.clone().json().catch(() => null) as { error?: unknown } | null;
+      if (typeof payload?.error === "string") return payload.error;
+    }
+  }
+
+  return errorMessage(error, fallback);
+};
 
 const AdminRoles = () => {
   const { toast } = useToast();
@@ -34,11 +51,11 @@ const AdminRoles = () => {
       const { data, error } = await supabase.functions.invoke("manage-user-roles", {
         body: { action: "list" }
       });
-      if (error) throw error;
+      if (error) throw new Error(await functionErrorMessage(error, "Failed to fetch users"));
       setUsers(data?.users || []);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      toast({ title: "Error", description: e.message || "Failed to fetch users", variant: "destructive" });
+      toast({ title: "Error", description: errorMessage(e, "Failed to fetch users"), variant: "destructive" });
     }
   };
 
@@ -56,14 +73,14 @@ const AdminRoles = () => {
       const { error } = await supabase.functions.invoke("manage-user-roles", {
         body: { action, email: email || undefined, userId: userId || undefined, role }
       });
-      if (error) throw error;
+      if (error) throw new Error(await functionErrorMessage(error, "Operation failed"));
       toast({ title: "Success", description: `Role ${action === "add" ? "added" : "removed"} successfully` });
       setEmail("");
       setUserId("");
       refreshList();
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      toast({ title: "Error", description: e.message || "Operation failed", variant: "destructive" });
+      toast({ title: "Error", description: errorMessage(e, "Operation failed"), variant: "destructive" });
     }
   };
 
@@ -88,7 +105,7 @@ const AdminRoles = () => {
     <main className="min-h-screen container mx-auto p-4">
       <header className="mb-6">
         <h1 className="text-3xl font-bold">Admin - User Roles</h1>
-        <p className="text-muted-foreground">Assign or remove roles from users</p>
+        <p className="text-muted-foreground">Assign or remove roles from users. Protected master administrators cannot lose admin access.</p>
       </header>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -107,7 +124,7 @@ const AdminRoles = () => {
             </div>
             <div className="grid gap-2">
               <Label>Role</Label>
-              <Select value={role} onValueChange={(v: any) => setRole(v)}>
+              <Select value={role} onValueChange={(value) => setRole(value as "admin" | "support")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
@@ -146,7 +163,12 @@ const AdminRoles = () => {
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">{u.email}</TableCell>
                       <TableCell className="text-xs">{u.id}</TableCell>
-                      <TableCell>{u.roles.join(", ") || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span>{u.roles.join(", ") || "-"}</span>
+                          {u.isMasterAdmin && <Badge variant="outline">Protected master admin</Badge>}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

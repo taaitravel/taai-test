@@ -2110,6 +2110,27 @@ export type Database = {
         }
         Relationships: []
       }
+      master_admins: {
+        Row: {
+          email: string
+          protected_at: string
+          protected_reason: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          protected_at?: string
+          protected_reason: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          protected_at?: string
+          protected_reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

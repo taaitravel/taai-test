@@ -9,6 +9,10 @@ const corsHeaders = {
   "X-Frame-Options": "DENY",
 };
 
+type AuthUserSummary = { id: string; email?: string | null };
+type RoleRow = { user_id: string; role: string };
+type MasterAdminRow = { user_id: string };
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -45,23 +49,37 @@ serve(async (req) => {
 
       const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page: 1, perPage: 100 });
       if (listErr) throw listErr;
-      const users = list?.users || [];
+      const users = (list?.users || []) as AuthUserSummary[];
 
-      const userIds = users.map((u: any) => u.id);
+      const userIds = users.map((user) => user.id);
       const { data: rolesRows, error: rrErr } = await admin
         .from("user_roles")
         .select("user_id, role")
         .in("user_id", userIds);
       if (rrErr) throw rrErr;
 
+      const { data: masterAdminRows, error: masterAdminErr } = await admin
+        .from("master_admins")
+        .select("user_id")
+        .in("user_id", userIds);
+      if (masterAdminErr) throw masterAdminErr;
+      const masterAdminIds = new Set(
+        ((masterAdminRows || []) as MasterAdminRow[]).map((row) => row.user_id),
+      );
+
       const rolesMap = new Map<string, string[]>();
-      (rolesRows || []).forEach((r: any) => {
-        const arr = rolesMap.get(r.user_id) || [];
-        if (!arr.includes(r.role)) arr.push(r.role);
-        rolesMap.set(r.user_id, arr);
+      ((rolesRows || []) as RoleRow[]).forEach((roleRow) => {
+        const arr = rolesMap.get(roleRow.user_id) || [];
+        if (!arr.includes(roleRow.role)) arr.push(roleRow.role);
+        rolesMap.set(roleRow.user_id, arr);
       });
 
-      const result = users.map((u: any) => ({ id: u.id, email: u.email, roles: rolesMap.get(u.id) || [] }));
+      const result = users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        roles: rolesMap.get(user.id) || [],
+        isMasterAdmin: masterAdminIds.has(user.id),
+      }));
       return new Response(JSON.stringify({ users: result }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -79,7 +97,8 @@ serve(async (req) => {
         // No direct get by email; list and filter
         const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
         if (listErr) throw listErr;
-        const found = (list?.users || []).find((u: any) => (u.email || "").toLowerCase() === email.toLowerCase());
+        const users = (list?.users || []) as AuthUserSummary[];
+        const found = users.find((user) => (user.email || "").toLowerCase() === email.toLowerCase());
         if (!found) {
           return new Response(JSON.stringify({ error: "User not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
@@ -88,6 +107,20 @@ serve(async (req) => {
 
       if (!targetId) {
         return new Response(JSON.stringify({ error: "Missing userId or email" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      if (action === "remove" && role === "admin") {
+        const { data: protectedAdmin, error: protectedAdminErr } = await admin
+          .from("master_admins")
+          .select("user_id")
+          .eq("user_id", targetId)
+          .maybeSingle();
+        if (protectedAdminErr) throw protectedAdminErr;
+        if (protectedAdmin) {
+          return new Response(JSON.stringify({
+            error: "The protected master administrator role cannot be removed.",
+          }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
       }
 
       if (action === "add") {
