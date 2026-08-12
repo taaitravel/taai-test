@@ -8,6 +8,26 @@ import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 // src/lib/mcp/tools/search-places.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z } from "npm:zod@^4.4.3";
+
+// src/lib/mcp/env.ts
+function runtimeEnv(name) {
+  const runtime = globalThis;
+  return runtime.Deno?.env?.get?.(name) ?? runtime.process?.env?.[name];
+}
+function configuredEnv(names) {
+  for (const name of names) {
+    const value = runtimeEnv(name)?.trim();
+    if (value) return value;
+  }
+  return void 0;
+}
+function supabaseProjectUrl() {
+  const url = configuredEnv(["SUPABASE_URL", "VITE_SUPABASE_URL"]);
+  if (!url) throw new Error("SUPABASE_URL (or VITE_SUPABASE_URL) is required");
+  return url.replace(/\/+$/, "");
+}
+
+// src/lib/mcp/tools/search-places.ts
 var search_places_default = defineTool({
   name: "search_places",
   title: "Search places",
@@ -17,14 +37,16 @@ var search_places_default = defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ query }) => {
-    const supabaseUrl2 = process.env.SUPABASE_URL;
-    if (!supabaseUrl2) {
+    let supabaseUrl;
+    try {
+      supabaseUrl = supabaseProjectUrl();
+    } catch {
       return {
         content: [{ type: "text", text: "Server not configured (SUPABASE_URL missing)." }],
         isError: true
       };
     }
-    const res = await fetch(`${supabaseUrl2}/functions/v1/search-cities`, {
+    const res = await fetch(`${supabaseUrl}/functions/v1/search-cities`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query })
@@ -79,14 +101,14 @@ var about_taai_default = defineTool2({
 });
 
 // src/lib/mcp/index.ts
-var supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://dhbvweazpqnviqwgpurv.supabase.co").replace(/\/+$/, "");
+var projectRef = "dhbvweazpqnviqwgpurv";
 var mcp_default = defineMcp({
-  name: "taai-travel-mcp",
-  title: "TAAI Travel",
+  name: "taai-test",
+  title: "taai-test",
   version: "0.1.0",
   instructions: "Tools for TAAI Travel. Use `about_taai` to learn what the platform does. Use `search_places` to resolve a city, region, or country name to coordinates before planning a trip.",
   auth: auth.oauth.issuer({
-    issuer: `${supabaseUrl}/auth/v1`,
+    issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
   tools: [search_places_default, about_taai_default]

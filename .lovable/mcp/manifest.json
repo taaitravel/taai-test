@@ -11,9 +11,9 @@
   },
   "mcp": {
     "server": {
-      "name": "taai-travel-mcp",
+      "name": "taai-test",
       "version": "0.1.0",
-      "title": "TAAI Travel"
+      "title": "taai-test"
     },
     "tools": [
       {
