@@ -1,5 +1,6 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
+import { supabaseProjectUrl } from "../env";
 
 export default defineTool({
   name: "search_places",
@@ -14,8 +15,10 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ query }) => {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    if (!supabaseUrl) {
+    let supabaseUrl: string;
+    try {
+      supabaseUrl = supabaseProjectUrl();
+    } catch {
       return {
         content: [{ type: "text", text: "Server not configured (SUPABASE_URL missing)." }],
         isError: true,

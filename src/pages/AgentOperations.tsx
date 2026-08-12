@@ -144,10 +144,10 @@ export default function AgentOperations() {
         )}
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
+          {([
             ['Open tasks', metrics.open, Route], ['Pending approvals', metrics.approvals, ShieldCheck],
             ['Evidence records', metrics.evidence, FileCheck2], ['Tom lane', metrics.tom, Network],
-          ].map(([label, value, Icon]) => (
+          ] as [string, number, React.ElementType][]).map(([label, value, Icon]) => (
             <Card key={String(label)}><CardContent className="flex items-center justify-between p-5"><div><p className="text-xs text-muted-foreground">{String(label)}</p><p className="mt-1 text-2xl font-semibold">{String(value)}</p></div><Icon className="h-5 w-5 text-primary" /></CardContent></Card>
           ))}
         </section>

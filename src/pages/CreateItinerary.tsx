@@ -209,7 +209,7 @@ const CreateItinerary = () => {
               </div>
               <div className="flex-1 border border-border rounded-b-lg bg-secondary p-4">
                 <AIReservationChat 
-                  itineraryData={itineraryData}
+                  itineraryData={itineraryData as never}
                   onUpdateData={updateItineraryData}
                   onSaveItinerary={saveItinerary}
                   isSaving={isSaving}

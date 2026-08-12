@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sdk_version": "0.20.1",
+  "sdk_version": "0.20.0",
   "path": "/functions/v1/mcp",
   "auth": {
     "type": "oauth",
@@ -11,9 +11,9 @@
   },
   "mcp": {
     "server": {
-      "name": "taai-travel-mcp",
+      "name": "taai-test",
       "version": "0.1.0",
-      "title": "TAAI Travel"
+      "title": "taai-test"
     },
     "tools": [
       {
