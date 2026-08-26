@@ -28,11 +28,18 @@ export const BrightLanding = () => {
 
     const { styles, scripts, body } = extract();
 
-    // Force the light palette for the landing route only.
+    // Force the light palette for the landing route only (the authenticated
+    // app keeps its own theme toggle).
     const root = document.documentElement;
     const hadDark = root.classList.contains("dark");
-    if (hadDark) root.classList.remove("dark");
+    const stripDark = () => {
+      if (root.classList.contains("dark")) root.classList.remove("dark");
+      if (!root.classList.contains("light")) root.classList.add("light");
+    };
+    stripDark();
     root.classList.add("taai-bright");
+    const observer = new MutationObserver(stripDark);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
 
     const fonts = document.createElement("link");
     fonts.rel = "stylesheet";
@@ -47,6 +54,15 @@ export const BrightLanding = () => {
       document.head.appendChild(el);
       return el;
     });
+
+    const hostStyle = document.createElement("style");
+    hostStyle.setAttribute("data-taai-bright", "");
+    hostStyle.textContent =
+      ".taai-bright-host{position:relative;z-index:0;background:#FAF7F2;color:#171310;font-family:'Inter',-apple-system,sans-serif}";
+    document.head.appendChild(hostStyle);
+    styleEls.push(hostStyle);
+
+
 
     host.innerHTML = body;
     document.body.classList.add("ready");
