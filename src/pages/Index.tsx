@@ -1,88 +1,50 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LOGO_URL, AUTHENTICATED_MENU_ITEMS, PUBLIC_MENU_ITEMS } from "@/lib/constants";
 import { PublicFooter } from "@/components/shared/PublicFooter";
-import { Badge } from "@/components/ui/badge";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Plane, Map, Calendar, Users, BarChart3, MessageCircle, LogOut, User, Menu, X } from "lucide-react";
+import { Plane, Map, Calendar, Users, BarChart3, MessageCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatInterface } from "@/components/chat/ChatInterface";
+import { BrightLanding } from "@/components/landing/BrightLanding";
 
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut, userProfile } = useAuth();
-  const isMobile = useIsMobile();
   const [userType, setUserType] = useState<'individual' | 'company' | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRouterReady, setIsRouterReady] = useState(false);
-  const heroRef = useRef<HTMLElement | null>(null);
 
-  // Ensure router context is ready
   useEffect(() => {
     setIsRouterReady(true);
   }, [location]);
 
-  // Cursor-following spotlight on the hero section
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-    const handle = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      el.style.setProperty('--mx', `${x}%`);
-      el.style.setProperty('--my', `${y}%`);
-    };
-    el.addEventListener('mousemove', handle);
-    return () => el.removeEventListener('mousemove', handle);
-  }, []);
-
-  const handleMenuItemClick = (path: string) => {
-    if (isRouterReady) {
-      navigate(path);
-      setIsMenuOpen(false);
-    }
-  };
-
-  const getMenuItems = () => {
-    if (user) {
-      return [...AUTHENTICATED_MENU_ITEMS, { label: "Contact Us", path: "/contact" }];
-    }
-    return [...PUBLIC_MENU_ITEMS];
-  };
-
   const features = [
     {
-      icon: <Plane className="h-7 w-7 text-white" />,
+      icon: <Plane className="h-7 w-7 text-primary-foreground" />,
       title: "AI-Powered Booking",
       description: "Smart integration with major travel platforms for seamless booking"
     },
     {
-      icon: <Map className="h-7 w-7 text-white" />,
+      icon: <Map className="h-7 w-7 text-primary-foreground" />,
       title: "Interactive Maps",
       description: "Visual trip planning with location mapping and recommendations"
     },
     {
-      icon: <Calendar className="h-7 w-7 text-white" />,
+      icon: <Calendar className="h-7 w-7 text-primary-foreground" />,
       title: "Smart Itineraries",
       description: "Comprehensive trip planning with real-time updates and editing"
     },
     {
-      icon: <BarChart3 className="h-7 w-7 text-white" />,
+      icon: <BarChart3 className="h-7 w-7 text-primary-foreground" />,
       title: "Budget Tracking",
       description: "Real-time expense monitoring with detailed analytics"
     },
     {
-      icon: <MessageCircle className="h-7 w-7 text-white" />,
+      icon: <MessageCircle className="h-7 w-7 text-primary-foreground" />,
       title: "Trip Chat",
       description: "Stay connected with travel updates and group coordination"
     },
     {
-      icon: <Users className="h-7 w-7 text-white" />,
+      icon: <Users className="h-7 w-7 text-primary-foreground" />,
       title: "Group Travel",
       description: "Perfect for both individual and corporate travel needs"
     }
@@ -90,168 +52,21 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 relative">
-            {/* Left side - Mobile Menu or Desktop Navigation */}
-            <div className="flex items-center space-x-4">
-              {isMobile ? (
-                <Drawer open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-                  <DrawerTrigger asChild>
-                    <Button 
-                      variant="ghost"
-                      size="sm"
-                    className="text-foreground hover:bg-accent p-2 rounded-full"
-                    >
-                      <Menu className="h-6 w-6" />
-                    </Button>
-                  </DrawerTrigger>
-                  <DrawerContent className="h-screen bg-background/95 backdrop-blur-md border-none">
-                    <div className="flex flex-col h-full">
-                      {/* Header with close button */}
-                      <div className="flex justify-between items-center p-6 border-b border-border">
-                        <img 
-                          src={LOGO_URL} 
-                          alt="TAAI Travel" 
-                          className="h-12" 
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-foreground hover:bg-accent p-2 rounded-full"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          <X className="h-6 w-6" />
-                        </Button>
-                      </div>
-                      
-                      {/* Menu Items */}
-                      <div className="flex-1 flex flex-col justify-center space-y-8 px-6">
-                        {getMenuItems().map((item) => (
-                          <button
-                            key={item.path}
-                            onClick={() => handleMenuItemClick(item.path)}
-                            className="text-foreground text-2xl font-bold text-left hover:text-primary transition-colors duration-200 py-4"
-                          >
-                            {item.label}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      {/* Footer with traveler level for logged in users */}
-                        {user && (
-                          <div className="p-6 border-t border-border">
-                            <Badge className="bg-accent text-foreground border-border text-lg px-4 py-2">
-                              Master Traveler
-                            </Badge>
-                        </div>
-                      )}
-                    </div>
-                  </DrawerContent>
-                </Drawer>
-              ) : (
-                <>
-                  {!user && (
-                    <>
-                      <Button 
-                        variant="ghost" 
-                        className="text-foreground hover:text-foreground hover:bg-accent"
-                        onClick={() => isRouterReady && navigate('/what-we-do')}
-                      >
-                        What We Do
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="text-foreground hover:text-foreground hover:bg-accent"
-                        onClick={() => isRouterReady && navigate('/subscription')}
-                      >
-                        Subscription
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="text-foreground hover:text-foreground hover:bg-accent"
-                        onClick={() => isRouterReady && navigate('/contact')}
-                      >
-                        Contact Us
-                      </Button>
-                      <Button 
-                        onClick={() => isRouterReady && navigate('/login')}
-                        variant="outline" 
-                        className="bg-card text-foreground border-border hover:bg-primary hover:text-primary-foreground transition-all duration-300"
-                      >
-                        Sign In
-                      </Button>
-                    </>
-                  )}
-                  {user && (
-                    <>
-                      <Button 
-                        variant="ghost" 
-                        className="text-foreground hover:text-foreground hover:bg-accent"
-                        onClick={() => isRouterReady && navigate('/subscription')}
-                      >
-                        Subscription
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="text-foreground hover:text-foreground hover:bg-accent"
-                        onClick={() => isRouterReady && navigate('/contact')}
-                      >
-                        Contact Us
-                      </Button>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
+      {/* New bright landing experience */}
+      <BrightLanding />
 
-            {/* Center - Logo */}
-            <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img src={LOGO_URL} alt="TAAI Travel" className="h-[70px]" />
-            </div>
-
-            {/* Right side - User icon when logged in */}
-            <div className="flex items-center space-x-4">
-              {user && !isMobile && (
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  className="text-foreground hover:bg-accent p-2 rounded-full"
-                  onClick={() => isRouterReady && navigate('/home')}
-                >
-                  <User className="h-6 w-6" />
-                </Button>
-              )}
-              {/* Mobile Right Space (for symmetry) */}
-              {isMobile && !user && <div className="w-10"></div>}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section ref={heroRef} className="relative overflow-hidden py-20 px-4">
-        <div className="hero-aurora" aria-hidden="true" />
-        <div className="hero-spotlight" aria-hidden="true" />
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <Badge className="mb-6 bg-accent text-foreground hover:bg-accent/80 border-border animate-fade-in" variant="secondary">
-            AI-Powered Travel Planning
-          </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 animate-fade-in" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
-            Your Ultimate
-            <span className="luxury-text-gradient block">
-              Travel Companion
-            </span>
-          </h1>
-          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: '180ms', animationFillMode: 'both' }}>
-            Experience the future of travel planning with AI-driven itineraries, 
-            real-time booking, and intelligent budget tracking all in one luxurious platform.
+      {/* Traveler type selection */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            How do you travel?
+          </h2>
+          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Pick your lane and we'll tailor taai to the way you move.
           </p>
-          
-          {/* User Type Selection */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12 animate-fade-in" style={{ animationDelay: '280ms', animationFillMode: 'both' }}>
-            <Card 
+
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+            <Card
               className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 bg-card/80 border-border ${
                 userType === 'individual' ? 'ring-2 ring-primary shadow-lg' : ''
               }`}
@@ -265,8 +80,8 @@ const Index = () => {
                 <CardDescription className="text-muted-foreground">Perfect for personal trips and adventures</CardDescription>
               </CardHeader>
             </Card>
-            
-            <Card 
+
+            <Card
               className={`cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 bg-card/80 border-border ${
                 userType === 'company' ? 'ring-2 ring-primary shadow-lg' : ''
               }`}
@@ -282,8 +97,8 @@ const Index = () => {
             </Card>
           </div>
 
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="gold-gradient hover:opacity-90 text-primary-foreground px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
             disabled={!userType}
             onClick={() => isRouterReady && navigate('/signup', { state: { userType } })}
@@ -302,11 +117,11 @@ const Index = () => {
               Everything You Need for Perfect Travel
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              From AI-powered recommendations to real-time budget tracking, 
+              From AI-powered recommendations to real-time budget tracking,
               TAAI Travel revolutionizes how you plan and manage your trips.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="group hover:shadow-2xl transition-all duration-300 bg-card/60 border-border hover:border-primary/40">
@@ -336,8 +151,8 @@ const Index = () => {
           <p className="text-xl text-primary-foreground/80 mb-8">
             Join thousands of travelers who've discovered smarter, more efficient trip planning.
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             variant="secondary"
             className="bg-background text-foreground hover:bg-background/90 border-2 border-background px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             onClick={() => isRouterReady && navigate('/signup')}
@@ -349,7 +164,6 @@ const Index = () => {
 
       <PublicFooter />
 
-      {/* Chat Interface */}
       <ChatInterface context="travel planning and general travel assistance" />
     </div>
   );
