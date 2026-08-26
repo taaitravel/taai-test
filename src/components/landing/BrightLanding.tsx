@@ -88,6 +88,7 @@ export const BrightLanding = () => {
     host.addEventListener("click", onClick);
 
     return () => {
+      observer.disconnect();
       host.removeEventListener("click", onClick);
       host.innerHTML = "";
       styleEls.forEach((el) => el.remove());
@@ -95,8 +96,12 @@ export const BrightLanding = () => {
       fonts.remove();
       document.body.classList.remove("ready");
       root.classList.remove("taai-bright");
-      if (hadDark) root.classList.add("dark");
+      if (hadDark) {
+        root.classList.remove("light");
+        root.classList.add("dark");
+      }
     };
+
   }, [navigate]);
 
   return <div ref={hostRef} className="taai-bright-host" />;
