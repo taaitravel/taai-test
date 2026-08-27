@@ -633,6 +633,12 @@ body.ready .rise{opacity:1;transform:none}
   .nav{background:rgba(250,247,242,.97)}
   .nav-links,.nav-cta{display:none}
   .burger{display:block}
+  .nav.nav-open{height:auto;padding-bottom:14px}
+  .nav.nav-open .nav-in{flex-wrap:wrap;align-items:center}
+  .nav.nav-open .nav-links{display:flex;flex-direction:column;align-items:stretch;gap:2px;
+    width:100%;margin:10px 0 0;order:3}
+  .nav.nav-open .nav-links a{padding:13px 4px;font-size:15px;border-top:1px solid var(--line-2,rgba(23,19,16,.06))}
+  .nav.nav-open .nav-cta{display:inline-flex;order:4;width:100%;justify-content:center;margin-top:10px}
   .hero{padding:122px 0 64px}
   .hero-grid,.band-in{grid-template-columns:1fr}
   .journey{padding:76px 0 0}

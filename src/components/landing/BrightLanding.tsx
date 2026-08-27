@@ -75,10 +75,25 @@ export const BrightLanding = () => {
       return el;
     });
 
-    // Route internal links through the SPA router.
+    // Route internal links through the SPA router + mobile menu toggle.
     const onClick = (e: MouseEvent) => {
-      const anchor = (e.target as HTMLElement)?.closest?.("a") as HTMLAnchorElement | null;
+      const target = e.target as HTMLElement;
+      const burger = target?.closest?.(".burger") as HTMLElement | null;
+      const nav = host.querySelector(".nav") as HTMLElement | null;
+      if (burger && nav) {
+        e.preventDefault();
+        const open = nav.classList.toggle("nav-open");
+        burger.setAttribute("aria-expanded", open ? "true" : "false");
+        burger.textContent = open ? "Close" : "Menu";
+        return;
+      }
+      const anchor = (target)?.closest?.("a") as HTMLAnchorElement | null;
       if (!anchor) return;
+      if (nav?.classList.contains("nav-open")) {
+        nav.classList.remove("nav-open");
+        const b = nav.querySelector(".burger") as HTMLElement | null;
+        if (b) { b.textContent = "Menu"; b.setAttribute("aria-expanded", "false"); }
+      }
       const href = anchor.getAttribute("href") || "";
       if (href.startsWith("/")) {
         e.preventDefault();
