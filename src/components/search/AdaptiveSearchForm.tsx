@@ -201,50 +201,50 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
   return (
     <form onSubmit={handleSubmit} className="p-4">
       <Tabs value={searchType} onValueChange={(v) => setSearchType(v as SearchType)}>
-        <TabsList className="grid grid-cols-6 bg-secondary border border-border mb-4 h-auto p-1">
+        <TabsList className="flex w-full gap-1 overflow-x-auto no-scrollbar justify-start rounded-2xl bg-secondary border border-border mb-4 h-auto p-1 md:grid md:grid-cols-6">
           <TabsTrigger 
             value="hotels"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+            className="shrink-0 basis-auto min-w-[74px] md:min-w-0 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 px-2 py-2 rounded-xl text-[11px] leading-tight md:text-xs whitespace-nowrap text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
           >
             <Hotel className="h-4 w-4" />
             <span>Properties</span>
           </TabsTrigger>
           <TabsTrigger 
             value="flights" 
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+            className="shrink-0 basis-auto min-w-[74px] md:min-w-0 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 px-2 py-2 rounded-xl text-[11px] leading-tight md:text-xs whitespace-nowrap text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
           >
             <Plane className="h-4 w-4" />
             <span>Flights</span>
           </TabsTrigger>
           <TabsTrigger 
             value="activities"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+            className="shrink-0 basis-auto min-w-[74px] md:min-w-0 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 px-2 py-2 rounded-xl text-[11px] leading-tight md:text-xs whitespace-nowrap text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
           >
             <Activity className="h-4 w-4" />
             <span>Activities</span>
           </TabsTrigger>
           <TabsTrigger 
             value="cars"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+            className="shrink-0 basis-auto min-w-[74px] md:min-w-0 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 px-2 py-2 rounded-xl text-[11px] leading-tight md:text-xs whitespace-nowrap text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
           >
             <Car className="h-4 w-4" />
             <span>Cars</span>
           </TabsTrigger>
           <TabsTrigger 
             value="packages"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+            className="shrink-0 basis-auto min-w-[74px] md:min-w-0 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 px-2 py-2 rounded-xl text-[11px] leading-tight md:text-xs whitespace-nowrap text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
           >
             <Package className="h-4 w-4" />
             <span>Packages</span>
           </TabsTrigger>
           <TabsTrigger 
             value="dining"
-            className="flex flex-col md:flex-row items-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+            className="shrink-0 basis-auto min-w-[74px] md:min-w-0 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-1.5 px-2 py-2 rounded-xl text-[11px] leading-tight md:text-xs whitespace-nowrap text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
           >
             <UtensilsCrossed className="h-4 w-4" />
-            <span className="flex items-center gap-1">
-              Dining
-              <span className="text-[9px] uppercase tracking-wide px-1 py-0.5 rounded bg-primary/20 text-primary font-semibold">Soon</span>
+            <span className="flex flex-col md:flex-row items-center gap-0.5 md:gap-1">
+              <span>Dining</span>
+              <span className="text-[8px] md:text-[9px] uppercase tracking-wide px-1 rounded bg-primary/20 text-primary font-semibold">Soon</span>
             </span>
           </TabsTrigger>
         </TabsList>

@@ -271,6 +271,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="icon"
+              aria-label="Send message"
               className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
             >
               <Send className="h-4 w-4" />
@@ -291,7 +292,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+        aria-label={`Chat with ${assistantName}`}
+        className="fixed right-4 sm:right-6 bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 z-40 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
         size="icon"
       >
         <MessageCircle className="h-6 w-6" />
@@ -300,7 +302,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-[500px] shadow-xl bg-background border">
+    <Card className="fixed z-50 inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] h-[72vh] w-auto sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96 sm:h-[500px] flex flex-col overflow-hidden shadow-xl bg-background border">
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
@@ -315,13 +317,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => setIsOpen(false)}
-          className="h-8 w-8 p-0"
+          aria-label="Close chat"
+          className="h-9 w-9 p-0"
         >
           ×
         </Button>
       </div>
 
-      <CardContent className="p-0 h-full flex flex-col">
+      <CardContent className="p-0 flex-1 min-h-0 flex flex-col">
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.length === 0 && (
@@ -362,6 +365,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="icon"
+              aria-label="Send message"
             >
               <Send className="h-4 w-4" />
             </Button>

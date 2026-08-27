@@ -617,53 +617,6 @@ h1 b{font-weight:600;background:var(--grad-deep);-webkit-background-clip:text;ba
 .ar-cta{display:flex;gap:13px;justify-content:center;flex-wrap:wrap}
 .ar-note{margin-top:22px;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
 
-/* ══════════ SPEC ══════════ */
-.spec{background:#fff;padding:104px 0 40px;border-top:1px solid var(--line-2)}
-.spec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;
-  padding-bottom:30px;border-bottom:1px solid var(--line-2);margin-bottom:50px}
-.spec-head .script{font-size:34px;display:block;background:var(--grad-deep);-webkit-background-clip:text;background-clip:text;color:transparent}
-.spec-head h2{font-family:var(--display);font-weight:300;font-size:clamp(26px,3.2vw,38px);margin:0;letter-spacing:-.035em}
-.spec-head p{color:var(--ink-2);max-width:40ch;margin:0;font-size:14.5px}
-.spec-block{margin-bottom:70px}
-.spec-t{display:flex;align-items:baseline;gap:14px;margin-bottom:22px}
-.spec-t .n{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--pink)}
-.spec-t h3{font-family:var(--display);font-weight:600;font-size:22px;margin:0;letter-spacing:-.03em}
-.pal{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px}
-.sw{border-radius:14px;border:1px solid var(--line-2);overflow:hidden;background:#fff;box-shadow:var(--shadow-s)}
-.sw .c{height:80px}
-.sw .m{padding:11px 12px}
-.sw .m .nm{font-size:12.5px;font-weight:600;margin-bottom:2px}
-.sw .m .hx{font-family:var(--mono);font-size:9.5px;color:var(--ink-3)}
-.sw .m .us{font-size:10.5px;color:var(--ink-3);margin-top:6px;line-height:1.45}
-.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
-.card{border:1px solid var(--line-2);border-radius:16px;padding:18px;background:#FDFBF8}
-.card h4{font-family:var(--display);font-weight:600;font-size:14.5px;margin:0 0 9px;letter-spacing:-.02em}
-.card ul{margin:0;padding-left:16px;color:var(--ink-2);font-size:12.5px;line-height:1.7}
-.card ul li::marker{color:var(--pink)}
-.card .r{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--line-2);font-size:12px;color:var(--ink-2)}
-.card .r:last-child{border-bottom:0}
-.card .r b{color:var(--pink);font-weight:500;font-family:var(--mono);font-size:9.5px;white-space:nowrap}
-.type-row{display:grid;grid-template-columns:170px 1fr;gap:24px;padding:20px 0;border-bottom:1px solid var(--line-2);align-items:baseline}
-.type-row:last-child{border-bottom:0}
-.type-meta .f{font-size:13px;font-weight:600;margin-bottom:4px}
-.type-meta .d{font-size:11.5px;color:var(--ink-3);line-height:1.5}
-.ts-1{font-family:var(--display);font-weight:600;font-size:38px;line-height:1;letter-spacing:-.045em}
-.ts-2{font-family:var(--script);font-size:36px;background:var(--grad-deep);-webkit-background-clip:text;background-clip:text;color:transparent}
-.ts-3{font-size:16px;color:var(--ink-2)}
-.ts-4{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--pink)}
-.logo-lab{display:flex;gap:13px;flex-wrap:wrap}
-.logo-tile{flex:1 1 200px;border:1px solid var(--line-2);border-radius:16px;padding:24px;display:grid;place-items:center;min-height:126px;background:#FDFBF8}
-.logo-tile.dark{background:var(--night)}
-.logo-tile.grad{background:var(--grad)}
-.logo-tile img{height:42px;width:auto}
-.logo-tile .cap{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-top:12px}
-.logo-tile.dark .cap{color:rgba(255,255,255,.45)}
-
-.foot{border-top:1px solid var(--line-2);padding:40px 0;color:var(--ink-3);background:#fff}
-.foot-in{max-width:var(--maxw);margin:0 auto;padding:0 40px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
-.foot a{color:var(--ink-3);margin-left:22px;font-size:13px}
-.foot a:hover{color:var(--pink)}
-
 .rise{opacity:0;transform:translateY(22px);transition:opacity 1s var(--slow),transform 1s var(--slow)}
 body.ready .rise{opacity:1;transform:none}
 .d1{transition-delay:.08s}.d2{transition-delay:.18s}.d3{transition-delay:.28s}.d4{transition-delay:.38s}.d5{transition-delay:.5s}.d6{transition-delay:.62s}
@@ -676,10 +629,17 @@ body.ready .rise{opacity:1;transform:none}
   .hero-grid,.band-in{gap:40px}
 }
 @media (max-width:960px){
-  .wrap,.nav-in,.strip-in,.foot-in{padding:0 24px}
+  .wrap,.nav-in,.strip-in{padding:0 24px}
   .nav{background:rgba(250,247,242,.97)}
   .nav-links,.nav-cta{display:none}
   .burger{display:block}
+  .nav.nav-open{height:auto;padding-bottom:16px;background:#FAF7F2;
+    box-shadow:0 24px 50px -30px rgba(60,40,30,.35);border-bottom-color:var(--line-2,rgba(23,19,16,.06))}
+  .nav.nav-open .nav-in{height:auto;min-height:76px;flex-wrap:wrap;align-items:center}
+  .nav.nav-open .nav-links{display:flex;flex-direction:column;align-items:stretch;gap:2px;
+    width:100%;margin:10px 0 0;order:3}
+  .nav.nav-open .nav-links a{padding:13px 4px;font-size:15px;border-top:1px solid var(--line-2,rgba(23,19,16,.06))}
+  .nav.nav-open .nav-cta{display:inline-flex;order:4;width:100%;justify-content:center;margin-top:10px}
   .hero{padding:122px 0 64px}
   .hero-grid,.band-in{grid-template-columns:1fr}
   .journey{padding:76px 0 0}
@@ -704,8 +664,6 @@ body.ready .rise{opacity:1;transform:none}
   .band{padding:88px 0;margin-top:60px}
   .res-grid{grid-template-columns:repeat(2,1fr)}
   .arrival{padding:96px 0 84px}
-  .type-row{grid-template-columns:1fr;gap:12px}
-  .spec{padding:76px 0 30px}
 }
 @media (max-width:560px){
   .hero-float{display:none}
@@ -732,7 +690,7 @@ body.ready .rise{opacity:1;transform:none}
     <div class="nav-links">
       <a href="#journey">Product</a>
       <a href="#journey">How it works</a>
-      <a href="#scene-05">Groups</a>
+      <a href="#scenes">Groups</a>
       <a href="#band">Booking</a>
       <a href="#lanes">Get started</a>
     </div>
@@ -762,7 +720,7 @@ body.ready .rise{opacity:1;transform:none}
       <p class="sub rise d3">One living workspace for the whole trip. Flights, stays, activities and tables land into a single itinerary — with Miles alongside you, the group in the room, and every cost accounted for.</p>
       <div class="hero-cta rise d4">
         <a href="/signup" class="btn btn-grad">Join taai</a>
-        <a href="https://taai-test.lovable.app/" target="_blank" rel="noopener" class="btn btn-ghost">Open the demo ↗</a>
+        <a href="/login" target="_blank" rel="noopener" class="btn btn-ghost">Open the demo ↗</a>
       </div>
       <div class="hero-meta mono rise d5">
         <span><b>01</b> Plan</span><span><b>02</b> Decide together</span><span><b>03</b> Book</span><span><b>04</b> Remember</span>
@@ -1166,7 +1124,7 @@ body.ready .rise{opacity:1;transform:none}
         <div class="b"><i></i><span><b style="color:#fff;font-weight:600">Grid and Map</b> — same twenty results, clustered on the map by price so you can see the shape of a city before you pick.</span></div>
         <div class="b"><i></i><span><b style="color:#fff;font-weight:600">Save, don't lose</b> — anything you save drops straight into the trip and the cart, priced for your whole group.</span></div>
       </div>
-      <a href="https://taai-test.lovable.app/" target="_blank" rel="noopener" class="btn btn-grad">Try a live search ↗</a>
+      <a href="/login" target="_blank" rel="noopener" class="btn btn-grad">Try a live search ↗</a>
     </div>
     <div class="res-grid reveal">
       <div class="res"><div class="img"><span data-icon="bed"></span><span class="src">Booking.com</span></div>
@@ -1199,7 +1157,7 @@ body.ready .rise{opacity:1;transform:none}
       <p>Join the travel workspace built for planning, booking, splitting and remembering — with Miles in every step.</p>
       <div class="ar-cta">
         <a href="/signup" class="btn btn-grad">Join taai</a>
-        <a href="https://taai-test.lovable.app/" target="_blank" rel="noopener" class="btn btn-ghost">Open the demo ↗</a>
+        <a href="/login" target="_blank" rel="noopener" class="btn btn-ghost">Open the demo ↗</a>
       </div>
       <div class="ar-note">taai.travel · @taai.travel</div>
     </div>

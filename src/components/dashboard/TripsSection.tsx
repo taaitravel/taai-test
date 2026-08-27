@@ -30,6 +30,7 @@ export const TripsSection = ({ activeItineraries, loading }: TripsSectionProps) 
   return (
     <div className="col-span-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bright-card p-4 sm:p-6">
         <StackSection
           title="Upcoming"
           icon={<Calendar className="h-5 w-5" />}
@@ -38,6 +39,8 @@ export const TripsSection = ({ activeItineraries, loading }: TripsSectionProps) 
           emptyIcon={<Calendar className="h-8 w-8 mx-auto opacity-50" />}
           emptyMessage="No upcoming trips"
         />
+        </div>
+        <div className="bright-card p-4 sm:p-6">
         <StackSection
           title="Past Trips"
           icon={<Clock className="h-5 w-5" />}
@@ -46,6 +49,7 @@ export const TripsSection = ({ activeItineraries, loading }: TripsSectionProps) 
           emptyIcon={<Clock className="h-8 w-8 mx-auto opacity-50" />}
           emptyMessage="No past trips yet"
         />
+        </div>
       </div>
     </div>
   );

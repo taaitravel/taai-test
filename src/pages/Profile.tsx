@@ -34,20 +34,20 @@ const Profile = () => {
         <h1 className="text-2xl font-bold text-foreground mb-6">My Profile</h1>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="edit" className="gap-2">
+          <TabsList className="mb-6 flex w-full gap-1 overflow-x-auto no-scrollbar justify-start rounded-2xl h-auto p-1">
+            <TabsTrigger value="edit" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
               <UserPen className="h-4 w-4" />
               Edit Profile
             </TabsTrigger>
-            <TabsTrigger value="preferences" className="gap-2">
+            <TabsTrigger value="preferences" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
               <Settings className="h-4 w-4" />
               Preferences
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
+            <TabsTrigger value="notifications" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
               <Bell className="h-4 w-4" />
               Notifications
             </TabsTrigger>
-            <TabsTrigger value="setup" className="gap-2">
+            <TabsTrigger value="setup" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
               <Compass className="h-4 w-4" />
               Traveler Setup
             </TabsTrigger>

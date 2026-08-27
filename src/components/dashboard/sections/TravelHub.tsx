@@ -20,43 +20,43 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
       icon: Plus,
       label: "New Itinerary",
       onClick: () => navigate('/new-manual-itinerary'),
-      className: "gold-gradient text-background hover:opacity-90"
+      className: "bright-btn-grad"
     },
     {
       icon: Hotel,
       label: "Properties",
       onClick: () => navigate('/search?tab=hotels'),
-      className: "border-border text-foreground hover:bg-accent bg-transparent"
+      className: "bright-btn-ghost"
     },
     {
       icon: Plane,
       label: "Flights",
       onClick: () => navigate('/search?tab=flights'),
-      className: "border-border text-foreground hover:bg-accent bg-transparent"
+      className: "bright-btn-ghost"
     },
     {
       icon: Activity,
       label: "Activities",
       onClick: () => navigate('/search?tab=activities'),
-      className: "border-border text-foreground hover:bg-accent bg-transparent"
+      className: "bright-btn-ghost"
     },
     {
       icon: Car,
       label: "Cars",
       onClick: () => navigate('/search?tab=cars'),
-      className: "border-border text-foreground hover:bg-accent bg-transparent"
+      className: "bright-btn-ghost"
     },
     {
       icon: Package,
       label: "Packages",
       onClick: () => navigate('/search?tab=packages'),
-      className: "border-border text-foreground hover:bg-accent bg-transparent"
+      className: "bright-btn-ghost"
     },
     {
       icon: UtensilsCrossed,
       label: "Dining",
       onClick: () => navigate('/search?tab=dining'),
-      className: "border-border text-foreground hover:bg-accent bg-transparent"
+      className: "bright-btn-ghost"
     }
   ];
 
@@ -65,19 +65,19 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
     <div className="w-full space-y-3">
       {/* Compact Header with Browse */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-foreground/60">Quick Actions</h3>
+        <h3 className="font-mono-label">Quick Actions</h3>
         <Button
           size="sm"
           variant="ghost"
           onClick={onBrowseTrips}
-          className="h-7 text-foreground/60 hover:text-foreground hover:bg-accent gap-1.5 text-xs px-2"
+          className="h-7 text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 text-xs px-2 rounded-full"
         >
           <FolderOpen className="h-3.5 w-3.5" />
           {upcomingCount} upcoming · {completedCount} past
         </Button>
       </div>
 
-      {/* 6-Column Action Grid */}
+      {/* Action pills */}
       <div className="flex flex-wrap gap-2">
         {actions.map((action, index) => (
           <Button
@@ -85,7 +85,7 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
             size="sm"
             variant="outline"
             onClick={action.onClick}
-            className={`h-9 flex items-center justify-center gap-1.5 text-xs font-medium border whitespace-nowrap ${action.className}`}
+            className={`h-10 rounded-full px-4 flex items-center justify-center gap-1.5 text-xs font-medium whitespace-nowrap transition-all duration-300 ${action.className}`}
           >
             <action.icon className="h-3.5 w-3.5 shrink-0" />
             {action.label}
@@ -96,3 +96,4 @@ export const TravelHub = ({ activeItineraries, onBrowseTrips }: TravelHubProps) 
     </div>
   );
 };
+
