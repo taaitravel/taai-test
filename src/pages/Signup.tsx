@@ -277,7 +277,8 @@ const Signup = () => {
             variant="ghost" 
             size="sm" 
             onClick={() => navigate('/')}
-            className="absolute top-4 left-4 text-foreground bg-accent/30 hover:text-foreground hover:bg-accent"
+            aria-label="Back to home"
+            className="absolute top-4 left-4 min-h-11 min-w-11 rounded-full text-foreground bg-accent/30 hover:text-foreground hover:bg-accent"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
