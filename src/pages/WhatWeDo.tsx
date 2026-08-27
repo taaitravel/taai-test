@@ -5,8 +5,10 @@ import { ArrowRight, Plane, Map, Calendar, BarChart3, MessageCircle, Users, Zap,
 import { useNavigate } from "react-router-dom";
 import { PublicNavigation } from "@/components/shared/PublicNavigation";
 import { PublicFooter } from "@/components/shared/PublicFooter";
+import { useBrightTheme } from '@/hooks/useBrightTheme';
 
 const WhatWeDo = () => {
+  useBrightTheme();
   const navigate = useNavigate();
 
   const features = [
@@ -77,13 +79,13 @@ const WhatWeDo = () => {
           <Badge className="mb-6 bg-secondary text-secondary-foreground hover:bg-secondary/80 border-border" variant="secondary">
             Revolutionary Travel Technology
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-foreground mb-6">
             What We Do
             <span className="luxury-text-gradient block">
               Better Than Anyone
             </span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
             TAAI Travel combines artificial intelligence with intuitive design to create 
             the most advanced travel planning platform on the market.
           </p>
@@ -94,10 +96,10 @@ const WhatWeDo = () => {
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Our Core Features
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto">
               Every feature is designed to make travel planning effortless and enjoyable
             </p>
           </div>
@@ -132,10 +134,10 @@ const WhatWeDo = () => {
       <section className="py-20 px-4 bg-gradient-to-b from-background to-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Why Choose TAAI Travel?
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-xl text-muted-foreground">
               Discover the advantages that set us apart
             </p>
           </div>

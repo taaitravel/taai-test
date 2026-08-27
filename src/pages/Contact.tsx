@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { PublicNavigation } from "@/components/shared/PublicNavigation";
 import { PublicFooter } from "@/components/shared/PublicFooter";
+import { useBrightTheme } from '@/hooks/useBrightTheme';
 
 // Input validation schema
 const contactSchema = z.object({
@@ -40,6 +41,7 @@ const contactSchema = z.object({
 });
 
 const Contact = () => {
+  useBrightTheme();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({

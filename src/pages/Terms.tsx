@@ -8,8 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { LOGO_URL } from "@/lib/constants";
 import { PublicFooter } from "@/components/shared/PublicFooter";
+import { useBrightTheme } from '@/hooks/useBrightTheme';
 
 const Terms = () => {
+  useBrightTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();

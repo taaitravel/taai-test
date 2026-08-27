@@ -3,8 +3,10 @@ import { Shield } from "lucide-react";
 import { PublicNavigation } from "@/components/shared/PublicNavigation";
 import { PublicFooter } from "@/components/shared/PublicFooter";
 import { LOGO_URL } from "@/lib/constants";
+import { useBrightTheme } from '@/hooks/useBrightTheme';
 
 const PrivacyPolicy = () => {
+  useBrightTheme();
   return (
     <div className="min-h-screen bg-background">
       <PublicNavigation />
