@@ -271,6 +271,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="icon"
+              aria-label="Send message"
               className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
             >
               <Send className="h-4 w-4" />
@@ -323,7 +324,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </Button>
       </div>
 
-      <CardContent className="p-0 h-full flex flex-col">
+      <CardContent className="p-0 flex-1 min-h-0 flex flex-col">
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.length === 0 && (
@@ -364,6 +365,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="icon"
+              aria-label="Send message"
             >
               <Send className="h-4 w-4" />
             </Button>
