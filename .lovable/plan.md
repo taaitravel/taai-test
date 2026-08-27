@@ -1,79 +1,49 @@
-## Status: blocked, holding
+# Bright system rollout — home page cleanup, global footer, dashboard restyle
 
-The accepted Gate 8 Slice 2F-B0/B1/B2 implementation is not present in this repository. Confirmed read-only, no changes made:
+## What I verified first
 
-- Refs checked: `main`, `origin/main`, `origin/HEAD`, `edit/edt-e0243873…` (HEAD), `edit/edt-23d05ca8…`
-- `git grep chatMode -- supabase/functions/chat-with-gpt/index.ts` on every ref → no match
-- `git log --all -S"chatMode"` → zero commits
-- HEAD `8dccfcd Swapped Bob for Miles branding`, working tree clean
-- `supabase/functions/chat-with-gpt/index.ts`: 1624 lines, md5 `5ec21e63bb5fb8bb492b4956b8619a23`; `search_hotels` still exposes `max_price`/`min_rating`, `search_activities` still exposes `date`/`category`/`max_price`
+- The design-system **appendix** section and the old landing **footer** are already gone from the landing source (`src/pages/landing/index-bright.html`) — only orphan `.spec` CSS rules remain. What you're seeing with "appendix" is the previously published build, not current source. So step 1 is: delete the dead CSS and confirm on a fresh publish.
+- The current global public footer is `src/components/shared/PublicFooter.tsx` (logo + Privacy / Terms / Contact), used on What we do, Contact, Privacy Policy. A second, better-looking footer lives inside `BrightSections.tsx` (`.tbs-foot`).
+- The closing CTA band is the night-dark section in `BrightSections.tsx` (`.tbs-cta`, `#0D0A08`, blurred gradient orb) — I'm treating that as the "Ready to transform your experience" section you want blended back into the page.
 
-Per your instruction, I will not re-implement B0/B1/B2 from this stale checkout, and I will not reset, force-pull, overwrite, or discard anything.
+## 1. Home page cleanup
 
-## What you need to do
+- Remove the leftover `.spec*` CSS block from the landing stylesheet (no markup references it).
+- Remove the footer inside `BrightSections.tsx` so the page ends on the CTA, then the global footer sits below it as the true page bottom.
 
-Make the accepted state reachable from this project, by either:
+## 2. New global footer (public pages only)
 
-1. Pushing the Hermes branch/commit to this project's GitHub remote (Git sync), so it appears under `origin/…` here; or
-2. Pasting the full accepted diff (or the four accepted files) into chat.
+Promote the bright footer design into `PublicFooter.tsx`:
 
-Accepted file set to arrive:
-- `src/components/chat/ChatInterface.tsx`
-- `src/components/itinerary/PlanningDraftReview.tsx`
-- `src/pages/CreateItinerary.tsx`
-- `supabase/functions/chat-with-gpt/index.ts`
+- First line "TAAI TRAVEL" → the taai wordmark image (deep-gradient variant on cream, per spec §3.2), ~24px tall.
+- Columns/links: Product, Workspace, What we do, Demo, Join, Contact, Privacy Policy, Terms.
+- Bright styling: white ground on cream page, `--line-2` top hairline, `--ink-3` link ink, hover to `#F2536E`, mono tagline `taai.travel · travel agent · affiliate · intelligence`, 40px desktop / 24px mobile gutters, stacked on ≤900px.
+- Mounted on `/` (below the CTA), What we do, Contact, Privacy Policy, Terms. Authenticated app keeps no footer (bottom nav owns that space).
 
-## Step 1 — Verify the accepted state (read-only, before any edit)
+## 3. Closing CTA background
 
-Once present, I re-read the working-tree files and report, with line references, that each locked guard exists:
+Keep the motion, drop the hard black break: cream-to-`#F3EDE4` ground with two slow-drifting blurred `--grad` orbs at low opacity (the same drift language as the hero aurora), deep-gradient headline type, `--grad-deep` primary button. `prefers-reduced-motion` renders it static.
 
-B0
-- `chatMode` parameter parsed
-- missing/unknown mode fails closed to planning
-- planning allowlist = `search_hotels`, `search_flights`, `search_activities`, `search_restaurants`
-- `get_itinerary` and `list_itineraries` excluded in planning mode
-- all conversational write tools globally blocked
-- saved itinerary context excluded in planning mode
+## 4. Authenticated dashboard (`/home`) restyle
 
-B1
-- history limited to `user`/`assistant` roles
-- max 10 messages, max 1,500 chars per message, max 10,000 total chars
-- malformed history falls back to `[]`
-- history used as context only, never as authorization
+Carry the bright system into the dashboard without touching data or logic:
 
-B2
-- complete read-only searches execute immediately
-- exactly one clarification when a required field is missing
-- no gratuitous "Would you like me to proceed?"
-- flight `passenger count` supported
-- max-stops filtering not supported
-- ignored hotel/activity params removed from the active model schema
-- provider mappings unchanged
+- Ground: cream in light mode; existing dark tokens preserved for dark mode.
+- Type: Sora display for headings, Inter for body/UI, IBM Plex Mono for labels and stat captions, Yellowtail only for section markers.
+- Cards: white, `1px solid --line-2`, 12–18px radius, warm-brown long shadows (`--shadow-s` / `--shadow-m`) — no grey shadows, no heavy borders.
+- Buttons/pills: `--grad-deep` primary with the pink glow shadow, secondary as hairline-on-white.
+- Numbers and emphasis use `--grad-deep` (never `#FF849C` on light below 24px, per spec §7).
+- Spacing on the 4px base, section rhythm matched to the landing (108px desktop / 76px mobile), mobile `pb-24` clearance kept.
 
-If any of these are absent, I stop again and report rather than patching around them.
+Files touched: `HeroSection.tsx`, `sections/HeroWelcome.tsx`, `sections/TravelHub.tsx`, `sections/TravelMetrics.tsx`, `sections/UpcomingTravel.tsx`, `StatsSection.tsx`, `TripsFilter.tsx`, `TripsSection.tsx`, `DashboardContent.tsx`.
 
-## Step 2 — Implement B3 only
+## Technical notes
 
-Scope: `supabase/functions/chat-with-gpt/index.ts` only. B0/B1/B2 behavior untouched.
+- Bright tokens (`--cream`, `--ink`, `--grad-deep`, `--shadow-*`, font stacks, category colours) get promoted into `src/index.css` as semantic variables plus Tailwind theme entries, so components use tokens — no hardcoded hex in components.
+- Fonts stay on the Google Fonts links for now; self-hosting (spec §2.3) is a separate follow-up.
+- No backend, pricing, checkout, or search logic is touched in this slice.
+- Not in this slice (spec §10 app bugs — `Invalid Date`, `Provider TBD`, `384.5%` donut, `1 items`, report items all tagged `DINING`). I'll queue those as the next slice.
 
-B3 adds capability-grounding and persistence-claim guards to the planning-mode system contract so Miles' language matches what the tools actually did:
+## After merge
 
-- Miles never states or implies that anything was created, saved, updated, added to an itinerary, booked, reserved, paid, cancelled, refunded, or confirmed. Planning chat has no write authority and must say so plainly when asked.
-- Miles never claims a filter was applied that the active schema does not support: no max-stops claims for flights; no hotel maximum-price or minimum-rating claims; no activity date/category/max-price claims. If a traveler asks for one, Miles says the filter is not supported and returns unfiltered results the traveler can narrow manually.
-- Miles describes restaurant results as Yelp business-search results, not reservation availability or bookable tables.
-- Selections made from results are described as local planning-draft selections that the traveler must review and save themselves — never as persisted state.
-- The guard lives in the planning-mode system instruction alongside the existing B0 fail-closed block, so unknown/missing `chatMode` inherits it.
-
-No frontend file changes are expected. If a compile error forces one, I report the exact change before committing it.
-
-## Constraints honored
-
-- No deploy, no publish, no edge-function redeploy
-- No database migrations
-- No changes to checkout, Stripe, or booking code
-- No git reset/force operations of any kind
-
-## Verification
-
-- `npx tsc --noEmit` clean
-- `git status --short` and `git show --name-only HEAD` reported so you can confirm the B3 commit touches only the one edge-function file
+Publish, since the appendix/footer removal only shows on a fresh deploy.
