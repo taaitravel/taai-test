@@ -35,7 +35,7 @@ export const StackSection: React.FC<StackSectionProps> = ({
 }) => {
   return (
     <section className="flex flex-col items-center">
-      <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center justify-center">
+      <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center justify-center">
         {icon}
         <span className={icon ? 'ml-2' : ''}>{title}</span>
         <span className="ml-2 text-xs text-muted-foreground font-normal">({items.length})</span>

@@ -25,50 +25,50 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
   const daysAway = nextTrip ? differenceInDays(new Date(nextTrip.itin_date_start), new Date()) : null;
 
   return (
-    <div className="mb-6 space-y-3">
+    <div className="mb-8 space-y-4">
       <TravelHub activeItineraries={activeItineraries} onBrowseTrips={onBrowseTrips} />
 
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      <div className="bright-card grid grid-cols-3 divide-x divide-border overflow-hidden">
         {/* Left: Next Travel Date */}
-        <div className="p-2 sm:p-4">
+        <div className="p-3 sm:p-5">
           <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs text-foreground/60 mb-0.5">Next Travel</p>
+            <p className="font-mono-label mb-1.5">Next Travel</p>
             {nextTrip ? (
               <>
-                <p className="text-sm sm:text-lg font-bold text-foreground leading-tight">
+                <p className="font-display text-base sm:text-2xl font-semibold bright-grad-text leading-tight">
                   {formatDateOnly(nextTrip.itin_date_start, 'MMM d')}
                 </p>
-                <p className="text-[10px] sm:text-xs text-foreground/60 truncate">{nextTrip.itin_name}</p>
-                <Badge className="bg-accent text-foreground border-border text-[10px] mt-1 px-1.5 py-0 hidden sm:inline-flex">
+                <p className="text-[11px] sm:text-sm text-muted-foreground truncate mt-0.5">{nextTrip.itin_name}</p>
+                <Badge className="bg-secondary text-foreground border-border text-[10px] mt-2 px-2 py-0 hidden sm:inline-flex">
                   {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
                 </Badge>
               </>
             ) : (
               <>
-                <p className="text-sm sm:text-lg font-bold text-foreground leading-tight">Plan One!</p>
-                <p className="text-[10px] sm:text-xs text-foreground/60">No upcoming trips</p>
+                <p className="font-display text-base sm:text-2xl font-semibold text-foreground leading-tight">Plan One!</p>
+                <p className="text-[11px] sm:text-sm text-muted-foreground mt-0.5">No upcoming trips</p>
               </>
             )}
           </div>
         </div>
 
         {/* Center: Lifetime Total Spent */}
-        <div className="p-2 sm:p-4">
-          <div className="flex flex-col items-center gap-0.5 sm:gap-1 text-center">
-            <p className="text-sm sm:text-xl font-bold text-foreground leading-tight">
+        <div className="p-3 sm:p-5">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <p className="font-mono-label">Lifetime Spent</p>
+            <p className="font-display text-base sm:text-2xl font-semibold bright-grad-text leading-tight">
               ${fullUserStats.lifetimeTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </p>
-            <p className="text-[10px] sm:text-xs text-foreground/60">Lifetime Spent</p>
-            <p className="text-[10px] sm:text-xs text-foreground/60">({fullUserStats.totalTrips} trips)</p>
+            <p className="text-[11px] sm:text-sm text-muted-foreground">{fullUserStats.totalTrips} trips</p>
           </div>
         </div>
 
         {/* Right: Traveler Level */}
-        <div className="p-2 sm:p-4">
-          <div className="flex flex-col items-center gap-0.5 sm:gap-1 text-center">
-            <p className="text-sm sm:text-lg font-bold text-foreground leading-tight">{fullUserStats.travelerLevel}</p>
-            <p className="text-[10px] sm:text-xs text-foreground/60">Traveler Level</p>
-            <p className="text-[10px] sm:text-xs text-foreground/60">
+        <div className="p-3 sm:p-5">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <p className="font-mono-label">Traveler Level</p>
+            <p className="font-display text-base sm:text-2xl font-semibold text-foreground leading-tight">{fullUserStats.travelerLevel}</p>
+            <p className="text-[11px] sm:text-sm text-muted-foreground">
               {fullUserStats.countriesVisited} countries · {fullUserStats.flightsThisYear} flights
             </p>
           </div>
@@ -77,3 +77,4 @@ export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats
     </div>
   );
 };
+

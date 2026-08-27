@@ -36,11 +36,14 @@ export const TripsFilter = ({
     <div className="mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-foreground">Your Trips</h2>
+          <div>
+            <p className="font-mono-label mb-1">Collection</p>
+            <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground">Your Trips</h2>
+          </div>
           <Button
             onClick={() => window.location.href = '/my-itineraries'}
             size="sm"
-            className="gap-1.5"
+            className="gap-1.5 bright-btn-grad rounded-full px-4 h-9"
           >
             <FolderOpen className="h-4 w-4" />
             My Itineraries
@@ -52,7 +55,7 @@ export const TripsFilter = ({
               variant="ghost" 
               size="sm" 
               onClick={onClearFilters}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-full"
             >
               <X className="h-4 w-4 mr-1" />
               Clear
@@ -61,7 +64,7 @@ export const TripsFilter = ({
           <Button 
             size="sm" 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="bg-secondary border-border text-foreground hover:bg-accent border"
+            className="bright-btn-ghost rounded-full px-4 h-9"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filter & Sort
@@ -75,12 +78,12 @@ export const TripsFilter = ({
       </div>
 
       {isFilterOpen && (
-        <Card className="mt-4 bg-muted backdrop-blur-md border-border">
+        <Card className="mt-4 bright-card">
           <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Sort By */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                <label className="font-mono-label mb-2 block">
                   Sort By
                 </label>
                 <Select value={sortBy} onValueChange={(value: SortOption) => onSortChange(value)}>
@@ -97,7 +100,7 @@ export const TripsFilter = ({
 
               {/* Date From */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                <label className="font-mono-label mb-2 block">
                   From Date
                 </label>
                 <Popover>
@@ -127,7 +130,7 @@ export const TripsFilter = ({
 
               {/* Date To */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                <label className="font-mono-label mb-2 block">
                   To Date
                 </label>
                 <Popover>

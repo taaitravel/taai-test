@@ -73,31 +73,39 @@ const CSS = `
 .tbs-card p{margin:0;font-size:14.5px;line-height:1.6;color:var(--tbs-ink2)}
 .tbs-card .bar{height:2px;width:34px;border-radius:2px;background:var(--tbs-deep);margin-top:18px}
 
-.tbs-cta{position:relative;overflow:hidden;background:#0D0A08;color:#fff;padding:104px 0;text-align:center}
-.tbs-cta .orbx{position:absolute;width:520px;height:520px;border-radius:50%;background:var(--tbs-grad);
-  filter:blur(90px);opacity:.28;top:-180px;right:-120px;pointer-events:none}
+.tbs-cta{position:relative;overflow:hidden;text-align:center;padding:118px 0 126px;color:var(--tbs-ink);
+  background:linear-gradient(180deg,#F3EDE4 0%,var(--tbs-cream) 62%,var(--tbs-cream) 100%);
+  border-top:1px solid var(--tbs-line2)}
+.tbs-cta .orbx,.tbs-cta .orby{position:absolute;border-radius:50%;background:var(--tbs-grad);
+  pointer-events:none;filter:blur(96px);will-change:transform}
+.tbs-cta .orbx{width:540px;height:540px;opacity:.34;top:-200px;right:-120px;
+  animation:tbs-drift-a 20s ease-in-out infinite alternate}
+.tbs-cta .orby{width:440px;height:440px;opacity:.26;bottom:-190px;left:-110px;
+  animation:tbs-drift-b 26s ease-in-out infinite alternate}
+@keyframes tbs-drift-a{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(-6vw,4vh,0) scale(1.1)}
+  100%{transform:translate3d(3vw,7vh,0) scale(.94)}
+}
+@keyframes tbs-drift-b{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(5vw,-4vh,0) scale(1.08)}
+  100%{transform:translate3d(-4vw,-6vh,0) scale(.93)}
+}
 .tbs-cta h2{font-family:var(--tbs-display);font-weight:300;font-size:clamp(30px,4.4vw,54px);line-height:1.04;
   letter-spacing:-.04em;margin:12px 0 16px;position:relative}
-.tbs-cta h2 b{font-weight:600;background:var(--tbs-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.tbs-cta p{max-width:44ch;margin:0 auto 32px;color:rgba(255,255,255,.68);font-size:17px;line-height:1.62;position:relative}
-.tbs-cta .tbs-btn-ghost{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#fff}
-.tbs-cta .tbs-btn-ghost:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.4)}
-.tbs-cta .tbs-mono{color:rgba(255,255,255,.42)}
-
-.tbs-foot{border-top:1px solid var(--tbs-line2);padding:40px 0;color:var(--tbs-ink3);background:#fff}
-.tbs-foot-in{max-width:1320px;margin:0 auto;padding:0 40px;display:flex;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;align-items:center}
-.tbs-foot a{color:var(--tbs-ink3);margin-left:22px;font-size:13px;text-decoration:none;background:none;border:0;
-  font-family:inherit;cursor:pointer;padding:0}
-.tbs-foot a:hover{color:#F2536E}
+.tbs-cta h2 b{font-weight:600;background:var(--tbs-deep);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tbs-cta p{max-width:44ch;margin:0 auto 32px;color:var(--tbs-ink2);font-size:17px;line-height:1.62;position:relative}
+.tbs-cta .tbs-actions{position:relative}
+@media (prefers-reduced-motion:reduce){
+  .tbs-cta .orbx,.tbs-cta .orby{animation:none}
+}
 
 @media (max-width:900px){
   .tbs-sec{padding:76px 0}
-  .tbs-wrap,.tbs-foot-in{padding:0 24px}
+  .tbs-wrap{padding:0 24px}
   .tbs-lanes,.tbs-grid{grid-template-columns:1fr}
-  .tbs-cta{padding:76px 0}
-  .tbs-foot-in{flex-direction:column;align-items:flex-start;gap:14px}
-  .tbs-foot a{margin:0 22px 0 0}
+  .tbs-cta{padding:82px 0 88px}
 }
 `;
 
@@ -213,6 +221,7 @@ export const BrightSections = () => {
       {/* Closing CTA */}
       <section className="tbs-cta">
         <div className="orbx" />
+        <div className="orby" />
         <div className="tbs-wrap">
           <span className="tbs-mono">arrival</span>
           <h2>
@@ -230,21 +239,6 @@ export const BrightSections = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="tbs-foot">
-        <div className="tbs-foot-in">
-          <span className="tbs-mono">taai.travel · travel agent · affiliate · intelligence</span>
-          <nav>
-            <a href="#journey">Product</a>
-            <a href="#capability">Workspace</a>
-            <a href="/what-we-do" onClick={(e) => { e.preventDefault(); navigate("/what-we-do"); }}>What we do</a>
-            <a href="/contact" onClick={(e) => { e.preventDefault(); navigate("/contact"); }}>Contact</a>
-            <a href="/privacy-policy" onClick={(e) => { e.preventDefault(); navigate("/privacy-policy"); }}>Privacy</a>
-            <a href="/terms" onClick={(e) => { e.preventDefault(); navigate("/terms"); }}>Terms</a>
-            <a href="/signup" onClick={(e) => { e.preventDefault(); navigate("/signup"); }}>Join</a>
-          </nav>
-        </div>
-      </footer>
     </div>
   );
 };

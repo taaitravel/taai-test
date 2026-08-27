@@ -8,8 +8,8 @@
 @layer base {
   /* Light Mode (default) - Elegant warm off-white with dark text */
   :root {
-    --background: 40 20% 97%;        /* #f8f7f5 - warm off-white */
-    --foreground: 240 16% 11%;       /* #171821 - dark text */
+    --background: 38 44% 96%;        /* #faf7f2 - bright cream ground */
+    --foreground: 20 18% 9%;         /* #171310 - warm ink */
 
     --card: 0 0% 100%;               /* pure white cards */
     --card-foreground: 240 16% 15%;  /* dark text */
@@ -686,4 +686,129 @@
     hsl(var(--primary) / 0.1) 28%,
     transparent 50%
   );
+}
+
+/* ══════════ TAAI BRIGHT SYSTEM — shared tokens & primitives ══════════ */
+:root {
+  /* Type stacks */
+  --font-display: "Sora", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-script: "Yellowtail", cursive;
+
+  /* Bright grounds & ink */
+  --cream: #FAF7F2;
+  --cream-2: #F3EDE4;
+  --ink: #171310;
+  --ink-2: rgba(23, 19, 16, 0.62);
+  --ink-3: rgba(23, 19, 16, 0.36);
+  --line: rgba(23, 19, 16, 0.09);
+  --line-2: rgba(23, 19, 16, 0.055);
+
+  /* Brand gradients */
+  --grad: linear-gradient(105deg, #FF849C 0%, #FFA98F 48%, #FFCE87 100%);
+  --grad-deep: linear-gradient(105deg, #F2536E 0%, #EE7C5C 50%, #E2913C 100%);
+
+  /* Warm-brown elevation */
+  --shadow-s: 0 1px 2px rgba(23, 19, 16, 0.04), 0 4px 14px -6px rgba(23, 19, 16, 0.09);
+  --shadow-m: 0 2px 4px rgba(23, 19, 16, 0.045), 0 14px 34px -14px rgba(23, 19, 16, 0.14);
+  --shadow-glow: 0 10px 26px -12px rgba(242, 83, 110, 0.5);
+  --ease-bright: cubic-bezier(0.22, 0.61, 0.28, 1);
+}
+
+.dark {
+  --cream: hsl(240 16% 11%);
+  --cream-2: hsl(240 14% 13%);
+  --ink: hsl(0 0% 98%);
+  --ink-2: rgba(255, 255, 255, 0.68);
+  --ink-3: rgba(255, 255, 255, 0.4);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-2: rgba(255, 255, 255, 0.06);
+  --shadow-s: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px -6px rgba(0, 0, 0, 0.45);
+  --shadow-m: 0 2px 4px rgba(0, 0, 0, 0.35), 0 14px 34px -14px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 10px 26px -12px rgba(255, 132, 156, 0.35);
+}
+
+/* Display / mono / script helpers */
+.font-display { font-family: var(--font-display); letter-spacing: -0.035em; }
+.font-body { font-family: var(--font-body); }
+.font-mono-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.font-script { font-family: var(--font-script); letter-spacing: 0; }
+
+/* Gradient ink — use for numbers and emphasis on bright grounds */
+.bright-grad-text {
+  background: var(--grad-deep);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Bright surface card */
+.bright-card {
+  background: hsl(var(--card));
+  border: 1px solid var(--line-2);
+  border-radius: 18px;
+  box-shadow: var(--shadow-s);
+  transition: box-shadow 0.4s var(--ease-bright), transform 0.4s var(--ease-bright);
+}
+.bright-card-hover:hover {
+  box-shadow: var(--shadow-m);
+  transform: translateY(-2px);
+}
+
+/* Bright buttons */
+.bright-btn-grad {
+  background: var(--grad-deep);
+  color: #fff;
+  border: 0;
+  box-shadow: var(--shadow-glow);
+}
+.bright-btn-grad:hover { filter: brightness(1.04); }
+.bright-btn-ghost {
+  background: hsl(var(--card));
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+.bright-btn-ghost:hover { border-color: rgba(242, 83, 110, 0.4); }
+
+/* Soft drifting brand orbs — reusable ambient motion */
+.bright-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--grad);
+  filter: blur(90px);
+  pointer-events: none;
+  will-change: transform;
+}
+.bright-orb-a { animation: bright-drift-a 20s ease-in-out infinite alternate; }
+.bright-orb-b { animation: bright-drift-b 26s ease-in-out infinite alternate; }
+@keyframes bright-drift-a {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-5vw, 4vh, 0) scale(1.1); }
+  100% { transform: translate3d(3vw, 6vh, 0) scale(0.94); }
+}
+@keyframes bright-drift-b {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(4vw, -4vh, 0) scale(1.08); }
+  100% { transform: translate3d(-4vw, -5vh, 0) scale(0.93); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bright-orb-a, .bright-orb-b { animation: none; }
+}
+
+/* Hidden scrollbar for horizontally scrollable chip/tab rows */
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
