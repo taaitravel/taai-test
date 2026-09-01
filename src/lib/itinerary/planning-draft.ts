@@ -41,34 +41,57 @@ function num(x: unknown): number | null {
 
 function normalizeFlight(r: Record<string, unknown>): Omit<PlanningDraftItem, 'draftId'> {
   const issues: string[] = [];
+
+  // Canonical flight offer shape (provider-neutral contract).
+  const slices = Array.isArray(r.slices) ? (r.slices as unknown[]) : [];
+  const firstSlice = isRecord(slices[0]) ? (slices[0] as Record<string, unknown>) : null;
+  const segments = firstSlice && Array.isArray(firstSlice.segments)
+    ? (firstSlice.segments as unknown[])
+    : [];
+  const firstSegment = isRecord(segments[0]) ? (segments[0] as Record<string, unknown>) : null;
+  const observed = isRecord(r.observedPrice) ? (r.observedPrice as Record<string, unknown>) : null;
+
   const airline =
+    (firstSegment ? str(firstSegment.marketingCarrierName) : null) ??
     str(r.airlineName) ??
     str(r.airline) ??
     (Array.isArray(r.validatingAirlineCodes) ? str((r.validatingAirlineCodes as unknown[])[0]) : null);
-  const flightNumber = str(r.flightNumber) ?? str(r.flight_number);
+  const flightNumber =
+    (firstSegment ? str(firstSegment.flightNumber) : null) ??
+    str(r.flightNumber) ??
+    str(r.flight_number);
   const title = [airline, flightNumber].filter(Boolean).join(' ') || 'Flight';
 
   const dep = isRecord(r.departure) ? r.departure : {};
   const arr = isRecord(r.arrival) ? r.arrival : {};
-  const departureAt = str((dep as Record<string, unknown>).at) ?? str(r.departure);
-  const originIata = str((dep as Record<string, unknown>).iataCode) ?? str(r.from);
-  const destIata = str((arr as Record<string, unknown>).iataCode) ?? str(r.to);
+  const departureAt =
+    (firstSlice ? str(firstSlice.departureAt) : null) ??
+    str((dep as Record<string, unknown>).at) ??
+    str(r.departure);
+  const arrivalAt =
+    (firstSlice ? str(firstSlice.arrivalAt) : null) ??
+    str((arr as Record<string, unknown>).at);
+  const originIata = str(r.origin) ?? str((dep as Record<string, unknown>).iataCode) ?? str(r.from);
+  const destIata = str(r.destination) ?? str((arr as Record<string, unknown>).iataCode) ?? str(r.to);
 
   if (!departureAt) issues.push('Missing departure date/time');
   if (!originIata || !destIata) issues.push('Missing origin or destination');
 
   const priceObj = isRecord(r.price) ? r.price : null;
   const price =
+    (observed ? num(observed.amount) : null) ??
     (priceObj ? num(priceObj.total) : null) ??
     num(r.price) ??
     num(r.total);
   const currency =
+    (observed ? (str(observed.currency) as string | null) : null) ??
     (priceObj ? (str(priceObj.currency) as string | null) : null) ??
     str(r.currency);
   if (price !== null && !currency) issues.push('Currency not confirmed');
 
   const sourceResultId =
-    str(r.id) ?? str(r.offerId) ?? str(r.flightId) ?? null;
+    str(r.providerOfferId) ?? str(r.id) ?? str(r.offerId) ?? str(r.flightId) ?? null;
+
 
   return {
     kind: 'flight',
@@ -77,7 +100,7 @@ function normalizeFlight(r: Record<string, unknown>): Omit<PlanningDraftItem, 'd
     sourceResultId,
     providerRef: null,
     serviceDateStart: departureAt,
-    serviceDateEnd: str((arr as Record<string, unknown>).at) ?? null,
+    serviceDateEnd: arrivalAt ?? null,
     locationLabel: originIata && destIata ? `${originIata} → ${destIata}` : null,
     price,
     currency,
