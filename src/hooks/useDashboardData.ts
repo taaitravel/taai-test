@@ -43,15 +43,24 @@ export const DASHBOARD_ITINERARY_FIELDS = [
 
 const USER_PROFILE_FIELDS = [
   'userid',
+  'username',
   'first_name',
   'last_name',
   'email',
+  'cell',
   'avatar_url',
   'bio',
-  'phone',
+  'user_type',
+  'comp_name',
   'date_format',
   'currency',
+  'theme_preference',
   'countries_visited',
+  'flight_freq',
+  'avg_spending',
+  'taai_rating',
+  'privacy_accepted_at',
+  'terms_accepted_at',
   'created_at',
 ].join(', ');
 
