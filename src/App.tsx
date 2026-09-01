@@ -36,6 +36,9 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import InternalTOS from "./pages/InternalTOS";
 import AgentOperations from "./pages/AgentOperations";
+import Discover from "./pages/Discover";
+import PublicProfile from "./pages/PublicProfile";
+import PublicItinerary from "./pages/PublicItinerary";
 
 const queryClient = new QueryClient();
 
