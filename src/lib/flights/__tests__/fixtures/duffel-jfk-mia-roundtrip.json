@@ -1,0 +1,65 @@
+{
+  "data": {
+    "offers": [
+      {
+        "id": "off_test_jfkmia_0001",
+        "total_amount": "412.35",
+        "total_currency": "USD",
+        "expires_at": "2026-09-01T12:30:00Z",
+        "slices": [
+          {
+            "origin": { "iata_code": "JFK" },
+            "destination": { "iata_code": "MIA" },
+            "duration": "PT3H10M",
+            "segments": [
+              {
+                "origin": { "iata_code": "JFK" },
+                "destination": { "iata_code": "MIA" },
+                "departing_at": "2026-10-12T08:15:00",
+                "arriving_at": "2026-10-12T11:25:00",
+                "duration": "PT3H10M",
+                "marketing_carrier": { "iata_code": "AA", "name": "American Airlines" },
+                "operating_carrier": { "iata_code": "AA" },
+                "marketing_carrier_flight_number": "1123",
+                "aircraft": { "name": "Boeing 737" },
+                "passengers": [
+                  {
+                    "cabin_class": "economy",
+                    "baggages": [
+                      { "type": "carry_on", "quantity": 1 },
+                      { "type": "checked", "quantity": 0 }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "origin": { "iata_code": "MIA" },
+            "destination": { "iata_code": "JFK" },
+            "duration": "PT3H5M",
+            "segments": [
+              {
+                "origin": { "iata_code": "MIA" },
+                "destination": { "iata_code": "JFK" },
+                "departing_at": "2026-10-19T17:40:00",
+                "arriving_at": "2026-10-19T20:45:00",
+                "duration": "PT3H5M",
+                "marketing_carrier": { "iata_code": "AA", "name": "American Airlines" },
+                "operating_carrier": { "iata_code": "AA" },
+                "marketing_carrier_flight_number": "2210",
+                "aircraft": { "name": "Airbus A321" },
+                "passengers": [{ "cabin_class": "economy" }]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "off_test_jfkmia_broken",
+        "total_currency": "USD",
+        "slices": []
+      }
+    ]
+  }
+}

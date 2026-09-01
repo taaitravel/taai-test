@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
 import { useExpediaAPI } from './useExpediaAPI';
 import { useAmadeusActivities } from './useAmadeusActivities';
-import { useAmadeusFlights } from './useAmadeusFlights';
+import { useFlightSearch } from './useFlightSearch';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -67,7 +67,7 @@ export const useSearchOrchestrator = () => {
   const { searchHotels, searchDestinations } = useBookingAPI();
   const { callExpediaAPI } = useExpediaAPI();
   const { searchActivities: searchAmadeusActivities } = useAmadeusActivities();
-  const { searchFlights: searchAmadeusFlights } = useAmadeusFlights();
+  const { searchFlights } = useFlightSearch();
   const { toast } = useToast();
 
   const executeSearch = async (type: SearchType, params: any) => {
@@ -194,10 +194,10 @@ export const useSearchOrchestrator = () => {
         }
 
       case 'flights': {
-          console.log('✈️ Searching flights via Amadeus...');
-          
+          console.log('✈️ Searching flights (provider-neutral, reference-only)...');
+
           try {
-            const { data, error } = await searchAmadeusFlights({
+            const outcome = await searchFlights({
               origin: params.origin,
               destination: params.destination,
               departureDate: params.departureDate,
@@ -207,47 +207,54 @@ export const useSearchOrchestrator = () => {
               cabinClass: params.cabinClass || 'ECONOMY',
             });
 
-            if (error || !data?.flights) {
-              console.error('Flight search error:', error);
+            if (outcome.status === 'error') {
+              const titles: Record<string, string> = {
+                VALIDATION_ERROR: 'Check your search',
+                AUTH_REQUIRED: 'Sign in required',
+                PROVIDER_NOT_CONFIGURED: 'Flight search unavailable',
+                PROVIDER_AUTH_FAILED: 'Flight search unavailable',
+                PROVIDER_RATE_LIMITED: 'Too many searches',
+                PROVIDER_UNAVAILABLE: 'Provider unavailable',
+                RESPONSE_MAPPING_ERROR: 'Results unreadable',
+              };
               toast({
-                title: 'Flight Search Failed',
-                description: 'Unable to find flights. Please check your airport codes and try again.',
-                variant: 'destructive',
+                title: titles[outcome.error?.code ?? ''] || 'Flight search failed',
+                description: outcome.error?.message || 'Unable to search flights right now.',
+                variant: outcome.error?.code === 'PROVIDER_NOT_CONFIGURED' ? 'default' : 'destructive',
               });
               searchResults = [];
               break;
             }
 
-            // Deduplicate flights by unique departure time, origin, and destination
-            const uniqueFlights = data.flights.reduce((acc: any[], flight: any) => {
-              const key = `${flight.from}-${flight.to}-${flight.departure}`;
-              const exists = acc.some((f: any) => `${f.from}-${f.to}-${f.departure}` === key);
-              if (!exists) {
-                acc.push(flight);
-              }
-              return acc;
-            }, []);
-            
-            searchResults = uniqueFlights;
-            console.log(`✅ Found ${searchResults.length} unique flights from Amadeus (${data.flights.length} total offers)`);
+            // Deduplicate by route + departure timestamp.
+            const seen = new Set<string>();
+            searchResults = outcome.offers.filter((offer) => {
+              const key = `${offer.origin}-${offer.destination}-${offer.slices[0]?.departureAt}-${offer.observedPrice.amount}`;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
 
-            if (searchResults.length === 0) {
+            console.log(`✅ ${searchResults.length} flight references (request ${outcome.requestId})`);
+
+            if (outcome.status === 'no_results' || searchResults.length === 0) {
               toast({
-                title: 'No Flights Found',
-                description: 'Try adjusting your dates or airports.',
+                title: 'No flights found',
+                description: 'Try adjusting your dates, airports, or cabin class.',
                 variant: 'default',
               });
             }
           } catch (err: any) {
             console.error('❌ Flight search failed:', err);
             toast({
-              title: 'Search Failed',
+              title: 'Search failed',
               description: err.message || 'Unable to search flights.',
               variant: 'destructive',
             });
             searchResults = [];
           }
           break;
+
         }
 
       case 'activities': {
