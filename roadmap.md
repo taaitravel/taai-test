@@ -2,7 +2,7 @@
 
 ## In progress
 - [x] Phase 1 — Supabase egress containment (useItineraryData, useDashboardData, useCountryData, dev read-guard, regression tests)
-- [ ] Search recovery — canonical flight rendering, structured failures, real-data activity cards, Discover navigation
+- [x] Local search recovery — canonical flight rendering, structured failures, real-data activity cards, Discover navigation
 - [ ] Phase 2 — Social itinerary foundation (unapplied migration + synthetic Discover / public profile / clone / limit UI)
 
 ## Duffel sync corrections (requested 2026-09-01)
@@ -16,3 +16,4 @@
 ## Blocked / needs Marco
 - [ ] Applying any migration (flight_references, social itinerary foundation)
 - [ ] Deploying `flight-search` edge function + setting Duffel secret
+- [ ] Deploying updated `amadeus-activities` edge function and verifying existing Amadeus/Mapbox secrets

@@ -319,13 +319,27 @@ export const useSearchOrchestrator = () => {
               radius: 5, // 5km radius
             });
 
-            if (error) throw new Error(error.message);
+            if (error) {
+              const activityTitles: Record<string, string> = {
+                AUTH_REQUIRED: 'Sign in required',
+                VALIDATION_ERROR: 'Check your destination',
+                PROVIDER_NOT_CONFIGURED: 'Activities not configured',
+                PROVIDER_AUTH_FAILED: 'Activity search unavailable',
+                PROVIDER_RATE_LIMITED: 'Too many activity searches',
+                PROVIDER_UNAVAILABLE: 'Activity provider unavailable',
+              };
+              const title = activityTitles[error.code] || 'Activity search unavailable';
+              setNotice({ title, message: error.message, kind: 'error' });
+              toast({ title, description: error.message, variant: 'destructive' });
+              searchResults = [];
+              break;
+            }
 
             searchResults = (data?.activities || []).map((activity: any) => ({
               id: activity.id,
               name: activity.name,
               description: activity.description,
-              location: activity.city,
+              location: activity.city || activity.location || params.destination,
               latitude: activity.latitude,
               longitude: activity.longitude,
               category: activity.category,

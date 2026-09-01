@@ -204,11 +204,11 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
           <div className="pt-2 border-t border-border flex-shrink-0">
             <Button
               onClick={handleAddToItinerary}
-              disabled={saving}
+              disabled={saving || totalGroupCost === null}
               className="w-full h-8 text-xs"
             >
               <Plus className="mr-1 h-3 w-3" />
-              {saving ? 'Saving...' : 'Activity'}
+              {saving ? 'Saving...' : totalGroupCost === null ? 'Pricing unavailable' : 'Add activity'}
             </Button>
           </div>
         </div>
