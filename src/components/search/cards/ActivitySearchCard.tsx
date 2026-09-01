@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ItineraryMatcherModal } from '../ItineraryMatcherModal';
 import { buildTimedServiceContract } from '@/lib/booking/booking-contract';
+import { stripHtmlTags } from '@/lib/sanitize';
 
 interface ActivitySearchCardProps {
   activity: any;
@@ -24,33 +25,13 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
   }
 
   const images = activity.images || (activity.image ? [activity.image] : []);
-  const pricePerPerson = activity.price || activity.cost || 75;
-  const participants = searchParams?.adults || 1;
-  const totalGroupCost = pricePerPerson * participants;
-  
-  // Strip HTML tags safely using regex (no DOM parsing that could execute scripts)
-  const stripHtml = (html: string): string => {
-    if (!html || typeof html !== 'string') return '';
-    // Remove script tags and their content first
-    let clean = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    // Remove style tags and their content
-    clean = clean.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
-    // Remove all remaining HTML tags
-    clean = clean.replace(/<[^>]+>/g, '');
-    // Decode common HTML entities
-    clean = clean
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
-    // Trim and normalize whitespace
-    return clean.trim().replace(/\s+/g, ' ');
-  };
+  const rawPrice = activity.price ?? activity.cost;
+  const pricePerPerson = typeof rawPrice === 'number' && Number.isFinite(rawPrice) ? rawPrice : null;
+  const participants = searchParams?.participants || activity.participants || 1;
+  const totalGroupCost = pricePerPerson === null ? null : pricePerPerson * participants;
   
   const description = activity.description || activity.shortDescription || 'Explore this amazing activity';
-  const plainDescription = typeof description === 'string' ? stripHtml(description) : 'Explore this amazing activity';
+  const plainDescription = typeof description === 'string' ? stripHtmlTags(description) : 'Explore this activity';
 
   const handleAddToItinerary = () => {
     setShowModal(true);
@@ -126,7 +107,7 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
           itinerary_id: itinData.itin_id,
           type: 'activity',
           external_ref: activity.id || `activity-${Date.now()}`,
-          price: totalGroupCost,
+          price: totalGroupCost ?? 0,
           item_data: {
             ...buildTimedServiceContract({
               ...activity,
@@ -137,7 +118,7 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
             name: activity.name,
             location: activityLocation,
             address: activity.address || '',
-            date: searchParams?.checkin || new Date().toISOString().split('T')[0],
+            date: searchParams?.checkin || activity.date,
             pricePerPerson,
             participants,
             totalCost: totalGroupCost,
@@ -168,7 +149,7 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
   };
 
   return (
-    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-[#1a1c2e] pb-[20px] hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300">
+    <div className="w-[270px] min-h-[385px] flex flex-col overflow-hidden rounded-lg border border-border bg-card pb-5 shadow-sm hover:shadow-md transition-shadow duration-300">
       {/* Image Gallery */}
       {images.length > 0 && (
         <ImageGallery
@@ -184,24 +165,24 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
         <div>
           <div className="flex items-center justify-between mb-2">
             <div className="text-xl opacity-60">🎯</div>
-            <Badge variant="secondary" className="text-xs bg-white/5 text-white/40 border-white/10">
+            <Badge variant="secondary" className="text-xs">
               Activity
             </Badge>
           </div>
-          <h4 className="font-bold text-white text-sm mb-1 line-clamp-1">
+          <h4 className="font-bold text-card-foreground text-sm mb-1 line-clamp-1">
             {activity.name}
           </h4>
-          <p className="text-white/60 text-xs mb-2 line-clamp-2">
+          <p className="text-muted-foreground text-xs mb-2 line-clamp-2">
             {plainDescription}
           </p>
           <div className="flex items-center justify-between gap-2 mb-2">
             {activity.rating && (
-              <Badge className="text-xs bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
+              <Badge variant="outline" className="text-xs flex items-center gap-1">
                 <Star className="h-3 w-3 fill-current" />
                 {activity.rating}
               </Badge>
             )}
-            <div className="flex items-center text-xs text-white/50">
+            <div className="flex items-center text-xs text-muted-foreground">
               <Calendar className="h-3 w-3 mr-1" />
               {activity.duration || 'Flexible'}
             </div>
@@ -209,18 +190,22 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
         </div>
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
-            <p className="text-2xl font-bold text-center flex items-baseline justify-center gap-1" style={{ color: '#ff849c' }}>
-              ${Math.ceil(totalGroupCost).toLocaleString('en-US')}
+            <p className="text-2xl font-bold text-center text-primary">
+              {totalGroupCost === null
+                ? 'Price unavailable'
+                : new Intl.NumberFormat('en-US', { style: 'currency', currency: activity.currency || 'USD' }).format(totalGroupCost)}
             </p>
-            <p className="text-white/40 text-xs text-center">
-              ${Math.ceil(pricePerPerson).toLocaleString('en-US')}/p × {participants} guest{participants > 1 ? 's' : ''}
+            <p className="text-muted-foreground text-xs text-center">
+              {pricePerPerson === null
+                ? 'Check provider for current pricing'
+                : `${new Intl.NumberFormat('en-US', { style: 'currency', currency: activity.currency || 'USD' }).format(pricePerPerson)} per person × ${participants}`}
             </p>
           </div>
-          <div className="pt-2 border-t border-white/10 flex-shrink-0">
+          <div className="pt-2 border-t border-border flex-shrink-0">
             <Button
               onClick={handleAddToItinerary}
               disabled={saving}
-              className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
+              className="w-full h-8 text-xs"
             >
               <Plus className="mr-1 h-3 w-3" />
               {saving ? 'Saving...' : 'Activity'}
@@ -233,8 +218,8 @@ export const ActivitySearchCard = ({ activity, searchParams }: ActivitySearchCar
         open={showModal}
         onOpenChange={setShowModal}
         searchDates={{
-          checkin: searchParams?.checkin || new Date().toISOString().split('T')[0],
-          checkout: searchParams?.checkout || new Date().toISOString().split('T')[0]
+          checkin: searchParams?.checkin || activity.date || new Date().toISOString().split('T')[0],
+          checkout: searchParams?.checkin || activity.date || new Date().toISOString().split('T')[0]
         }}
         item={activity}
         onConfirm={handleModalConfirm}

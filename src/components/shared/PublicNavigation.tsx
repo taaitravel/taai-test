@@ -33,6 +33,13 @@ export const PublicNavigation = ({ showGetStarted = true }: PublicNavigationProp
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              className="hidden sm:inline-flex"
+              onClick={() => navigate('/discover')}
+            >
+              Discover
+            </Button>
             {showGetStarted && (
               user ? (
                 <Button 

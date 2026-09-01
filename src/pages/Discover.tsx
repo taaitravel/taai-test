@@ -5,6 +5,7 @@ import { PublicFooter } from '@/components/shared/PublicFooter';
 import { DiscoverRow } from '@/components/social/DiscoverRow';
 import { DISCOVER_ROWS } from '@/lib/social/mock-discover';
 import { MINERVA_SOCIAL_EVENT_IDS, buildSocialEvent, emitSocialEvent } from '@/lib/taai/minerva/social-events';
+import { Badge } from '@/components/ui/badge';
 
 /**
  * Discover — synthetic fixtures only (Phase 2 mock).
@@ -30,14 +31,17 @@ const Discover = () => {
 
       <main className="mx-auto w-full max-w-6xl px-4 pt-24 pb-24 space-y-10">
         <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.2em] text-primary">Discover</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs uppercase tracking-[0.2em] text-primary">Discover</p>
+            <Badge variant="outline">Preview itineraries</Badge>
+          </div>
           <h1 className="text-3xl sm:text-4xl font-semibold text-foreground">
             Trip inspiration you can make your own
           </h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
             Save anything for later, or clone a trip into your own private, editable itinerary.
-            Prices and availability are always searched fresh. Fixtures below are synthetic and
-            authored by fictional creators.
+            Prices and availability are always searched fresh. These preview itineraries are
+            synthetic and authored by fictional creators.
           </p>
         </header>
 
