@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useBrightTheme } from '@/hooks/useBrightTheme';
 import { PublicNavigation } from '@/components/shared/PublicNavigation';
 import { PublicFooter } from '@/components/shared/PublicFooter';
@@ -16,6 +15,10 @@ const Discover = () => {
   useBrightTheme();
 
   useEffect(() => {
+    document.title = 'Discover trips | taai travel';
+  }, []);
+
+  useEffect(() => {
     emitSocialEvent(
       buildSocialEvent(MINERVA_SOCIAL_EVENT_IDS.publicItineraryViewed, 'discover', {})
     );
@@ -23,14 +26,6 @@ const Discover = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>Discover trips | taai travel</title>
-        <meta
-          name="description"
-          content="Browse taai-curated and community trip inspiration: weekend escapes, complete journeys and trending itineraries you can make your own."
-        />
-      </Helmet>
-
       <PublicNavigation />
 
       <main className="mx-auto w-full max-w-6xl px-4 pt-24 pb-24 space-y-10">
