@@ -79,10 +79,12 @@ export function normalizeDuffelOffer(
   const currency = String(raw?.total_currency ?? '');
   if (!Number.isFinite(amount) || !currency) throw new Error('offer has no usable price');
 
-  const totalDuration = slices.reduce<number | null>((acc, s) => {
-    if (s.durationMinutes === null) return acc;
-    return (acc ?? 0) + s.durationMinutes;
-  }, null);
+  let totalDuration: number | null = null;
+  for (const slice of slices as CanonicalFlightSlice[]) {
+    if (slice.durationMinutes === null) continue;
+    totalDuration = (totalDuration ?? 0) + slice.durationMinutes;
+  }
+
 
   const cabin = raw?.slices?.[0]?.segments?.[0]?.passengers?.[0]?.cabin_class ?? null;
 
