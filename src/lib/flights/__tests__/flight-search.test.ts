@@ -9,7 +9,7 @@ import {
   classifyDuffelStatus,
   normalizeDuffelOffer,
 } from '../../../../supabase/functions/flight-search/duffel';
-import { buildFlightReferenceRow, FLIGHT_REFERENCE_TABLE_READY } from '../flight-reference';
+import { buildFlightReferenceRow, FLIGHT_REFERENCE_TABLE_READY } from '../flight-reference-row';
 import { formatOfferPrice, formatDurationMinutes } from '../../../types/flight-offer';
 
 const OBSERVED_AT = '2026-09-01T12:00:00.000Z';
