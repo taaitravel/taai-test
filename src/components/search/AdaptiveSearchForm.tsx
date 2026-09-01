@@ -9,6 +9,7 @@ import { HotelSearchFields } from './fields/HotelSearchFields';
 import { CarSearchFields } from './fields/CarSearchFields';
 import { ActivitySearchFields } from './fields/ActivitySearchFields';
 import { PackageSearchFields } from './fields/PackageSearchFields';
+import type { PlaceResult } from '@/components/inputs/PlaceSearch';
 
 export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages' | 'dining';
 
@@ -49,6 +50,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
 
   // Activity fields
   const [activityDestination, setActivityDestination] = useState('');
+  const [activityPlace, setActivityPlace] = useState<PlaceResult | null>(null);
   const [activityDate, setActivityDate] = useState<Date>();
   const [participants, setParticipants] = useState(2);
   const [category, setCategory] = useState('all');
@@ -129,6 +131,8 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
         }
         params = {
           destination: activityDestination,
+          latitude: activityPlace?.lat,
+          longitude: activityPlace?.lng,
           checkin: activityDate ? format(activityDate, 'yyyy-MM-dd') : undefined,
           participants,
           category,
@@ -315,6 +319,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
             participants={participants}
             category={category}
             onDestinationChange={setActivityDestination}
+            onPlaceSelect={setActivityPlace}
             onDateChange={setActivityDate}
             onParticipantsChange={setParticipants}
             onCategoryChange={setCategory}

@@ -2,6 +2,7 @@ export const LOGO_URL = "/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.p
 
 export const AUTHENTICATED_MENU_ITEMS = [
   { label: "Home", path: "/home" },
+  { label: "Discover", path: "/discover" },
   { label: "Itineraries", path: "/itineraries" },
   { label: "New Itinerary", path: "/new-itinerary" },
   { label: "Manual Itinerary", path: "/new-manual-itinerary" },
@@ -17,6 +18,11 @@ export type DrawerSection = { id: string; title: string; items: DrawerItem[] };
 // the bottom nav; do NOT duplicate it here. Profile & Settings is retained
 // as the documented account-management entry point.
 export const AUTHENTICATED_DRAWER_SECTIONS: DrawerSection[] = [
+  {
+    id: "explore",
+    title: "Explore",
+    items: [{ label: "Discover Itineraries", path: "/discover" }],
+  },
   {
     id: "account",
     title: "Account",

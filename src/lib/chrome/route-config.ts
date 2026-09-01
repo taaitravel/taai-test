@@ -33,12 +33,13 @@ export interface RouteChrome {
 const CART: OverflowItem = { id: 'cart', label: 'Cart', to: '/cart' };
 const PROFILE: OverflowItem = { id: 'profile', label: 'Profile', to: '/profile' };
 const SUBSCRIPTION: OverflowItem = { id: 'subscription', label: 'Subscription', to: '/subscription' };
+const DISCOVER: OverflowItem = { id: 'discover', label: 'Discover', to: '/discover' };
 
 const DEFAULT_CHROME: RouteChrome = {
   variant: 'menu',
   hideBottomNav: false,
   primary: 'notifications',
-  overflow: [CART],
+  overflow: [CART, DISCOVER],
 };
 
 /**
@@ -56,7 +57,7 @@ const ROUTE_TABLE: Record<string, RouteChrome> = {
     variant: 'menu',
     hideBottomNav: false,
     primary: 'notifications',
-    overflow: [CART],
+    overflow: [CART, DISCOVER],
   },
   '/itineraries': {
     variant: 'menu',
@@ -65,6 +66,12 @@ const ROUTE_TABLE: Record<string, RouteChrome> = {
     overflow: [CART],
   },
   '/my-itineraries': {
+    variant: 'menu',
+    hideBottomNav: false,
+    primary: 'notifications',
+    overflow: [CART],
+  },
+  '/discover': {
     variant: 'menu',
     hideBottomNav: false,
     primary: 'notifications',

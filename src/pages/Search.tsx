@@ -15,7 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 const Search = () => {
   const [searchParams, setSearchParams] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'tree' | 'map'>('tree');
-  const { results, loading, searchType, executeSearch } = useSearchOrchestrator();
+  const { results, loading, searchType, notice, executeSearch } = useSearchOrchestrator();
   const { filters, setFilters, maxPrice, filteredResults } = useHotelFilters(results);
   const {
     selectedItem,
@@ -102,6 +102,7 @@ const Search = () => {
           searchType={searchType as SearchType}
           searchParams={searchParams}
           showMapView={showMapView}
+          notice={notice}
         />
 
         {/* Itinerary Modal */}

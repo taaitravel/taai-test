@@ -5,6 +5,21 @@ import { useAmadeusActivities } from './useAmadeusActivities';
 import { useFlightSearch } from './useFlightSearch';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
+
+type SearchNotice = { title: string; message: string; kind: 'info' | 'error' };
+
+const readFunctionMessage = async (error: unknown, fallback: string): Promise<string> => {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = await error.context.clone().json();
+      return body?.error?.message || body?.error || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  return error instanceof Error ? error.message : fallback;
+};
 
 export type SearchType = 'flights' | 'hotels' | 'cars' | 'activities' | 'packages' | 'dining';
 
@@ -63,6 +78,7 @@ export const useSearchOrchestrator = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [searchType, setSearchType] = useState<SearchType | null>(null);
+  const [notice, setNotice] = useState<SearchNotice | null>(null);
 
   const { searchHotels, searchDestinations } = useBookingAPI();
   const { callExpediaAPI } = useExpediaAPI();
@@ -74,6 +90,7 @@ export const useSearchOrchestrator = () => {
     console.log('🔍 Starting real search:', type, params);
     setLoading(true);
     setResults([]);
+    setNotice(null);
     setSearchType(type);
 
     try {
@@ -217,9 +234,12 @@ export const useSearchOrchestrator = () => {
                 PROVIDER_UNAVAILABLE: 'Provider unavailable',
                 RESPONSE_MAPPING_ERROR: 'Results unreadable',
               };
+              const title = titles[outcome.error?.code ?? ''] || 'Flight search failed';
+              const message = outcome.error?.message || 'Unable to search flights right now.';
+              setNotice({ title, message, kind: 'error' });
               toast({
-                title: titles[outcome.error?.code ?? ''] || 'Flight search failed',
-                description: outcome.error?.message || 'Unable to search flights right now.',
+                title,
+                description: message,
                 variant: outcome.error?.code === 'PROVIDER_NOT_CONFIGURED' ? 'default' : 'destructive',
               });
               searchResults = [];
@@ -238,6 +258,11 @@ export const useSearchOrchestrator = () => {
             console.log(`✅ ${searchResults.length} flight references (request ${outcome.requestId})`);
 
             if (outcome.status === 'no_results' || searchResults.length === 0) {
+              setNotice({
+                title: 'No flights found',
+                message: 'Try adjusting your dates, airports, or cabin class.',
+                kind: 'info',
+              });
               toast({
                 title: 'No flights found',
                 description: 'Try adjusting your dates, airports, or cabin class.',
@@ -246,9 +271,11 @@ export const useSearchOrchestrator = () => {
             }
           } catch (err: any) {
             console.error('❌ Flight search failed:', err);
+            const message = err.message || 'Unable to search flights.';
+            setNotice({ title: 'Search failed', message, kind: 'error' });
             toast({
               title: 'Search failed',
-              description: err.message || 'Unable to search flights.',
+              description: message,
               variant: 'destructive',
             });
             searchResults = [];
@@ -261,28 +288,28 @@ export const useSearchOrchestrator = () => {
           console.log('🎯 Searching activities via Amadeus...');
           
           try {
-            // First, geocode the destination to get coordinates
-            console.log(`🗺️ Geocoding destination: "${params.destination}"`);
-            
-            const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke(
-              'search-cities',
-              { body: { query: params.destination } }
-            );
-
-            console.log('Geocode response:', { geocodeData, geocodeError });
-
-            if (geocodeError) {
-              console.error('Geocode error:', geocodeError);
-              throw new Error(`Geocoding failed: ${geocodeError.message}`);
+            let lat = Number(params.latitude);
+            let lon = Number(params.longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+              console.log(`🗺️ Geocoding destination: "${params.destination}"`);
+              const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke(
+                'search-cities',
+                { body: { query: params.destination } }
+              );
+              if (geocodeError) {
+                const message = await readFunctionMessage(
+                  geocodeError,
+                  'We could not locate that destination. Please choose it from the suggestions and try again.',
+                );
+                throw new Error(message);
+              }
+              const location = geocodeData?.locations?.[0];
+              if (!location || !Number.isFinite(Number(location.lat)) || !Number.isFinite(Number(location.lng))) {
+                throw new Error(`Could not find coordinates for "${params.destination}". Choose a more specific city or region.`);
+              }
+              lat = Number(location.lat);
+              lon = Number(location.lng);
             }
-
-            if (!geocodeData?.features || geocodeData.features.length === 0) {
-              console.error('No geocode results for:', params.destination);
-              throw new Error(`Could not find coordinates for "${params.destination}". Try a more specific location like "Miami, Florida" or "Miami Beach"`);
-            }
-
-            // Mapbox returns [longitude, latitude] format
-            const [lon, lat] = geocodeData.features[0].center;
             console.log(`📍 Geocoded "${params.destination}" to [${lat}, ${lon}]`);
 
             // Search activities using Amadeus
@@ -292,13 +319,27 @@ export const useSearchOrchestrator = () => {
               radius: 5, // 5km radius
             });
 
-            if (error) throw new Error(error);
+            if (error) {
+              const activityTitles: Record<string, string> = {
+                AUTH_REQUIRED: 'Sign in required',
+                VALIDATION_ERROR: 'Check your destination',
+                PROVIDER_NOT_CONFIGURED: 'Activities not configured',
+                PROVIDER_AUTH_FAILED: 'Activity search unavailable',
+                PROVIDER_RATE_LIMITED: 'Too many activity searches',
+                PROVIDER_UNAVAILABLE: 'Activity provider unavailable',
+              };
+              const title = activityTitles[error.code] || 'Activity search unavailable';
+              setNotice({ title, message: error.message, kind: 'error' });
+              toast({ title, description: error.message, variant: 'destructive' });
+              searchResults = [];
+              break;
+            }
 
             searchResults = (data?.activities || []).map((activity: any) => ({
               id: activity.id,
               name: activity.name,
               description: activity.description,
-              location: activity.city,
+              location: activity.city || activity.location || params.destination,
               latitude: activity.latitude,
               longitude: activity.longitude,
               category: activity.category,
@@ -310,11 +351,17 @@ export const useSearchOrchestrator = () => {
               groupSize: activity.groupSize,
               bookingLink: activity.bookingLink,
               date: params.checkin,
+              participants: params.participants,
             }));
 
             console.log(`✅ Found ${searchResults.length} activities`);
 
             if (searchResults.length === 0) {
+              setNotice({
+                title: 'No activities found',
+                message: 'Try another nearby destination or broaden your search.',
+                kind: 'info',
+              });
               toast({
                 title: 'No Activities Found',
                 description: 'Try adjusting your location or search criteria.',
@@ -323,9 +370,11 @@ export const useSearchOrchestrator = () => {
             }
           } catch (err: any) {
             console.error('❌ Activity search failed:', err);
+            const message = err.message || 'Unable to search activities.';
+            setNotice({ title: 'Activity search unavailable', message, kind: 'error' });
             toast({
-              title: 'Search Failed',
-              description: err.message || 'Unable to search activities.',
+              title: 'Activity search unavailable',
+              description: message,
               variant: 'destructive',
             });
             searchResults = [];
@@ -460,5 +509,5 @@ export const useSearchOrchestrator = () => {
     }
   };
 
-  return { results, loading, searchType, executeSearch };
+  return { results, loading, searchType, notice, executeSearch };
 };
