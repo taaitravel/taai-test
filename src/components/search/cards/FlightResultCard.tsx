@@ -121,7 +121,7 @@ export const FlightResultCard = ({ flight, planningAction }: FlightResultCardPro
   const referenceDate = outbound?.departureAt?.split('T')[0] || new Date().toISOString().split('T')[0];
 
   return (
-    <div className="w-[255px] h-[375px] flex flex-col p-6">
+    <div className="w-[270px] min-h-[385px] flex flex-col rounded-lg border border-border bg-card p-5 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -129,56 +129,56 @@ export const FlightResultCard = ({ flight, planningAction }: FlightResultCardPro
             <Plane className="h-5 w-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-lg font-bold text-white truncate">
+            <h3 className="text-lg font-bold text-card-foreground truncate">
               {firstSegment?.marketingCarrierName || 'Airline'}
             </h3>
-            <p className="text-white/50 text-sm truncate">{firstSegment?.flightNumber}</p>
+            <p className="text-muted-foreground text-sm truncate">{firstSegment?.flightNumber}</p>
           </div>
         </div>
-        <Badge className="bg-white/10 text-white/80 border-white/20 text-xs capitalize flex-shrink-0">
+        <Badge variant="outline" className="text-xs capitalize flex-shrink-0">
           {(flight.cabinClass || 'economy').replace('_', ' ')}
         </Badge>
       </div>
 
       {/* Test-mode / reference-only disclosure */}
       {isTestMode && (
-        <Badge className="mb-3 w-full justify-center bg-[#ffce87]/15 text-[#ffce87] border-[#ffce87]/40 text-[10px] tracking-wide uppercase">
+        <Badge variant="secondary" className="mb-3 w-full justify-center text-[10px] uppercase">
           Test result — reference only
         </Badge>
       )}
 
       {/* Route */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-3 flex-shrink-0">
+      <div className="bg-muted/50 border border-border rounded-lg p-4 mb-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="text-center">
-            <div className="text-white/40 text-xs mb-1">{formatDateShort(outbound?.departureAt ?? '')}</div>
-            <div className="text-2xl font-bold text-white">{flight.origin}</div>
-            <div className="text-white/60 text-sm mt-0.5">{formatTime(firstSegment?.departureAt ?? '')}</div>
+            <div className="text-muted-foreground text-xs mb-1">{formatDateShort(outbound?.departureAt ?? '')}</div>
+            <div className="text-2xl font-bold text-foreground">{flight.origin}</div>
+            <div className="text-muted-foreground text-sm mt-0.5">{formatTime(firstSegment?.departureAt ?? '')}</div>
           </div>
 
           <div className="flex-1 mx-4">
             <div className="flex items-center justify-center">
-              <div className="flex-1 h-px bg-white/20" />
+              <div className="flex-1 h-px bg-border" />
               <div className="px-2">
-                <Plane className="h-4 w-4 text-white/30 transform rotate-90" />
+                <Plane className="h-4 w-4 text-muted-foreground transform rotate-90" />
               </div>
-              <div className="flex-1 h-px bg-white/20" />
+              <div className="flex-1 h-px bg-border" />
             </div>
             <div className="text-center mt-1.5">
-              <p className="text-white/50 text-xs">{formatDurationMinutes(flight.totalDurationMinutes)}</p>
+              <p className="text-muted-foreground text-xs">{formatDurationMinutes(flight.totalDurationMinutes)}</p>
             </div>
           </div>
 
           <div className="text-center">
-            <div className="text-white/40 text-xs mb-1">{formatDateShort(outbound?.arrivalAt ?? '')}</div>
-            <div className="text-2xl font-bold text-white">{flight.destination}</div>
-            <div className="text-white/60 text-sm mt-0.5">{formatTime(lastSegment?.arrivalAt ?? '')}</div>
+            <div className="text-muted-foreground text-xs mb-1">{formatDateShort(outbound?.arrivalAt ?? '')}</div>
+            <div className="text-2xl font-bold text-foreground">{flight.destination}</div>
+            <div className="text-muted-foreground text-sm mt-0.5">{formatTime(lastSegment?.arrivalAt ?? '')}</div>
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-white/10">
-          <Clock className="h-3.5 w-3.5 text-white/40" />
-          <span className="text-white/50 text-xs">
+        <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-border">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-muted-foreground text-xs">
             {flight.stopCount === 0
               ? 'Non-stop'
               : `${flight.stopCount} ${flight.stopCount === 1 ? 'stop' : 'stops'}`}
@@ -188,12 +188,12 @@ export const FlightResultCard = ({ flight, planningAction }: FlightResultCardPro
       </div>
 
       {/* Observed price */}
-      <div className="pt-3 border-t border-white/10">
-        <p className="text-white/60 text-sm">Observed price</p>
-        <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
+      <div className="pt-3 border-t border-border">
+        <p className="text-muted-foreground text-sm">Observed price</p>
+        <p className="text-3xl font-bold text-primary">
           {formatOfferPrice(flight.observedPrice)}
         </p>
-        <p className="text-white/40 text-xs mt-1 flex items-start gap-1">
+        <p className="text-muted-foreground text-xs mt-1 flex items-start gap-1">
           <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
           <span>
             {isTestMode
@@ -204,12 +204,12 @@ export const FlightResultCard = ({ flight, planningAction }: FlightResultCardPro
       </div>
 
       {/* Reference action */}
-      <div className="pt-3 border-t border-white/10 mt-auto">
+      <div className="pt-3 border-t border-border mt-auto">
         {planningAction === undefined ? (
           <Button
             onClick={handleAddReference}
             disabled={saving}
-            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+            className="w-full"
           >
             <Plus className="mr-2 h-4 w-4" />
             {saving ? 'Saving...' : 'Add flight reference'}
