@@ -23,7 +23,6 @@ function isoDurationToMinutes(value: unknown): number | null {
 function normalizeSegment(raw: any): CanonicalFlightSegment {
   const marketing = raw?.marketing_carrier ?? {};
   const operating = raw?.operating_carrier ?? null;
-  const passenger = Array.isArray(raw?.passengers) ? raw.passengers[0] : undefined;
   return {
     origin: String(raw?.origin?.iata_code ?? ''),
     destination: String(raw?.destination?.iata_code ?? ''),
@@ -35,7 +34,6 @@ function normalizeSegment(raw: any): CanonicalFlightSegment {
     flightNumber: `${marketing?.iata_code ?? ''}${raw?.marketing_carrier_flight_number ?? raw?.operating_carrier_flight_number ?? ''}`,
     aircraft: raw?.aircraft?.name ? String(raw.aircraft.name) : null,
     durationMinutes: isoDurationToMinutes(raw?.duration),
-    ...(passenger ? {} : {}),
   };
 }
 

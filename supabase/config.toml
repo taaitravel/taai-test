@@ -106,3 +106,7 @@ verify_jwt = false
 
 [functions.download-receipt]
 verify_jwt = false
+
+# Validates the caller JWT in code and returns a structured error envelope.
+[functions.flight-search]
+verify_jwt = false
