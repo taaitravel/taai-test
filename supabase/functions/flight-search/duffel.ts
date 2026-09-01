@@ -72,7 +72,7 @@ export function normalizeDuffelOffer(
   raw: any,
   ctx: { mode: 'test' | 'live'; passengerCount: number; observedAt: string },
 ): CanonicalFlightOffer {
-  const slices = Array.isArray(raw?.slices) ? raw.slices.map(normalizeSlice) : [];
+  const slices: CanonicalFlightSlice[] = Array.isArray(raw?.slices) ? raw.slices.map(normalizeSlice) : [];
   if (slices.length === 0) throw new Error('offer has no slices');
 
   const amount = Number(raw?.total_amount);
