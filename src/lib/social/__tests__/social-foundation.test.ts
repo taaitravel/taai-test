@@ -29,9 +29,12 @@ describe('clone', () => {
   it('never copies bookings, travelers, chats or old prices', () => {
     const result = cloneItinerary(source, { startDate: '2026-01-01' });
     expect(result.excluded).toEqual(CLONE_EXCLUDED_FIELDS);
-    const serialized = JSON.stringify(result.days);
-    expect(serialized).not.toMatch(/booking|payment|traveler|chat|price/i);
+    const keys = new Set(result.days.flatMap(d => d.places.flatMap(p => Object.keys(p))));
+    expect([...keys].sort()).toEqual(['kind', 'name', 'note']);
+    expect(Object.keys(result)).not.toContain('bookings');
+    expect(Object.keys(result)).not.toContain('travelers');
   });
+
 
   it('requires a date before cloning', () => {
     expect(() => cloneItinerary(source, { startDate: '' })).toThrow();
