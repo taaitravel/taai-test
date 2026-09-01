@@ -93,7 +93,7 @@ const App = () => (
               <Route path="/discover" element={<Discover />} />
               <Route path="/p/:slug" element={<PublicProfile />} />
               <Route path="/t/:slug" element={<PublicItinerary />} />
-
+              <Route path="/subscription" element={<Subscription />} />
               <Route path="/subscription-success" element={<SubscriptionSuccess />} />
               <Route path="/admin/roles" element={
                 <ProtectedRoute requireAdmin>
