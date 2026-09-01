@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type {
   CanonicalFlightOffer,
@@ -38,6 +39,18 @@ const fallbackError = (message: string): FlightSearchError => ({
   retryable: true,
 });
 
+const readErrorEnvelope = async (error: unknown): Promise<FlightSearchResponse | null> => {
+  if (!(error instanceof FunctionsHttpError)) return null;
+  try {
+    const body = await error.context.clone().json();
+    return body && Array.isArray(body.offers) && Array.isArray(body.errors)
+      ? body as FlightSearchResponse
+      : null;
+  } catch {
+    return null;
+  }
+};
+
 export const useFlightSearch = () => {
   const [loading, setLoading] = useState(false);
   const [lastOutcome, setLastOutcome] = useState<FlightSearchOutcome | null>(null);
@@ -72,11 +85,8 @@ export const useFlightSearch = () => {
         },
       });
 
-      // The function returns a structured envelope on failures too; prefer it
-      // over the transport error whenever it is present.
-      const envelope = (data ?? (error as unknown as { context?: FlightSearchResponse })?.context) as
-        | FlightSearchResponse
-        | undefined;
+      // Non-2xx function responses live in FunctionsHttpError.context.
+      const envelope = data ?? await readErrorEnvelope(error);
 
       let outcome: FlightSearchOutcome;
       if (envelope && Array.isArray(envelope.offers)) {

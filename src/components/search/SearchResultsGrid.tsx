@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { HotelSearchCard } from './cards/HotelSearchCard';
-import { FlightSearchCard } from './cards/FlightSearchCard';
+import { FlightResultCard } from './cards/FlightResultCard';
 import { ActivitySearchCard } from './cards/ActivitySearchCard';
 import { CarSearchCard } from './cards/CarSearchCard';
 import { PackageSearchCard } from './cards/PackageSearchCard';
@@ -30,7 +30,7 @@ export const SearchResultsGrid = ({ results, searchType, searchParams }: SearchR
               <HotelSearchCard hotel={result} searchParams={searchParams} />
             )}
             {searchType === 'flights' && (
-              <FlightSearchCard 
+              <FlightResultCard
                 flight={result}
               />
             )}

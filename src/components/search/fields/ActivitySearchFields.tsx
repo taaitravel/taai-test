@@ -6,6 +6,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { PlaceSearch } from '@/components/inputs/PlaceSearch';
+import type { PlaceResult } from '@/components/inputs/PlaceSearch';
 
 interface ActivitySearchFieldsProps {
   destination: string;
@@ -13,6 +14,7 @@ interface ActivitySearchFieldsProps {
   participants: number;
   category: string;
   onDestinationChange: (value: string) => void;
+  onPlaceSelect?: (place: PlaceResult) => void;
   onDateChange: (date: Date | undefined) => void;
   onParticipantsChange: (value: number) => void;
   onCategoryChange: (value: string) => void;
@@ -24,6 +26,7 @@ export const ActivitySearchFields = ({
   participants,
   category,
   onDestinationChange,
+  onPlaceSelect,
   onDateChange,
   onParticipantsChange,
   onCategoryChange,
@@ -36,7 +39,10 @@ export const ActivitySearchFields = ({
         placeholder="City or region"
         mode="activity"
         defaultQuery={destination}
-        onSelect={(place) => onDestinationChange(place.name)}
+        onSelect={(place) => {
+          onDestinationChange(place.address || place.name);
+          onPlaceSelect?.(place);
+        }}
       />
 
       <div>

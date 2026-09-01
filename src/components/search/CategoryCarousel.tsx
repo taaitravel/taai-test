@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Star, Sparkles, DollarSign, Building, Plane, MapPin, Crown, Gem, Hotel, Waves, TreePalm, Mountain, Heart } from 'lucide-react';
 import { HotelSearchCard } from './cards/HotelSearchCard';
-import { FlightSearchCard } from './cards/FlightSearchCard';
+import { FlightResultCard } from './cards/FlightResultCard';
 import { ActivitySearchCard } from './cards/ActivitySearchCard';
 import { PackageSearchCard } from './cards/PackageSearchCard';
 import { CarSearchCard } from './cards/CarSearchCard';
@@ -82,7 +82,7 @@ export const CategoryCarousel = ({
       case 'hotels':
         return <HotelSearchCard key={key} hotel={item} searchParams={searchParams} />;
       case 'flights':
-        return <FlightSearchCard key={key} flight={item} />;
+        return <FlightResultCard key={key} flight={item} />;
       case 'activities':
         return <ActivitySearchCard key={key} activity={item} searchParams={searchParams} />;
       case 'cars':
