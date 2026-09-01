@@ -25,7 +25,7 @@ Duffel test results are locked to:
 - Duffel v2 `POST /air/offer_requests?return_offers=true` **only**. No offers,
   orders, or payments endpoints are called.
 - 15s timeout, one retry limited to timeout / 429 / 5xx.
-- Reads `DUFFEL_TEST_ACCESS_TOKEN` from server secrets. Never logged, never
+- Reads `DUFFEL_TEST_KEY` from server secrets. Never logged, never
   returned, provider payloads are never echoed.
 - Every response carries `requestId`.
 
@@ -54,7 +54,7 @@ Failure taxonomy → HTTP: `VALIDATION_ERROR` 400, `AUTH_REQUIRED` 401,
 `src/lib/flights/flight-reference-row.ts` (pure) + `flight-reference.ts` (I/O).
 `FLIGHT_REFERENCE_TABLE_READY` is `false`: `cart_items` is a commerce cart
 (price, `booking_status`, reprice fields) and cannot hold a reference-only
-observation, so saving is blocked until `docs/flight-search/proposed-migration.sql`
+observation, so saving is blocked until `supabase/schema-proposals/flight-references.sql`
 is approved and applied. No cart item, no booking, no total is ever written.
 
 ## Minerva
@@ -80,8 +80,8 @@ classification, reference-row shape (no commerce fields), formatting helpers.
 
 ## Still requires approval
 
-1. Create the `DUFFEL_TEST_ACCESS_TOKEN` secret.
-2. Apply `docs/flight-search/proposed-migration.sql`.
+1. Create the `DUFFEL_TEST_KEY` secret.
+2. Apply `supabase/schema-proposals/flight-references.sql`.
 3. Deploy the `flight-search` function.
 4. Deploy the frontend / publish.
 5. Domain / DNS changes.

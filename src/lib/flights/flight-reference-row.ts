@@ -4,7 +4,7 @@ import type { CanonicalFlightOffer } from '@/types/flight-offer';
  * Pure, dependency-free reference-record mapping.
  *
  * The reference-only storage table (public.flight_references) is proposed but
- * NOT applied — see docs/flight-search/proposed-migration.sql. Until that
+ * NOT applied — see supabase/schema-proposals/flight-references.sql. Until that
  * migration is approved and applied, saving is blocked instead of falling back
  * to cart_items, which would put a reference-only observation into the
  * commerce/checkout path.

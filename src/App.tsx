@@ -36,6 +36,9 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import InternalTOS from "./pages/InternalTOS";
 import AgentOperations from "./pages/AgentOperations";
+import Discover from "./pages/Discover";
+import PublicProfile from "./pages/PublicProfile";
+import PublicItinerary from "./pages/PublicItinerary";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +90,9 @@ const App = () => (
               } />
               <Route path="/what-we-do" element={<WhatWeDo />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/discover" element={<Discover />} />
+              <Route path="/p/:slug" element={<PublicProfile />} />
+              <Route path="/t/:slug" element={<PublicItinerary />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/subscription-success" element={<SubscriptionSuccess />} />
               <Route path="/admin/roles" element={
