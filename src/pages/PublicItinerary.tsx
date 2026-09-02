@@ -102,6 +102,9 @@ const PublicItinerary = () => {
         <div className="rounded-3xl overflow-hidden border border-rental/40 bg-card shadow-sm">
           <div className="relative h-36 sm:h-48" style={{ background: detail.coverGradient }}>
             <Badge className="absolute top-3 left-3 bg-rental text-rental-foreground border-0 text-[10px] font-bold">
+              Inspiration · not added to your trips
+            </Badge>
+            <Badge className="absolute top-3 right-3 bg-black/50 text-white/85 border-0 text-[10px]">
               {detail.curatedBy === 'taai' ? 'Trip by taai' : 'Featured itinerary'}
             </Badge>
           </div>
