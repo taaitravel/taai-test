@@ -74,6 +74,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { useItineraryData } from '@/hooks/useItineraryData';
 import { useCountryData, __resetCountryCache } from '@/hooks/useCountryData';
 import { __resetReadGuard, trackRead, stableListKey } from '@/lib/data/read-guard';
+import { resetRequestController } from '@/lib/data/request-controller';
 
 beforeEach(() => {
   counts.itinerarySelects = 0;
@@ -83,6 +84,7 @@ beforeEach(() => {
   selectedColumns.length = 0;
   __resetCountryCache();
   __resetReadGuard();
+  resetRequestController();
 });
 
 afterEach(() => vi.restoreAllMocks());

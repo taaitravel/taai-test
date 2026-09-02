@@ -102,6 +102,9 @@ const PublicItinerary = () => {
         <div className="rounded-3xl overflow-hidden border border-rental/40 bg-card shadow-sm">
           <div className="relative h-36 sm:h-48" style={{ background: detail.coverGradient }}>
             <Badge className="absolute top-3 left-3 bg-rental text-rental-foreground border-0 text-[10px] font-bold">
+              Inspiration · not added to your trips
+            </Badge>
+            <Badge className="absolute top-3 right-3 bg-black/50 text-white/85 border-0 text-[10px]">
               {detail.curatedBy === 'taai' ? 'Trip by taai' : 'Featured itinerary'}
             </Badge>
           </div>
@@ -125,12 +128,18 @@ const PublicItinerary = () => {
                 <p className="text-sm text-foreground truncate">{detail.destinations.join(' → ')}</p>
               </div>
               <div>
-                <p className="font-mono-label">Indicative spend</p>
+                <p className="font-mono-label">Estimated spend</p>
                 <p className="text-sm font-semibold text-foreground">
                   {formatMoney(indicativeTotal, detail.currency, { showCode: true })}
                 </p>
               </div>
             </div>
+
+            <p className="text-[11px] text-muted-foreground">
+              Estimates are past observations for planning only. They are not quotes and do not
+              indicate current availability or price — every option is searched fresh when you plan.
+            </p>
+
 
             <div className="flex flex-wrap gap-1.5">
               {detail.travelStyleTags.map(tag => (
@@ -139,18 +148,10 @@ const PublicItinerary = () => {
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button
-                className="rounded-full"
-                onClick={() => {
-                  setCloneOpen(true);
-                  emitSocialEvent(
-                    buildSocialEvent(MINERVA_SOCIAL_EVENT_IDS.cloneStarted, 'public_itinerary', {
-                      itinerarySlug: detail.publicSlug,
-                    })
-                  );
-                }}
-              >
-                <Copy className="mr-2 h-4 w-4" /> Make this trip mine
+              {/* Visual prototype only — disabled until the transactional clone
+                  function and active-trip limit are approved. */}
+              <Button className="rounded-full" disabled aria-disabled="true">
+                <Copy className="mr-2 h-4 w-4" /> Add to your trips
               </Button>
               <Button
                 variant="outline"
@@ -168,7 +169,8 @@ const PublicItinerary = () => {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Saving is a bookmark only — it does not count against your active trip limit.
+              Adding to your trips is previewed only in this build. Saving is a bookmark and does not
+              count against your active trip limit.
             </p>
           </div>
         </div>
@@ -244,7 +246,7 @@ const PublicItinerary = () => {
                         <p className="text-xs text-muted-foreground">{place.note}</p>
                         {typeof place.priceApprox === 'number' && place.priceApprox > 0 && (
                           <p className="text-[11px] text-muted-foreground">
-                            Reference {formatMoney(place.priceApprox, place.currency ?? detail.currency)} — searched fresh on clone
+                            Est. {formatMoney(place.priceApprox, place.currency ?? detail.currency)} — past observation, not a quote or current availability
                           </p>
                         )}
                       </div>
