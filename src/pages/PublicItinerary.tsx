@@ -148,18 +148,10 @@ const PublicItinerary = () => {
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button
-                className="rounded-full"
-                onClick={() => {
-                  setCloneOpen(true);
-                  emitSocialEvent(
-                    buildSocialEvent(MINERVA_SOCIAL_EVENT_IDS.cloneStarted, 'public_itinerary', {
-                      itinerarySlug: detail.publicSlug,
-                    })
-                  );
-                }}
-              >
-                <Copy className="mr-2 h-4 w-4" /> Make this trip mine
+              {/* Visual prototype only — disabled until the transactional clone
+                  function and active-trip limit are approved. */}
+              <Button className="rounded-full" disabled aria-disabled="true">
+                <Copy className="mr-2 h-4 w-4" /> Add to your trips
               </Button>
               <Button
                 variant="outline"
@@ -177,7 +169,8 @@ const PublicItinerary = () => {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Saving is a bookmark only — it does not count against your active trip limit.
+              Adding to your trips is previewed only in this build. Saving is a bookmark and does not
+              count against your active trip limit.
             </p>
           </div>
         </div>
