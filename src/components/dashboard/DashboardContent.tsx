@@ -2,6 +2,7 @@ import { HeroSection } from "@/components/dashboard/HeroSection";
 import { StatsSection } from "@/components/dashboard/StatsSection";
 import { TripsSection } from "@/components/dashboard/TripsSection";
 import { TripsFilter } from "@/components/dashboard/TripsFilter";
+import { DiscoverStrip } from "@/components/dashboard/sections/DiscoverStrip";
 import { PendingInvitationsCard } from "@/components/itinerary/PendingInvitationsCard";
 import { useDashboard } from "@/hooks/useDashboard";
 
