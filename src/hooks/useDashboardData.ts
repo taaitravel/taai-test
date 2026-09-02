@@ -77,14 +77,12 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
   const dateFrom = filterOptions?.dateFrom ?? null;
   const dateTo = filterOptions?.dateTo ?? null;
 
-  // Deduplication: identical read signatures are not re-requested.
-  const inFlightRef = useRef<string | null>(null);
-  const lastSignatureRef = useRef<string | null>(null);
   const requestIdRef = useRef(0);
+  const releaseRef = useRef<(() => void) | null>(null);
 
-  const fetchUserItineraries = useCallback(async (signature: string, requestId: number) => {
-    guardRead(`itinerary:list:${signature}`);
-    try {
+  const fetchItineraries = useCallback(
+    async (signature: string, signal: AbortSignal) => {
+      guardRead(`itinerary:list:${signature}`);
       let query = supabase
         .from('itinerary')
         .select(DASHBOARD_ITINERARY_FIELDS)
@@ -105,11 +103,10 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
           break;
       }
 
-      const { data, error } = await query;
-      if (requestId !== requestIdRef.current) return;
+      const { data, error } = await withAbort(query, signal);
       if (error) throw error;
 
-      const transformedItineraries = (data as any[]).map(item => ({
+      return (data as any[]).map(item => ({
         id: item.id,
         itin_id: item.itin_id,
         itin_name: item.itin_name || 'Untitled Trip',
@@ -131,61 +128,73 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
         reservations: Array.isArray(item.reservations) ? item.reservations : [],
         images: item.images,
         created_at: item.created_at,
-        userid: item.userid
+        userid: item.userid,
       }));
+    },
+    [userId, sortBy, dateFrom, dateTo]
+  );
 
-      setActiveItineraries(transformedItineraries);
-    } catch (error) {
-      if (requestId !== requestIdRef.current) return;
-      console.error('Error fetching itineraries:', (error as Error)?.message);
-      const now = Date.now();
-      if (now - lastNotificationTime.current > 120000) {
-        toast.error('Failed to load your trips');
-        lastNotificationTime.current = now;
-      }
-    } finally {
-      if (requestId === requestIdRef.current) setLoading(false);
-    }
-  }, [userId, sortBy, dateFrom, dateTo]);
-
-  const fetchUserProfile = useCallback(async (requestId: number) => {
-    guardRead(`users:profile:${userId ?? 'anon'}`);
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select(USER_PROFILE_FIELDS)
-        .eq('userid', userId!)
-        .single();
-
-      if (requestId !== requestIdRef.current) return;
+  const fetchProfile = useCallback(
+    async (signal: AbortSignal) => {
+      guardRead(`users:profile:${userId ?? 'anon'}`);
+      const { data, error } = await withAbort(
+        supabase.from('users').select(USER_PROFILE_FIELDS).eq('userid', userId!),
+        signal
+      ).single();
       if (error) throw error;
-      setUserProfile(data);
-    } catch (error) {
-      if (requestId !== requestIdRef.current) return;
-      console.error('Error fetching user profile:', (error as Error)?.message);
-    }
-  }, [userId]);
+      return data;
+    },
+    [userId]
+  );
 
-  const runFetch = useCallback((force: boolean) => {
-    if (!userId) return;
-    const signature = `${userId}|${sortBy}|${dateFrom ?? ''}|${dateTo ?? ''}`;
-    if (!force && (inFlightRef.current === signature || lastSignatureRef.current === signature)) return;
+  const runFetch = useCallback(
+    (force: boolean) => {
+      if (!userId) return;
+      const signature = `${userId}|${sortBy}|${dateFrom ?? ''}|${dateTo ?? ''}`;
+      const requestId = ++requestIdRef.current;
 
-    inFlightRef.current = signature;
-    const requestId = ++requestIdRef.current;
+      // Private records: in-memory cache only, owned by this user id.
+      const handle = request({
+        key: `dashboard:${signature}`,
+        userId,
+        bypassCache: force,
+        run: async signal =>
+          Promise.all([fetchItineraries(signature, signal), fetchProfile(signal)]),
+      });
 
-    Promise.all([fetchUserItineraries(signature, requestId), fetchUserProfile(requestId)]).finally(() => {
-      if (inFlightRef.current === signature) inFlightRef.current = null;
-      lastSignatureRef.current = signature;
-    });
-  }, [userId, sortBy, dateFrom, dateTo, fetchUserItineraries, fetchUserProfile]);
+      releaseRef.current?.();
+      releaseRef.current = handle.release;
+
+      handle.promise
+        .then(([itineraries, profile]) => {
+          if (requestId !== requestIdRef.current) return;
+          setActiveItineraries(itineraries);
+          setUserProfile(profile);
+        })
+        .catch(error => {
+          if (requestId !== requestIdRef.current) return;
+          if ((error as Error)?.name === 'AbortError') return;
+          console.error('Error loading dashboard data:', (error as Error)?.message);
+          const now = Date.now();
+          if (now - lastNotificationTime.current > 120000) {
+            toast.error('Failed to load your trips');
+            lastNotificationTime.current = now;
+          }
+        })
+        .finally(() => {
+          if (requestId === requestIdRef.current) setLoading(false);
+        });
+    },
+    [userId, sortBy, dateFrom, dateTo, fetchItineraries, fetchProfile]
+  );
 
   useEffect(() => {
     runFetch(false);
     return () => {
-      // Supersede any in-flight response for this signature.
+      // Supersede this consumer and abort the network call if nothing else needs it.
       requestIdRef.current += 1;
-      inFlightRef.current = null;
+      releaseRef.current?.();
+      releaseRef.current = null;
     };
   }, [runFetch]);
 
@@ -193,6 +202,9 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
     activeItineraries,
     loading,
     userProfile,
-    refetchData: () => runFetch(true)
+    refetchData: () => {
+      invalidateRequests(`dashboard:${userId ?? ''}`);
+      runFetch(true);
+    },
   };
 };
