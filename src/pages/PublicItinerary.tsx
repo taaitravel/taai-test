@@ -246,7 +246,7 @@ const PublicItinerary = () => {
                         <p className="text-xs text-muted-foreground">{place.note}</p>
                         {typeof place.priceApprox === 'number' && place.priceApprox > 0 && (
                           <p className="text-[11px] text-muted-foreground">
-                            Reference {formatMoney(place.priceApprox, place.currency ?? detail.currency)} — searched fresh on clone
+                            Est. {formatMoney(place.priceApprox, place.currency ?? detail.currency)} — past observation, not a quote or current availability
                           </p>
                         )}
                       </div>
