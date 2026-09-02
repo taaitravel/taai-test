@@ -59,21 +59,24 @@ export const useItineraryData = (itineraryId: string | null) => {
     const requestId = ++requestIdRef.current;
     let cancelled = false;
 
-    const fetchItinerary = async () => {
-      guardRead(`itinerary:${itineraryId ?? 'first'}`);
-      try {
+    guardRead(`itinerary:${itineraryId ?? 'first'}`);
+
+    // Memory-only cache; released (and aborted) on unmount.
+    const handle = request({
+      key: `itinerary:workspace:${itineraryId ?? 'first'}:${mapRefreshTrigger}`,
+      userId: null,
+      run: async signal => {
         let query = supabase.from('itinerary').select(ITINERARY_WORKSPACE_FIELDS);
-
-        if (itineraryId) {
-          query = query.eq('id', parseInt(itineraryId));
-        } else {
-          query = query.limit(1);
-        }
-
-        const { data, error } = await query.single();
-
-        if (cancelled || requestId !== requestIdRef.current) return;
+        query = itineraryId ? query.eq('id', parseInt(itineraryId)) : query.limit(1);
+        const { data, error } = await withAbort(query, signal).single();
         if (error) throw error;
+        return data;
+      },
+    });
+
+    handle.promise
+      .then(data => {
+        if (cancelled || requestId !== requestIdRef.current) return;
 
         const row = data as unknown as Record<string, unknown>;
         const transformedData: ItineraryData = {
@@ -97,23 +100,24 @@ export const useItineraryData = (itineraryId: string | null) => {
 
         setItineraryData(transformedData);
         setBudgetRefreshTrigger(prev => prev + 1);
-      } catch (error) {
+      })
+      .catch(error => {
         if (cancelled || requestId !== requestIdRef.current) return;
+        if ((error as Error)?.name === 'AbortError') return;
         console.error('Error fetching itinerary:', (error as Error)?.message);
         toastRef.current({
           title: "Error",
           description: "Failed to load itinerary data",
           variant: "destructive",
         });
-      } finally {
+      })
+      .finally(() => {
         if (!cancelled && requestId === requestIdRef.current) setLoading(false);
-      }
-    };
-
-    fetchItinerary();
+      });
 
     return () => {
       cancelled = true;
+      handle.release();
     };
   }, [itineraryId, mapRefreshTrigger]);
 
