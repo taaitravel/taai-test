@@ -72,7 +72,7 @@ export const PublicItineraryCard = ({ card, size = 'responsive', className }: Pu
             </Badge>
           </div>
           <p className="text-white/40 text-[10px] sm:text-xs truncate">
-            Not added yet · {card.author.displayName}
+            Add to your trips · {card.author.displayName}
           </p>
         </div>
       </div>
