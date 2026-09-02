@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useBrightTheme } from '@/hooks/useBrightTheme';
 import { PublicNavigation } from '@/components/shared/PublicNavigation';
 import { PublicFooter } from '@/components/shared/PublicFooter';
+import { PublicItineraryCard } from '@/components/social/PublicItineraryCard';
 import { getMockProfile } from '@/lib/social/mock-discover';
 import {
   MINERVA_SOCIAL_EVENT_IDS,
