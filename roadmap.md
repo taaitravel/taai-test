@@ -4,6 +4,7 @@
 - [x] Phase 1 — Supabase egress containment (useItineraryData, useDashboardData, useCountryData, dev read-guard, regression tests)
 - [x] Local search recovery — canonical flight rendering, structured failures, real-data activity cards, Discover navigation
 - [ ] Phase 2 — Social itinerary foundation (unapplied migration + synthetic Discover / public profile / clone / limit UI)
+- [x] Discover UX — menu + dashboard entry, search-styled public itinerary cards, 6 fully authored trips with schedule + calendar interiors
 
 ## Duffel sync corrections (requested 2026-09-01)
 - [x] Rename secret reference to existing `DUFFEL_TEST_KEY` (never `DUFFEL_TEST_ACCESS_TOKEN`)
