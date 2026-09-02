@@ -51,7 +51,7 @@ const ROUTE_TABLE: Record<string, RouteChrome> = {
     variant: 'menu',
     hideBottomNav: false,
     primary: 'notifications',
-    overflow: [CART],
+    overflow: [CART, DISCOVER],
   },
   '/search': {
     variant: 'menu',

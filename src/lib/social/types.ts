@@ -53,16 +53,42 @@ export interface PublicProfileProjection {
   itineraries: ItineraryCardProjection[];
 }
 
+export type PublicPlaceKind = 'stay' | 'activity' | 'dining' | 'transit';
+
+/** A curated place reference — never a booking, never a held price. */
+export interface PublicItineraryPlace {
+  name: string;
+  kind: PublicPlaceKind;
+  note: string;
+  /** Local time suggestion, 24h "HH:mm". */
+  time?: string;
+  /** Neighbourhood / area label. */
+  area?: string;
+  /** Indicative reference amount only; real pricing is searched fresh. */
+  priceApprox?: number;
+  currency?: string;
+}
+
+export interface PublicItineraryDay {
+  day: number;
+  /** Suggested date for the sample window (shifts on clone). */
+  date: string;
+  city: string;
+  places: PublicItineraryPlace[];
+}
+
 /** A public itinerary detail view — planning structure only. */
 export interface PublicItineraryDetail extends ItineraryCardProjection {
-  days: Array<{
-    day: number;
-    city: string;
-    /** Curated place references, not bookings. */
-    places: Array<{ name: string; kind: 'stay' | 'activity' | 'dining' | 'transit'; note: string }>;
-  }>;
+  suggestedStartDate: string;
+  suggestedEndDate: string;
+  currency: string;
+  travelStyleTags: string[];
+  /** Indicative reference spend grouped by item type. */
+  budget: Record<PublicPlaceKind, number>;
+  days: PublicItineraryDay[];
   attribution: string;
 }
+
 
 export const ACTIVE_LIMIT_MESSAGE =
   'You currently have three active trips. Archive one to start another, or upgrade for additional active itineraries. Your saved inspiration and past trips will remain available.';

@@ -2,6 +2,7 @@ import { HeroSection } from "@/components/dashboard/HeroSection";
 import { StatsSection } from "@/components/dashboard/StatsSection";
 import { TripsSection } from "@/components/dashboard/TripsSection";
 import { TripsFilter } from "@/components/dashboard/TripsFilter";
+import { DiscoverStrip } from "@/components/dashboard/sections/DiscoverStrip";
 import { PendingInvitationsCard } from "@/components/itinerary/PendingInvitationsCard";
 import { useDashboard } from "@/hooks/useDashboard";
 
@@ -36,6 +37,12 @@ export const DashboardContent = () => {
       <div className="mb-8">
         <PendingInvitationsCard />
       </div>
+
+      {/* Discover entry point */}
+      <div className="mb-8">
+        <DiscoverStrip />
+      </div>
+
 
       {/* Enhanced Stats Cards with Charts */}
       <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} activeItineraries={activeItineraries} />
