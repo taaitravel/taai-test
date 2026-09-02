@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ItineraryData } from "@/types/itinerary";
 import { useMapLocationSync } from "./useMapLocationSync";
 import { guardRead } from "@/lib/data/read-guard";
+import { request, withAbort } from "@/lib/data/request-controller";
 
 /**
  * Explicit projection — never `select('*')`.
