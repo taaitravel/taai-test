@@ -38,6 +38,12 @@ export const DashboardContent = () => {
         <PendingInvitationsCard />
       </div>
 
+      {/* Discover entry point */}
+      <div className="mb-8">
+        <DiscoverStrip />
+      </div>
+
+
       {/* Enhanced Stats Cards with Charts */}
       <StatsSection userStats={fullUserStats} visitedCountries={visitedCountries} activeItineraries={activeItineraries} />
 
