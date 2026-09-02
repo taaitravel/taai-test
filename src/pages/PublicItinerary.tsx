@@ -128,12 +128,18 @@ const PublicItinerary = () => {
                 <p className="text-sm text-foreground truncate">{detail.destinations.join(' → ')}</p>
               </div>
               <div>
-                <p className="font-mono-label">Indicative spend</p>
+                <p className="font-mono-label">Estimated spend</p>
                 <p className="text-sm font-semibold text-foreground">
                   {formatMoney(indicativeTotal, detail.currency, { showCode: true })}
                 </p>
               </div>
             </div>
+
+            <p className="text-[11px] text-muted-foreground">
+              Estimates are past observations for planning only. They are not quotes and do not
+              indicate current availability or price — every option is searched fresh when you plan.
+            </p>
+
 
             <div className="flex flex-wrap gap-1.5">
               {detail.travelStyleTags.map(tag => (
