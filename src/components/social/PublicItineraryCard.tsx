@@ -40,6 +40,9 @@ export const PublicItineraryCard = ({ card, size = 'responsive', className }: Pu
       <div className="relative h-1/2 w-full overflow-hidden" style={{ background: card.coverGradient }}>
         <div className="absolute inset-0 bg-gradient-to-t from-[#1a1c2e] via-[#1a1c2e]/20 to-transparent" aria-hidden />
         <Badge className="absolute top-2 left-2 bg-rental text-rental-foreground border-0 text-[10px] font-bold px-1.5 py-0.5">
+          Inspiration
+        </Badge>
+        <Badge className="absolute top-2 right-2 bg-black/50 text-white/80 border-0 text-[10px] px-1.5 py-0.5">
           {card.curatedBy === 'taai' ? 'taai' : 'Featured'}
         </Badge>
         <div className="absolute bottom-2 left-2 right-2">
