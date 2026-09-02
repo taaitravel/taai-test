@@ -67,25 +67,13 @@ const PublicProfile = () => {
 
             <section className="space-y-3">
               <h2 className="text-lg font-semibold text-foreground">Public itineraries</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-wrap gap-3">
                 {profile.itineraries.map(card => (
-                  <Link
-                    key={card.id}
-                    to={`/t/${card.publicSlug}`}
-                    className="rounded-2xl overflow-hidden border border-border bg-card shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="h-24" style={{ background: card.coverGradient }} aria-hidden />
-                    <div className="p-3 space-y-1">
-                      <p className="text-sm font-semibold text-foreground">{card.title}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{card.summary}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {card.dayCount} days · {card.cloneCount} clones
-                      </p>
-                    </div>
-                  </Link>
+                  <PublicItineraryCard key={card.id} card={card} />
                 ))}
               </div>
             </section>
+
           </>
         )}
       </main>
