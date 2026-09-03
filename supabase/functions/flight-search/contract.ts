@@ -169,18 +169,18 @@ const isTimestamp = (v: unknown): boolean => nonEmpty(v) && !Number.isNaN(Date.p
  */
 export function isValidCanonicalOffer(offer: CanonicalFlightOffer | null | undefined): boolean {
   if (!offer) return false;
-  if (!nonEmpty(offer.offerId) || !nonEmpty(offer.providerOfferId)) return false;
+  if (!nonEmpty(offer.id) || !nonEmpty(offer.providerOfferId)) return false;
   if (!nonEmpty(offer.provider)) return false;
   if (!Array.isArray(offer.slices) || offer.slices.length === 0) return false;
 
-  const price = Number(offer.totalAmount);
+  const price = Number(offer.observedPrice?.amount);
   if (!Number.isFinite(price) || price <= 0) return false;
-  if (!CURRENCY.test(String(offer.currency ?? ''))) return false;
+  if (!CURRENCY.test(String(offer.observedPrice?.currency ?? '').toUpperCase())) return false;
 
   for (const slice of offer.slices) {
     if (!Array.isArray(slice.segments) || slice.segments.length === 0) return false;
     for (const segment of slice.segments) {
-      if (!nonEmpty(segment.originIata) || !nonEmpty(segment.destinationIata)) return false;
+      if (!nonEmpty(segment.origin) || !nonEmpty(segment.destination)) return false;
       if (!isTimestamp(segment.departureAt) || !isTimestamp(segment.arrivalAt)) return false;
       if (!nonEmpty(segment.flightNumber)) return false;
     }
