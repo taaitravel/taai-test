@@ -33,7 +33,10 @@ alter table public.itinerary
   add column if not exists source_author_id uuid references auth.users(id) on delete set null,
   add column if not exists clone_count integer not null default 0,
   add column if not exists moderation_status public.moderation_state not null default 'ok',
-  add column if not exists share_token uuid,          -- revocable unlisted link
+  -- Only a hash of the unlisted share token is stored. The plaintext token is
+  -- returned once, at creation time, and can never be read back from the row.
+  add column if not exists share_token_hash text,
+  add column if not exists share_token_expires_at timestamptz,
   add column if not exists share_token_revoked_at timestamptz;
 
 -- Existing rows keep the safe default; explicitly assert it.
@@ -43,8 +46,8 @@ create unique index if not exists itinerary_public_slug_key
   on public.itinerary (public_slug) where public_slug is not null;
 create index if not exists itinerary_visibility_idx on public.itinerary (visibility);
 create index if not exists itinerary_source_idx on public.itinerary (source_itinerary_id);
-create unique index if not exists itinerary_share_token_key
-  on public.itinerary (share_token) where share_token is not null;
+create unique index if not exists itinerary_share_token_hash_key
+  on public.itinerary (share_token_hash) where share_token_hash is not null;
 
 -- Trending scores are NEVER stored on the itinerary row.
 create table if not exists public.itinerary_trending_scores (
@@ -94,30 +97,121 @@ create policy "owners update own profile"
 create policy "owners delete own profile"
   on public.public_profiles for delete to authenticated using (user_id = auth.uid());
 
--- Safe public projection: no email, phone, address, preferences, attendees.
-create or replace view public.public_itinerary_cards
-with (security_invoker = true) as
-select
-  i.id,
-  i.public_slug,
-  i.itin_name           as title,
-  i.itin_desc           as summary,
-  i.itin_locations      as destinations,
-  i.cover_asset_id,
-  i.published_at,
-  i.clone_count,
-  greatest(1, (i.itin_date_end::date - i.itin_date_start::date) + 1) as day_count,
-  p.slug                as author_slug,
-  p.display_name        as author_display_name,
-  p.avatar_url          as author_avatar_url
-from public.itinerary i
-join public.public_profiles p on p.user_id = i.userid
-where i.visibility = 'public'
-  and i.moderation_status = 'ok'
-  and p.discoverable = true
-  and p.moderation_status = 'ok';
+-- Safe public projection.
+-- Anonymous and authenticated clients NEVER select from public.itinerary
+-- directly. All public reads go through these SECURITY DEFINER functions,
+-- which return only card-safe columns: no attendees, bookings, confirmations,
+-- chats, payment data, provider payloads, user ids or private preferences.
+create or replace function public.list_public_itinerary_cards(
+  _limit integer default 24,
+  _offset integer default 0
+)
+returns table (
+  public_slug text,
+  title text,
+  summary text,
+  destinations jsonb,
+  cover_asset_id uuid,
+  published_at timestamptz,
+  day_count integer,
+  clone_count integer,
+  budget_band text,
+  author_slug text,
+  author_display_name text,
+  author_avatar_url text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    i.public_slug,
+    i.itin_name as title,
+    i.itin_desc as summary,
+    to_jsonb(i.itin_locations) as destinations,
+    i.cover_asset_id,
+    i.published_at,
+    greatest(1, (i.itin_date_end::date - i.itin_date_start::date) + 1)::integer as day_count,
+    i.clone_count,
+    case
+      when coalesce(i.budget, 0) <= 0 then 'unspecified'
+      when i.budget < 1500 then 'under_1500'
+      when i.budget < 5000 then '1500_5000'
+      when i.budget < 12000 then '5000_12000'
+      else 'over_12000'
+    end as budget_band,
+    p.slug as author_slug,
+    p.display_name as author_display_name,
+    p.avatar_url as author_avatar_url
+  from public.itinerary i
+  join public.public_profiles p on p.user_id = i.userid
+  where i.visibility = 'public'
+    and i.moderation_status = 'ok'
+    and p.discoverable = true
+    and p.moderation_status = 'ok'
+  order by i.published_at desc nulls last
+  limit least(greatest(coalesce(_limit, 24), 1), 50)
+  offset greatest(coalesce(_offset, 0), 0);
+$$;
 
-grant select on public.public_itinerary_cards to anon, authenticated;
+revoke all on function public.list_public_itinerary_cards(integer, integer) from public;
+grant execute on function public.list_public_itinerary_cards(integer, integer) to anon, authenticated;
+
+-- Unlisted access: the caller supplies the plaintext token, which is hashed and
+-- compared server-side. Revoked or expired tokens return no rows.
+create or replace function public.get_shared_itinerary_card(_token text)
+returns table (
+  public_slug text,
+  title text,
+  summary text,
+  destinations jsonb,
+  cover_asset_id uuid,
+  published_at timestamptz,
+  day_count integer,
+  clone_count integer,
+  budget_band text,
+  author_slug text,
+  author_display_name text,
+  author_avatar_url text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    i.public_slug,
+    i.itin_name,
+    i.itin_desc,
+    to_jsonb(i.itin_locations),
+    i.cover_asset_id,
+    i.published_at,
+    greatest(1, (i.itin_date_end::date - i.itin_date_start::date) + 1)::integer,
+    i.clone_count,
+    case
+      when coalesce(i.budget, 0) <= 0 then 'unspecified'
+      when i.budget < 1500 then 'under_1500'
+      when i.budget < 5000 then '1500_5000'
+      when i.budget < 12000 then '5000_12000'
+      else 'over_12000'
+    end,
+    p.slug,
+    p.display_name,
+    p.avatar_url
+  from public.itinerary i
+  join public.public_profiles p on p.user_id = i.userid
+  where i.visibility in ('public', 'unlisted')
+    and i.moderation_status = 'ok'
+    and i.share_token_hash is not null
+    and i.share_token_revoked_at is null
+    and (i.share_token_expires_at is null or i.share_token_expires_at > now())
+    and i.share_token_hash = encode(digest(coalesce(_token, ''), 'sha256'), 'hex')
+  limit 1;
+$$;
+
+revoke all on function public.get_shared_itinerary_card(text) from public;
+grant execute on function public.get_shared_itinerary_card(text) to anon, authenticated;
 
 -- ----------------------------------------------------------------------------
 -- D. Save (bookmark) vs clone lineage
@@ -281,21 +375,14 @@ create trigger trg_enforce_active_itinerary_limit
   for each row execute function public.enforce_active_itinerary_limit();
 
 -- ----------------------------------------------------------------------------
--- Public/unlisted read access to itineraries (additive policies only)
+-- Public/unlisted read access to itineraries
 -- ----------------------------------------------------------------------------
-create policy "public itineraries are readable"
-  on public.itinerary for select to anon, authenticated
-  using (visibility = 'public' and moderation_status = 'ok');
-
-create policy "unlisted itineraries readable with share token"
-  on public.itinerary for select to anon, authenticated
-  using (
-    visibility = 'unlisted'
-    and moderation_status = 'ok'
-    and share_token_revoked_at is null
-    and share_token is not null
-    and share_token::text = current_setting('request.headers.x-taai-share-token', true)
-  );
+-- Intentionally NO anon/authenticated SELECT policy is added to
+-- public.itinerary. Every existing itinerary stays private by default and
+-- unlisted itineraries are never exposed through base-table RLS. Public and
+-- unlisted reads are served exclusively by
+-- public.list_public_itinerary_cards() and public.get_shared_itinerary_card(),
+-- which return sanitized card projections only.
 
 commit;
 
@@ -303,9 +390,7 @@ commit;
 --   drop trigger trg_enforce_active_itinerary_limit on public.itinerary;
 --   drop function reserve_active_itinerary_slot, enforce_active_itinerary_limit,
 --        active_itinerary_count, active_itinerary_limit;
---   drop view public_itinerary_cards;
---   drop policy "public itineraries are readable" on public.itinerary;
---   drop policy "unlisted itineraries readable with share token" on public.itinerary;
+--   drop function list_public_itinerary_cards, get_shared_itinerary_card;
 --   drop table content_reports, itinerary_clone_events, itinerary_bookmarks,
 --        itinerary_trending_scores, public_profiles;
 --   alter table itinerary drop column ... (new columns only);

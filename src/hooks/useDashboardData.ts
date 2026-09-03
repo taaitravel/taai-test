@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { guardRead } from "@/lib/data/read-guard";
 import { request, invalidateRequests, withAbort } from "@/lib/data/request-controller";
+import type { DashboardItinerarySummary, DashboardProfileSummary } from "@/types/dashboard-summary";
+
 
 export type SortOption = 'start_date' | 'created_at' | 'end_date';
 
@@ -14,8 +16,10 @@ interface FilterOptions {
 }
 
 /**
- * Explicit projection for dashboard/list surfaces.
- * Excludes provider payloads (expedia_data) and other heavy blobs.
+ * Explicit lightweight projection for dashboard/list surfaces.
+ * Excludes attendees, flights, hotels, activities, reservations, provider
+ * payloads (expedia_data) and contact PII. Full itinerary content is loaded
+ * only after an itinerary is opened.
  */
 export const DASHBOARD_ITINERARY_FIELDS = [
   'id',
@@ -32,27 +36,18 @@ export const DASHBOARD_ITINERARY_FIELDS = [
   'b_efficiency_rate',
   'user_type',
   'planned_traveler_count',
-  'attendees',
-  'flights',
-  'hotels',
-  'activities',
-  'reservations',
   'images',
   'created_at',
-  'userid',
 ].join(', ');
 
-const USER_PROFILE_FIELDS = [
+/** Lightweight profile projection — no email, no cell/phone. */
+export const USER_PROFILE_FIELDS = [
   'userid',
   'username',
   'first_name',
   'last_name',
-  'email',
-  'cell',
   'avatar_url',
-  'bio',
   'user_type',
-  'comp_name',
   'date_format',
   'currency',
   'theme_preference',
@@ -60,10 +55,9 @@ const USER_PROFILE_FIELDS = [
   'flight_freq',
   'avg_spending',
   'taai_rating',
-  'privacy_accepted_at',
-  'terms_accepted_at',
   'created_at',
 ].join(', ');
+
 
 export const useDashboardData = (filterOptions?: FilterOptions) => {
   const { user } = useAuth();
@@ -107,30 +101,27 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
       const { data, error } = await withAbort(query, signal);
       if (error) throw error;
 
-      return (data as any[]).map(item => ({
+      return (data as any[]).map((item): DashboardItinerarySummary => ({
         id: item.id,
-        itin_id: item.itin_id,
+        itin_id: item.itin_id ?? null,
         itin_name: item.itin_name || 'Untitled Trip',
-        itin_desc: item.itin_desc,
-        itin_date_start: item.itin_date_start,
-        itin_date_end: item.itin_date_end,
+        itin_desc: item.itin_desc ?? null,
+        itin_date_start: item.itin_date_start ?? null,
+        itin_date_end: item.itin_date_end ?? null,
         itin_locations: Array.isArray(item.itin_locations) ? item.itin_locations : [],
         itin_map_locations: Array.isArray(item.itin_map_locations) ? item.itin_map_locations : [],
+        cover_image: Array.isArray(item.images)
+          ? (item.images[0] ?? null)
+          : (typeof item.images === 'string' ? item.images : null),
         budget: item.budget || 0,
         spending: item.spending || 0,
-        budget_rate: item.budget_rate,
-        b_efficiency_rate: item.b_efficiency_rate,
-        user_type: item.user_type,
-        planned_traveler_count: item.planned_traveler_count,
-        attendees: Array.isArray(item.attendees) ? item.attendees : [],
-        flights: Array.isArray(item.flights) ? item.flights : [],
-        hotels: Array.isArray(item.hotels) ? item.hotels : [],
-        activities: Array.isArray(item.activities) ? item.activities : [],
-        reservations: Array.isArray(item.reservations) ? item.reservations : [],
-        images: item.images,
-        created_at: item.created_at,
-        userid: item.userid,
+        budget_rate: item.budget_rate ?? null,
+        b_efficiency_rate: item.b_efficiency_rate ?? null,
+        planned_traveler_count: item.planned_traveler_count ?? null,
+        user_type: item.user_type ?? null,
+        created_at: item.created_at ?? null,
       }));
+
     },
     [userId, sortBy, dateFrom, dateTo]
   );
@@ -143,7 +134,8 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
         signal
       ).single();
       if (error) throw error;
-      return data;
+      return data as unknown as DashboardProfileSummary;
+
     },
     [userId]
   );

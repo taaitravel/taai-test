@@ -155,3 +155,35 @@ export function validateFlightSearchRequest(raw: unknown): ValidationResult {
     },
   };
 }
+
+/** Maximum normalized offers ever returned to a client. */
+export const MAX_RETURNED_OFFERS = 20;
+
+const nonEmpty = (v: unknown): boolean => typeof v === 'string' && v.trim().length > 0;
+const CURRENCY = /^[A-Z]{3}$/;
+const isTimestamp = (v: unknown): boolean => nonEmpty(v) && !Number.isNaN(Date.parse(String(v)));
+
+/**
+ * Rejects structurally incomplete normalized offers so no partially-formed
+ * offer can reach the client. Returns true only for fully-formed offers.
+ */
+export function isValidCanonicalOffer(offer: CanonicalFlightOffer | null | undefined): boolean {
+  if (!offer) return false;
+  if (!nonEmpty(offer.offerId) || !nonEmpty(offer.providerOfferId)) return false;
+  if (!nonEmpty(offer.provider)) return false;
+  if (!Array.isArray(offer.slices) || offer.slices.length === 0) return false;
+
+  const price = Number(offer.totalAmount);
+  if (!Number.isFinite(price) || price <= 0) return false;
+  if (!CURRENCY.test(String(offer.currency ?? ''))) return false;
+
+  for (const slice of offer.slices) {
+    if (!Array.isArray(slice.segments) || slice.segments.length === 0) return false;
+    for (const segment of slice.segments) {
+      if (!nonEmpty(segment.originIata) || !nonEmpty(segment.destinationIata)) return false;
+      if (!isTimestamp(segment.departureAt) || !isTimestamp(segment.arrivalAt)) return false;
+      if (!nonEmpty(segment.flightNumber)) return false;
+    }
+  }
+  return true;
+}

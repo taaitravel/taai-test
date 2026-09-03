@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { setRequestOwner, clearRequestCache } from '@/lib/data/request-controller';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UserProfile {
@@ -102,6 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!mounted) return;
         
         console.log('Auth state change:', event, !!session);
+        // Account change / logout: drop every cached private record immediately.
+        setRequestOwner(session?.user?.id ?? null);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -214,6 +217,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    // Private itinerary/dashboard caches must not outlive the session.
+    clearRequestCache();
+    setRequestOwner(null);
     await supabase.auth.signOut();
     setUserProfile(null);
   };
