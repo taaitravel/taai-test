@@ -1,10 +1,11 @@
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
   CanonicalFlightOffer,
   FlightSearchError,
   FlightSearchErrorCode,
   FlightSearchResponse,
+  isValidCanonicalOffer,
+  MAX_RETURNED_OFFERS,
   validateFlightSearchRequest,
 } from './contract.ts';
 import {
@@ -17,6 +18,40 @@ import {
 } from './duffel.ts';
 
 const MODE = 'test' as const;
+
+/**
+ * Explicit least-privilege CORS headers. Defined locally rather than imported
+ * from the supabase-js package, which does not officially export a `cors`
+ * entrypoint for the Edge runtime.
+ */
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+} as const;
+
+/** QA-grade per-user rate limit: 10 searches per authenticated user per minute. */
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const rateLimitBuckets = new Map<string, number[]>();
+
+function rateLimitExceeded(userId: string): boolean {
+  const now = Date.now();
+  const hits = (rateLimitBuckets.get(userId) ?? []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+  if (hits.length >= RATE_LIMIT_MAX) {
+    rateLimitBuckets.set(userId, hits);
+    return true;
+  }
+  hits.push(now);
+  rateLimitBuckets.set(userId, hits);
+  if (rateLimitBuckets.size > 5000) {
+    for (const [key, stamps] of rateLimitBuckets) {
+      if (stamps.every(t => now - t >= RATE_LIMIT_WINDOW_MS)) rateLimitBuckets.delete(key);
+    }
+  }
+  return false;
+}
 
 const json = (body: unknown, status: number) =>
   new Response(JSON.stringify(body), {
@@ -85,6 +120,16 @@ Deno.serve(async (req) => {
 
   const requestId = crypto.randomUUID();
 
+  // Only the expected methods are permitted.
+  if (req.method !== 'POST') {
+    return json(
+      { requestId, status: 'error', mode: MODE, providersAttempted: [], offers: [], errors: [
+        { code: 'VALIDATION_ERROR', message: 'Method not allowed.', retryable: false },
+      ] },
+      405,
+    );
+  }
+
   try {
     const authHeader = req.headers.get('Authorization') ?? '';
     if (!authHeader.startsWith('Bearer ')) {
@@ -99,6 +144,14 @@ Deno.serve(async (req) => {
     );
     if (userError || !userData?.user) {
       return fail(requestId, 'AUTH_REQUIRED', 'Please sign in to search flights.');
+    }
+
+    if (rateLimitExceeded(userData.user.id)) {
+      return fail(
+        requestId,
+        'PROVIDER_RATE_LIMITED',
+        'Too many flight searches. Please wait a moment and try again.',
+      );
     }
 
     let rawBody: unknown = {};
@@ -191,7 +244,10 @@ Deno.serve(async (req) => {
             return null;
           }
         })
-        .filter((o): o is CanonicalFlightOffer => o !== null);
+        .filter((o): o is CanonicalFlightOffer => o !== null)
+        // Reject structurally incomplete offers, then cap the result set.
+        .filter(isValidCanonicalOffer)
+        .slice(0, MAX_RETURNED_OFFERS);
     } catch (err) {
       console.error(`[flight-search ${requestId}] mapping failure`, (err as Error).message);
       return fail(

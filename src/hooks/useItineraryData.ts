@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { ItineraryData } from "@/types/itinerary";
 import { useMapLocationSync } from "./useMapLocationSync";
 import { guardRead } from "@/lib/data/read-guard";
@@ -34,6 +35,8 @@ export const ITINERARY_WORKSPACE_FIELDS = [
 ].join(', ');
 
 export const useItineraryData = (itineraryId: string | null) => {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [budgetRefreshTrigger, setBudgetRefreshTrigger] = useState(0);
@@ -64,8 +67,9 @@ export const useItineraryData = (itineraryId: string | null) => {
 
     // Memory-only cache; released (and aborted) on unmount.
     const handle = request({
-      key: `itinerary:workspace:${itineraryId ?? 'first'}:${mapRefreshTrigger}`,
-      userId: null,
+      key: `itinerary:workspace:${userId ?? 'anon'}:${itineraryId ?? 'first'}:${mapRefreshTrigger}`,
+      // Private itinerary content is always owned by the authenticated user.
+      userId,
       run: async signal => {
         let query = supabase.from('itinerary').select(ITINERARY_WORKSPACE_FIELDS);
         query = itineraryId ? query.eq('id', parseInt(itineraryId)) : query.limit(1);
@@ -120,7 +124,7 @@ export const useItineraryData = (itineraryId: string | null) => {
       cancelled = true;
       handle.release();
     };
-  }, [itineraryId, mapRefreshTrigger]);
+  }, [itineraryId, mapRefreshTrigger, userId]);
 
   return {
     itineraryData,

@@ -11,13 +11,17 @@
 CREATE TABLE IF NOT EXISTS public.flight_references (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  itinerary_id uuid NOT NULL,
+  -- Canonical itinerary relationship: public.itinerary.id is a bigint identity.
+  itinerary_id bigint NOT NULL REFERENCES public.itinerary(id) ON DELETE CASCADE,
   provider text NOT NULL,
   provider_offer_id text NOT NULL,
-  mode text NOT NULL CHECK (mode IN ('test', 'live')),
-  evidence_grade text NOT NULL CHECK (evidence_grade IN ('provider_test', 'provider_live', 'estimated')),
+  -- v0.1 is reference-only by construction. 'live', 'bookable' and
+  -- 'outbound_link' are intentionally NOT permitted; widening these checks is a
+  -- separate, explicitly approved migration.
+  mode text NOT NULL DEFAULT 'test' CHECK (mode = 'test'),
+  evidence_grade text NOT NULL DEFAULT 'provider_test' CHECK (evidence_grade = 'provider_test'),
   commerce_capability text NOT NULL DEFAULT 'reference_only'
-    CHECK (commerce_capability IN ('reference_only', 'outbound_link', 'bookable')),
+    CHECK (commerce_capability = 'reference_only'),
   origin_iata text NOT NULL,
   destination_iata text NOT NULL,
   cabin_class text,
@@ -61,3 +65,10 @@ CREATE POLICY "Users update their own flight references"
 CREATE POLICY "Users delete their own flight references"
   ON public.flight_references FOR DELETE TO authenticated
   USING (auth.uid() = user_id);
+
+-- Collaborator access is deliberately NOT granted here. Whether itinerary
+-- collaborators may read or edit another member's flight references is an open
+-- product decision; owner-only policies stay in force until it is decided.
+--
+-- Application flag FLIGHT_REFERENCE_TABLE_READY stays false until this file is
+-- approved and applied.

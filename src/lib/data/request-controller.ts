@@ -5,8 +5,11 @@
  * - Private records (itineraries, profiles) are cached in memory ONLY. Never
  *   sessionStorage/localStorage. Session storage stays reserved for
  *   non-sensitive reference data (e.g. country coordinates).
- * - Cache entries are owned by a user id. A user change or logout clears
- *   everything, so one account can never read another account's cache.
+ * - Cache entries are owned by a user id. A user change or logout aborts
+ *   in-flight work and clears everything, so one account can never read
+ *   another account's cache.
+ * - Bounded: at most PRIVATE_CACHE_MAX_ENTRIES entries, each valid for at
+ *   most PRIVATE_CACHE_TTL_MS. Expired entries are dropped before reuse.
  * - Component cleanup releases its reference; when the last reference goes
  *   away while a request is still in flight, the real network request is
  *   aborted through its AbortSignal.
@@ -14,11 +17,17 @@
  *   refresh.
  */
 
+/** Hard ceiling on cached private responses. */
+export const PRIVATE_CACHE_MAX_ENTRIES = 50;
+/** Private data is never reused for longer than this. */
+export const PRIVATE_CACHE_TTL_MS = 30_000;
+
 type Entry<T = unknown> = {
   key: string;
   owner: string | null;
   refs: number;
   settled: boolean;
+  settledAt: number;
   value?: T;
   promise: Promise<T>;
   controller: AbortController;
@@ -37,6 +46,33 @@ export interface RequestHandle<T> {
 
 const drop = (entry: Entry) => {
   if (cache.get(entry.key) === entry) cache.delete(entry.key);
+};
+
+const isExpired = (entry: Entry): boolean =>
+  entry.settled && Date.now() - entry.settledAt > PRIVATE_CACHE_TTL_MS;
+
+/** Drops every settled entry whose TTL has elapsed. */
+const pruneExpired = (): void => {
+  cache.forEach(entry => {
+    if (isExpired(entry)) cache.delete(entry.key);
+  });
+};
+
+/**
+ * Keeps the cache bounded. Insertion-ordered Map: the oldest entries are
+ * evicted first, preferring settled ones so in-flight work is not cancelled.
+ */
+const enforceMaxEntries = (): void => {
+  if (cache.size <= PRIVATE_CACHE_MAX_ENTRIES) return;
+  for (const entry of Array.from(cache.values())) {
+    if (cache.size <= PRIVATE_CACHE_MAX_ENTRIES) return;
+    if (entry.settled) cache.delete(entry.key);
+  }
+  for (const entry of Array.from(cache.values())) {
+    if (cache.size <= PRIVATE_CACHE_MAX_ENTRIES) return;
+    entry.controller.abort();
+    cache.delete(entry.key);
+  }
 };
 
 /**
@@ -69,6 +105,7 @@ export const clearRequestCache = (): void => {
 export const __requestControllerState = () => ({
   size: cache.size,
   keys: Array.from(cache.keys()),
+  owner: owner ?? null,
 });
 
 export const resetRequestController = (): void => {
@@ -84,10 +121,11 @@ export function request<T>(opts: {
 }): RequestHandle<T> {
   const { key, userId, bypassCache = false, run } = opts;
   setRequestOwner(userId);
+  pruneExpired();
 
   const existing = cache.get(key) as Entry<T> | undefined;
 
-  if (existing && existing.owner === userId && !bypassCache) {
+  if (existing && existing.owner === userId && !bypassCache && !isExpired(existing)) {
     existing.refs += 1;
     return {
       promise: existing.promise,
@@ -107,6 +145,7 @@ export function request<T>(opts: {
     owner: userId,
     refs: 1,
     settled: false,
+    settledAt: 0,
     promise: undefined as unknown as Promise<T>,
     controller,
   };
@@ -114,6 +153,7 @@ export function request<T>(opts: {
   entry.promise = run(controller.signal).then(
     value => {
       entry.settled = true;
+      entry.settledAt = Date.now();
       entry.value = value;
       return value;
     },
@@ -124,6 +164,7 @@ export function request<T>(opts: {
   );
 
   cache.set(key, entry as Entry);
+  enforceMaxEntries();
   return { promise: entry.promise, fromCache: false, release: () => releaseEntry(entry) };
 }
 
