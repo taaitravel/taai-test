@@ -1,10 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { ItineraryData } from "@/types/itinerary";
 import { useMapLocationSync } from "./useMapLocationSync";
+import { guardRead } from "@/lib/data/read-guard";
+import { request, withAbort } from "@/lib/data/request-controller";
+
+/**
+ * Explicit projection — never `select('*')`.
+ * Large provider payloads (expedia_data, raw offers) are intentionally excluded.
+ */
+export const ITINERARY_WORKSPACE_FIELDS = [
+  'id',
+  'itin_id',
+  'itin_name',
+  'itin_desc',
+  'itin_date_start',
+  'itin_date_end',
+  'budget',
+  'spending',
+  'budget_rate',
+  'b_efficiency_rate',
+  'user_type',
+  'itin_locations',
+  'itin_map_locations',
+  'planned_traveler_count',
+  'creation_key',
+  'attendees',
+  'flights',
+  'hotels',
+  'activities',
+  'reservations',
+].join(', ');
 
 export const useItineraryData = (itineraryId: string | null) => {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [budgetRefreshTrigger, setBudgetRefreshTrigger] = useState(0);
@@ -12,60 +44,87 @@ export const useItineraryData = (itineraryId: string | null) => {
   const { toast } = useToast();
   const { syncMapLocations, isUpdating } = useMapLocationSync(itineraryId);
 
-  const refreshBudgetData = () => {
-    setBudgetRefreshTrigger(prev => prev + 1);
-  };
+  // Keep the latest toast callback without making it an effect dependency.
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
 
-  const refreshMapData = () => {
+  // Guards against superseded / unmounted requests.
+  const requestIdRef = useRef(0);
+
+  const refreshBudgetData = useCallback(() => {
+    setBudgetRefreshTrigger(prev => prev + 1);
+  }, []);
+
+  const refreshMapData = useCallback(() => {
     setMapRefreshTrigger(prev => prev + 1);
-  };
+  }, []);
 
   useEffect(() => {
-    const fetchItinerary = async () => {
-      try {
-        let query = supabase.from('itinerary').select('*');
-        
-        if (itineraryId) {
-          query = query.eq('id', parseInt(itineraryId));
-        } else {
-          query = query.limit(1);
-        }
-        
-        const { data, error } = await query.single();
+    const requestId = ++requestIdRef.current;
+    let cancelled = false;
 
+    guardRead(`itinerary:${itineraryId ?? 'first'}`);
+
+    // Memory-only cache; released (and aborted) on unmount.
+    const handle = request({
+      key: `itinerary:workspace:${userId ?? 'anon'}:${itineraryId ?? 'first'}:${mapRefreshTrigger}`,
+      // Private itinerary content is always owned by the authenticated user.
+      userId,
+      run: async signal => {
+        let query = supabase.from('itinerary').select(ITINERARY_WORKSPACE_FIELDS);
+        query = itineraryId ? query.eq('id', parseInt(itineraryId)) : query.limit(1);
+        const { data, error } = await withAbort(query, signal).single();
         if (error) throw error;
+        return data;
+      },
+    });
 
+    handle.promise
+      .then(data => {
+        if (cancelled || requestId !== requestIdRef.current) return;
+
+        const row = data as unknown as Record<string, unknown>;
         const transformedData: ItineraryData = {
-          ...data,
-          itin_locations: data.itin_locations as string[],
-          itin_map_locations: data.itin_map_locations as Array<{ city: string; lat: number; lng: number }>,
-          attendees: data.attendees as Array<{ id: number; name: string; email: string; avatar: string; status: string }>,
-          flights: data.flights as Array<{ airline: string; flight_number: string; departure: string; arrival: string; from: string; to: string; cost: number }>,
-          hotels: data.hotels as Array<{ name: string; city: string; check_in: string; check_out: string; nights: number; cost: number; rating: number }>,
-          activities: data.activities as Array<{ name: string; city: string; date: string; cost: number; duration: string }>,
-          reservations: data.reservations as Array<{ type: string; name: string; city: string; date: string; time: string; party_size: number }>,
+          ...(row as unknown as ItineraryData),
+          itin_locations: row.itin_locations as string[],
+          itin_map_locations: row.itin_map_locations as Array<{ city: string; lat: number; lng: number }>,
+          attendees: row.attendees as ItineraryData['attendees'],
+          flights: row.flights as ItineraryData['flights'],
+          hotels: row.hotels as ItineraryData['hotels'],
+          activities: row.activities as ItineraryData['activities'],
+          reservations: row.reservations as ItineraryData['reservations'],
         };
 
-        console.log('📊 useItineraryData - Raw data from DB:', data);
-        console.log('📊 useItineraryData - Transformed itin_map_locations:', transformedData.itin_map_locations);
-        console.log('📊 useItineraryData - Map locations count:', transformedData.itin_map_locations?.length || 0);
+        // Metadata only — never log full itinerary/provider payloads.
+        if (import.meta.env.DEV) {
+          console.debug('[useItineraryData] loaded', {
+            id: transformedData.id,
+            mapLocations: transformedData.itin_map_locations?.length || 0,
+          });
+        }
 
         setItineraryData(transformedData);
-        refreshBudgetData();
-      } catch (error) {
-        console.error('Error fetching itinerary:', error);
-        toast({
+        setBudgetRefreshTrigger(prev => prev + 1);
+      })
+      .catch(error => {
+        if (cancelled || requestId !== requestIdRef.current) return;
+        if ((error as Error)?.name === 'AbortError') return;
+        console.error('Error fetching itinerary:', (error as Error)?.message);
+        toastRef.current({
           title: "Error",
           description: "Failed to load itinerary data",
           variant: "destructive",
         });
-      } finally {
-        setLoading(false);
-      }
-    };
+      })
+      .finally(() => {
+        if (!cancelled && requestId === requestIdRef.current) setLoading(false);
+      });
 
-    fetchItinerary();
-  }, [itineraryId, toast, mapRefreshTrigger]);
+    return () => {
+      cancelled = true;
+      handle.release();
+    };
+  }, [itineraryId, mapRefreshTrigger, userId]);
 
   return {
     itineraryData,

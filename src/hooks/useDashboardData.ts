@@ -1,7 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { guardRead } from "@/lib/data/read-guard";
+import { request, invalidateRequests, withAbort } from "@/lib/data/request-controller";
+import type { DashboardItinerarySummary, DashboardProfileSummary } from "@/types/dashboard-summary";
+
 
 export type SortOption = 'start_date' | 'created_at' | 'end_date';
 
@@ -11,6 +15,50 @@ interface FilterOptions {
   dateTo?: string;
 }
 
+/**
+ * Explicit lightweight projection for dashboard/list surfaces.
+ * Excludes attendees, flights, hotels, activities, reservations, provider
+ * payloads (expedia_data) and contact PII. Full itinerary content is loaded
+ * only after an itinerary is opened.
+ */
+export const DASHBOARD_ITINERARY_FIELDS = [
+  'id',
+  'itin_id',
+  'itin_name',
+  'itin_desc',
+  'itin_date_start',
+  'itin_date_end',
+  'itin_locations',
+  'itin_map_locations',
+  'budget',
+  'spending',
+  'budget_rate',
+  'b_efficiency_rate',
+  'user_type',
+  'planned_traveler_count',
+  'images',
+  'created_at',
+].join(', ');
+
+/** Lightweight profile projection — no email, no cell/phone. */
+export const USER_PROFILE_FIELDS = [
+  'userid',
+  'username',
+  'first_name',
+  'last_name',
+  'avatar_url',
+  'user_type',
+  'date_format',
+  'currency',
+  'theme_preference',
+  'countries_visited',
+  'flight_freq',
+  'avg_spending',
+  'taai_rating',
+  'created_at',
+].join(', ');
+
+
 export const useDashboardData = (filterOptions?: FilterOptions) => {
   const { user } = useAuth();
   const [activeItineraries, setActiveItineraries] = useState<any[]>([]);
@@ -18,30 +66,26 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const lastNotificationTime = useRef<number>(0);
 
-  useEffect(() => {
-    if (user) {
-      fetchUserItineraries();
-      fetchUserProfile();
-    }
-  }, [user, filterOptions]);
+  // Primitive dependencies only — the filterOptions object identity is ignored.
+  const userId = user?.id ?? null;
+  const sortBy: SortOption = filterOptions?.sortBy || 'start_date';
+  const dateFrom = filterOptions?.dateFrom ?? null;
+  const dateTo = filterOptions?.dateTo ?? null;
 
-  const fetchUserItineraries = async () => {
-    try {
+  const requestIdRef = useRef(0);
+  const releaseRef = useRef<(() => void) | null>(null);
+
+  const fetchItineraries = useCallback(
+    async (signature: string, signal: AbortSignal) => {
+      guardRead(`itinerary:list:${signature}`);
       let query = supabase
         .from('itinerary')
-        .select('*')
-        .eq('userid', user?.id);
+        .select(DASHBOARD_ITINERARY_FIELDS)
+        .eq('userid', userId!);
 
-      // Apply date filtering if specified
-      if (filterOptions?.dateFrom) {
-        query = query.gte('itin_date_start', filterOptions.dateFrom);
-      }
-      if (filterOptions?.dateTo) {
-        query = query.lte('itin_date_end', filterOptions.dateTo);
-      }
+      if (dateFrom) query = query.gte('itin_date_start', dateFrom);
+      if (dateTo) query = query.lte('itin_date_end', dateTo);
 
-      // Apply sorting - default to start_date
-      const sortBy = filterOptions?.sortBy || 'start_date';
       switch (sortBy) {
         case 'start_date':
           query = query.order('itin_date_start', { ascending: false, nullsFirst: false });
@@ -54,71 +98,106 @@ export const useDashboardData = (filterOptions?: FilterOptions) => {
           break;
       }
 
-      const { data, error } = await query;
-
+      const { data, error } = await withAbort(query, signal);
       if (error) throw error;
 
-      // Return full itinerary data with original field names
-      const transformedItineraries = data.map(item => ({
+      return (data as any[]).map((item): DashboardItinerarySummary => ({
         id: item.id,
-        itin_id: item.itin_id,
+        itin_id: item.itin_id ?? null,
         itin_name: item.itin_name || 'Untitled Trip',
-        itin_desc: item.itin_desc,
-        itin_date_start: item.itin_date_start,
-        itin_date_end: item.itin_date_end,
+        itin_desc: item.itin_desc ?? null,
+        itin_date_start: item.itin_date_start ?? null,
+        itin_date_end: item.itin_date_end ?? null,
         itin_locations: Array.isArray(item.itin_locations) ? item.itin_locations : [],
         itin_map_locations: Array.isArray(item.itin_map_locations) ? item.itin_map_locations : [],
+        cover_image: Array.isArray(item.images)
+          ? (item.images[0] ?? null)
+          : (typeof item.images === 'string' ? item.images : null),
         budget: item.budget || 0,
         spending: item.spending || 0,
-        budget_rate: item.budget_rate,
-        b_efficiency_rate: item.b_efficiency_rate,
-        user_type: item.user_type,
-        attendees: Array.isArray(item.attendees) ? item.attendees : [],
-        flights: Array.isArray(item.flights) ? item.flights : [],
-        hotels: Array.isArray(item.hotels) ? item.hotels : [],
-        activities: Array.isArray(item.activities) ? item.activities : [],
-        reservations: Array.isArray(item.reservations) ? item.reservations : [],
-        expedia_data: item.expedia_data,
-        images: item.images,
-        created_at: item.created_at,
-        userid: item.userid
+        budget_rate: item.budget_rate ?? null,
+        b_efficiency_rate: item.b_efficiency_rate ?? null,
+        planned_traveler_count: item.planned_traveler_count ?? null,
+        user_type: item.user_type ?? null,
+        created_at: item.created_at ?? null,
       }));
 
-      setActiveItineraries(transformedItineraries);
-    } catch (error) {
-      console.error('Error fetching itineraries:', error);
-      const now = Date.now();
-      if (now - lastNotificationTime.current > 120000) {
-        toast.error('Failed to load your trips');
-        lastNotificationTime.current = now;
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [userId, sortBy, dateFrom, dateTo]
+  );
 
-  const fetchUserProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('userid', user?.id)
-        .single();
-
+  const fetchProfile = useCallback(
+    async (signal: AbortSignal) => {
+      guardRead(`users:profile:${userId ?? 'anon'}`);
+      const { data, error } = await withAbort(
+        supabase.from('users').select(USER_PROFILE_FIELDS).eq('userid', userId!),
+        signal
+      ).single();
       if (error) throw error;
-      setUserProfile(data);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
+      return data as unknown as DashboardProfileSummary;
+
+    },
+    [userId]
+  );
+
+  const runFetch = useCallback(
+    (force: boolean) => {
+      if (!userId) return;
+      const signature = `${userId}|${sortBy}|${dateFrom ?? ''}|${dateTo ?? ''}`;
+      const requestId = ++requestIdRef.current;
+
+      // Private records: in-memory cache only, owned by this user id.
+      const handle = request({
+        key: `dashboard:${signature}`,
+        userId,
+        bypassCache: force,
+        run: async signal =>
+          Promise.all([fetchItineraries(signature, signal), fetchProfile(signal)]),
+      });
+
+      releaseRef.current?.();
+      releaseRef.current = handle.release;
+
+      handle.promise
+        .then(([itineraries, profile]) => {
+          if (requestId !== requestIdRef.current) return;
+          setActiveItineraries(itineraries);
+          setUserProfile(profile);
+        })
+        .catch(error => {
+          if (requestId !== requestIdRef.current) return;
+          if ((error as Error)?.name === 'AbortError') return;
+          console.error('Error loading dashboard data:', (error as Error)?.message);
+          const now = Date.now();
+          if (now - lastNotificationTime.current > 120000) {
+            toast.error('Failed to load your trips');
+            lastNotificationTime.current = now;
+          }
+        })
+        .finally(() => {
+          if (requestId === requestIdRef.current) setLoading(false);
+        });
+    },
+    [userId, sortBy, dateFrom, dateTo, fetchItineraries, fetchProfile]
+  );
+
+  useEffect(() => {
+    runFetch(false);
+    return () => {
+      // Supersede this consumer and abort the network call if nothing else needs it.
+      requestIdRef.current += 1;
+      releaseRef.current?.();
+      releaseRef.current = null;
+    };
+  }, [runFetch]);
 
   return {
     activeItineraries,
     loading,
     userProfile,
     refetchData: () => {
-      fetchUserItineraries();
-      fetchUserProfile();
-    }
+      invalidateRequests(`dashboard:${userId ?? ''}`);
+      runFetch(true);
+    },
   };
 };
