@@ -16,11 +16,22 @@ export interface CloneRequest {
   startDate: string; // ISO yyyy-mm-dd
 }
 
+export interface ClonedPlace {
+  name: string;
+  kind: string;
+  note: string;
+  /** Descriptive planning hints are copied; prices never are. */
+  time?: string;
+  area?: string;
+}
+
 export interface ClonedDay {
   day: number;
+  /** Days since the first day of the trip — relative spacing is preserved. */
+  offset: number;
   date: string;
   city: string;
-  places: Array<{ name: string; kind: string; note: string }>;
+  places: ClonedPlace[];
 }
 
 export interface CloneResult {
