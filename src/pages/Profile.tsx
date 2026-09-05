@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPen, Settings, Compass, Bell } from "lucide-react";
+import { UserPen, Settings, Compass, Bell, Map } from "lucide-react";
+import { ProfileTripsSection } from "@/components/profile/ProfileTripsSection";
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { EditProfileSection } from "@/components/profile/EditProfileSection";
 import { PreferencesSection } from "@/components/profile/PreferencesSection";
