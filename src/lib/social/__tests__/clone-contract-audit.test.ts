@@ -15,7 +15,7 @@ import { INVITATION_CONTRACT_READY } from '../invitation-contract';
 import { SLOT_RPC_READY, evaluateSlots } from '../active-slots';
 import { countConsumedSlots, effectiveLifecycleState, isSlotConsuming } from '../lifecycle';
 import { PUBLIC_CARD_FIELDS } from '../projections';
-import { DISCOVER_ROWS } from '../mock-discover';
+import { DISCOVER_ROWS, getMockItineraryDetail } from '../mock-discover';
 
 const readProposal = async (): Promise<string> => {
   const fs = await import('node:fs/promises');
@@ -23,7 +23,7 @@ const readProposal = async (): Promise<string> => {
 };
 
 const OWNER = 'user-a';
-const source = DISCOVER_ROWS[0];
+const source = getMockItineraryDetail(DISCOVER_ROWS[0].publicSlug)!;
 
 const rows = (n: number): SlotRow[] =>
   Array.from({ length: n }, (_, i) => ({
