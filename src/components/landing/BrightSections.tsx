@@ -225,7 +225,7 @@ export const BrightSections = () => {
         <div className="tbs-wrap">
           <span className="tbs-mono">arrival</span>
           <h2>
-            Your next trip, <b>already landing.</b>
+            Where travel <b>meets technology.</b>
           </h2>
           <p>Join the travel workspace built for planning, booking, splitting and remembering.</p>
           <div className="tbs-actions" style={{ justifyContent: "center" }}>
