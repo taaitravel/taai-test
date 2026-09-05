@@ -1,4 +1,8 @@
+import taaiWordmark from "@/assets/taai-wordmark.png.asset.json";
+
 export const LOGO_URL = "/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png";
+/** Tight long wordmark (no padding) — use where the logo must read clearly. */
+export const LOGO_WORDMARK_URL = taaiWordmark.url;
 
 export const AUTHENTICATED_MENU_ITEMS = [
   { label: "Home", path: "/home" },

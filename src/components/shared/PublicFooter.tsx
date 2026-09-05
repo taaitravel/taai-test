@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { LOGO_URL } from "@/lib/constants";
+import { LOGO_WORDMARK_URL } from "@/lib/constants";
 
 /**
  * Global public footer — taai bright edition.
@@ -22,7 +22,7 @@ const CSS = `
 .taai-foot-in{max-width:1320px;margin:0 auto;padding:0 40px;display:flex;justify-content:space-between;
   align-items:center;gap:24px;flex-wrap:wrap}
 .taai-foot-brand{display:flex;flex-direction:column;gap:10px}
-.taai-foot-brand img{height:24px;width:auto;display:block}
+.taai-foot-brand img{height:54px;width:auto;max-width:100%;object-fit:contain;display:block}
 .taai-foot-tag{font-family:var(--tf-mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
   color:var(--tf-ink3)}
 .taai-foot nav{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;justify-content:flex-end}
@@ -35,6 +35,7 @@ const CSS = `
   .taai-foot-in{flex-direction:column;align-items:flex-start;gap:20px;padding:0 24px}
   .taai-foot nav{justify-content:flex-start}
   .taai-foot-legal{padding:18px 24px 0}
+  .taai-foot-brand img{height:42px}
 }
 `;
 
@@ -72,7 +73,7 @@ export const PublicFooter = ({ links = DEFAULT_LINKS }: PublicFooterProps) => {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="taai-foot-in">
         <div className="taai-foot-brand">
-          <img src={LOGO_URL} alt="taai travel" />
+          <img src={LOGO_WORDMARK_URL} alt="taai travel" />
           <span className="taai-foot-tag">taai.travel · travel agent · affiliate · intelligence</span>
         </div>
         <nav aria-label="Footer">
