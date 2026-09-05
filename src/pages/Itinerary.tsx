@@ -120,7 +120,7 @@ const Itinerary = () => {
         }
       }
 
-      const { error } = await supabase.from('itinerary').update({ [type]: updated, itin_map_locations: newMapLocations }).eq('id', itineraryData.id);
+      const { error } = await supabase.from('itinerary').update({ [type]: updated, itin_map_locations: newMapLocations } as any).eq('id', itineraryData.id);
       if (error) throw error;
       setEditOpen(false);
       refreshMapData();
@@ -164,7 +164,7 @@ const Itinerary = () => {
         if (error) throw error;
       } else {
         const updated = items.filter((_, i) => i !== index);
-        const { error } = await supabase.from('itinerary').update({ [itemType]: updated }).eq('id', itineraryData.id);
+        const { error } = await supabase.from('itinerary').update({ [itemType]: updated } as any).eq('id', itineraryData.id);
         if (error) throw error;
       }
       refreshMapData();

@@ -123,7 +123,7 @@ interface ExternalBookingsDatabase {
   };
 }
 
-export const externalBookingsClient = supabase as unknown as SupabaseClient<ExternalBookingsDatabase>;
+export const externalBookingsClient = supabase as unknown as SupabaseClient<any>;
 
 export const DEFAULT_EXTERNAL_BOOKING_FORM_VALUES: ExternalBookingFormValues = {
   category: 'flight',
