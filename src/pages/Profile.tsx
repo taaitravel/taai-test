@@ -66,6 +66,10 @@ const Profile = () => {
             <PreferencesSection />
           </TabsContent>
 
+          <TabsContent value="trips">
+            <ProfileTripsSection />
+          </TabsContent>
+
           <TabsContent value="notifications">
             <NotificationPreferencesSection />
           </TabsContent>
