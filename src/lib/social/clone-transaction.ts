@@ -66,9 +66,41 @@ export class CloneTransactionSimulator {
   }
 
   /**
+   * Direct itinerary creation (no clone). Proves audit item 1: this path takes
+   * the SAME per-user lock and the SAME slot check as the clone RPC, exactly as
+   * the BEFORE INSERT trigger does in SQL.
+   */
+  async createDirect(
+    userId: string | null,
+    lifecycle: ItineraryLifecycleState = 'active'
+  ): Promise<CloneOutcome> {
+    if (!userId) {
+      return { ok: false, reason: 'unauthenticated', message: 'Sign in to create a trip.' };
+    }
+    await this.lock(userId);
+    const before = this.snapshot();
+    try {
+      const used = countConsumedSlots(
+        this.rows.filter(r => r.ownerId === userId).map(r => ({ lifecycle: r.lifecycle }))
+      );
+      if (used >= FREE_ACTIVE_ITINERARY_LIMIT) {
+        return { ok: false, reason: 'limit_reached', message: ACTIVE_LIMIT_MESSAGE };
+      }
+      this.rows.push({ id: `direct-${this.rows.length + 1}`, ownerId: userId, lifecycle });
+      return { ok: true };
+    } catch (error) {
+      this.rows = before;
+      return { ok: false, reason: 'clone_failed', message: (error as Error).message };
+    } finally {
+      this.unlock(userId);
+    }
+  }
+
+  /**
    * Mirrors the SQL: authenticate → lock → count → insert → commit, with a full
    * rollback (no rows kept) whenever any step throws.
    */
+
   async clone(
     userId: string | null,
     source: Parameters<typeof cloneItinerary>[0],
