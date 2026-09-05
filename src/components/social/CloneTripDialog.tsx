@@ -118,6 +118,10 @@ export const CloneTripDialog = ({ open, onOpenChange, itinerary, hasAvailableSlo
             <p className="text-xs text-muted-foreground">
               Not copied: {result.excluded.join(', ').replace(/_/g, ' ')}.
             </p>
+            <p className="text-xs text-muted-foreground">
+              Inviting friends to your new copy is coming next — the original travelers are never
+              carried over.
+            </p>
           </div>
         )}
 
@@ -131,16 +135,7 @@ export const CloneTripDialog = ({ open, onOpenChange, itinerary, hasAvailableSlo
             </Button>
           )}
           {hasAvailableSlot && result && (
-            <Button
-              className="flex-1 rounded-full"
-              onClick={() =>
-                emitSocialEvent(
-                  buildSocialEvent(MINERVA_SOCIAL_EVENT_IDS.cloneInvitationStarted, 'clone_flow', {
-                    itinerarySlug: itinerary.publicSlug,
-                  })
-                )
-              }
-            >
+            <Button className="flex-1 rounded-full" disabled title="Invitations open once sharing is switched on">
               <UserPlus className="mr-2 h-4 w-4" /> Invite friends
             </Button>
           )}
