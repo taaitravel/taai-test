@@ -158,7 +158,7 @@ export const ItinerarySelector: React.FC<ItinerarySelectorProps> = ({
 
       const { error: updateError } = await supabase
         .from('itinerary')
-        .update({ [fieldName]: updatedItems } as any)
+        .update({ [fieldName]: updatedItems })
         .eq('id', parseInt(selectedItineraryId))
         .eq('userid', user.id);
 
