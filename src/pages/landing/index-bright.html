@@ -1536,6 +1536,8 @@ body.ready .rise{opacity:1;transform:none}
   function onScroll(){
     nav.classList.toggle('scrolled',window.scrollY>40);
     var jr=journeyEl.getBoundingClientRect();
+    /* shrink the wordmark 30% once the "01 · search" journey section is reached */
+    nav.classList.toggle('nav-min', jr.top<=140 && jr.bottom>0);
     if(jr.bottom<window.innerHeight*.55&&current>0) setScene(12);
   }
   window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
