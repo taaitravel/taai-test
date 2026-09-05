@@ -1,0 +1,152 @@
+-- ============================================================================
+-- PROPOSAL-LEVEL TESTS — NOT APPLIED, NOT A MIGRATION, NOT RUN.
+-- Adversarial checks for supabase/schema-proposals/social-clone-transaction.sql
+-- Run only in a throwaway database after that proposal is approved.
+-- Each block states the expected outcome; a differing outcome is a defect.
+-- ============================================================================
+
+-- --------------------------------------------------------------------------
+-- T1. Two concurrent direct creates competing for the final (3rd) slot.
+-- Session A and Session B interleave; exactly ONE must commit.
+-- --------------------------------------------------------------------------
+-- session A:
+--   begin;
+--   insert into public.itinerary (user_id, lifecycle_state, end_date, title)
+--   values ('11111111-1111-1111-1111-111111111111', 'active', current_date + 5, 'A');
+--   -- holds pg_advisory_xact_lock(itinerary_slot_lock_key(user)) until commit
+-- session B (concurrently, same user, 2 slots already used):
+--   begin;
+--   insert into public.itinerary (...) values (... 'B');
+--   -- BLOCKS on the same advisory key
+-- session A: commit;            -- expect: success, 3 slots used
+-- session B: (unblocks)         -- expect: ERROR ACTIVE_LIMIT_REACHED (P0001)
+
+-- --------------------------------------------------------------------------
+-- T2. Direct create racing the clone RPC for the final slot.
+-- Both paths take the SAME lock key, so one must fail.
+-- --------------------------------------------------------------------------
+-- session A: begin; insert into public.itinerary (...);          -- takes lock
+-- session B: begin; select public.clone_public_itinerary('taai-lisbon', current_date + 30);
+--   -- expect: blocks, then ERROR ACTIVE_LIMIT_REACHED after A commits
+-- Reverse order must behave symmetrically.
+
+-- --------------------------------------------------------------------------
+-- T3. Insert trigger must not double count the proposed row.
+-- With 2 slots used, one more insert must SUCCEED (2 existing + new = 3).
+-- With 3 slots used, the next insert must FAIL.
+-- --------------------------------------------------------------------------
+-- expect: select public.count_active_slots(u) = 3 after the successful insert.
+
+-- --------------------------------------------------------------------------
+-- T4. State-escalation bypass must be blocked (v0.2 update trigger).
+-- --------------------------------------------------------------------------
+-- with 3 active trips:
+--   insert into public.itinerary (... lifecycle_state 'archived' ...);  -- allowed
+--   update public.itinerary set lifecycle_state = 'active' where id = <that row>;
+--   -- expect: ERROR ACTIVE_LIMIT_REACHED (P0001)
+-- and the reverse must be free:
+--   update public.itinerary set lifecycle_state = 'archived' where id = <an active row>;
+--   -- expect: success, count_active_slots drops by 1
+
+-- --------------------------------------------------------------------------
+-- T5. Expired active trips free their slot (one authoritative rule).
+-- --------------------------------------------------------------------------
+-- given 3 rows lifecycle_state='active' with end_date = current_date - 1:
+--   expect select public.count_active_slots(u) = 0;
+--   expect select public.itinerary_effective_state('active', current_date - 1) = 'past';
+--   expect a new insert to SUCCEED.
+
+-- --------------------------------------------------------------------------
+-- T6. Owner cannot be supplied or changed.
+-- --------------------------------------------------------------------------
+-- as authenticated user U1:
+--   insert into public.itinerary (user_id, ...) values ('<U2 uuid>', ...);
+--   -- expect: ERROR new row violates row-level security policy
+--   update public.itinerary set user_id = '<U2 uuid>' where id = <own row>;
+--   -- expect: ERROR OWNER_IMMUTABLE (42501) / RLS violation
+--   select public.clone_public_itinerary('taai-lisbon', current_date + 10);
+--   -- expect: inserted row user_id = auth.uid() of U1, visibility 'private'
+-- clone_public_itinerary has NO owner parameter — no injection surface exists.
+
+-- --------------------------------------------------------------------------
+-- T7. Unrelated authenticated user cannot read base itinerary rows.
+-- --------------------------------------------------------------------------
+-- as U2: select count(*) from public.itinerary where user_id = '<U1 uuid>';
+--   -- expect: 0 rows (RLS), never an error-free full read
+-- as anon: select count(*) from public.itinerary;
+--   -- expect: permission denied for table itinerary (no grant to anon)
+
+-- --------------------------------------------------------------------------
+-- T8. Public projection tables reject every client write.
+-- --------------------------------------------------------------------------
+-- as anon and as authenticated, each of the following must be rejected:
+--   insert into public.itinerary_public_card (...) values (...);
+--   update public.itinerary_public_card set clone_count = 9999;
+--   delete from public.itinerary_public_card;
+--   insert into public.itinerary_public_day (...) values (...);
+--   update public.itinerary_public_day set city = 'x';
+--   delete from public.itinerary_public_day;
+--   -- expect: permission denied (no grant) for all six
+-- and reads must be filtered:
+--   select count(*) from public.itinerary_public_card
+--   where listing_status <> 'listed' or moderation_status <> 'ok'
+--      or published_at is null or unpublished_at is not null;
+--   -- expect: 0
+
+-- --------------------------------------------------------------------------
+-- T9. Clone of an unavailable source.
+-- --------------------------------------------------------------------------
+-- expect ERROR SOURCE_NOT_AVAILABLE (P0002) for each of:
+--   * slug that does not exist
+--   * card with listing_status = 'unlisted'
+--   * card with moderation_status in ('under_review','flagged','unpublished','removed')
+--   * card with published_at is null
+--   * card with unpublished_at is not null
+-- and expect no side effects: itinerary count unchanged, clone_count unchanged.
+
+-- --------------------------------------------------------------------------
+-- T10. Share tokens: revoked, expired, unknown.
+-- --------------------------------------------------------------------------
+-- select public.resolve_share_token('<raw token, revoked>');    -- expect null
+-- select public.resolve_share_token('<raw token, expired>');    -- expect null
+-- select public.resolve_share_token('<never issued>');          -- expect null
+-- select public.resolve_share_token('<valid raw token>');       -- expect the slug only
+-- as anon/authenticated: select * from public.itinerary_share_token;
+--   -- expect: permission denied (hashes never reachable from a client)
+-- unpublishing must revoke: select public.unpublish_itinerary_projection(<id>);
+--   then resolve_share_token('<previously valid token>') -- expect null
+
+-- --------------------------------------------------------------------------
+-- T11. search_path shadowing.
+-- --------------------------------------------------------------------------
+-- create schema evil;
+-- create function evil.count_active_slots(uuid) returns integer
+--   language sql as $$ select 0 $$;
+-- create table evil.itinerary_public_card (public_slug text);
+-- set search_path = evil, public;
+-- select public.clone_public_itinerary('taai-lisbon', current_date + 10);
+--   -- expect: real limit still enforced and the real card table used, because
+--   -- every function pins `set search_path = ''` and fully qualifies relations.
+-- Also assert none of the proposal's functions is missing a pinned search_path:
+--   select p.proname from pg_proc p
+--   join pg_namespace n on n.oid = p.pronamespace
+--   where n.nspname = 'public'
+--     and p.proname in ('lifecycle_consumes_slot','itinerary_effective_state',
+--                       'count_active_slots','itinerary_slot_lock_key',
+--                       'resolve_share_token','publish_itinerary_projection',
+--                       'unpublish_itinerary_projection',
+--                       'sync_projection_on_visibility_change',
+--                       'clone_public_itinerary','reserve_active_itinerary_slot',
+--                       'reserve_active_itinerary_slot_on_update')
+--     and (p.proconfig is null
+--          or not exists (select 1 from unnest(p.proconfig) c where c like 'search_path=%'));
+--   -- expect: 0 rows
+
+-- --------------------------------------------------------------------------
+-- T12. Execute privileges.
+-- --------------------------------------------------------------------------
+-- select has_function_privilege('anon',   'public.clone_public_itinerary(text,date)', 'execute');  -- expect false
+-- select has_function_privilege('public', 'public.clone_public_itinerary(text,date)', 'execute');  -- expect false
+-- select has_function_privilege('authenticated', 'public.clone_public_itinerary(text,date)', 'execute'); -- expect true
+-- same expectations for resolve_share_token, publish_itinerary_projection,
+-- unpublish_itinerary_projection and count_active_slots.

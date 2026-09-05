@@ -68,13 +68,40 @@ const SLOT_STATES = new Set<ItineraryLifecycleState>(
 /** States that consume one of the free active slots. */
 export const SLOT_CONSUMING_STATES = [...SLOT_STATES] as ItineraryLifecycleState[];
 
+const todayIso = (): string => new Date().toISOString().slice(0, 10);
+
+/**
+ * AUTHORITATIVE RULE (mirrors public.itinerary_effective_state): an 'active'
+ * trip whose end date has already passed is treated as 'past' everywhere — it
+ * frees its slot without any row being rewritten. Every other state is used
+ * as stored.
+ */
+export const effectiveLifecycleState = (
+  lifecycle: ItineraryLifecycleState | undefined,
+  endDate?: string | null,
+  today: string = todayIso()
+): ItineraryLifecycleState => {
+  const state = lifecycle ?? 'active';
+  if (state === 'active' && endDate && endDate < today) return 'past';
+  return state;
+};
+
 export const isSlotConsuming = (
   lifecycle: ItineraryLifecycleState | undefined,
-  ownedByRequester = true
-): boolean => ownedByRequester && SLOT_STATES.has(lifecycle ?? 'active');
+  ownedByRequester = true,
+  endDate?: string | null,
+  today: string = todayIso()
+): boolean =>
+  ownedByRequester && SLOT_STATES.has(effectiveLifecycleState(lifecycle, endDate, today));
 
 /** Collaborated (non-owned) trips never consume the collaborator's slots. */
 export const countConsumedSlots = (
-  itineraries: Array<{ lifecycle?: ItineraryLifecycleState; owned?: boolean }>
+  itineraries: Array<{
+    lifecycle?: ItineraryLifecycleState;
+    owned?: boolean;
+    endDate?: string | null;
+  }>,
+  today: string = todayIso()
 ): number =>
-  itineraries.filter(i => isSlotConsuming(i.lifecycle, i.owned !== false)).length;
+  itineraries.filter(i => isSlotConsuming(i.lifecycle, i.owned !== false, i.endDate, today)).length;
+

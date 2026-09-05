@@ -51,15 +51,25 @@ export const LIMIT_REACHED_ACTIONS = [
   { id: 'upgrade', label: 'Upgrade plan — coming soon', to: '/subscription', disabled: true },
 ] as const;
 
-/** Pure helper: bookmarks, archived, past and non-owned itineraries never count. */
+/**
+ * Pure helper: bookmarks, archived, past and non-owned itineraries never count.
+ * An 'active' trip whose end date has passed counts as past (same rule as
+ * public.lifecycle_consumes_slot).
+ */
 export const evaluateSlots = (
-  itineraries: Array<{ lifecycle?: ItineraryLifecycleState; owned?: boolean }>,
-  allowed = FREE_ACTIVE_ITINERARY_LIMIT
+  itineraries: Array<{
+    lifecycle?: ItineraryLifecycleState;
+    owned?: boolean;
+    endDate?: string | null;
+  }>,
+  allowed = FREE_ACTIVE_ITINERARY_LIMIT,
+  today?: string
 ): SlotCheck => {
-  const used = countConsumedSlots(itineraries);
+  const used = today ? countConsumedSlots(itineraries, today) : countConsumedSlots(itineraries);
   return used >= allowed
     ? { ok: false, used, allowed, message: ACTIVE_LIMIT_MESSAGE }
     : { ok: true, used, allowed };
 };
+
 
 export { ACTIVE_LIMIT_MESSAGE, FREE_ACTIVE_ITINERARY_LIMIT };

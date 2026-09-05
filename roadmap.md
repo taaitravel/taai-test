@@ -26,3 +26,8 @@
 
 ## Dashboard Discover placement (requested 2026-09-05)
 - [x] Move "Trips you can make your own" below Your Trips, two-panel stacked-card format (taai + featured) with same scroll controls
+
+## Social clone contract audit (requested 2026-09-05)
+- [x] Adversarial security + concurrency audit of the unapplied clone contract (docs/social/clone-contract-audit.md)
+- [ ] Reconcile proposed base-table RLS with live policies before applying (blocked: backend schema unavailable)
+- [ ] Define moderation workflow allowed to set moderation_status = ok
