@@ -38,10 +38,8 @@ export const DashboardContent = () => {
         <PendingInvitationsCard />
       </div>
 
-      {/* Discover entry point */}
-      <div className="mb-8">
-        <DiscoverStrip />
-      </div>
+
+
 
 
       {/* Enhanced Stats Cards with Charts */}
@@ -67,6 +65,12 @@ export const DashboardContent = () => {
           />
         </div>
       </div>
+
+      {/* Discover entry point — below Your Trips */}
+      <div className="mt-8">
+        <DiscoverStrip />
+      </div>
+
     </div>
   );
 };
