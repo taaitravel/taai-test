@@ -1455,7 +1455,9 @@ body.ready .rise{opacity:1;transform:none}
   var STATUS=['Ready','Ready','Comparing','Inviting','Planning','Booking','Booking','Booking','Holding','Live','Balancing','14 trips','Ready'];
 
   var current=0, lastView='', lastMode='';
+  function setTxt(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; }
   function setScene(n){
+
     if(n===current) return;
     var forward=n>current, jump=Math.abs(n-current)>1;
     current=n;
