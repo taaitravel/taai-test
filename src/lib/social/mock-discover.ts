@@ -455,6 +455,13 @@ export const DISCOVER_ROWS: DiscoverRow[] = [
     subtitle: 'Hand-picked traveler itineraries',
     cards: MOCK_CARDS.filter(c => c.curatedBy === 'community'),
   },
+  {
+    id: 'trending',
+    title: 'Trending',
+    subtitle: 'Most added to travelers’ own trips this month',
+    // Same six synthetic projections, ranked — no extra payloads are loaded.
+    cards: [...MOCK_CARDS].sort((a, b) => b.cloneCount - a.cloneCount).slice(0, 4),
+  },
 ];
 
 export const DISCOVER_PAGE_SIZE = 6;
