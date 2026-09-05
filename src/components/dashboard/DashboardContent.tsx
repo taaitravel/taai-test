@@ -65,6 +65,12 @@ export const DashboardContent = () => {
           />
         </div>
       </div>
+
+      {/* Discover entry point — below Your Trips */}
+      <div className="mt-8">
+        <DiscoverStrip />
+      </div>
+
     </div>
   );
 };
