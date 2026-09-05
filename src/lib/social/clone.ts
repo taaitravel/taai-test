@@ -77,12 +77,28 @@ export const cloneItinerary = (
     throw new Error('A start date is required before cloning.');
   }
 
-  const days: ClonedDay[] = source.days.map(day => ({
-    day: day.day,
-    date: addDays(request.startDate, day.day - 1),
-    city: day.city,
-    places: day.places.map(p => ({ name: p.name, kind: p.kind, note: p.note })),
-  }));
+  // Relative spacing: gaps between source days are preserved exactly, even when
+  // the source day numbers are not contiguous.
+  const firstDay = source.days.length ? Math.min(...source.days.map(d => d.day)) : 1;
+
+  const days: ClonedDay[] = source.days.map(day => {
+    const offset = day.day - firstDay;
+    return {
+      day: day.day,
+      offset,
+      date: addDays(request.startDate, offset),
+      city: day.city,
+      places: day.places.map(p => ({
+        name: p.name,
+        kind: p.kind,
+        note: p.note,
+        ...(p.time ? { time: p.time } : {}),
+        ...(p.area ? { area: p.area } : {}),
+      })),
+    };
+  });
+
+  const lastOffset = days.length ? days[days.length - 1].offset : 0;
 
   return {
     visibility: 'private',
@@ -91,7 +107,7 @@ export const cloneItinerary = (
     summary: source.summary,
     destinations: [...source.destinations],
     startDate: request.startDate,
-    endDate: addDays(request.startDate, source.dayCount - 1),
+    endDate: addDays(request.startDate, lastOffset),
     days,
     sourceItinerarySlug: source.publicSlug,
     sourceAuthorSlug: source.author.slug,
