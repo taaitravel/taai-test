@@ -1455,7 +1455,9 @@ body.ready .rise{opacity:1;transform:none}
   var STATUS=['Ready','Ready','Comparing','Inviting','Planning','Booking','Booking','Booking','Holding','Live','Balancing','14 trips','Ready'];
 
   var current=0, lastView='', lastMode='';
+  function setTxt(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; }
   function setScene(n){
+
     if(n===current) return;
     var forward=n>current, jump=Math.abs(n-current)>1;
     current=n;
@@ -1477,8 +1479,8 @@ body.ready .rise{opacity:1;transform:none}
       lastView=S.view;
       dviews.forEach(function(v){ v.classList.toggle('on', v.dataset.view===S.view); });
     }
-    document.getElementById('devTtl').textContent=TITLES[S.view]||'taai';
-    document.getElementById('devSt').textContent=STATUS[n]||'Ready';
+    setTxt('devTtl', TITLES[S.view]||'taai');
+    setTxt('devSt', STATUS[n]||'Ready');
 
     frags.classList.toggle('on', n===1);
     frags.classList.toggle('gone', n>1);
@@ -1486,10 +1488,11 @@ body.ready .rise{opacity:1;transform:none}
     /* holder chip */
     var c=CONTRIB[n];
     var who = c? c.who : (n===4?'miles':'ana');
-    document.getElementById('hlAv').textContent=P[who].i;
-    document.getElementById('hlNm').textContent=P[who].n;
-    document.getElementById('hlRl').textContent=P[who].r;
-    document.getElementById('hlCnt').textContent = c? (c.items.length+' to add') : 'planning';
+    setTxt('hlAv', P[who].i);
+    setTxt('hlNm', P[who].n);
+    setTxt('hlRl', P[who].r);
+    setTxt('hlCnt', c? (c.items.length+' to add') : 'planning');
+
 
     /* per-view work */
     if(S.view==='search') runSearch(n); else clearTimers();
