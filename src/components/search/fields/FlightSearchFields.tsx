@@ -151,7 +151,7 @@ export const FlightSearchFields = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="economy">Economy</SelectItem>
-              <SelectItem value="premium">Premium Economy</SelectItem>
+              <SelectItem value="premium_economy">Premium Economy</SelectItem>
               <SelectItem value="business">Business</SelectItem>
               <SelectItem value="first">First Class</SelectItem>
             </SelectContent>
