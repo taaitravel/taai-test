@@ -6,10 +6,18 @@ import {
   FlightSearchErrorCode,
   FlightSearchRequest,
 } from './contract.ts';
+export { normalizeCabinClass } from './contract.ts';
 
 export const DUFFEL_API_BASE = 'https://api.duffel.com';
 export const DUFFEL_API_VERSION = 'v2';
 export const DUFFEL_TIMEOUT_MS = 15_000;
+/** Provider-side timeout, deliberately below the client timeout above. */
+export const DUFFEL_SUPPLIER_TIMEOUT_MS = 10_000;
+
+/** Offer-request URL: synchronous offers with a provider timeout under the client timeout. */
+export const buildOfferRequestUrl = (base: string = DUFFEL_API_BASE): string =>
+  `${base}/air/offer_requests?return_offers=true&supplier_timeout=${DUFFEL_SUPPLIER_TIMEOUT_MS}`;
+
 
 function isoDurationToMinutes(value: unknown): number | null {
   if (typeof value !== 'string') return null;
