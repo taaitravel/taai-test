@@ -106,6 +106,13 @@ export interface ValidationResult {
 
 export const MAX_PASSENGERS = 9;
 
+/** Canonical Duffel cabin values; normalizes legacy/case variants (e.g. "premium", "PREMIUM_ECONOMY"). */
+export function normalizeCabinClass(value: unknown): string {
+  const raw = String(value ?? 'economy').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (raw === 'premium' || raw === 'premium_economy' || raw === 'premiumeconomy') return 'premium_economy';
+  return raw;
+}
+
 export function validateFlightSearchRequest(raw: unknown): ValidationResult {
   const errors: string[] = [];
   const body = (raw ?? {}) as Record<string, unknown>;
@@ -116,7 +123,7 @@ export function validateFlightSearchRequest(raw: unknown): ValidationResult {
   const returnRaw = body.returnDate ? String(body.returnDate).trim() : '';
   const adults = body.adults === undefined ? 1 : Number(body.adults);
   const children = body.children === undefined ? 0 : Number(body.children);
-  const cabinClass = String(body.cabinClass ?? 'economy').trim().toLowerCase();
+  const cabinClass = normalizeCabinClass(body.cabinClass);
 
   if (!IATA.test(origin)) errors.push('origin must be a 3-letter IATA code');
   if (!IATA.test(destination)) errors.push('destination must be a 3-letter IATA code');

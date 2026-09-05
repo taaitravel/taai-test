@@ -28,6 +28,7 @@ export interface FlightSearchOutcome {
 
 const CABIN_MAP: Record<string, string> = {
   ECONOMY: 'economy',
+  PREMIUM: 'premium_economy',
   PREMIUM_ECONOMY: 'premium_economy',
   BUSINESS: 'business',
   FIRST: 'first',

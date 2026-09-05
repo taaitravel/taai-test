@@ -6,6 +6,7 @@ import {
   FlightSearchErrorCode,
   FlightSearchRequest,
 } from './contract.ts';
+export { normalizeCabinClass } from './contract.ts';
 
 export const DUFFEL_API_BASE = 'https://api.duffel.com';
 export const DUFFEL_API_VERSION = 'v2';
@@ -17,12 +18,6 @@ export const DUFFEL_SUPPLIER_TIMEOUT_MS = 10_000;
 export const buildOfferRequestUrl = (base: string = DUFFEL_API_BASE): string =>
   `${base}/air/offer_requests?return_offers=true&supplier_timeout=${DUFFEL_SUPPLIER_TIMEOUT_MS}`;
 
-/** Canonical Duffel cabin values; normalizes legacy/case variants (e.g. "premium", "PREMIUM_ECONOMY"). */
-export const normalizeCabinClass = (value: unknown): string => {
-  const raw = String(value ?? 'economy').trim().toLowerCase().replace(/[\s-]+/g, '_');
-  if (raw === 'premium' || raw === 'premium_economy' || raw === 'premiumeconomy') return 'premium_economy';
-  return raw;
-};
 
 function isoDurationToMinutes(value: unknown): number | null {
   if (typeof value !== 'string') return null;

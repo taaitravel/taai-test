@@ -14,6 +14,7 @@ import {
   DUFFEL_API_BASE,
   DUFFEL_API_VERSION,
   DUFFEL_TIMEOUT_MS,
+  buildOfferRequestUrl,
   normalizeDuffelOffer,
 } from './duffel.ts';
 
@@ -96,7 +97,7 @@ async function callDuffel(token: string, payload: unknown) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), DUFFEL_TIMEOUT_MS);
   try {
-    const res = await fetch(`${DUFFEL_API_BASE}/air/offer_requests?return_offers=true`, {
+    const res = await fetch(buildOfferRequestUrl(DUFFEL_API_BASE), {
       method: 'POST',
       signal: controller.signal,
       headers: {
