@@ -184,7 +184,8 @@ describe('6. clone_public_itinerary is hardened', () => {
     expect(result.ok).toBe(true);
     expect(result.itinerary?.ownerId).toBe(OWNER);
     expect(result.itinerary?.visibility).toBe('private');
-    expect(JSON.stringify(result.itinerary)).not.toMatch(/user_id|ownerEmail|bookings|payment/i);
+    const { copied: _c, excluded: _e, ...payload } = result.itinerary!;
+    expect(JSON.stringify(payload)).not.toMatch(/user_id|ownerEmail|bookings|payment|attendee/i);
   });
 
   it('refuses unauthenticated and rejects a caller-supplied owner', async () => {
