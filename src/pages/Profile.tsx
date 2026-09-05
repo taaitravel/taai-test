@@ -44,6 +44,10 @@ const Profile = () => {
               <Settings className="h-4 w-4" />
               Preferences
             </TabsTrigger>
+            <TabsTrigger value="trips" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
+              <Map className="h-4 w-4" />
+              My Trips
+            </TabsTrigger>
             <TabsTrigger value="notifications" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
               <Bell className="h-4 w-4" />
               Notifications
