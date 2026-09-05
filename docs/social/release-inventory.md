@@ -56,3 +56,13 @@ Nothing here has been published, deployed or migrated.
 3. Clone write path and its authorization contract.
 4. Invite-friends authorization/data contract for cloned trips (UI stays disabled).
 5. Duffel Edge Function deployment and secret configuration.
+
+## E. Social contract preparation (local only, nothing applied)
+- SQL proposal (unapplied): `supabase/schema-proposals/social-clone-transaction.sql`
+- Frontend contracts: `src/lib/social/lifecycle.ts`, `src/lib/social/clone-transaction.ts`
+  (`CLONE_RPC_READY = false`), `src/lib/social/invitation-contract.ts`
+  (`INVITATION_CONTRACT_READY = false`), `src/lib/social/active-slots.ts`
+- UI: `src/components/social/CloneTripDialog.tsx`, `src/components/profile/ProfileTripsSection.tsx`
+  (Upgrade plan disabled, "coming soon")
+- Tests: `src/lib/social/__tests__/social-contract.test.ts`
+- Docs: `docs/social/clone-contract.md`

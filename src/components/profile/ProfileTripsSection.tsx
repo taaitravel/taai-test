@@ -31,9 +31,15 @@ export const ProfileTripsSection = () => {
           {!slots.ok && (
             <div className="flex gap-2">
               {LIMIT_REACHED_ACTIONS.map(action => (
-                <Button key={action.id} asChild size="sm" variant={action.id === 'upgrade' ? 'default' : 'outline'} className="rounded-full">
-                  <Link to={action.to}>{action.label}</Link>
-                </Button>
+                action.disabled ? (
+                  <Button key={action.id} size="sm" variant="default" disabled className="rounded-full" title="More active trips are coming soon">
+                    {action.label}
+                  </Button>
+                ) : (
+                  <Button key={action.id} asChild size="sm" variant="outline" className="rounded-full">
+                    <Link to={action.to}>{action.label}</Link>
+                  </Button>
+                )
               ))}
             </div>
           )}
