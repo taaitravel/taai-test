@@ -64,11 +64,24 @@ export const CloneTripDialog = ({ open, onOpenChange, itinerary, hasAvailableSlo
         </DialogHeader>
 
         {!hasAvailableSlot ? (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 space-y-2">
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-destructive">
               <AlertTriangle className="h-4 w-4" /> Active trip limit reached
             </p>
             <p className="text-sm text-muted-foreground">{ACTIVE_LIMIT_MESSAGE}</p>
+            <div className="flex gap-2">
+              {LIMIT_REACHED_ACTIONS.map(action => (
+                <Button
+                  key={action.id}
+                  asChild
+                  size="sm"
+                  variant={action.id === 'upgrade' ? 'default' : 'outline'}
+                  className="flex-1 rounded-full"
+                >
+                  <Link to={action.to}>{action.label}</Link>
+                </Button>
+              ))}
+            </div>
           </div>
         ) : !result ? (
           <div className="space-y-4 overflow-y-auto">
