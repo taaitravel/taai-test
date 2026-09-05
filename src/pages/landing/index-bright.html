@@ -85,7 +85,8 @@ img{display:block;max-width:100%}
 .nav.scrolled{border-bottom-color:var(--line-2)}
 .nav-in{max-width:var(--maxw);margin:0 auto;padding:0 40px;height:76px;display:flex;align-items:center;gap:40px}
 .logo{display:flex;align-items:center}
-.logo img{height:30px;width:auto}
+.logo img{height:44px;width:auto;max-width:56vw;object-fit:contain}
+@media(max-width:720px){.logo img{height:34px}}
 .nav-links{display:flex;gap:30px;margin-left:auto;align-items:center}
 .nav-links a{font-size:13.5px;color:var(--ink-2);transition:color .35s var(--ease);position:relative;padding:6px 0}
 .nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:var(--grad-deep);transition:width .45s var(--ease)}
@@ -233,7 +234,7 @@ h1 b{font-weight:600;background:var(--grad-deep);-webkit-background-clip:text;ba
 
 /* device chrome */
 .dchrome{display:flex;align-items:center;gap:9px;padding:11px 13px;border-bottom:1px solid var(--line-2);background:#fff}
-.dchrome .logo img{height:16px}
+.dchrome .logo img{height:22px}
 .dchrome .sep{width:1px;height:13px;background:var(--line)}
 .dchrome .ttl{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dchrome .st{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:8px;
@@ -612,6 +613,7 @@ h1 b{font-weight:600;background:var(--grad-deep);-webkit-background-clip:text;ba
 .ar-in{position:relative;z-index:2;text-align:center;max-width:840px;margin:0 auto}
 .ar-eye{display:inline-flex;gap:10px;color:var(--pink);font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:20px}
 .arrival h2{font-family:var(--display);font-weight:300;font-size:clamp(38px,5.6vw,74px);line-height:1;letter-spacing:-.045em;margin:0 0 20px}
+.arrival .ar-h2-dark,.arrival .ar-h2-dark b{color:var(--ink,#171310);background:none;-webkit-text-fill-color:currentColor}
 .arrival h2 b{font-weight:600;background:var(--grad-deep);-webkit-background-clip:text;background-clip:text;color:transparent}
 .arrival p{font-size:17px;color:var(--ink-2);max-width:52ch;margin:0 auto 32px}
 .ar-cta{display:flex;gap:13px;justify-content:center;flex-wrap:wrap}
@@ -686,7 +688,7 @@ body.ready .rise{opacity:1;transform:none}
 
 <nav class="nav" id="nav">
   <div class="nav-in">
-    <a href="#top" class="logo" aria-label="taai home"><img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="taai"></a>
+    <a href="#top" class="logo" aria-label="taai home"><img src="/__l5e/assets-v1/477f5ee2-bf9f-4943-91d1-7644185ad800/taai-wordmark.png" alt="taai"></a>
     <div class="nav-links">
       <a href="#journey">Product</a>
       <a href="#journey">How it works</a>
@@ -800,7 +802,7 @@ body.ready .rise{opacity:1;transform:none}
               <span class="notch"></span>
               <div class="dev-inner">
                 <div class="dchrome">
-                  <span class="logo"><img src="/lovable-uploads/1c94ff06-05c4-46fe-b015-481744bc6ce1.png" alt="taai"></span>
+                  <span class="logo"><img src="/__l5e/assets-v1/477f5ee2-bf9f-4943-91d1-7644185ad800/taai-wordmark.png" alt="taai"></span>
                   <span class="sep"></span>
                   <span class="ttl" id="devTtl">Search</span>
                   <span class="st"><span class="pulse"></span><span id="devSt">Ready</span></span>
@@ -1152,12 +1154,12 @@ body.ready .rise{opacity:1;transform:none}
   <span class="orb ar-o1" aria-hidden="true"></span><span class="orb ar-o2" aria-hidden="true"></span>
   <div class="wrap">
     <div class="ar-in reveal">
-      <div class="ar-eye">Arrival</div>
-      <h2>Where travel <b>meets technology.</b></h2>
-      <p>Join the travel workspace built for planning, booking, splitting and remembering — with Miles in every step.</p>
+      <div class="ar-eye">Contact us</div>
+      <h2 class="ar-h2-dark">Where travel<br><b>meets technology.</b></h2>
+      <p>Questions, partnerships or a trip you want help shaping — send us a note and a specialist gets back to you.</p>
       <div class="ar-cta">
-        <a href="/signup" class="btn btn-grad">Join taai</a>
-        <a href="/login" target="_blank" rel="noopener" class="btn btn-ghost">Open the demo ↗</a>
+        <a href="/contact" class="btn btn-grad">Contact us</a>
+        <a href="/signup" class="btn btn-ghost">Join taai</a>
       </div>
       <div class="ar-note">taai.travel · @taai.travel</div>
     </div>
