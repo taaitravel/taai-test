@@ -75,7 +75,7 @@ const pick = <T extends object, K extends keyof T>(source: T, keys: readonly K[]
 /** Strips any record down to the public card allow-list. */
 export const toPublicCardProjection = (row: Record<string, unknown>): ItineraryCardProjection => {
   const author = (row.author ?? {}) as Record<string, unknown>;
-  const card = pick(row as Record<string, unknown> as ItineraryCardProjection, PUBLIC_CARD_FIELDS);
+  const card = pick(row as unknown as ItineraryCardProjection, PUBLIC_CARD_FIELDS);
   return {
     ...card,
     destinations: Array.isArray(card.destinations) ? [...card.destinations] : [],
