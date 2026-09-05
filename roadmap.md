@@ -19,7 +19,7 @@
 - [ ] Deploying `flight-search` edge function + setting Duffel secret
 - [ ] Deploying updated `amadeus-activities` edge function and verifying existing Amadeus/Mapbox secrets
 
-- [ ] Footer/header logo: use long taai.travel wordmark, ~50% bigger, no stretching, mobile responsive
-- [ ] Replace landing closing CTA with a Contact us section
-- [ ] Landing CTA heading: dark two-line "Where travel / meets technology."
-- [ ] Swap wordmark to transparent tight PNG
+- [x] Footer/header logo: use long taai.travel wordmark, ~50% bigger, no stretching, mobile responsive
+- [x] Replace landing closing CTA with a Contact us section
+- [x] Landing CTA heading: dark two-line "Where travel / meets technology."
+- [x] Swap wordmark to transparent tight PNG
