@@ -94,7 +94,6 @@ const CSS = `
 }
 .tbs-cta h2{font-family:var(--tbs-display);font-weight:300;font-size:clamp(30px,4.4vw,54px);line-height:1.04;
   letter-spacing:-.04em;margin:12px 0 16px;position:relative}
-.tbs-cta h2.tbs-cta-h2-dark,.tbs-cta h2.tbs-cta-h2-dark b{color:var(--tbs-ink);background:none;-webkit-background-clip:border-box;background-clip:border-box;-webkit-text-fill-color:currentColor}
 .tbs-cta h2 b{font-weight:600;background:var(--tbs-deep);-webkit-background-clip:text;background-clip:text;color:transparent}
 .tbs-cta p{max-width:44ch;margin:0 auto 32px;color:var(--tbs-ink2);font-size:17px;line-height:1.62;position:relative}
 .tbs-cta .tbs-actions{position:relative}
@@ -225,10 +224,10 @@ export const BrightSections = () => {
         <div className="orby" />
         <div className="tbs-wrap">
           <span className="tbs-mono">contact us</span>
-          <h2 className="tbs-cta-h2-dark">
-            Where travel
+          <h2>
+            Let's work
             <br />
-            <b>meets technology.</b>
+            <b>together.</b>
           </h2>
           <p>
             Questions, partnerships or a trip you want help shaping — send us a note and a
