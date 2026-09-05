@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { AlertTriangle, CalendarDays, UserPlus } from 'lucide-react';
 import { cloneItinerary, type CloneResult } from '@/lib/social/clone';
 import type { PublicItineraryDetail } from '@/lib/social/types';
-import { ACTIVE_LIMIT_MESSAGE } from '@/lib/social/active-slots';
+import { Link } from 'react-router-dom';
+import { ACTIVE_LIMIT_MESSAGE, LIMIT_REACHED_ACTIONS } from '@/lib/social/active-slots';
 import {
   MINERVA_SOCIAL_EVENT_IDS,
   buildSocialEvent,
