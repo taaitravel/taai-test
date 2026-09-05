@@ -25,4 +25,4 @@
 - [x] Swap wordmark to transparent tight PNG
 
 ## Dashboard Discover placement (requested 2026-09-05)
-- [ ] Move "Trips you can make your own" below Your Trips, two-panel stacked-card format (taai + featured) with same scroll controls
+- [x] Move "Trips you can make your own" below Your Trips, two-panel stacked-card format (taai + featured) with same scroll controls
