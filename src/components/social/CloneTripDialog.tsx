@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { AlertTriangle, CalendarDays, UserPlus } from 'lucide-react';
 import { cloneItinerary, type CloneResult } from '@/lib/social/clone';
 import type { PublicItineraryDetail } from '@/lib/social/types';
-import { ACTIVE_LIMIT_MESSAGE } from '@/lib/social/active-slots';
+import { Link } from 'react-router-dom';
+import { ACTIVE_LIMIT_MESSAGE, LIMIT_REACHED_ACTIONS } from '@/lib/social/active-slots';
 import {
   MINERVA_SOCIAL_EVENT_IDS,
   buildSocialEvent,
@@ -64,11 +65,24 @@ export const CloneTripDialog = ({ open, onOpenChange, itinerary, hasAvailableSlo
         </DialogHeader>
 
         {!hasAvailableSlot ? (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 space-y-2">
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-destructive">
               <AlertTriangle className="h-4 w-4" /> Active trip limit reached
             </p>
             <p className="text-sm text-muted-foreground">{ACTIVE_LIMIT_MESSAGE}</p>
+            <div className="flex gap-2">
+              {LIMIT_REACHED_ACTIONS.map(action => (
+                <Button
+                  key={action.id}
+                  asChild
+                  size="sm"
+                  variant={action.id === 'upgrade' ? 'default' : 'outline'}
+                  className="flex-1 rounded-full"
+                >
+                  <Link to={action.to}>{action.label}</Link>
+                </Button>
+              ))}
+            </div>
           </div>
         ) : !result ? (
           <div className="space-y-4 overflow-y-auto">
@@ -104,6 +118,10 @@ export const CloneTripDialog = ({ open, onOpenChange, itinerary, hasAvailableSlo
             <p className="text-xs text-muted-foreground">
               Not copied: {result.excluded.join(', ').replace(/_/g, ' ')}.
             </p>
+            <p className="text-xs text-muted-foreground">
+              Inviting friends to your new copy is coming next — the original travelers are never
+              carried over.
+            </p>
           </div>
         )}
 
@@ -117,16 +135,7 @@ export const CloneTripDialog = ({ open, onOpenChange, itinerary, hasAvailableSlo
             </Button>
           )}
           {hasAvailableSlot && result && (
-            <Button
-              className="flex-1 rounded-full"
-              onClick={() =>
-                emitSocialEvent(
-                  buildSocialEvent(MINERVA_SOCIAL_EVENT_IDS.cloneInvitationStarted, 'clone_flow', {
-                    itinerarySlug: itinerary.publicSlug,
-                  })
-                )
-              }
-            >
+            <Button className="flex-1 rounded-full" disabled title="Invitations open once sharing is switched on">
               <UserPlus className="mr-2 h-4 w-4" /> Invite friends
             </Button>
           )}

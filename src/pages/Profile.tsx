@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPen, Settings, Compass, Bell } from "lucide-react";
+import { UserPen, Settings, Compass, Bell, Map } from "lucide-react";
+import { ProfileTripsSection } from "@/components/profile/ProfileTripsSection";
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { EditProfileSection } from "@/components/profile/EditProfileSection";
 import { PreferencesSection } from "@/components/profile/PreferencesSection";
@@ -43,6 +44,10 @@ const Profile = () => {
               <Settings className="h-4 w-4" />
               Preferences
             </TabsTrigger>
+            <TabsTrigger value="trips" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
+              <Map className="h-4 w-4" />
+              My Trips
+            </TabsTrigger>
             <TabsTrigger value="notifications" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
               <Bell className="h-4 w-4" />
               Notifications
@@ -59,6 +64,10 @@ const Profile = () => {
 
           <TabsContent value="preferences">
             <PreferencesSection />
+          </TabsContent>
+
+          <TabsContent value="trips">
+            <ProfileTripsSection />
           </TabsContent>
 
           <TabsContent value="notifications">

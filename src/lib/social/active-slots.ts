@@ -19,6 +19,29 @@ export interface SlotCheck {
   message?: string;
 }
 
+/**
+ * Free-tier policy (recommended v0.1):
+ * - initial limit: 3 ACTIVE itineraries;
+ * - counts toward the limit: itineraries the traveler owns with lifecycle
+ *   'active', including cloned ("Add to your trips") copies;
+ * - never counts: archived trips, past trips, deleted trips and saved
+ *   inspiration from Discover;
+ * - archiving or deleting an active trip frees the slot immediately;
+ * - archived and past trips stay readable, they just cannot be edited as active.
+ */
+export const FREE_TIER_POLICY = {
+  limit: FREE_ACTIVE_ITINERARY_LIMIT,
+  counts: ['active owned itineraries', 'cloned itineraries while active'],
+  excluded: ['archived trips', 'past trips', 'deleted trips', 'saved inspiration'],
+  frees_slot: ['archive', 'delete'],
+} as const;
+
+/** Actions offered when the limit is reached. */
+export const LIMIT_REACHED_ACTIONS = [
+  { id: 'archive', label: 'Archive a trip', to: '/my-itineraries' },
+  { id: 'upgrade', label: 'Upgrade plan', to: '/subscription' },
+] as const;
+
 /** Pure helper: bookmarks, archived and past itineraries never count. */
 export const evaluateSlots = (
   itineraries: Array<{ lifecycle?: 'active' | 'archived' | 'past' }>,

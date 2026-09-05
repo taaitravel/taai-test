@@ -30,7 +30,7 @@ describe('clone', () => {
     const result = cloneItinerary(source, { startDate: '2026-01-01' });
     expect(result.excluded).toEqual(CLONE_EXCLUDED_FIELDS);
     const keys = new Set(result.days.flatMap(d => d.places.flatMap(p => Object.keys(p))));
-    expect([...keys].sort()).toEqual(['kind', 'name', 'note']);
+    expect([...keys].sort()).toEqual(['area', 'kind', 'name', 'note', 'time']);
     expect(Object.keys(result)).not.toContain('bookings');
     expect(Object.keys(result)).not.toContain('travelers');
   });

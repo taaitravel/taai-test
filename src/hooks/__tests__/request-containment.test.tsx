@@ -179,7 +179,7 @@ describe('request controller — dashboard summary reads', () => {
 describe('Discover projections', () => {
   it('renders exactly six synthetic fixtures without querying private tables', () => {
     expect(MOCK_CARDS.length).toBe(6);
-    expect(DISCOVER_ROWS.length).toBe(2);
+    expect(DISCOVER_ROWS.length).toBe(3);
     expect(itineraryCalls().length).toBe(0);
     expect(calls.length).toBe(0);
   });
