@@ -192,7 +192,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     setOpenItemDetail(null);
     setDetailLoading(true);
     try {
-      setOpenItemDetail(await fetchCartItemDetail(supabase, itemId));
+      setOpenItemDetail(await fetchCartItemDetail(supabase, itemId, { userId: user!.id, itineraryId: itineraryId ?? null }));
     } catch (error) {
       console.error('Error loading item details:', error);
     } finally {
