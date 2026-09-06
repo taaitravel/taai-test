@@ -127,16 +127,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
   const fetchCartItems = async () => {
     try {
-      let query = supabase
-        .from('cart_items')
-        .select(CART_DETAIL_FIELDS)
-        .order('saved_at', { ascending: false })
-        .limit(PAGE_SIZES.cartItems);
-      if (itineraryId) query = query.eq('itinerary_id', itineraryId);
-      const { data, error } = await query;
-      if (error) throw error;
-      const items = ((data || []) as unknown as CartItem[]).filter((d) => d.booking_status !== 'booked');
+      const rows = await fetchCartList(supabase, { itineraryId });
+      const items = rows.filter((d) => d.booking_status !== 'booked');
       setCartItems(items);
+      setOpenItemId(null);
+      setOpenItemDetail(null);
       onCartUpdate?.(items);
 
       const ids = Array.from(new Set(items.map(i => i.itinerary_id).filter(Boolean))) as string[];
@@ -147,7 +142,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
           .in('itin_id', ids);
         const map: Record<string, string> = {};
         const bigintMap: Record<string, number> = {};
-        (trips || []).forEach((t: any) => {
+        (trips || []).forEach((t) => {
           if (t.itin_id) {
             map[t.itin_id] = t.itin_name || 'Untitled trip';
             if (typeof t.id === 'number') bigintMap[t.itin_id] = t.id;
@@ -168,7 +163,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
           .select(CART_SPLIT_FIELDS)
           .in('cart_item_id', itemIds);
         const grouped: Record<string, CartItemSplit[]> = {};
-        ((splitRows as unknown as CartItemSplit[]) || []).forEach((s) => {
+        projectedRows<CartItemSplit>(splitRows).forEach((s) => {
           if (!grouped[s.cart_item_id]) grouped[s.cart_item_id] = [];
           grouped[s.cart_item_id].push(s);
         });
@@ -176,6 +171,30 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       } else {
         setSplitsByItem({});
       }
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+    }
+  };
+
+  /** Loads the provider snapshot for exactly one explicitly opened item. */
+  const toggleItemDetail = async (itemId: string) => {
+    if (openItemId === itemId) {
+      setOpenItemId(null);
+      setOpenItemDetail(null);
+      return;
+    }
+    setOpenItemId(itemId);
+    setOpenItemDetail(null);
+    setDetailLoading(true);
+    try {
+      setOpenItemDetail(await fetchCartItemDetail(supabase, itemId));
+    } catch (error) {
+      console.error('Error loading item details:', error);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
     } catch (error) {
       console.error('Error fetching cart items:', error);
     }
