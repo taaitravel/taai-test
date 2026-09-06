@@ -195,10 +195,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     }
   };
 
-    } catch (error) {
-      console.error('Error fetching cart items:', error);
-    }
-  };
+
 
   const removeFromCart = async (itemId: string) => {
     try {
