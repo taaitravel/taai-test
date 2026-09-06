@@ -114,7 +114,7 @@ export const CategoryCarousel = ({
       {/* Stacked Cards Container */}
       <div className="flex flex-col items-center">
         {/* Card Stack */}
-        <div className="relative w-[270px] h-[385px] mb-6">
+        <div className="relative w-[276px] h-[411px] mb-8">
           {[0, 1, 2].map((stackIndex) => {
             const actualIndex = (currentIndex + stackIndex) % validItems.length;
             const item = validItems[actualIndex];
