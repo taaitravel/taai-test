@@ -101,7 +101,7 @@ var about_taai_default = defineTool2({
 });
 
 // src/lib/mcp/index.ts
-var projectRef = "lmfipcgkqclvejmcknvm";
+var projectRef = "dhbvweazpqnviqwgpurv";
 var mcp_default = defineMcp({
   name: "taai-test",
   title: "taai-test",
