@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users, CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users, CheckCircle2, AlertTriangle, XCircle, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
-import { CART_DETAIL_FIELDS, CART_SPLIT_FIELDS, PAGE_SIZES } from '@/lib/data/projections';
+import { CART_SPLIT_FIELDS, projectedRows } from '@/lib/data/projections';
+import { fetchCartItemDetail, fetchCartList, type CartListItem } from '@/lib/data/cart-loading';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBookingCheckout, type ValidationItem, type ValidationResult } from '@/hooks/useBookingCheckout';
@@ -18,22 +19,14 @@ import { SplitChip } from '@/components/booking/SplitChip';
 import type { CartItemSplit } from '@/hooks/useCartItemSplits';
 import { formatDateOnlyRange, formatDualTime } from '@/lib/date-time';
 
-interface CartItem {
-  id: string;
-  type: 'flight' | 'hotel' | 'activity';
-  external_ref: string;
-  price: number;
-  item_data: any;
-  saved_at: string;
-  booking_status?: string;
-  itinerary_id?: string | null;
-  [key: string]: any;
-}
+/** List rows carry no provider snapshot — `item_data` loads only when opened. */
+type CartItem = CartListItem;
 
 interface BookingCartProps {
   itineraryId?: string;
   onCartUpdate?: (items: CartItem[]) => void;
 }
+
 
 const UNASSIGNED_KEY = '__unassigned__';
 
