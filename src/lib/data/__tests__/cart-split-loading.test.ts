@@ -90,7 +90,7 @@ describe('cart list projection', () => {
 describe('cart item detail', () => {
   it('loads item_data for exactly one opened item', async () => {
     const client = makeClient({ id: 'c1', item_data: { name: 'Hotel Arts', provider: 'booking.com' } });
-    const detail = await fetchCartItemDetail(client as never, 'c1');
+    const detail = await fetchCartItemDetail(client as never, 'c1', { userId: 'user-a' });
     expect(detail).toEqual({ name: 'Hotel Arts', provider: 'booking.com' });
     expect(client.requests).toBe(1);
     expect(client.selects).toEqual([CART_ITEM_DETAIL_PROJECTION]);
