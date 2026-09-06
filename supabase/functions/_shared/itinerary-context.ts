@@ -115,7 +115,7 @@ export interface BoundedItineraryContext {
   date_start: string | null;
   date_end: string | null;
   budget: number | null;
-  spending: number | null
+  spending: number | null;
   locations: string[];
   traveler_count: number | null;
   days: number | null;
