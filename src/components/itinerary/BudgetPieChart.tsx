@@ -89,28 +89,19 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       
       const diningCostFromCart = cartItems?.filter(item => item.type === 'reservation')
         .reduce((sum, item) => {
-          const itemData = item.item_data as any;
-          if (itemData?.type === 'restaurant') {
+          if ((item as any).item_kind === 'restaurant') {
             return sum + item.price;
           }
           return sum;
         }, 0) || 0;
 
-      // Also include legacy JSON data if it exists
-      const flightCostFromJSON = itinerary.flights ? 
-        (itinerary.flights as any[]).reduce((sum: number, flight: any) => sum + (flight.cost || 0), 0) : 0;
-      
-      const hotelCostFromJSON = itinerary.hotels ? 
-        (itinerary.hotels as any[]).reduce((sum: number, hotel: any) => sum + (hotel.cost || 0), 0) : 0;
-      
-      const activityCostFromJSON = itinerary.activities ? 
-        (itinerary.activities as any[]).reduce((sum: number, activity: any) => sum + (activity.cost || 0), 0) : 0;
-      
-      const diningCostFromJSON = itinerary.reservations ? 
-        (itinerary.reservations as any[]).reduce((sum: number, reservation: any) => {
-          // Include all reservations with cost in dining category
-          return sum + (reservation.cost || reservation.estimated_cost || 0);
-        }, 0) : 0;
+      // Legacy itinerary JSON sections are intentionally NOT loaded here:
+      // cart_items is the commerce source of truth and the JSON arrays carry
+      // large provider snapshots (egress containment).
+      const flightCostFromJSON = 0;
+      const hotelCostFromJSON = 0;
+      const activityCostFromJSON = 0;
+      const diningCostFromJSON = 0;
 
       // Combine cart and JSON costs
       const costsByCategory: Record<string, number> = {
@@ -218,30 +209,19 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       
       const diningCostFromCart = cartItems?.filter(item => item.type === 'reservation')
         .reduce((sum, item) => {
-          const itemData = item.item_data as any;
-          if (itemData?.type === 'restaurant') {
+          if ((item as any).item_kind === 'restaurant') {
             return sum + item.price;
           }
           return sum;
         }, 0) || 0;
 
-      // Also include legacy JSON data if it exists
-      const flightCostFromJSON = itinerary.flights ? 
-        (itinerary.flights as any[]).reduce((sum: number, flight: any) => sum + (flight.cost || 0), 0) : 0;
-      
-      const hotelCostFromJSON = itinerary.hotels ? 
-        (itinerary.hotels as any[]).reduce((sum: number, hotel: any) => sum + (hotel.cost || 0), 0) : 0;
-      
-      const activityCostFromJSON = itinerary.activities ? 
-        (itinerary.activities as any[]).reduce((sum: number, activity: any) => sum + (activity.cost || 0), 0) : 0;
-      
-      const diningCostFromJSON = itinerary.reservations ? 
-        (itinerary.reservations as any[]).reduce((sum: number, reservation: any) => {
-          if (reservation.type === 'restaurant') {
-            return sum + (reservation.estimated_cost || reservation.cost || 0);
-          }
-          return sum;
-        }, 0) : 0;
+      // Legacy itinerary JSON sections are intentionally NOT loaded here:
+      // cart_items is the commerce source of truth and the JSON arrays carry
+      // large provider snapshots (egress containment).
+      const flightCostFromJSON = 0;
+      const hotelCostFromJSON = 0;
+      const activityCostFromJSON = 0;
+      const diningCostFromJSON = 0;
 
       // Combine cart and JSON costs
       const flightCost = flightCostFromCart + flightCostFromJSON;
