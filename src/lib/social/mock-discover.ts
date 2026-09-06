@@ -445,16 +445,17 @@ export interface DiscoverRow {
 export const DISCOVER_ROWS: DiscoverRow[] = [
   {
     id: 'taai',
-    title: 'Trips by taai',
+    title: 'taai Featured',
     subtitle: 'Built end to end by our planning team',
     cards: MOCK_CARDS.filter(c => c.curatedBy === 'taai'),
   },
   {
     id: 'featured',
-    title: 'Featured',
-    subtitle: 'Hand-picked traveler itineraries',
+    title: 'taai Creators',
+    subtitle: 'Public itineraries shared by travelers and creators',
     cards: MOCK_CARDS.filter(c => c.curatedBy === 'community'),
   },
+
   {
     id: 'trending',
     title: 'Trending',
