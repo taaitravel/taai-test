@@ -47,6 +47,18 @@ export interface CanonicalHotelSummary {
   currency: string | null;
   image: string | null;
   amenities: string[];
+  /**
+   * UI-contract aliases. The result cards and the booking snapshot builder read
+   * these names, so they are part of the canonical contract rather than an
+   * extra client-side mapping layer. They duplicate normalized scalars only —
+   * no additional upstream data is relayed.
+   */
+  images: string[];
+  rating: number | null;
+  location: string | null;
+  address: string | null;
+  total_price: number | null;
+  price_per_night_alias?: never;
   latitude: number | null;
   longitude: number | null;
   /** Affiliate attribution is required by the commercial redirect contract. */
@@ -60,7 +72,6 @@ export interface CanonicalHotelSummary {
 
 export interface CanonicalHotelDetail extends CanonicalHotelSummary {
   description: string | null;
-  images: string[];
   rooms: Array<{
     id: string | null;
     name: string | null;
@@ -159,6 +170,11 @@ export const normalizeHotelSummary = (
     currency: str(price?.currency, price?.currencyCode, raw?.currency) ?? 'USD',
     image: imageList(raw?.images ?? raw?.photos ?? raw?.propertyImage ?? raw?.image)[0] ?? null,
     amenities: amenityList(raw?.amenities ?? raw?.facilities),
+    images: imageList(raw?.images ?? raw?.photos ?? raw?.propertyImage ?? raw?.image),
+    rating: numOrNull(raw?.review_score, raw?.reviewScore, raw?.rating, raw?.star_rating, raw?.starRating),
+    location: str(address?.city, raw?.city, raw?.cityName, raw?.location_name),
+    address: str(address?.line1, address?.addressLine, raw?.address_line, raw?.full_address, address?.city, raw?.city),
+    total_price: numOrNull(price?.total, price?.grossPrice?.value, price?.amount, raw?.total_price),
     latitude: numOrNull(location?.latitude, location?.lat, raw?.latitude),
     longitude: numOrNull(location?.longitude, location?.lng, location?.lon, raw?.longitude),
     affiliate: {
