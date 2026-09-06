@@ -48,3 +48,37 @@ Rollback for every unit is a checkout of the listed files at the commit precedin
 - Reaction realtime remains unfiltered until the proposal above is approved; the client already ignores events outside the loaded page.
 - `useAuthenticatedItineraryData` still reads cart `item_data`, because the itinerary workspace renders the saved flight/hotel/activity snapshots. Narrowing it needs a separate section-level contract.
 - `chat-with-gpt` CORS is still `*`; tightening it is deliberately out of scope for this pass to avoid breaking existing callers.
+
+## 6. Final hardening pass (local-only)
+
+**Allowed origins** — production: `https://taai-test.lovable.app`; preview:
+`https://id-preview--f8b1d397-680f-4f30-95f9-82a6b0a9eafd.lovable.app`;
+`http://localhost:8080` and `http://localhost:5173` only when `TAAI_ENV` is not
+`production`. No wildcard anywhere; unapproved browser origins get 403 and no
+`Access-Control-Allow-Origin` header. `OPTIONS` is handled in all three
+functions.
+
+**Authentication** — all three functions verify the bearer JWT server-side with
+an anon-key client (`authenticate` + `supabase.auth.getUser`), take the user id
+only from the verified token, strip `user_id`/`userId`/`userid`/`sub`/`owner_id`
+from the body (`stripCallerIdentity`), and return 401 when the header is absent
+or the token invalid. Itinerary/cart access stays scoped by `userid`/`user_id`
+(and RLS).
+
+**Rate limiter** — process-local, per-isolate, best-effort only. It does NOT
+guarantee 30 requests/minute per user globally; a cold start resets a window.
+Authoritative replacement prepared, unapplied, in
+`supabase/schema-proposals/edge-rate-limit-authoritative.sql`.
+
+**Provider egress** — `resolveProviderUrl` rebuilds every request from a fixed
+https host plus an allow-listed path, so caller absolute URLs, ports,
+credentials, localhost, private ranges and `169.254.169.254` are unreachable.
+Redirects are never followed (`redirect: 'manual'`, 3xx → safe 502).
+
+**Outbound ceiling** — normalized responses are capped at 256 KB
+(`MAX_NORMALIZED_BYTES`, 1/16 of the 4 MB upstream cap); exceeding it returns
+`Normalized response exceeded size ceiling`.
+
+**Reaction backfill** — only reactions resolving to exactly one itinerary are
+backfilled; everything else is quarantined verbatim and the migration aborts if
+any unresolvable row remains. Still unapplied.

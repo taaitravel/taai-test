@@ -11,6 +11,12 @@ import {
   truncate,
   type ItineraryContextLoader,
 } from "../_shared/itinerary-context.ts";
+import {
+  authenticate,
+  buildCorsHeaders,
+  guardOrigin,
+  stripCallerIdentity,
+} from "../_shared/edge-guard.ts";
 
 // API Keys
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -25,10 +31,9 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// CORS is per-request: an explicit origin allow-list, never a wildcard.
+// See ../_shared/edge-guard.ts for the approved origins.
+
 
 // ============================================================================
 // TAAI SYSTEM PROMPT - Full Identity, Voice, and Operating Logic
@@ -1805,31 +1810,40 @@ const chatSchema = z.object({
 // MAIN REQUEST HANDLER
 // ============================================================================
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = buildCorsHeaders(origin);
+
+  const originCheck = guardOrigin(origin);
+  if (!originCheck.ok) {
+    return new Response(
+      JSON.stringify({ error: originCheck.error }),
+      { status: originCheck.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+
   try {
-    // Authenticate user
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    // Authenticate: the JWT is verified server-side with the anon client and
+    // the user id is taken ONLY from the verified token. Any caller-supplied
+    // identity field in the body is stripped before validation.
+    const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const auth = await authenticate(req, async (token) => {
+      const { data, error } = await authClient.auth.getUser(token);
+      return { userId: error || !data?.user ? null : data.user.id };
+    });
+    if (!auth.ok) {
       return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: auth.error }),
+        { status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      console.error('Authentication failed:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const user = { id: auth.userId };
 
     console.log('User authenticated:', user.id);
 
@@ -1838,7 +1852,9 @@ serve(async (req) => {
     let validatedData;
     
     try {
-      validatedData = chatSchema.parse(rawData);
+      validatedData = chatSchema.parse(
+        stripCallerIdentity((rawData ?? {}) as Record<string, unknown>)
+      );
     } catch (validationError) {
       console.error('Validation error:', validationError);
       return new Response(
@@ -1846,6 +1862,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
 
     const { message, context, itineraryId, chatMode, assistantKey } = validatedData;
     const validatedHistory = trimHistoryToTotalLimit(validatedData.history);

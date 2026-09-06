@@ -17,15 +17,68 @@ alter table public.itinerary_chat_reactions
   add column if not exists itinerary_id bigint;
 
 -- 2. Deterministic backfill from the parent message ------------------------
-update public.itinerary_chat_reactions r
-   set itinerary_id = m.itinerary_id
-  from public.itinerary_chat_messages m
- where m.id = r.message_id
-   and r.itinerary_id is distinct from m.itinerary_id;
+-- Quarantine, never guess. A reaction is backfilled only when its message_id
+-- resolves to EXACTLY ONE itinerary. Anything else (missing message_id,
+-- deleted message, or — defensively — more than one candidate itinerary) is
+-- moved to a quarantine table for human review, and the migration FAILS
+-- CLOSED if any unresolvable row is still present in the live table.
 
--- Orphaned reactions (message deleted) cannot be scoped and are removed.
+create table if not exists public.itinerary_chat_reactions_quarantine (
+  quarantined_at timestamptz not null default now(),
+  reason         text        not null,
+  reaction       jsonb       not null
+);
+revoke all on public.itinerary_chat_reactions_quarantine from anon, authenticated;
+grant all on public.itinerary_chat_reactions_quarantine to service_role;
+alter table public.itinerary_chat_reactions_quarantine enable row level security;
+
+with candidates as (
+  select r.id,
+         count(distinct m.itinerary_id) as itinerary_count,
+         min(m.itinerary_id)            as itinerary_id
+    from public.itinerary_chat_reactions r
+    left join public.itinerary_chat_messages m on m.id = r.message_id
+   group by r.id
+)
+update public.itinerary_chat_reactions r
+   set itinerary_id = c.itinerary_id
+  from candidates c
+ where c.id = r.id
+   and c.itinerary_count = 1
+   and c.itinerary_id is not null;
+
+-- Ambiguous / unmappable rows are quarantined verbatim, then removed from the
+-- live table so no reaction is ever attributed to a guessed trip.
+with unresolved as (
+  select r.*
+    from public.itinerary_chat_reactions r
+   where r.itinerary_id is null
+)
+insert into public.itinerary_chat_reactions_quarantine (reason, reaction)
+select case
+         when u.message_id is null then 'missing message_id'
+         when not exists (select 1 from public.itinerary_chat_messages m where m.id = u.message_id)
+           then 'parent message not found'
+         else 'ambiguous itinerary mapping'
+       end,
+       to_jsonb(u)
+  from unresolved u;
+
 delete from public.itinerary_chat_reactions r
  where r.itinerary_id is null;
+
+-- Fail closed: abort the whole migration if anything unresolvable remains.
+do $$
+declare
+  _remaining bigint;
+begin
+  select count(*) into _remaining
+    from public.itinerary_chat_reactions
+   where itinerary_id is null;
+  if _remaining > 0 then
+    raise exception 'aborting: % reaction rows could not be deterministically scoped', _remaining;
+  end if;
+end $$;
 
 alter table public.itinerary_chat_reactions
   alter column itinerary_id set not null;
@@ -103,3 +156,6 @@ commit;
 -- alter table public.itinerary_chat_reactions
 --   drop constraint if exists itinerary_chat_reactions_itinerary_fk,
 --   drop column if exists itinerary_id;
+-- Quarantined rows are kept deliberately: re-insert them from
+-- public.itinerary_chat_reactions_quarantine after human review, then
+-- drop table if exists public.itinerary_chat_reactions_quarantine;

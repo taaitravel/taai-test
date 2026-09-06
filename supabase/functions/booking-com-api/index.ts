@@ -7,13 +7,18 @@ import {
 } from "../_shared/hotel-contract.ts";
 import {
   allowRequest,
+  authenticate,
   buildCorsHeaders,
   fetchUpstreamJson,
+  guardOrigin,
   readBoundedJson,
+  resolveProviderUrl,
+  serializeBounded,
+  stripCallerIdentity,
 } from "../_shared/edge-guard.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
 const rapidApiKey = Deno.env.get('RAPID_API_KEY')!
 
 /**
@@ -35,9 +40,13 @@ const shapeProviderPayload = (path: string, upstream: unknown, provider: string)
 };
 
 serve(async (req) => {
-  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+  const origin = req.headers.get('origin');
+  const corsHeaders = buildCorsHeaders(origin);
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+  const originCheck = guardOrigin(origin);
+  if (!originCheck.ok) return json({ error: originCheck.error }, originCheck.status);
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -47,59 +56,33 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+    const auth = await authenticate(req, async (token) => {
+      const { data, error } = await supabase.auth.getUser(token);
+      return { userId: error || !data?.user ? null : data.user.id };
+    });
+    if (!auth.ok) return json({ error: auth.error }, auth.status);
 
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return json({ error: 'Authentication required' }, 401);
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    )
-    if (authError || !user) return json({ error: 'Unauthorized' }, 401);
-
-    if (!allowRequest(`booking:${user.id}`)) {
+    if (!allowRequest(`booking:${auth.userId}`)) {
       return json({ error: 'Too many requests. Please retry shortly.' }, 429);
     }
 
     const parsedBody = await readBoundedJson(req);
     if (!parsedBody.ok) return json({ error: parsedBody.error }, 400);
-    const payload = (parsedBody.value ?? {}) as Record<string, unknown>;
-    const endpoint = typeof payload.endpoint === 'string' ? payload.endpoint : '';
-    const method = payload.method === 'POST' ? 'POST' : 'GET';
+    const payload = stripCallerIdentity((parsedBody.value ?? {}) as Record<string, unknown>);
     const params = (payload.params && typeof payload.params === 'object' ? payload.params : {}) as Record<string, unknown>;
-    const body = payload.body ?? null;
 
-    // SSRF protection — only allow the booking.com RapidAPI host
-    const ALLOWED_HOSTS = ['booking-com15.p.rapidapi.com'];
-    let parsed: URL;
-    try {
-      parsed = new URL(endpoint);
-    } catch {
-      return json({ error: 'Invalid endpoint' }, 400);
-    }
-    if (!ALLOWED_HOSTS.includes(parsed.hostname) || parsed.protocol !== 'https:') {
-      return json({ error: 'Forbidden host' }, 403);
-    }
+    const target = resolveProviderUrl('booking.com', payload.endpoint, params);
+    if (!target.ok) return json({ error: target.error }, target.status);
 
-    const url = parsed
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
-        url.searchParams.append(key, String(value))
-      }
-    })
-
-    const headers: Record<string, string> = {
-      'x-rapidapi-host': 'booking-com15.p.rapidapi.com',
-      'x-rapidapi-key': rapidApiKey,
-    }
-    if (method === 'POST' && body) headers['Content-Type'] = 'application/json'
-
-    const upstream = await fetchUpstreamJson(url.toString(), {
-      method,
-      headers,
-      body: method === 'POST' && body ? JSON.stringify(body) : undefined,
+    const upstream = await fetchUpstreamJson(target.url.toString(), {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'booking-com15.p.rapidapi.com',
+        'x-rapidapi-key': rapidApiKey,
+      },
     });
 
     if (!upstream.ok) {
@@ -114,8 +97,10 @@ serve(async (req) => {
       return json({ error: upstream.error }, upstream.status === 504 ? 504 : 502);
     }
 
-    const shaped = shapeProviderPayload(parsed.pathname, upstream.data, 'booking.com')
-    return json(shaped);
+    const shaped = shapeProviderPayload(target.path, upstream.data, 'booking.com')
+    const bounded = serializeBounded(shaped);
+    if (!bounded.ok) return json({ error: bounded.error }, bounded.status);
+    return new Response(bounded.body, { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (_error) {
     console.error('🏨 Booking.com proxy failed');
     return json({ error: 'Unable to process request. Please try again.' }, 400);
