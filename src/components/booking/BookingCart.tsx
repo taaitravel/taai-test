@@ -267,24 +267,23 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const getServiceDateRange = (item: CartItem): string | null => {
-    const sd = item.item_data?.service_dates || {};
-    const start = sd.check_in || sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date
-      || item.item_data?.check_in || item.item_data?.checkIn;
-    const end = sd.check_out || sd.checkOut || sd.end || sd.endDate || sd.return
-      || item.item_data?.check_out || item.item_data?.checkOut;
+    const sd = item.item_service_dates || {};
+    const start = sd.check_in || sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date;
+    const end = sd.check_out || sd.checkOut || sd.end || sd.endDate || sd.return;
     return formatDateOnlyRange(start, end, 'MMM dd', 'MMM dd, yyyy');
   };
 
   const getServiceTime = (item: CartItem) => {
-    const timing = item.item_data?.service_timing;
+    const timing = item.item_service_timing;
     if (timing?.kind !== 'scheduled') return null;
-    const dual = formatDualTime(timing.starts_at_utc, timing.service_timezone || item.item_data?.service_timezone);
+    const dual = formatDualTime(timing.starts_at_utc, timing.service_timezone);
     if (!dual.service && !timing.local_start) return null;
     return {
       primary: dual.service || `${timing.local_start}${timing.service_timezone ? ` (${timing.service_timezone})` : ''}`,
       secondary: dual.viewer ? `${dual.viewer} in your time` : null,
     };
   };
+
 
   const groups = useMemo(() => {
     const map = new Map<string, CartItem[]>();
