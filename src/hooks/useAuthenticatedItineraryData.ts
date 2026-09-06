@@ -23,7 +23,9 @@ export type UserRole = 'owner' | 'collaborator' | null;
  */
 export const ITINERARY_WORKSPACE_PROJECTION = assertSafeProjection(
   'itinerary workspace',
-  `${ITINERARY_METADATA_FIELDS}, ${ITINERARY_SECTION_FIELDS.split(', ').filter(f => !['id', 'itin_id'].includes(f)).join(', ')}`
+  `${ITINERARY_METADATA_FIELDS}, attendees, ${ITINERARY_SECTION_FIELDS.split(', ')
+    .filter(f => !['id', 'itin_id'].includes(f))
+    .join(', ')}`
 );
 
 const CART_PROJECTION = assertSafeProjection('cart detail', CART_DETAIL_FIELDS);
@@ -158,7 +160,7 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
           ...(row as unknown as ItineraryData),
           itin_locations: row.itin_locations as string[],
           itin_map_locations: row.itin_map_locations as Array<{ city: string; lat: number; lng: number }>,
-          attendees: [],
+          attendees: (row.attendees as ItineraryData['attendees']) ?? [],
           flights: [
             ...((row.flights as Array<any>)?.map(flight => ({
               ...flight,
