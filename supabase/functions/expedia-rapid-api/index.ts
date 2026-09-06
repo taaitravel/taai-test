@@ -9,21 +9,25 @@ import {
 } from "../_shared/hotel-contract.ts";
 import {
   allowRequest,
+  authenticate,
   buildCorsHeaders,
   fetchUpstreamJson,
+  guardOrigin,
   readBoundedJson,
+  resolveProviderUrl,
+  serializeBounded,
+  stripCallerIdentity,
 } from "../_shared/edge-guard.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 const rapidApiKey = Deno.env.get('RAPID_API_KEY');
 
-// Input validation schema
+// Only a path from the allow-list plus string params are accepted. A
+// caller-supplied absolute URL is never used as the request target.
 const expediaRequestSchema = z.object({
-  endpoint: z.string().url().max(500),
-  method: z.enum(['GET', 'POST', 'PUT', 'DELETE']).default('GET'),
+  endpoint: z.string().min(1).max(500),
   params: z.record(z.string()).optional().default({}),
-  body: z.any().optional()
 });
 
 /**
@@ -45,9 +49,13 @@ const shapeProviderPayload = (path: string, upstream: unknown, provider: string)
 };
 
 serve(async (req) => {
-  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+  const origin = req.headers.get('origin');
+  const corsHeaders = buildCorsHeaders(origin);
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+  const originCheck = guardOrigin(origin);
+  if (!originCheck.ok) return json({ error: originCheck.error }, originCheck.status);
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -57,16 +65,18 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return json({ error: 'Authentication required' }, 401);
+    // Anon-key client: the JWT is verified server-side and the user id comes
+    // only from the verified token.
+    const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const auth = await authenticate(req, async (token) => {
+      const { data, error } = await supabase.auth.getUser(token);
+      return { userId: error || !data?.user ? null : data.user.id };
+    });
+    if (!auth.ok) return json({ error: auth.error }, auth.status);
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-    if (authError || !user) return json({ error: 'Unauthorized' }, 401);
-
-    if (!allowRequest(`expedia:${user.id}`)) {
+    if (!allowRequest(`expedia:${auth.userId}`)) {
       return json({ error: 'Too many requests. Please retry shortly.' }, 429);
     }
 
@@ -80,38 +90,22 @@ serve(async (req) => {
 
     let validatedData;
     try {
-      validatedData = expediaRequestSchema.parse(parsedBody.value);
+      validatedData = expediaRequestSchema.parse(
+        stripCallerIdentity((parsedBody.value ?? {}) as Record<string, unknown>),
+      );
     } catch {
       return json({ error: 'Invalid input parameters' }, 400);
     }
 
-    const { endpoint, method, params, body } = validatedData;
+    const target = resolveProviderUrl('expedia', validatedData.endpoint, validatedData.params);
+    if (!target.ok) return json({ error: target.error }, target.status);
 
-    // SSRF protection — only allow the Expedia RapidAPI host
-    const ALLOWED_HOSTS = ['expedia13.p.rapidapi.com'];
-    let parsedEndpoint: URL;
-    try {
-      parsedEndpoint = new URL(endpoint);
-    } catch {
-      return json({ error: 'Invalid endpoint' }, 400);
-    }
-    if (!ALLOWED_HOSTS.includes(parsedEndpoint.hostname) || parsedEndpoint.protocol !== 'https:') {
-      return json({ error: 'Forbidden host' }, 403);
-    }
-
-    const queryString = new URLSearchParams(params).toString();
-    const fullUrl = `${endpoint}${queryString ? '?' + queryString : ''}`;
-
-    const rapidApiHeaders: Record<string, string> = {
-      'X-RapidAPI-Key': rapidApiKey,
-      'X-RapidAPI-Host': 'expedia13.p.rapidapi.com',
-    };
-    if (method !== 'GET' && body) rapidApiHeaders['Content-Type'] = 'application/json';
-
-    const upstream = await fetchUpstreamJson(fullUrl, {
-      method,
-      headers: rapidApiHeaders,
-      body: body ? JSON.stringify(body) : null,
+    const upstream = await fetchUpstreamJson(target.url.toString(), {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': rapidApiKey,
+        'X-RapidAPI-Host': 'expedia13.p.rapidapi.com',
+      },
     });
 
     if (!upstream.ok) {
@@ -119,8 +113,10 @@ serve(async (req) => {
       return json({ error: upstream.error }, upstream.status === 504 ? 504 : 502);
     }
 
-    const shaped = shapeProviderPayload(parsedEndpoint.pathname, upstream.data, 'expedia');
-    return json(shaped);
+    const shaped = shapeProviderPayload(target.path, upstream.data, 'expedia');
+    const bounded = serializeBounded(shaped);
+    if (!bounded.ok) return json({ error: bounded.error }, bounded.status);
+    return new Response(bounded.body, { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (_error) {
     console.error('Expedia proxy failed');
     return json({ error: 'Unable to process API request. Please try again.' }, 500);
