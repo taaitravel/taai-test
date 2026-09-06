@@ -46,6 +46,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   const [isSaving, setIsSaving] = useState(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  // Provider snapshot for exactly one explicitly opened cart item.
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
+  const [openItemDetail, setOpenItemDetail] = useState<Record<string, unknown> | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
   const { toast } = useToast();
   const { user } = useAuth();
   const { isLoading: isCheckingOut, validateCart } = useBookingCheckout();
