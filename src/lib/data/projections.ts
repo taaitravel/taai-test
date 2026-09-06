@@ -117,13 +117,78 @@ export const CHAT_PARTICIPANT_FIELDS = ['id', 'itinerary_id', 'user_id', 'joined
 
 export const CHAT_REACTION_FIELDS = ['id', 'message_id', 'user_id', 'reaction'].join(', ');
 
+/* ------------------------------------------------------------------------- */
+/* Agent operations (internal control layer)                                  */
+/* ------------------------------------------------------------------------- */
+
+export const AGENT_TASK_FIELDS = [
+  'id',
+  'title',
+  'objective',
+  'assigned_agent',
+  'action_class',
+  'risk_level',
+  'status',
+  'success_criteria',
+  'created_by',
+  'created_at',
+  'updated_at',
+].join(', ');
+
+export const AGENT_APPROVAL_FIELDS = [
+  'id',
+  'task_id',
+  'status',
+  'gate',
+  'requested_at',
+  'decided_at',
+  'decision_reason',
+  'requested_by',
+  'decided_by',
+].join(', ');
+
+export const AGENT_EVIDENCE_FIELDS = [
+  'id',
+  'task_id',
+  'evidence_type',
+  'label',
+  'summary',
+  'reference_url',
+  'recorded_at',
+  'recorded_by',
+].join(', ');
+
+export const AGENT_EVENT_FIELDS = [
+  'id',
+  'task_id',
+  'event_type',
+  'detail',
+  'created_at',
+  'created_by',
+].join(', ');
+
 /** Bounded page sizes. */
 export const PAGE_SIZES = {
   chatInitial: 50,
   chatPage: 50,
   cartItems: 100,
+  cartList: 100,
   agentRows: 50,
 } as const;
+
+/**
+ * Documented boundary cast.
+ *
+ * PostgREST cannot infer a row type from a runtime column-list string, so the
+ * generated client widens projected results to an error-ish placeholder. These
+ * two helpers are the ONLY sanctioned place where that boundary is crossed, and
+ * they exist so no call site needs an ad-hoc `as unknown as` cast. They do not
+ * hide live-schema drift for columns read through generated helpers — only for
+ * the explicit allow-lists above, each of which is covered by a regression test.
+ */
+export const projectedRow = <T>(data: unknown): T | null => (data ?? null) as T | null;
+export const projectedRows = <T>(data: unknown): T[] => (Array.isArray(data) ? (data as T[]) : []);
+
 
 /** Throws in development when a projection accidentally regains a forbidden field. */
 export const assertSafeProjection = (label: string, projection: string): string => {
