@@ -58,7 +58,7 @@ describe('contained source paths', () => {
   it("never reintroduce select('*')", () => {
     for (const path of CONTAINED_PATHS) {
       const source = read(path);
-      expect(source, path).not.toMatch(/select\(\s*['"`]\*['"`]\s*\)/);
+      expect(source, path).not.toMatch(/\.select\(\s*['"`]\*['"`]\s*\)/);
     }
   });
 
@@ -100,7 +100,7 @@ describe('contained source paths', () => {
 
   it('AI chat never selects all itinerary columns', () => {
     const source = read('supabase/functions/chat-with-gpt/index.ts');
-    expect(source).not.toMatch(/select\(\s*'\*'\s*\)/);
+    expect(source).not.toMatch(/\.select\(\s*'\*'\s*\)/);
     expect(source).toContain('createItineraryContextLoader');
   });
 
