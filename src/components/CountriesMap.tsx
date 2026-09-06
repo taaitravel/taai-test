@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useMapboxToken } from '@/hooks/useMapboxToken';
 import { useCountryData } from '@/hooks/useCountryData';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { getMapStyle, getMarkerBorderColor, getMarkerDotColor, getMarkerGlow } from '@/lib/mapStyles';
@@ -19,26 +19,17 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
   const [error, setError] = useState<string | null>(null);
   const { countryCoordinates } = useCountryData(visitedCountries);
   const { theme } = useThemeContext();
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const { token: mapboxToken, unavailable, loading: tokenLoading } = useMapboxToken();
 
-  // Fetch token once
+  // A missing map configuration is a contained fallback, never a crash or retry loop.
   useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (error || !data?.token) {
-          setError('Unable to load map. Please check configuration.');
-          setIsLoading(false);
-          return;
-        }
-        setMapboxToken(data.token);
-      } catch {
-        setError('Failed to load map');
-        setIsLoading(false);
-      }
-    };
-    fetchToken();
-  }, []);
+    if (tokenLoading) return;
+    if (unavailable) {
+      setError('Map unavailable');
+      setIsLoading(false);
+    }
+  }, [tokenLoading, unavailable]);
+
 
   // Initialize / re-initialize map on token or theme change
   useEffect(() => {
