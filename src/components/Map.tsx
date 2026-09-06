@@ -301,13 +301,17 @@ const Map = ({
           throw new Error(error.message || 'Token fetch failed');
         }
 
-        const mapboxToken = data?.token || data;
-        if (!mapboxToken || typeof mapboxToken !== 'string') {
-          throw new Error('Invalid token received');
+        const mapboxToken = typeof data?.token === 'string' ? data.token : null;
+        if (!mapboxToken) {
+          // Configuration gap: contained fallback, no retry loop.
+          setError('Map unavailable');
+          setLoading(false);
+          return;
         }
         
         setMapboxToken(mapboxToken);
         setRetryCount(0);
+
       } catch (err: any) {
         console.error('🗺️ Map: Error getting token:', err);
         
