@@ -1278,7 +1278,7 @@ async function updateHotelDates(userId: string, params: {
       userId,
       'update_hotel_dates',
       'hotel',
-      hotels[hotelIndex].id || hotels[hotelIndex].name,
+      String(hotels[hotelIndex].id ?? hotels[hotelIndex].name ?? ''),
       beforeState,
       hotels[hotelIndex]
     );
@@ -1492,15 +1492,15 @@ async function removeItemFromItinerary(userId: string, params: {
       return { error: 'Itinerary not found or access denied' };
     }
 
-    const fieldMap: Record<string, string> = {
+    const fieldMap = {
       hotel: 'hotels',
       flight: 'flights',
       activity: 'activities',
       reservation: 'reservations',
-    };
+    } as const;
 
-    const field = fieldMap[params.item_type];
-    const items = itinerary[field] || [];
+    const field = fieldMap[params.item_type as keyof typeof fieldMap];
+    const items = field ? itinerary[field] : [];
     
     const itemIndex = items.findIndex((item: any) => 
       item.name?.toLowerCase().includes(params.item_name.toLowerCase()) ||
