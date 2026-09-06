@@ -249,7 +249,6 @@ export const useItineraryChat = (itineraryId: number | null) => {
           event: '*',
           schema: 'public',
           table: 'itinerary_chat_reactions',
-          filter: `itinerary_id=eq.${itineraryId}`,
         },
         (payload: any) => {
           const row = payload.new ?? payload.old;
