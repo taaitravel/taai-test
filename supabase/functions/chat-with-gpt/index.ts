@@ -2,6 +2,15 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import {
+  AI_CONTEXT_CAPS,
+  AI_ITINERARY_COLUMNS,
+  boundHistory,
+  createItineraryContextLoader,
+  sanitizeItineraryContext,
+  truncate,
+  type ItineraryContextLoader,
+} from "../_shared/itinerary-context.ts";
 
 // API Keys
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -1129,24 +1138,19 @@ async function searchRestaurants(params: any) {
 // READ FUNCTIONS
 // ============================================================================
 
-// Get single itinerary
-async function getItinerary(userId: string, itineraryId: number) {
+// Get single itinerary — ONE bounded, allow-listed read per invocation.
+// Never selects expedia_data, provider bodies, payment data or private profile
+// fields; days/items are capped and free-form text truncated.
+async function getItinerary(userId: string, itineraryId: number, loader: ItineraryContextLoader) {
   try {
-    const { data, error } = await supabase
-      .from('itinerary')
-      .select('*')
-      .eq('id', itineraryId)
-      .eq('userid', userId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching itinerary:', error);
-      return { error: 'Itinerary not found' };
-    }
-
-    return { itinerary: data };
+    const { context, ownerId, error } = await loader.load(itineraryId);
+    if (error || !context) return { error: 'Itinerary not found' };
+    if (ownerId !== userId) return { error: 'Itinerary not found' };
+    // Metadata only — the snapshot itself is never logged.
+    console.log('itinerary context loaded', { id: context.id, reads: loader.reads() });
+    return { itinerary: context };
   } catch (error) {
-    console.error('Error in getItinerary:', error);
+    console.error('Error in getItinerary:', (error as Error)?.message);
     return { error: 'Failed to fetch itinerary' };
   }
 }
@@ -1156,9 +1160,10 @@ async function listItineraries(userId: string) {
   try {
     const { data, error } = await supabase
       .from('itinerary')
-      .select('id, itin_name, itin_desc, itin_date_start, itin_date_end, itin_locations, budget, spending, hotels, flights, activities')
+      .select('id, itin_name, itin_desc, itin_date_start, itin_date_end, itin_locations, budget, spending')
       .eq('userid', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(25);
 
     if (error) {
       console.error('Error fetching itineraries:', error);
@@ -1214,7 +1219,7 @@ async function updateHotelDates(userId: string, params: {
     // Fetch current itinerary
     const { data: itinerary, error } = await supabase
       .from('itinerary')
-      .select('*')
+      .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
@@ -1298,7 +1303,7 @@ async function addHotelToItinerary(userId: string, params: {
   try {
     const { data: itinerary, error } = await supabase
       .from('itinerary')
-      .select('*')
+      .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
@@ -1355,7 +1360,7 @@ async function addFlightToItinerary(userId: string, params: {
   try {
     const { data: itinerary, error } = await supabase
       .from('itinerary')
-      .select('*')
+      .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
@@ -1411,7 +1416,7 @@ async function addActivityToItinerary(userId: string, params: {
   try {
     const { data: itinerary, error } = await supabase
       .from('itinerary')
-      .select('*')
+      .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
@@ -1468,7 +1473,7 @@ async function removeItemFromItinerary(userId: string, params: {
   try {
     const { data: itinerary, error } = await supabase
       .from('itinerary')
-      .select('*')
+      .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
@@ -1549,7 +1554,7 @@ async function updateItineraryDates(userId: string, params: {
   try {
     const { data: itinerary, error } = await supabase
       .from('itinerary')
-      .select('*')
+      .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
@@ -1609,7 +1614,7 @@ async function updateItineraryBudget(userId: string, params: {
   try {
     const { data: itinerary, error } = await supabase
       .from('itinerary')
-      .select('*')
+      .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
@@ -1836,6 +1841,11 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
+    // One bounded itinerary-context loader per AI-chat invocation. Every
+    // internal stage reuses the same snapshot, so a turn performs at most one
+    // itinerary read.
+    const itineraryContextLoader = createItineraryContextLoader(supabase as never);
+
     const includeSavedItineraryContext = chatMode === 'itinerary-edit';
     let itineraryContext = '\n\n# Planning Mode\nUse only the explicit planning context supplied with this request. Do not infer from or reference saved itinerary records.';
 
@@ -1844,7 +1854,7 @@ serve(async (req) => {
       const { itineraries: userItineraries } = await listItineraries(user.id);
       itineraryContext = userItineraries.length > 0
         ? `\n\n# User's Itineraries\n${(userItineraries as ItineraryContextSummary[]).map((it) =>
-            `- ${it.itin_name} (ID: ${it.id}): ${it.itin_desc || 'No description'} | Dates: ${it.itin_date_start || 'TBD'} to ${it.itin_date_end || 'TBD'} | Budget: $${it.budget || 0} | Hotels: ${(it.hotels || []).length} | Flights: ${(it.flights || []).length}`
+            `- ${it.itin_name} (ID: ${it.id}): ${truncate(it.itin_desc, AI_CONTEXT_CAPS.descriptionChars) || 'No description'} | Dates: ${it.itin_date_start || 'TBD'} to ${it.itin_date_end || 'TBD'} | Budget: $${it.budget || 0}`
           ).join('\n')}`
         : '\n\n# User has no existing itineraries.';
     }
@@ -1932,7 +1942,7 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
       switch (functionName) {
         // Read tools
         case 'get_itinerary':
-          toolResult = await getItinerary(user.id, functionArgs.itinerary_id);
+          toolResult = await getItinerary(user.id, functionArgs.itinerary_id, itineraryContextLoader);
           resultType = 'itinerary';
           break;
         case 'list_itineraries':
