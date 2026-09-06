@@ -25,10 +25,9 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// CORS is per-request: an explicit origin allow-list, never a wildcard.
+// See ../_shared/edge-guard.ts for the approved origins.
+
 
 // ============================================================================
 // TAAI SYSTEM PROMPT - Full Identity, Voice, and Operating Logic
