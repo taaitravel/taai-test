@@ -9,10 +9,10 @@ import { request, withAbort } from "@/lib/data/request-controller";
 import {
   ITINERARY_METADATA_FIELDS,
   ITINERARY_SECTION_FIELDS,
-  CART_DETAIL_FIELDS,
   PAGE_SIZES,
   assertSafeProjection,
 } from "@/lib/data/projections";
+import { CART_LIST_PROJECTION, fetchCartItemDetail, type CartListItem } from "@/lib/data/cart-loading";
 
 export type UserRole = 'owner' | 'collaborator' | null;
 
@@ -28,7 +28,12 @@ export const ITINERARY_WORKSPACE_PROJECTION = assertSafeProjection(
     .join(', ')}`
 );
 
-const CART_PROJECTION = assertSafeProjection('cart detail', CART_DETAIL_FIELDS);
+/**
+ * The main workspace load uses the cart LIST projection: it never selects
+ * `item_data`. The saved provider snapshot is loaded on demand, for one
+ * explicitly opened item, through `loadCartItemDetail` below.
+ */
+const CART_PROJECTION = CART_LIST_PROJECTION;
 
 export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
   const { user } = useAuth();
@@ -46,6 +51,56 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
   toastRef.current = toast;
 
   const requestIdRef = useRef(0);
+
+  /** Owner-scoped in-memory snapshot cache; cleared on unmount/account change. */
+  const detailCacheRef = useRef<{ owner: string | null; entries: Map<string, Record<string, unknown> | null> }>({
+    owner: null,
+    entries: new Map(),
+  });
+  const detailAbortRef = useRef<AbortController | null>(null);
+  const [cartItemDetails, setCartItemDetails] = useState<Record<string, Record<string, unknown> | null>>({});
+
+  // Account change / logout: abort in-flight detail work and drop the cache.
+  useEffect(() => {
+    if (detailCacheRef.current.owner !== userId) {
+      detailAbortRef.current?.abort();
+      detailAbortRef.current = null;
+      detailCacheRef.current = { owner: userId, entries: new Map() };
+      setCartItemDetails({});
+    }
+  }, [userId]);
+
+  // Unmount: abort and clear.
+  useEffect(() => () => {
+    detailAbortRef.current?.abort();
+    detailAbortRef.current = null;
+    detailCacheRef.current = { owner: null, entries: new Map() };
+  }, []);
+
+  /**
+   * Loads the saved snapshot for ONE opened cart item/section. Scoped to the
+   * authenticated user (or the shared trip, where RLS gates membership).
+   */
+  const loadCartItemDetail = useCallback(
+    async (cartItemId: string): Promise<Record<string, unknown> | null> => {
+      if (!cartItemId || !userId) return null;
+      const cache = detailCacheRef.current;
+      if (cache.owner === userId && cache.entries.has(cartItemId)) {
+        return cache.entries.get(cartItemId) ?? null;
+      }
+      const controller = new AbortController();
+      detailAbortRef.current = controller;
+      const detail = await fetchCartItemDetail(supabase, cartItemId, {
+        userId,
+        itineraryId: itineraryId ?? null,
+      });
+      if (controller.signal.aborted || detailCacheRef.current.owner !== userId) return null;
+      detailCacheRef.current.entries.set(cartItemId, detail);
+      setCartItemDetails(prev => ({ ...prev, [cartItemId]: detail }));
+      return detail;
+    },
+    [userId, itineraryId],
+  );
 
   const refreshBudgetData = useCallback(() => setBudgetRefreshTrigger(prev => prev + 1), []);
   const refreshMapData = useCallback(() => setMapRefreshTrigger(prev => prev + 1), []);
@@ -93,7 +148,7 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
         if (!isOwner) cartQuery = cartQuery.eq('user_id', userId);
         const { data: cartItems } = await withAbort(cartQuery, signal);
 
-        return { row, role, isOwner, cartItems: (cartItems ?? []) as any[] };
+        return { row, role, isOwner, cartItems: (cartItems ?? []) as unknown as CartListItem[] };
       },
     });
 
@@ -104,48 +159,45 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
 
         const byType = (type: string) => cartItems.filter(item => item.type === type);
 
-        const cartFlights = byType('flight').map(item => ({
-          ...(item.item_data as any),
+        /**
+         * Cart-derived entries are built from the LIST projection only. The
+         * saved provider snapshot for a row is merged in by the workspace when
+         * that specific item/section is opened (`loadCartItemDetail`).
+         */
+        const dates = (item: CartListItem) => item.item_service_dates ?? {};
+        const fromCart = (item: CartListItem) => ({
+          name: item.item_name ?? undefined,
+          provider: item.item_provider ?? undefined,
+          images: [] as string[],
           cost: item.price,
-          booking_status: (item.item_data as any)?.bookingStatus || 'pending',
+          price: item.price,
+          booking_status: item.booking_status || 'pending',
+          service_timing: item.item_service_timing ?? undefined,
           from_cart: true,
+          detail_loaded: false,
           cart_id: item.id,
-        }));
-
-        const cartHotels = byType('hotel').map(item => {
-          const itemData = (item.item_data as any) || {};
-          const serviceDates = itemData.service_dates || {};
-          const nights = Number(itemData.nights || 0);
-          const rooms = Number(itemData.occupancy?.rooms || itemData.rooms || 1);
-          return {
-            ...itemData,
-            check_in: itemData.check_in || serviceDates.check_in || serviceDates.checkIn || itemData.checkIn,
-            check_out: itemData.check_out || serviceDates.check_out || serviceDates.checkOut || itemData.checkOut,
-            cost: item.price,
-            cost_per_night: Number(itemData.price_per_night || itemData.pricing?.price_per_night)
-              || (nights > 0 && rooms > 0 ? item.price / (nights * rooms) : item.price),
-            city: itemData.city || itemData.location?.city,
-            booking_status: itemData.bookingStatus || 'pending',
-            from_cart: true,
-            cart_id: item.id,
-          };
         });
 
+        const cartFlights = byType('flight').map(item => ({
+          ...fromCart(item),
+          depart: dates(item).depart ?? dates(item).start ?? null,
+          return: dates(item).return ?? dates(item).end ?? null,
+        }));
+
+        const cartHotels = byType('hotel').map(item => ({
+          ...fromCart(item),
+          check_in: dates(item).check_in ?? dates(item).checkIn ?? null,
+          check_out: dates(item).check_out ?? dates(item).checkOut ?? null,
+        }));
+
         const cartActivities = byType('activity').map(item => ({
-          ...(item.item_data as any),
-          cost: item.price,
-          city: (item.item_data as any)?.location?.city || (item.item_data as any)?.location,
-          booking_status: (item.item_data as any)?.bookingStatus || 'pending',
-          from_cart: true,
-          cart_id: item.id,
+          ...fromCart(item),
+          date: dates(item).date ?? dates(item).start ?? null,
         }));
 
         const cartReservations = byType('reservation').map(item => ({
-          ...(item.item_data as any),
-          cost: item.price,
-          booking_status: (item.item_data as any)?.bookingStatus || 'pending',
-          from_cart: true,
-          cart_id: item.id,
+          ...fromCart(item),
+          date: dates(item).date ?? dates(item).start ?? null,
         }));
 
         const totalSpending = cartItems.reduce((sum, item) => sum + (item.price ?? 0), 0);
@@ -236,5 +288,9 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
     refreshMapData,
     syncMapLocations,
     isUpdating,
+    /** Lazy, owner-scoped snapshot loader for one opened cart item. */
+    loadCartItemDetail,
+    /** Snapshots loaded so far, keyed by cart item id. */
+    cartItemDetails,
   };
 };
