@@ -6,6 +6,7 @@ import {
   AI_CONTEXT_CAPS,
   AI_ITINERARY_COLUMNS,
   boundHistory,
+  asAiItineraryRow,
   createItineraryContextLoader,
   truncate,
   type ItineraryContextLoader,
@@ -1222,9 +1223,8 @@ async function updateHotelDates(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1309,9 +1309,8 @@ async function addHotelToItinerary(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1369,9 +1368,8 @@ async function addFlightToItinerary(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1428,9 +1426,8 @@ async function addActivityToItinerary(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1488,9 +1485,8 @@ async function removeItemFromItinerary(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1572,9 +1568,8 @@ async function updateItineraryDates(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1635,9 +1630,8 @@ async function updateItineraryBudget(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };

@@ -243,3 +243,60 @@ export const createItineraryContextLoader = (client: MinimalClient): ItineraryCo
     },
   };
 };
+
+/* ------------------------------------------------------------------------- */
+/* Validated write-path row                                                   */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * The exact shape the AI write path reads. PostgREST cannot infer a row type
+ * from a runtime column list, so instead of casting to `Record<string, any>`,
+ * write-path handlers narrow the unknown row through `asAiItineraryRow`, which
+ * validates identity fields and coerces the four section arrays.
+ */
+export interface AiItineraryRow {
+  id: number | string;
+  itin_id: string | null;
+  itin_name: string | null;
+  itin_date_start: string | null;
+  itin_date_end: string | null;
+  budget: number | null;
+  spending: number | null;
+  userid: string | null;
+  flights: Record<string, unknown>[];
+  hotels: Record<string, unknown>[];
+  activities: Record<string, unknown>[];
+  reservations: Record<string, unknown>[];
+}
+
+const sectionArray = (value: unknown): Record<string, unknown>[] =>
+  Array.isArray(value) ? value.filter((i): i is Record<string, unknown> => Boolean(i) && typeof i === 'object') : [];
+
+const nullableString = (value: unknown): string | null => (typeof value === 'string' ? value : null);
+
+const nullableNumber = (value: unknown): number | null => {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+/** Runtime narrowing for an allow-listed itinerary row. Returns null when invalid. */
+export const asAiItineraryRow = (value: unknown): AiItineraryRow | null => {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Record<string, unknown>;
+  const id = row.id;
+  if (typeof id !== 'number' && typeof id !== 'string') return null;
+  return {
+    id,
+    itin_id: nullableString(row.itin_id),
+    itin_name: nullableString(row.itin_name),
+    itin_date_start: nullableString(row.itin_date_start),
+    itin_date_end: nullableString(row.itin_date_end),
+    budget: nullableNumber(row.budget),
+    spending: nullableNumber(row.spending),
+    userid: nullableString(row.userid),
+    flights: sectionArray(row.flights),
+    hotels: sectionArray(row.hotels),
+    activities: sectionArray(row.activities),
+    reservations: sectionArray(row.reservations),
+  };
+};
