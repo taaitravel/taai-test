@@ -1216,12 +1216,15 @@ async function updateHotelDates(userId: string, params: {
 
   try {
     // Fetch current itinerary
-    const { data: itinerary, error } = await supabase
+    const { data: itineraryRow, error } = await supabase
       .from('itinerary')
       .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
+    // Allow-listed projection: the generated client cannot infer a runtime
+    // column list, so the row is narrowed to the AI write-path shape.
+    const itinerary = itineraryRow as unknown as Record<string, any> | null;
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1300,12 +1303,15 @@ async function addHotelToItinerary(userId: string, params: {
   console.log('Adding hotel to itinerary:', params.itinerary_id);
 
   try {
-    const { data: itinerary, error } = await supabase
+    const { data: itineraryRow, error } = await supabase
       .from('itinerary')
       .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
+    // Allow-listed projection: the generated client cannot infer a runtime
+    // column list, so the row is narrowed to the AI write-path shape.
+    const itinerary = itineraryRow as unknown as Record<string, any> | null;
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1357,12 +1363,15 @@ async function addFlightToItinerary(userId: string, params: {
   console.log('Adding flight to itinerary:', params.itinerary_id);
 
   try {
-    const { data: itinerary, error } = await supabase
+    const { data: itineraryRow, error } = await supabase
       .from('itinerary')
       .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
+    // Allow-listed projection: the generated client cannot infer a runtime
+    // column list, so the row is narrowed to the AI write-path shape.
+    const itinerary = itineraryRow as unknown as Record<string, any> | null;
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1413,12 +1422,15 @@ async function addActivityToItinerary(userId: string, params: {
   console.log('Adding activity to itinerary:', params.itinerary_id);
 
   try {
-    const { data: itinerary, error } = await supabase
+    const { data: itineraryRow, error } = await supabase
       .from('itinerary')
       .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
+    // Allow-listed projection: the generated client cannot infer a runtime
+    // column list, so the row is narrowed to the AI write-path shape.
+    const itinerary = itineraryRow as unknown as Record<string, any> | null;
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1470,12 +1482,15 @@ async function removeItemFromItinerary(userId: string, params: {
   console.log('Removing item from itinerary:', params);
 
   try {
-    const { data: itinerary, error } = await supabase
+    const { data: itineraryRow, error } = await supabase
       .from('itinerary')
       .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
+    // Allow-listed projection: the generated client cannot infer a runtime
+    // column list, so the row is narrowed to the AI write-path shape.
+    const itinerary = itineraryRow as unknown as Record<string, any> | null;
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1551,12 +1566,15 @@ async function updateItineraryDates(userId: string, params: {
   console.log('Updating itinerary dates:', params);
 
   try {
-    const { data: itinerary, error } = await supabase
+    const { data: itineraryRow, error } = await supabase
       .from('itinerary')
       .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
+    // Allow-listed projection: the generated client cannot infer a runtime
+    // column list, so the row is narrowed to the AI write-path shape.
+    const itinerary = itineraryRow as unknown as Record<string, any> | null;
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1611,12 +1629,15 @@ async function updateItineraryBudget(userId: string, params: {
   console.log('Updating itinerary budget:', params);
 
   try {
-    const { data: itinerary, error } = await supabase
+    const { data: itineraryRow, error } = await supabase
       .from('itinerary')
       .select(AI_ITINERARY_COLUMNS)
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
+    // Allow-listed projection: the generated client cannot infer a runtime
+    // column list, so the row is narrowed to the AI write-path shape.
+    const itinerary = itineraryRow as unknown as Record<string, any> | null;
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
