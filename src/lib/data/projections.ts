@@ -55,11 +55,32 @@ export const CART_COMMERCE_FIELDS = [
   'saved_at',
 ].join(', ');
 
-/** Commerce projection plus the JSON detail actually rendered in the cart UI. */
+/**
+ * Commerce projection plus the JSON detail actually rendered in the itinerary
+ * workspace cards (hotel/flight/activity snapshots).
+ */
 export const CART_DETAIL_FIELDS = [`${CART_COMMERCE_FIELDS}`, 'external_ref', 'item_data'].join(', ');
+
+/**
+ * Cart LIST projection — deliberately excludes the `item_data` blob. Only the
+ * handful of scalars/objects the list row renders are extracted server-side via
+ * JSON paths, so an unopened cart never ships a provider snapshot.
+ */
+export const CART_LIST_FIELDS = [
+  `${CART_COMMERCE_FIELDS}`,
+  'external_ref',
+  'item_name:item_data->>name',
+  'item_provider:item_data->>provider',
+  'item_service_dates:item_data->service_dates',
+  'item_service_timing:item_data->service_timing',
+].join(', ');
+
+/** Detail projection for exactly ONE explicitly opened cart item. */
+export const CART_ITEM_DETAIL_FIELDS = ['id', 'item_data'].join(', ');
 
 /** Budget aggregation needs the item kind inside item_data, not the whole blob. */
 export const CART_BUDGET_FIELDS = ['id', 'type', 'price', 'item_kind:item_data->>type'].join(', ');
+
 
 /** Split rows rendered by the cart UI. */
 export const CART_SPLIT_FIELDS = [
