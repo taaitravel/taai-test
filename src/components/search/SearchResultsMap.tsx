@@ -96,6 +96,12 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
       try {
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         if (error) throw error;
+        if (!data?.token || typeof data.token !== 'string') {
+          // Configuration gap: show the contained fallback, never retry.
+          setError('Map unavailable');
+          setLoading(false);
+          return;
+        }
         setMapboxToken(data.token);
         setError(null);
       } catch (err) {
@@ -109,6 +115,7 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
         }
       }
     };
+
     fetchToken();
   }, [retryCount]);
 

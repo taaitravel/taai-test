@@ -36,11 +36,15 @@ serve(async (req) => {
 
     const mapboxToken = Deno.env.get('MAPBOX_TAAI_TOKEN');
     if (!mapboxToken) {
+      // Configuration gap, not a runtime failure: answer 200 with a safe
+      // "not configured" payload so map components render their contained
+      // fallback instead of surfacing a 500 / blank screen or retry loop.
       return new Response(
-        JSON.stringify({ error: 'Mapbox token not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ token: null, configured: false }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
 
     return new Response(
       JSON.stringify({ token: mapboxToken }),
