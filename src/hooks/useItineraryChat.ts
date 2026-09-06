@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  CHAT_MESSAGE_FIELDS,
+  CHAT_PARTICIPANT_FIELDS,
+  CHAT_REACTION_FIELDS,
+  PAGE_SIZES,
+} from '@/lib/data/projections';
 
 export interface ChatMessage {
   id: string;
@@ -53,12 +59,17 @@ export const useItineraryChat = (itineraryId: number | null) => {
   const [filter, setFilter] = useState<FilterType>('all');
   const [participantFilter, setParticipantFilter] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
+  const subscribedKeyRef = useRef<string | null>(null);
+  const oldestCursorRef = useRef<string | null>(null);
+  const newestCursorRef = useRef<string | null>(null);
+  const profileMapRef = useRef<Record<string, any> | null>(null);
+  const [hasMoreOlder, setHasMoreOlder] = useState(true);
 
   const fetchParticipants = useCallback(async () => {
     if (!itineraryId) return;
     const { data } = await supabase
       .from('itinerary_chat_participants')
-      .select('*')
+      .select(CHAT_PARTICIPANT_FIELDS)
       .eq('itinerary_id', itineraryId);
 
     if (!data) return;
@@ -85,90 +96,187 @@ export const useItineraryChat = (itineraryId: number | null) => {
     setParticipants(withUsers);
   }, [itineraryId]);
 
-  const fetchMessages = useCallback(async () => {
-    if (!itineraryId) return;
-    setLoading(true);
+  /**
+   * Cursor pagination (egress containment): the initial load is bounded to
+   * PAGE_SIZES.chatInitial newest messages. Realtime deltas fetch only rows
+   * newer than the last known cursor instead of the whole conversation.
+   */
+  const loadMessages = useCallback(
+    async (mode: 'initial' | 'newer' | 'older') => {
+      if (!itineraryId) return;
+      if (mode === 'initial') setLoading(true);
 
-    const { data, error } = await supabase
-      .from('itinerary_chat_messages')
-      .select('*')
-      .eq('itinerary_id', itineraryId)
-      .order('created_at', { ascending: true });
+      let query = supabase
+        .from('itinerary_chat_messages')
+        .select(CHAT_MESSAGE_FIELDS)
+        .eq('itinerary_id', itineraryId);
 
-    if (error) {
-      console.error('Error fetching messages:', error);
-      setLoading(false);
-      return;
-    }
+      if (mode === 'newer' && newestCursorRef.current) {
+        query = query.gt('created_at', newestCursorRef.current).order('created_at', { ascending: true });
+      } else if (mode === 'older' && oldestCursorRef.current) {
+        query = query.lt('created_at', oldestCursorRef.current).order('created_at', { ascending: false });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
 
-    // Fetch reactions for all messages
-    const messageIds = (data || []).map((m: any) => m.id);
-    let reactions: ChatReaction[] = [];
-    if (messageIds.length > 0) {
-      const { data: reactData } = await supabase
-        .from('itinerary_chat_reactions')
-        .select('*')
-        .in('message_id', messageIds);
-      reactions = (reactData || []) as ChatReaction[];
-    }
+      const { data, error } = await query.limit(PAGE_SIZES.chatPage);
 
-    // Fetch sender info using safe RPC
-    const senderMap: Record<string, any> = {};
-    const { data: profiles } = await supabase.rpc('get_itinerary_participant_profiles', {
-      p_itinerary_id: itineraryId
-    });
-    (profiles || []).forEach((p: any) => {
-      senderMap[p.user_id] = {
-        first_name: p.first_name,
-        last_name: p.last_name,
-        username: p.username,
-        avatar_url: p.avatar_url,
-      };
-    });
+      if (error) {
+        console.error('Error fetching messages:', error.message);
+        if (mode === 'initial') setLoading(false);
+        return;
+      }
 
-    // Build reply references (only 1 level deep)
-    const msgMap: Record<string, any> = {};
-    (data || []).forEach((m: any) => { msgMap[m.id] = m; });
+      const page = ((data ?? []) as any[]).slice();
+      // Normalise every page to ascending order.
+      page.sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
 
-    const enriched: ChatMessage[] = (data || []).map((m: any) => ({
-      ...m,
-      sender: senderMap[m.sender_id] || null,
-      reply_to: m.reply_to_id ? msgMap[m.reply_to_id] || null : null,
-      reactions: reactions.filter((r) => r.message_id === m.id),
-    }));
+      if (page.length === 0) {
+        if (mode === 'older') setHasMoreOlder(false);
+        if (mode === 'initial') setLoading(false);
+        return;
+      }
 
-    setMessages(enriched);
-    setLoading(false);
-  }, [itineraryId]);
+      const ids = page.map((m) => m.id);
+      let reactions: ChatReaction[] = [];
+      if (ids.length > 0) {
+        const { data: reactData } = await supabase
+          .from('itinerary_chat_reactions')
+          .select(CHAT_REACTION_FIELDS)
+          .in('message_id', ids);
+        reactions = (reactData || []) as unknown as ChatReaction[];
+      }
 
-  // Realtime subscription
+      // Profiles are fetched once per mounted conversation, not per page.
+      if (!profileMapRef.current) {
+        const { data: profiles } = await supabase.rpc('get_itinerary_participant_profiles', {
+          p_itinerary_id: itineraryId,
+        });
+        const map: Record<string, any> = {};
+        (profiles || []).forEach((p: any) => {
+          map[p.user_id] = {
+            first_name: p.first_name,
+            last_name: p.last_name,
+            username: p.username,
+            avatar_url: p.avatar_url,
+          };
+        });
+        profileMapRef.current = map;
+      }
+      const senderMap = profileMapRef.current ?? {};
+
+      setMessages((prev) => {
+        const merged: Record<string, any> = {};
+        for (const m of prev) merged[m.id] = m;
+        for (const m of page) {
+          merged[m.id] = {
+            ...m,
+            sender: senderMap[m.sender_id] || null,
+            reactions: reactions.filter((r) => r.message_id === m.id),
+          };
+        }
+        const all = Object.values(merged).sort((a: any, b: any) => (a.created_at < b.created_at ? -1 : 1));
+        return all.map((m: any) => ({
+          ...m,
+          reply_to: m.reply_to_id ? merged[m.reply_to_id] || null : null,
+        })) as ChatMessage[];
+      });
+
+      const first = page[0].created_at as string;
+      const last = page[page.length - 1].created_at as string;
+      if (!oldestCursorRef.current || first < oldestCursorRef.current) oldestCursorRef.current = first;
+      if (!newestCursorRef.current || last > newestCursorRef.current) newestCursorRef.current = last;
+      if (mode === 'initial' && page.length < PAGE_SIZES.chatPage) setHasMoreOlder(false);
+      if (mode === 'initial') setLoading(false);
+    },
+    [itineraryId]
+  );
+
+  const loadOlderMessages = useCallback(() => loadMessages('older'), [loadMessages]);
+
+  const resetPagination = useCallback(() => {
+    oldestCursorRef.current = null;
+    newestCursorRef.current = null;
+    profileMapRef.current = null;
+    setHasMoreOlder(true);
+    setMessages([]);
+  }, []);
+
+  // Realtime subscription — exactly one channel per conversation/account.
   useEffect(() => {
-    if (!itineraryId) return;
+    if (!itineraryId || !user?.id) return;
+    const key = `chat-${itineraryId}-${user.id}`;
+    if (subscribedKeyRef.current === key && channelRef.current) return;
 
-    fetchMessages();
-    fetchParticipants();
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    resetPagination();
+    void loadMessages('initial');
+    void fetchParticipants();
 
     const channel = supabase
-      .channel(`chat-${itineraryId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'itinerary_chat_messages',
-        filter: `itinerary_id=eq.${itineraryId}`,
-      }, () => { fetchMessages(); })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'itinerary_chat_reactions',
-      }, () => { fetchMessages(); })
+      .channel(key)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'itinerary_chat_messages',
+          filter: `itinerary_id=eq.${itineraryId}`,
+        },
+        (payload: any) => {
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+            const row = payload.new ?? payload.old;
+            if (row?.id) {
+              setMessages((prev) =>
+                prev
+                  .map((m) => (m.id === row.id ? ({ ...m, ...payload.new } as ChatMessage) : m))
+                  .filter((m) => (payload.eventType === 'DELETE' ? m.id !== row.id : true))
+              );
+              return;
+            }
+          }
+          // New message: fetch only rows newer than the cursor.
+          void loadMessages('newer');
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'itinerary_chat_reactions',
+          filter: `itinerary_id=eq.${itineraryId}`,
+        },
+        (payload: any) => {
+          const row = payload.new ?? payload.old;
+          if (!row?.message_id) return;
+          setMessages((prev) =>
+            prev.map((m) => {
+              if (m.id !== row.message_id) return m;
+              const others = m.reactions.filter((r) => r.id !== row.id);
+              return {
+                ...m,
+                reactions: payload.eventType === 'DELETE' ? others : [...others, row as ChatReaction],
+              };
+            })
+          );
+        }
+      )
       .subscribe();
 
     channelRef.current = channel;
+    subscribedKeyRef.current = key;
 
     return () => {
       supabase.removeChannel(channel);
+      channelRef.current = null;
+      subscribedKeyRef.current = null;
     };
-  }, [itineraryId, fetchMessages, fetchParticipants]);
+  }, [itineraryId, user?.id, loadMessages, fetchParticipants, resetPagination]);
 
   const sendMessage = async (
     content: string,
@@ -280,6 +388,8 @@ export const useItineraryChat = (itineraryId: number | null) => {
     deleteMessage,
     toggleReaction,
     uploadAttachment,
-    refresh: fetchMessages,
+    hasMoreOlder,
+    loadOlderMessages,
+    refresh: () => loadMessages('newer'),
   };
 };
