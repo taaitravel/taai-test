@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useMapboxToken } from '@/hooks/useMapboxToken';
 import { useCountryData } from '@/hooks/useCountryData';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { getMapStyle, getMarkerBorderColor, getMarkerDotColor, getMarkerGlow } from '@/lib/mapStyles';
