@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Save, X, Plus, Plane, Hotel, Compass, Utensils, Car, ShoppingBag, MoreHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { CART_BUDGET_FIELDS, ITINERARY_BUDGET_FIELDS, PAGE_SIZES } from "@/lib/data/projections";
 import { useToast } from "@/hooks/use-toast";
 
 interface BudgetCategory {
@@ -44,7 +45,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
     try {
       const { data, error } = await supabase
         .from('itinerary_budget_breakdown')
-        .select('*')
+        .select('id, itinerary_id, category, budgeted_amount, spent_amount')
         .eq('itinerary_id', itineraryId)
         .order('category');
 
@@ -59,7 +60,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       // Get the current itinerary to fetch itin_id and budget
       const { data: itinerary, error: itinError } = await supabase
         .from('itinerary')
-        .select('itin_id, budget, flights, hotels, activities, reservations')
+        .select(ITINERARY_BUDGET_FIELDS)
         .eq('id', itineraryId)
         .single();
 
@@ -68,8 +69,9 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       // Fetch cart items to recalculate spent amounts
       const { data: cartItems, error: cartError } = await supabase
         .from('cart_items')
-        .select('*')
-        .eq('itinerary_id', itinerary.itin_id);
+        .select(CART_BUDGET_FIELDS)
+        .eq('itinerary_id', itinerary.itin_id)
+        .limit(PAGE_SIZES.cartItems);
 
       if (cartError) {
         console.error('Error fetching cart items:', cartError);
@@ -187,7 +189,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       // Get the current itinerary data
       const { data: itinerary, error: itinError } = await supabase
         .from('itinerary')
-        .select('*')
+        .select(ITINERARY_BUDGET_FIELDS)
         .eq('id', itineraryId)
         .single();
 
@@ -196,8 +198,9 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       // Get cart items for this itinerary
       const { data: cartItems, error: cartError } = await supabase
         .from('cart_items')
-        .select('*')
-        .eq('itinerary_id', itinerary.itin_id);
+        .select(CART_BUDGET_FIELDS)
+        .eq('itinerary_id', itinerary.itin_id)
+        .limit(PAGE_SIZES.cartItems);
 
       if (cartError) {
         console.error('Error fetching cart items:', cartError);

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users, CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { CART_DETAIL_FIELDS, CART_BUDGET_FIELDS, PAGE_SIZES } from '@/lib/data/projections';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBookingCheckout, type ValidationItem, type ValidationResult } from '@/hooks/useBookingCheckout';
@@ -133,7 +134,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
   const fetchCartItems = async () => {
     try {
-      let query = supabase.from('cart_items').select('*').order('saved_at', { ascending: false });
+      let query = supabase
+        .from('cart_items')
+        .select(CART_DETAIL_FIELDS)
+        .order('saved_at', { ascending: false })
+        .limit(PAGE_SIZES.cartItems);
       if (itineraryId) query = query.eq('itinerary_id', itineraryId);
       const { data, error } = await query;
       if (error) throw error;
@@ -167,7 +172,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       if (itemIds.length > 0) {
         const { data: splitRows } = await supabase
           .from('cart_item_splits')
-          .select('*')
+          .select('id, cart_item_id, user_id, amount, share_type, status')
           .in('cart_item_id', itemIds);
         const grouped: Record<string, CartItemSplit[]> = {};
         ((splitRows as CartItemSplit[]) || []).forEach((s) => {
