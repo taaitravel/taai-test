@@ -163,7 +163,7 @@ export const useExternalTripBookings = (itineraryId: number | null) => {
       const payload = buildMutationPayload(itineraryId, user.id, values);
       const { error } = await externalBookingsClient
         .from('trip_external_bookings')
-        .insert(payload);
+        .insert(payload as never);
 
       if (error) throw error;
       toast.success('Booking details added to your trip. This information was entered manually and has not been independently confirmed by taai or the provider.');
@@ -181,7 +181,7 @@ export const useExternalTripBookings = (itineraryId: number | null) => {
       const payload = buildUpdatePayload(itineraryId, user.id, values);
       const { error } = await externalBookingsClient
         .from('trip_external_bookings')
-        .update(payload)
+        .update(payload as never)
         .eq('id', bookingId)
         .eq('itinerary_id', itineraryId);
 
@@ -202,7 +202,7 @@ export const useExternalTripBookings = (itineraryId: number | null) => {
         record_status: 'archived',
         archived_at: new Date().toISOString(),
         updated_by: user.id,
-      })
+      } as never)
       .eq('id', bookingId)
       .eq('itinerary_id', itineraryId);
 
