@@ -58,7 +58,6 @@ export interface CanonicalHotelSummary {
   location: string | null;
   address: string | null;
   total_price: number | null;
-  price_per_night_alias?: never;
   latitude: number | null;
   longitude: number | null;
   /** Affiliate attribution is required by the commercial redirect contract. */
