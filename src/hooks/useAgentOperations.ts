@@ -3,11 +3,51 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Tables } from '@/integrations/supabase/types';
 import type { AgentKey } from '@/lib/taai/operating-system';
+import {
+  AGENT_APPROVAL_FIELDS,
+  AGENT_EVENT_FIELDS,
+  AGENT_EVIDENCE_FIELDS,
+  AGENT_TASK_FIELDS,
+  PAGE_SIZES,
+  assertSafeProjection,
+  projectedRows,
+} from '@/lib/data/projections';
 
-export type AgentTask = Tables<'agent_tasks'>;
-export type AgentTaskApproval = Tables<'agent_task_approvals'>;
-export type AgentTaskEvidence = Tables<'agent_task_evidence'>;
-export type AgentTaskEvent = Tables<'agent_task_events'>;
+/**
+ * Egress containment: the control layer reads bounded, explicitly projected
+ * rows. `select('*')` is forbidden here — the tables carry metadata/context
+ * JSON the UI never renders.
+ */
+export type AgentTask = Pick<
+  Tables<'agent_tasks'>,
+  | 'id'
+  | 'title'
+  | 'objective'
+  | 'assigned_agent'
+  | 'action_class'
+  | 'risk_level'
+  | 'status'
+  | 'approval_required'
+  | 'success_criteria'
+  | 'created_at'
+>;
+export type AgentTaskApproval = Pick<
+  Tables<'agent_task_approvals'>,
+  'id' | 'task_id' | 'status' | 'action_class' | 'requested_at' | 'decided_at' | 'decision_reason'
+>;
+export type AgentTaskEvidence = Pick<
+  Tables<'agent_task_evidence'>,
+  'id' | 'task_id' | 'evidence_type' | 'label' | 'summary' | 'reference_url' | 'recorded_at'
+>;
+export type AgentTaskEvent = Pick<
+  Tables<'agent_task_events'>,
+  'id' | 'task_id' | 'event_type' | 'summary' | 'actor_kind' | 'actor_key' | 'created_at'
+>;
+
+const TASK_PROJECTION = assertSafeProjection('agent tasks', AGENT_TASK_FIELDS);
+const APPROVAL_PROJECTION = assertSafeProjection('agent approvals', AGENT_APPROVAL_FIELDS);
+const EVIDENCE_PROJECTION = assertSafeProjection('agent evidence', AGENT_EVIDENCE_FIELDS);
+const EVENT_PROJECTION = assertSafeProjection('agent events', AGENT_EVENT_FIELDS);
 
 export interface CreateAgentTaskInput {
   title: string;
@@ -46,11 +86,24 @@ export function useAgentOperations() {
     }
 
     setLoading(true);
+    const limit = PAGE_SIZES.agentRows;
     const [taskResult, approvalResult, evidenceResult, eventResult] = await Promise.all([
-      supabase.from('agent_tasks').select('*').order('created_at', { ascending: false }),
-      supabase.from('agent_task_approvals').select('*').order('requested_at', { ascending: false }),
-      supabase.from('agent_task_evidence').select('*').order('recorded_at', { ascending: false }),
-      supabase.from('agent_task_events').select('*').order('created_at', { ascending: false }),
+      supabase.from('agent_tasks').select(TASK_PROJECTION).order('created_at', { ascending: false }).limit(limit),
+      supabase
+        .from('agent_task_approvals')
+        .select(APPROVAL_PROJECTION)
+        .order('requested_at', { ascending: false })
+        .limit(limit),
+      supabase
+        .from('agent_task_evidence')
+        .select(EVIDENCE_PROJECTION)
+        .order('recorded_at', { ascending: false })
+        .limit(limit),
+      supabase
+        .from('agent_task_events')
+        .select(EVENT_PROJECTION)
+        .order('created_at', { ascending: false })
+        .limit(limit),
     ]);
 
     const firstError = taskResult.error || approvalResult.error || evidenceResult.error || eventResult.error;
@@ -58,13 +111,14 @@ export function useAgentOperations() {
       setError(firstError.message);
     } else {
       setError(null);
-      setTasks(taskResult.data ?? []);
-      setApprovals(approvalResult.data ?? []);
-      setEvidence(evidenceResult.data ?? []);
-      setEvents(eventResult.data ?? []);
+      setTasks(projectedRows<AgentTask>(taskResult.data));
+      setApprovals(projectedRows<AgentTaskApproval>(approvalResult.data));
+      setEvidence(projectedRows<AgentTaskEvidence>(evidenceResult.data));
+      setEvents(projectedRows<AgentTaskEvent>(eventResult.data));
     }
     setLoading(false);
   }, [user]);
+
 
   useEffect(() => {
     void refresh();

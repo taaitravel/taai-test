@@ -5,24 +5,23 @@ import {
   normalizeHotelDetail,
   normalizeHotelSearchResponse,
 } from "../_shared/hotel-contract.ts";
-
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import {
+  allowRequest,
+  buildCorsHeaders,
+  fetchUpstreamJson,
+  readBoundedJson,
+} from "../_shared/edge-guard.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const rapidApiKey = Deno.env.get('RAPID_API_KEY')!
-
 
 /**
  * Egress containment: the browser never receives the full upstream provider
  * response. Hotel search/detail payloads are normalized to the canonical
  * contract (capped at 20 results, affiliate attribution preserved); any other
  * endpoint is array-capped and stripped of raw/debug envelopes. Nothing is
- * persisted.
+ * persisted and no upstream body is logged.
  */
 const shapeProviderPayload = (path: string, upstream: unknown, provider: string) => {
   const p = path.toLowerCase();
@@ -36,41 +35,41 @@ const shapeProviderPayload = (path: string, upstream: unknown, provider: string)
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== 'POST') {
+    return json({ error: 'Method not allowed' }, 405);
+  }
 
   try {
-    // Create Supabase client for user authentication
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Get the JWT token from the request
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      throw new Error('No authorization header')
-    }
+    if (!authHeader) return json({ error: 'Authentication required' }, 401);
 
-    // Verify the JWT token
     const { data: { user }, error: authError } = await supabase.auth.getUser(
       authHeader.replace('Bearer ', '')
     )
+    if (authError || !user) return json({ error: 'Unauthorized' }, 401);
 
-    if (authError || !user) {
-      throw new Error('Invalid token')
+    if (!allowRequest(`booking:${user.id}`)) {
+      return json({ error: 'Too many requests. Please retry shortly.' }, 429);
     }
 
-    console.log('🏨 Authenticated user:', user.id)
-
-    // Parse the request body
-    const { endpoint, method = 'GET', params = {}, body = null } = await req.json()
-
-    console.log('🏨 Booking.com API call:', { endpoint, method, params })
+    const parsedBody = await readBoundedJson(req);
+    if (!parsedBody.ok) return json({ error: parsedBody.error }, 400);
+    const payload = (parsedBody.value ?? {}) as Record<string, unknown>;
+    const endpoint = typeof payload.endpoint === 'string' ? payload.endpoint : '';
+    const method = payload.method === 'POST' ? 'POST' : 'GET';
+    const params = (payload.params && typeof payload.params === 'object' ? payload.params : {}) as Record<string, unknown>;
+    const body = payload.body ?? null;
 
     // SSRF protection — only allow the booking.com RapidAPI host
     const ALLOWED_HOSTS = ['booking-com15.p.rapidapi.com'];
@@ -78,80 +77,47 @@ serve(async (req) => {
     try {
       parsed = new URL(endpoint);
     } catch {
-      return new Response(JSON.stringify({ error: 'Invalid endpoint' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Invalid endpoint' }, 400);
     }
     if (!ALLOWED_HOSTS.includes(parsed.hostname) || parsed.protocol !== 'https:') {
-      return new Response(JSON.stringify({ error: 'Forbidden host' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Forbidden host' }, 403);
     }
 
-    // Construct the URL with parameters
     const url = parsed
     Object.entries(params).forEach(([key, value]) => {
-      if (value) {
+      if (value !== null && value !== undefined && value !== '') {
         url.searchParams.append(key, String(value))
       }
     })
 
-    console.log('🏨 Final URL:', url.toString())
-
-    // Make the request to booking.com API
     const headers: Record<string, string> = {
       'x-rapidapi-host': 'booking-com15.p.rapidapi.com',
       'x-rapidapi-key': rapidApiKey,
     }
+    if (method === 'POST' && body) headers['Content-Type'] = 'application/json'
 
-    if (method === 'POST' && body) {
-      headers['Content-Type'] = 'application/json'
-    }
-
-    const response = await fetch(url.toString(), {
+    const upstream = await fetchUpstreamJson(url.toString(), {
       method,
       headers,
       body: method === 'POST' && body ? JSON.stringify(body) : undefined,
-    })
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('🏨 Booking.com API error:', response.status, errorText)
-      
-      // Handle rate limit / quota exceeded errors
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'QUOTA_EXCEEDED',
-            message: 'The Booking.com API quota has been exceeded. Please try again later or contact support to upgrade your plan.',
-            statusCode: 429
-          }),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
+    if (!upstream.ok) {
+      if (upstream.status === 429) {
+        return json({
+          error: 'QUOTA_EXCEEDED',
+          message: 'The Booking.com API quota has been exceeded. Please try again later.',
+          statusCode: 429,
+        });
       }
-      
-      throw new Error(`API request failed: ${response.status} ${errorText}`)
+      console.error('🏨 Booking.com upstream error status:', upstream.status);
+      return json({ error: upstream.error }, upstream.status === 504 ? 504 : 502);
     }
 
-    const data = await response.json()
-    const shaped = shapeProviderPayload(parsed.pathname, data, 'booking.com')
-    console.log('🏨 Booking.com API success:', { status: response.status })
-
-    return new Response(JSON.stringify(shaped), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-
-  } catch (error: any) {
-    console.error('🏨 Booking.com API error:', error.message)
-    return new Response(
-      JSON.stringify({ error: 'Unable to process request. Please try again.' }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    const shaped = shapeProviderPayload(parsed.pathname, upstream.data, 'booking.com')
+    return json(shaped);
+  } catch (_error) {
+    console.error('🏨 Booking.com proxy failed');
+    return json({ error: 'Unable to process request. Please try again.' }, 400);
   }
 })

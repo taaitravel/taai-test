@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users, CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users, CheckCircle2, AlertTriangle, XCircle, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
-import { CART_DETAIL_FIELDS, CART_SPLIT_FIELDS, PAGE_SIZES } from '@/lib/data/projections';
+import { CART_SPLIT_FIELDS, projectedRows } from '@/lib/data/projections';
+import { fetchCartItemDetail, fetchCartList, type CartListItem } from '@/lib/data/cart-loading';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBookingCheckout, type ValidationItem, type ValidationResult } from '@/hooks/useBookingCheckout';
@@ -18,22 +19,14 @@ import { SplitChip } from '@/components/booking/SplitChip';
 import type { CartItemSplit } from '@/hooks/useCartItemSplits';
 import { formatDateOnlyRange, formatDualTime } from '@/lib/date-time';
 
-interface CartItem {
-  id: string;
-  type: 'flight' | 'hotel' | 'activity';
-  external_ref: string;
-  price: number;
-  item_data: any;
-  saved_at: string;
-  booking_status?: string;
-  itinerary_id?: string | null;
-  [key: string]: any;
-}
+/** List rows carry no provider snapshot — `item_data` loads only when opened. */
+type CartItem = CartListItem;
 
 interface BookingCartProps {
   itineraryId?: string;
   onCartUpdate?: (items: CartItem[]) => void;
 }
+
 
 const UNASSIGNED_KEY = '__unassigned__';
 
@@ -53,6 +46,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   const [isSaving, setIsSaving] = useState(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  // Provider snapshot for exactly one explicitly opened cart item.
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
+  const [openItemDetail, setOpenItemDetail] = useState<Record<string, unknown> | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
   const { toast } = useToast();
   const { user } = useAuth();
   const { isLoading: isCheckingOut, validateCart } = useBookingCheckout();
@@ -134,16 +132,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
   const fetchCartItems = async () => {
     try {
-      let query = supabase
-        .from('cart_items')
-        .select(CART_DETAIL_FIELDS)
-        .order('saved_at', { ascending: false })
-        .limit(PAGE_SIZES.cartItems);
-      if (itineraryId) query = query.eq('itinerary_id', itineraryId);
-      const { data, error } = await query;
-      if (error) throw error;
-      const items = ((data || []) as unknown as CartItem[]).filter((d) => d.booking_status !== 'booked');
+      const rows = await fetchCartList(supabase, { itineraryId });
+      const items = rows.filter((d) => d.booking_status !== 'booked');
       setCartItems(items);
+      setOpenItemId(null);
+      setOpenItemDetail(null);
       onCartUpdate?.(items);
 
       const ids = Array.from(new Set(items.map(i => i.itinerary_id).filter(Boolean))) as string[];
@@ -154,7 +147,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
           .in('itin_id', ids);
         const map: Record<string, string> = {};
         const bigintMap: Record<string, number> = {};
-        (trips || []).forEach((t: any) => {
+        (trips || []).forEach((t) => {
           if (t.itin_id) {
             map[t.itin_id] = t.itin_name || 'Untitled trip';
             if (typeof t.id === 'number') bigintMap[t.itin_id] = t.id;
@@ -175,7 +168,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
           .select(CART_SPLIT_FIELDS)
           .in('cart_item_id', itemIds);
         const grouped: Record<string, CartItemSplit[]> = {};
-        ((splitRows as unknown as CartItemSplit[]) || []).forEach((s) => {
+        projectedRows<CartItemSplit>(splitRows).forEach((s) => {
           if (!grouped[s.cart_item_id]) grouped[s.cart_item_id] = [];
           grouped[s.cart_item_id].push(s);
         });
@@ -187,6 +180,27 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       console.error('Error fetching cart items:', error);
     }
   };
+
+  /** Loads the provider snapshot for exactly one explicitly opened item. */
+  const toggleItemDetail = async (itemId: string) => {
+    if (openItemId === itemId) {
+      setOpenItemId(null);
+      setOpenItemDetail(null);
+      return;
+    }
+    setOpenItemId(itemId);
+    setOpenItemDetail(null);
+    setDetailLoading(true);
+    try {
+      setOpenItemDetail(await fetchCartItemDetail(supabase, itemId));
+    } catch (error) {
+      console.error('Error loading item details:', error);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+
 
   const removeFromCart = async (itemId: string) => {
     try {
@@ -253,24 +267,23 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const getServiceDateRange = (item: CartItem): string | null => {
-    const sd = item.item_data?.service_dates || {};
-    const start = sd.check_in || sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date
-      || item.item_data?.check_in || item.item_data?.checkIn;
-    const end = sd.check_out || sd.checkOut || sd.end || sd.endDate || sd.return
-      || item.item_data?.check_out || item.item_data?.checkOut;
+    const sd = item.item_service_dates || {};
+    const start = sd.check_in || sd.checkIn || sd.start || sd.startDate || sd.depart || sd.date;
+    const end = sd.check_out || sd.checkOut || sd.end || sd.endDate || sd.return;
     return formatDateOnlyRange(start, end, 'MMM dd', 'MMM dd, yyyy');
   };
 
   const getServiceTime = (item: CartItem) => {
-    const timing = item.item_data?.service_timing;
+    const timing = item.item_service_timing;
     if (timing?.kind !== 'scheduled') return null;
-    const dual = formatDualTime(timing.starts_at_utc, timing.service_timezone || item.item_data?.service_timezone);
+    const dual = formatDualTime(timing.starts_at_utc, timing.service_timezone);
     if (!dual.service && !timing.local_start) return null;
     return {
       primary: dual.service || `${timing.local_start}${timing.service_timezone ? ` (${timing.service_timezone})` : ''}`,
       secondary: dual.viewer ? `${dual.viewer} in your time` : null,
     };
   };
+
 
   const groups = useMemo(() => {
     const map = new Map<string, CartItem[]>();
@@ -348,11 +361,12 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                               <SplitChip splits={itemSplits} />
                             </div>
                             <div className="text-sm font-medium text-foreground break-words">
-                              {item.item_data?.name || item.external_ref}
+                              {item.item_name || item.external_ref}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {item.item_data?.provider || 'Provider TBD'}
+                              {item.item_provider || 'Provider TBD'}
                             </div>
+
                             <div className="text-xs text-muted-foreground">
                               Saved {format(new Date(item.saved_at), 'MMM dd, yyyy')}
                             </div>
@@ -377,7 +391,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                                       open: true,
                                       cartItemId: item.id,
                                       itineraryId: tripBigintId,
-                                      itemName: item.item_data?.name || item.external_ref || item.type,
+                                      itemName: item.item_name || item.external_ref || item.type,
                                       itemPrice: item.price,
                                     })
                                   }
@@ -386,6 +400,16 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                                   <Users className="h-3 w-3" /> Split
                                 </Button>
                               )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => void toggleItemDetail(item.id)}
+                                className="h-8 text-xs gap-1"
+                                aria-expanded={openItemId === item.id}
+                              >
+                                <ChevronDown className={`h-3 w-3 transition-transform ${openItemId === item.id ? 'rotate-180' : ''}`} />
+                                Details
+                              </Button>
                               <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id)} className="text-destructive hover:text-destructive h-8 w-8 p-0">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -394,8 +418,28 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                               </Button>
                               <span className="text-sm font-medium text-rental tabular-nums">{formatPrice(item.price)}</span>
                             </div>
+                            {openItemId === item.id && (
+                              <div className="mt-2 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                                {detailLoading && <span className="flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" /> Loading details…</span>}
+                                {!detailLoading && !openItemDetail && <span>No additional details recorded for this item.</span>}
+                                {!detailLoading && openItemDetail && (
+                                  <dl className="space-y-1">
+                                    {Object.entries(openItemDetail)
+                                      .filter(([, value]) => value !== null && value !== undefined && typeof value !== 'object')
+                                      .slice(0, 12)
+                                      .map(([key, value]) => (
+                                        <div key={key} className="flex justify-between gap-3">
+                                          <dt className="capitalize">{key.replaceAll('_', ' ')}</dt>
+                                          <dd className="text-foreground text-right break-words">{String(value)}</dd>
+                                        </div>
+                                      ))}
+                                  </dl>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
+
                       })}
                     </div>
 

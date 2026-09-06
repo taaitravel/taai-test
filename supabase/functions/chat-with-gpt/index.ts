@@ -6,6 +6,7 @@ import {
   AI_CONTEXT_CAPS,
   AI_ITINERARY_COLUMNS,
   boundHistory,
+  asAiItineraryRow,
   createItineraryContextLoader,
   truncate,
   type ItineraryContextLoader,
@@ -1222,9 +1223,8 @@ async function updateHotelDates(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1278,7 +1278,7 @@ async function updateHotelDates(userId: string, params: {
       userId,
       'update_hotel_dates',
       'hotel',
-      hotels[hotelIndex].id || hotels[hotelIndex].name,
+      String(hotels[hotelIndex].id ?? hotels[hotelIndex].name ?? ''),
       beforeState,
       hotels[hotelIndex]
     );
@@ -1309,9 +1309,8 @@ async function addHotelToItinerary(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1369,9 +1368,8 @@ async function addFlightToItinerary(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1428,9 +1426,8 @@ async function addActivityToItinerary(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1488,23 +1485,22 @@ async function removeItemFromItinerary(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
     }
 
-    const fieldMap: Record<string, string> = {
+    const fieldMap = {
       hotel: 'hotels',
       flight: 'flights',
       activity: 'activities',
       reservation: 'reservations',
-    };
+    } as const;
 
-    const field = fieldMap[params.item_type];
-    const items = itinerary[field] || [];
+    const field = fieldMap[params.item_type as keyof typeof fieldMap];
+    const items = field ? itinerary[field] : [];
     
     const itemIndex = items.findIndex((item: any) => 
       item.name?.toLowerCase().includes(params.item_name.toLowerCase()) ||
@@ -1523,7 +1519,7 @@ async function removeItemFromItinerary(userId: string, params: {
     items.splice(itemIndex, 1);
 
     // Update spending
-    const newSpending = Math.max(0, (itinerary.spending || 0) - (removedItem.price || 0));
+    const newSpending = Math.max(0, (itinerary.spending || 0) - (Number(removedItem.price) || 0));
 
     const { error: updateError } = await supabase
       .from('itinerary')
@@ -1540,7 +1536,7 @@ async function removeItemFromItinerary(userId: string, params: {
       userId,
       `remove_${params.item_type}`,
       params.item_type,
-      removedItem.id || removedItem.name,
+      String(removedItem.id ?? removedItem.name ?? ''),
       removedItem,
       null
     );
@@ -1572,9 +1568,8 @@ async function updateItineraryDates(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
@@ -1635,9 +1630,8 @@ async function updateItineraryBudget(userId: string, params: {
       .eq('id', params.itinerary_id)
       .eq('userid', userId)
       .single();
-    // Allow-listed projection: the generated client cannot infer a runtime
-    // column list, so the row is narrowed to the AI write-path shape.
-    const itinerary = itineraryRow as unknown as Record<string, any> | null;
+    // Allow-listed projection narrowed by runtime validation (no `any` cast).
+    const itinerary = asAiItineraryRow(itineraryRow);
 
     if (error || !itinerary) {
       return { error: 'Itinerary not found or access denied' };
