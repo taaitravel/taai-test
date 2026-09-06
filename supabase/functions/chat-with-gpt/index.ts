@@ -1804,9 +1804,21 @@ const chatSchema = z.object({
 // MAIN REQUEST HANDLER
 // ============================================================================
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = buildCorsHeaders(origin);
+
+  const originCheck = guardOrigin(origin);
+  if (!originCheck.ok) {
+    return new Response(
+      JSON.stringify({ error: originCheck.error }),
+      { status: originCheck.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
 
   try {
     // Authenticate user
