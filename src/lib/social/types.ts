@@ -31,6 +31,9 @@ export interface ItineraryCardProjection {
   dayCount: number;
   regionGroup: RegionGroup;
   coverGradient: string;
+  /** Optional traveler-uploaded cover photo; falls back to the gradient. */
+  coverImageUrl?: string | null;
+
   cloneCount: number;
   publishedAt: string;
   author: {
