@@ -129,22 +129,19 @@ export const AGENT_TASK_FIELDS = [
   'action_class',
   'risk_level',
   'status',
+  'approval_required',
   'success_criteria',
-  'created_by',
   'created_at',
-  'updated_at',
 ].join(', ');
 
 export const AGENT_APPROVAL_FIELDS = [
   'id',
   'task_id',
   'status',
-  'gate',
+  'action_class',
   'requested_at',
   'decided_at',
   'decision_reason',
-  'requested_by',
-  'decided_by',
 ].join(', ');
 
 export const AGENT_EVIDENCE_FIELDS = [
@@ -155,17 +152,18 @@ export const AGENT_EVIDENCE_FIELDS = [
   'summary',
   'reference_url',
   'recorded_at',
-  'recorded_by',
 ].join(', ');
 
 export const AGENT_EVENT_FIELDS = [
   'id',
   'task_id',
   'event_type',
-  'detail',
+  'summary',
+  'actor_kind',
+  'actor_key',
   'created_at',
-  'created_by',
 ].join(', ');
+
 
 /** Bounded page sizes. */
 export const PAGE_SIZES = {
