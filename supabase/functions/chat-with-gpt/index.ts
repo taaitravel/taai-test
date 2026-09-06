@@ -1519,7 +1519,7 @@ async function removeItemFromItinerary(userId: string, params: {
     items.splice(itemIndex, 1);
 
     // Update spending
-    const newSpending = Math.max(0, (itinerary.spending || 0) - (removedItem.price || 0));
+    const newSpending = Math.max(0, (itinerary.spending || 0) - (Number(removedItem.price) || 0));
 
     const { error: updateError } = await supabase
       .from('itinerary')
@@ -1536,7 +1536,7 @@ async function removeItemFromItinerary(userId: string, params: {
       userId,
       `remove_${params.item_type}`,
       params.item_type,
-      removedItem.id || removedItem.name,
+      String(removedItem.id ?? removedItem.name ?? ''),
       removedItem,
       null
     );
