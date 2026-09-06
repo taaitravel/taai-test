@@ -400,6 +400,16 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                                   <Users className="h-3 w-3" /> Split
                                 </Button>
                               )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => void toggleItemDetail(item.id)}
+                                className="h-8 text-xs gap-1"
+                                aria-expanded={openItemId === item.id}
+                              >
+                                <ChevronDown className={`h-3 w-3 transition-transform ${openItemId === item.id ? 'rotate-180' : ''}`} />
+                                Details
+                              </Button>
                               <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id)} className="text-destructive hover:text-destructive h-8 w-8 p-0">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -408,8 +418,28 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                               </Button>
                               <span className="text-sm font-medium text-rental tabular-nums">{formatPrice(item.price)}</span>
                             </div>
+                            {openItemId === item.id && (
+                              <div className="mt-2 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                                {detailLoading && <span className="flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" /> Loading details…</span>}
+                                {!detailLoading && !openItemDetail && <span>No additional details recorded for this item.</span>}
+                                {!detailLoading && openItemDetail && (
+                                  <dl className="space-y-1">
+                                    {Object.entries(openItemDetail)
+                                      .filter(([, value]) => value !== null && value !== undefined && typeof value !== 'object')
+                                      .slice(0, 12)
+                                      .map(([key, value]) => (
+                                        <div key={key} className="flex justify-between gap-3">
+                                          <dt className="capitalize">{key.replaceAll('_', ' ')}</dt>
+                                          <dd className="text-foreground text-right break-words">{String(value)}</dd>
+                                        </div>
+                                      ))}
+                                  </dl>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
+
                       })}
                     </div>
 
