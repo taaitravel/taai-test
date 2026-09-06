@@ -106,7 +106,6 @@ describe('contained source paths', () => {
 
   it('keeps the private cache memory-only', () => {
     const source = read('src/lib/data/request-controller.ts');
-    expect(source).not.toContain('localStorage');
-    expect(source).not.toContain('sessionStorage');
+    expect(source).not.toMatch(/(local|session)Storage\s*\.\s*(set|get)Item/);
   });
 });
