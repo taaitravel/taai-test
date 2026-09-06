@@ -61,6 +61,24 @@ export const CART_DETAIL_FIELDS = [`${CART_COMMERCE_FIELDS}`, 'external_ref', 'i
 /** Budget aggregation needs the item kind inside item_data, not the whole blob. */
 export const CART_BUDGET_FIELDS = ['id', 'type', 'price', 'item_kind:item_data->>type'].join(', ');
 
+/** Split rows rendered by the cart UI. */
+export const CART_SPLIT_FIELDS = [
+  'id',
+  'cart_item_id',
+  'itinerary_id',
+  'attendee_user_id',
+  'attendee_label',
+  'share_method',
+  'share_value',
+  'computed_amount',
+  'computed_taxes_and_fees',
+  'payment_status',
+  'paid_by_user_id',
+  'auto_added',
+  'created_at',
+  'updated_at',
+].join(', ');
+
 export const CHAT_MESSAGE_FIELDS = [
   'id',
   'itinerary_id',

@@ -65,12 +65,13 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         .single();
 
       if (itinError) throw itinError;
+      const trip = itinerary as unknown as { id: number; itin_id: string; budget: number | null; spending: number | null };
 
       // Fetch cart items to recalculate spent amounts
       const { data: cartItems, error: cartError } = await supabase
         .from('cart_items')
         .select(CART_BUDGET_FIELDS)
-        .eq('itinerary_id', itinerary.itin_id)
+        .eq('itinerary_id', trip.itin_id)
         .limit(PAGE_SIZES.cartItems);
 
       if (cartError) {
@@ -78,22 +79,23 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       }
 
       // Calculate actual spending from cart_items by type
-      const flightCostFromCart = cartItems?.filter(item => item.type === 'flight')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const cartRows = (cartItems || []) as unknown as Array<{ id: string; type: string; price: number; item_kind: string | null }>;
+      const flightCostFromCart = cartRows.filter(item => item.type === 'flight')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const hotelCostFromCart = cartItems?.filter(item => item.type === 'hotel')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const hotelCostFromCart = cartRows.filter(item => item.type === 'hotel')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const activityCostFromCart = cartItems?.filter(item => item.type === 'activity')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const activityCostFromCart = cartRows.filter(item => item.type === 'activity')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const diningCostFromCart = cartItems?.filter(item => item.type === 'reservation')
+      const diningCostFromCart = cartRows.filter(item => item.type === 'reservation')
         .reduce((sum, item) => {
-          if ((item as any).item_kind === 'restaurant') {
+          if (item.item_kind === 'restaurant') {
             return sum + item.price;
           }
           return sum;
-        }, 0) || 0;
+        }, 0);
 
       // Legacy itinerary JSON sections are intentionally NOT loaded here:
       // cart_items is the commerce source of truth and the JSON arrays carry
@@ -113,7 +115,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
 
       // Calculate budget allocations if they're all 0
       const needsAllocation = data.every(cat => cat.budgeted_amount === 0);
-      const totalBudget = itinerary.budget || 0;
+      const totalBudget = trip.budget || 0;
 
       // Update the budget data with actual spent amounts and budgeted amounts if needed
       const updatedData = data.map(category => {
@@ -185,12 +187,13 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
         .single();
 
       if (itinError) throw itinError;
+      const trip = itinerary as unknown as { id: number; itin_id: string; budget: number | null; spending: number | null };
 
       // Get cart items for this itinerary
       const { data: cartItems, error: cartError } = await supabase
         .from('cart_items')
         .select(CART_BUDGET_FIELDS)
-        .eq('itinerary_id', itinerary.itin_id)
+        .eq('itinerary_id', trip.itin_id)
         .limit(PAGE_SIZES.cartItems);
 
       if (cartError) {
@@ -198,22 +201,23 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       }
 
       // Calculate costs from cart_items by type
-      const flightCostFromCart = cartItems?.filter(item => item.type === 'flight')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const cartRows = (cartItems || []) as unknown as Array<{ id: string; type: string; price: number; item_kind: string | null }>;
+      const flightCostFromCart = cartRows.filter(item => item.type === 'flight')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const hotelCostFromCart = cartItems?.filter(item => item.type === 'hotel')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const hotelCostFromCart = cartRows.filter(item => item.type === 'hotel')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const activityCostFromCart = cartItems?.filter(item => item.type === 'activity')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const activityCostFromCart = cartRows.filter(item => item.type === 'activity')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const diningCostFromCart = cartItems?.filter(item => item.type === 'reservation')
+      const diningCostFromCart = cartRows.filter(item => item.type === 'reservation')
         .reduce((sum, item) => {
-          if ((item as any).item_kind === 'restaurant') {
+          if (item.item_kind === 'restaurant') {
             return sum + item.price;
           }
           return sum;
-        }, 0) || 0;
+        }, 0);
 
       // Legacy itinerary JSON sections are intentionally NOT loaded here:
       // cart_items is the commerce source of truth and the JSON arrays carry
@@ -231,11 +235,11 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
 
       // Create default budget breakdown
       const categories = [
-        { category: 'Flights', budgeted_amount: Math.max(flightCost, (itinerary.budget || 0) * 0.25), spent_amount: flightCost },
-        { category: 'Accommodation', budgeted_amount: Math.max(hotelCost, (itinerary.budget || 0) * 0.30), spent_amount: hotelCost },
-        { category: 'Activities', budgeted_amount: Math.max(activityCost, (itinerary.budget || 0) * 0.20), spent_amount: activityCost },
-        { category: 'Dining', budgeted_amount: Math.max(diningCost, (itinerary.budget || 0) * 0.15), spent_amount: diningCost },
-        { category: 'Transportation', budgeted_amount: (itinerary.budget || 0) * 0.10, spent_amount: 0 },
+        { category: 'Flights', budgeted_amount: Math.max(flightCost, (trip.budget || 0) * 0.25), spent_amount: flightCost },
+        { category: 'Accommodation', budgeted_amount: Math.max(hotelCost, (trip.budget || 0) * 0.30), spent_amount: hotelCost },
+        { category: 'Activities', budgeted_amount: Math.max(activityCost, (trip.budget || 0) * 0.20), spent_amount: activityCost },
+        { category: 'Dining', budgeted_amount: Math.max(diningCost, (trip.budget || 0) * 0.15), spent_amount: diningCost },
+        { category: 'Transportation', budgeted_amount: (trip.budget || 0) * 0.10, spent_amount: 0 },
         { category: 'Shopping', budgeted_amount: 0, spent_amount: 0 },
         { category: 'Miscellaneous', budgeted_amount: 0, spent_amount: 0 }
       ];
