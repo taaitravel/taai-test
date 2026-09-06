@@ -86,18 +86,42 @@ export const fetchCartList = async (
   return projectedRows<CartListItem>(data);
 };
 
-/** Loads the provider snapshot for exactly ONE opened cart item. */
+/** Authorization scope required to open one snapshot. */
+export interface CartDetailScope {
+  /** Verified authenticated user id (never a caller-chosen value in the UI). */
+  userId: string;
+  /**
+   * Trip scope for a shared workspace. When present the row must belong to
+   * that trip and RLS decides owner/member access; when absent the row must
+   * belong to the authenticated user.
+   */
+  itineraryId?: string | null;
+}
+
+/**
+ * Loads the provider snapshot for exactly ONE opened cart item.
+ *
+ * Authorization: filtered by the exact cart item id AND an owner/member scope.
+ * There is no unscoped fallback query, so one user can never read another
+ * user's snapshot even if they guess an id (RLS is the second gate).
+ */
 export const fetchCartItemDetail = async (
   client: CartQueryClient,
   cartItemId: string,
+  scope: CartDetailScope,
 ): Promise<Record<string, unknown> | null> => {
-  const { data, error } = await client
+  if (!cartItemId || !scope?.userId) return null;
+  let query = client
     .from('cart_items')
     .select(CART_ITEM_DETAIL_PROJECTION)
-    .eq('id', cartItemId)
-    .maybeSingle();
+    .eq('id', cartItemId);
+  query = scope.itineraryId
+    ? query.eq('itinerary_id', scope.itineraryId)
+    : query.eq('user_id', scope.userId);
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   const row = projectedRow<{ id: string; item_data: unknown }>(data);
   const detail = row?.item_data;
   return detail && typeof detail === 'object' ? (detail as Record<string, unknown>) : null;
 };
+
