@@ -361,11 +361,12 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                               <SplitChip splits={itemSplits} />
                             </div>
                             <div className="text-sm font-medium text-foreground break-words">
-                              {item.item_data?.name || item.external_ref}
+                              {item.item_name || item.external_ref}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {item.item_data?.provider || 'Provider TBD'}
+                              {item.item_provider || 'Provider TBD'}
                             </div>
+
                             <div className="text-xs text-muted-foreground">
                               Saved {format(new Date(item.saved_at), 'MMM dd, yyyy')}
                             </div>
