@@ -169,7 +169,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
 
     const { error } = await supabase
       .from('itinerary')
-      .update({ [type]: newArray, itin_map_locations: updatedMap })
+      .update({ [type]: newArray, itin_map_locations: updatedMap } as never)
       .eq('id', itineraryData.id);
     if (error) throw error;
     setAddOpen(false);

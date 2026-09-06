@@ -1,4 +1,3 @@
-// Baseline snapshot restored from commit 1c57742f51b539255f78707f18d3200d2b8d275b (original backend dhbvweazpqnviqwgpurv). Interim reference until types are regenerated live.
 export type Json =
   | string
   | number
