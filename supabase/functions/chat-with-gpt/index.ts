@@ -7,7 +7,6 @@ import {
   AI_ITINERARY_COLUMNS,
   boundHistory,
   createItineraryContextLoader,
-  sanitizeItineraryContext,
   truncate,
   type ItineraryContextLoader,
 } from "../_shared/itinerary-context.ts";
@@ -1874,7 +1873,7 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
     const selectedTools = getToolsForChatMode(chatMode);
     const modelMessages = [
       { role: 'system', content: fullSystemPrompt },
-      ...validatedHistory,
+      ...boundHistory(validatedHistory),
       { role: 'user', content: message },
     ];
 
@@ -2024,7 +2023,7 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
           model: 'google/gemini-2.5-flash',
           messages: [
             { role: 'system', content: fullSystemPrompt },
-            ...validatedHistory,
+            ...boundHistory(validatedHistory),
             { role: 'user', content: message },
             { role: 'assistant', content: null, tool_calls: choice.message.tool_calls },
             { role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(toolResult) }
