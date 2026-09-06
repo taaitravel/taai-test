@@ -7,12 +7,12 @@ import {
   normalizeHotelDetail,
   normalizeHotelSearchResponse,
 } from "../_shared/hotel-contract.ts";
-
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import {
+  allowRequest,
+  buildCorsHeaders,
+  fetchUpstreamJson,
+  readBoundedJson,
+} from "../_shared/edge-guard.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -26,13 +26,12 @@ const expediaRequestSchema = z.object({
   body: z.any().optional()
 });
 
-
 /**
  * Egress containment: the browser never receives the full upstream provider
  * response. Hotel search/detail payloads are normalized to the canonical
  * contract (capped at 20 results, affiliate attribution preserved); any other
  * endpoint is array-capped and stripped of raw/debug envelopes. Nothing is
- * persisted.
+ * persisted and no upstream body is logged.
  */
 const shapeProviderPayload = (path: string, upstream: unknown, provider: string) => {
   const p = path.toLowerCase();
@@ -46,65 +45,44 @@ const shapeProviderPayload = (path: string, upstream: unknown, provider: string)
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== 'POST') {
+    return json({ error: 'Method not allowed' }, 405);
+  }
 
   try {
-    console.log('Expedia RapidAPI function called');
-
-    // Verify user authentication
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
+    if (!authHeader) return json({ error: 'Authentication required' }, 401);
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
-    
-    if (authError || !user) {
-      console.error('Authentication failed:', authError);
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    if (authError || !user) return json({ error: 'Unauthorized' }, 401);
 
-    console.log('User authenticated:', user.id);
+    if (!allowRequest(`expedia:${user.id}`)) {
+      return json({ error: 'Too many requests. Please retry shortly.' }, 429);
+    }
 
     if (!rapidApiKey) {
       console.error('RAPID_API_KEY not configured');
-      return new Response(JSON.stringify({ error: 'Service configuration error' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Service configuration error' }, 500);
     }
 
-    // Validate input
-    const rawData = await req.json();
-    
+    const parsedBody = await readBoundedJson(req);
+    if (!parsedBody.ok) return json({ error: parsedBody.error }, 400);
+
     let validatedData;
-    
     try {
-      validatedData = expediaRequestSchema.parse(rawData);
-    } catch (validationError) {
-      console.error('Validation error:', validationError);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Invalid input parameters',
-          details: validationError instanceof Error ? validationError.message : 'Validation failed',
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      validatedData = expediaRequestSchema.parse(parsedBody.value);
+    } catch {
+      return json({ error: 'Invalid input parameters' }, 400);
     }
 
     const { endpoint, method, params, body } = validatedData;
@@ -115,20 +93,12 @@ serve(async (req) => {
     try {
       parsedEndpoint = new URL(endpoint);
     } catch {
-      return new Response(JSON.stringify({ error: 'Invalid endpoint' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Invalid endpoint' }, 400);
     }
     if (!ALLOWED_HOSTS.includes(parsedEndpoint.hostname) || parsedEndpoint.protocol !== 'https:') {
-      return new Response(JSON.stringify({ error: 'Forbidden host' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Forbidden host' }, 403);
     }
 
-    console.log('Making RapidAPI request to:', endpoint);
-    console.log('Parameters:', params);
-
-    // Build query string from params
     const queryString = new URLSearchParams(params).toString();
     const fullUrl = `${endpoint}${queryString ? '?' + queryString : ''}`;
 
@@ -136,48 +106,23 @@ serve(async (req) => {
       'X-RapidAPI-Key': rapidApiKey,
       'X-RapidAPI-Host': 'expedia13.p.rapidapi.com',
     };
+    if (method !== 'GET' && body) rapidApiHeaders['Content-Type'] = 'application/json';
 
-    // Add content-type for POST/PUT requests
-    if (method !== 'GET' && body) {
-      rapidApiHeaders['Content-Type'] = 'application/json';
-    }
-
-    const response = await fetch(fullUrl, {
+    const upstream = await fetchUpstreamJson(fullUrl, {
       method,
       headers: rapidApiHeaders,
       body: body ? JSON.stringify(body) : null,
     });
 
-    if (!response.ok) {
-      console.error('RapidAPI request failed:', response.status, response.statusText);
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
-      
-      return new Response(
-        JSON.stringify({ error: 'External API request failed' }), 
-        {
-          status: 502,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+    if (!upstream.ok) {
+      console.error('Expedia upstream error status:', upstream.status);
+      return json({ error: upstream.error }, upstream.status === 504 ? 504 : 502);
     }
 
-    const data = await response.json();
-    const shaped = shapeProviderPayload(parsedEndpoint.pathname, data, 'expedia');
-    console.log('RapidAPI response received successfully');
-
-    return new Response(JSON.stringify(shaped), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('Error in expedia-rapid-api function:', error);
-    return new Response(
-      JSON.stringify({ error: 'Unable to process API request. Please try again.' }), 
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+    const shaped = shapeProviderPayload(parsedEndpoint.pathname, upstream.data, 'expedia');
+    return json(shaped);
+  } catch (_error) {
+    console.error('Expedia proxy failed');
+    return json({ error: 'Unable to process API request. Please try again.' }, 500);
   }
 });
