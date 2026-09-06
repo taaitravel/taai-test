@@ -1,12 +1,38 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { ItineraryData } from "@/types/itinerary";
 import { useMapLocationSync } from "./useMapLocationSync";
+import { guardRead } from "@/lib/data/read-guard";
+import { request, withAbort } from "@/lib/data/request-controller";
+import {
+  ITINERARY_METADATA_FIELDS,
+  ITINERARY_SECTION_FIELDS,
+  CART_DETAIL_FIELDS,
+  PAGE_SIZES,
+  assertSafeProjection,
+} from "@/lib/data/projections";
 
 export type UserRole = 'owner' | 'collaborator' | null;
 
+/**
+ * Explicit projection for the itinerary workspace: lightweight metadata plus
+ * the day/item sections the screen renders. `expedia_data` and every provider
+ * blob are excluded by construction.
+ */
+export const ITINERARY_WORKSPACE_PROJECTION = assertSafeProjection(
+  'itinerary workspace',
+  `${ITINERARY_METADATA_FIELDS}, attendees, ${ITINERARY_SECTION_FIELDS.split(', ')
+    .filter(f => !['id', 'itin_id'].includes(f))
+    .join(', ')}`
+);
+
+const CART_PROJECTION = assertSafeProjection('cart detail', CART_DETAIL_FIELDS);
+
 export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<UserRole>(null);
@@ -15,77 +41,78 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
   const { toast } = useToast();
   const { syncMapLocations, isUpdating } = useMapLocationSync(itineraryId);
 
-  const refreshBudgetData = () => {
-    setBudgetRefreshTrigger(prev => prev + 1);
-  };
+  // Keep the latest toast callback out of the effect dependencies.
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
 
-  const refreshMapData = () => {
-    setMapRefreshTrigger(prev => prev + 1);
-  };
+  const requestIdRef = useRef(0);
+
+  const refreshBudgetData = useCallback(() => setBudgetRefreshTrigger(prev => prev + 1), []);
+  const refreshMapData = useCallback(() => setMapRefreshTrigger(prev => prev + 1), []);
 
   useEffect(() => {
-    const fetchAuthenticatedItinerary = async () => {
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
-        if (authError || !user) {
-          throw new Error('User not authenticated');
-        }
+    if (!itineraryId || !userId) return;
 
-        // Don't filter by userid — RLS already handles access control
-        const { data, error } = await supabase
-          .from('itinerary')
-          .select('*')
-          .eq('id', parseInt(itineraryId!))
-          .single();
+    const requestId = ++requestIdRef.current;
+    let cancelled = false;
 
+    guardRead(`itinerary:workspace:${itineraryId}`);
+
+    const handle = request({
+      key: `itinerary:authenticated:${userId}:${itineraryId}:${budgetRefreshTrigger}:${mapRefreshTrigger}`,
+      userId,
+      run: async signal => {
+        const { data, error } = await withAbort(
+          supabase.from('itinerary').select(ITINERARY_WORKSPACE_PROJECTION).eq('id', parseInt(itineraryId)),
+          signal
+        ).single();
         if (error) throw error;
 
-        // Determine user role
-        const isOwner = data.userid === user.id;
+        const row = data as unknown as Record<string, any>;
+        const isOwner = row.userid === userId;
         let role: UserRole = isOwner ? 'owner' : null;
 
         if (!isOwner) {
-          // Check attendee role
-          const { data: attendeeData } = await supabase
-            .from('itinerary_attendees')
-            .select('role')
-            .eq('itinerary_id', data.id)
-            .eq('user_id', user.id)
-            .eq('status', 'accepted')
-            .single();
-
-          role = attendeeData ? 'collaborator' : null;
+          const { data: attendee } = await withAbort(
+            supabase
+              .from('itinerary_attendees')
+              .select('role')
+              .eq('itinerary_id', row.id)
+              .eq('user_id', userId)
+              .eq('status', 'accepted'),
+            signal
+          ).maybeSingle();
+          role = attendee ? 'collaborator' : null;
         }
 
+        let cartQuery = supabase
+          .from('cart_items')
+          .select(CART_PROJECTION)
+          .eq('itinerary_id', row.itin_id)
+          .limit(PAGE_SIZES.cartItems);
+        if (!isOwner) cartQuery = cartQuery.eq('user_id', userId);
+        const { data: cartItems } = await withAbort(cartQuery, signal);
+
+        return { row, role, isOwner, cartItems: (cartItems ?? []) as any[] };
+      },
+    });
+
+    handle.promise
+      .then(({ row, role, isOwner, cartItems }) => {
+        if (cancelled || requestId !== requestIdRef.current) return;
         setUserRole(role);
 
-        // Fetch cart items — for owner fetch by itinerary, for collaborator fetch their own
-        const cartQuery = supabase
-          .from('cart_items')
-          .select('*')
-          .eq('itinerary_id', data.itin_id);
+        const byType = (type: string) => cartItems.filter(item => item.type === type);
 
-        if (!isOwner) {
-          cartQuery.eq('user_id', user.id);
-        }
-
-        const { data: cartItems, error: cartError } = await cartQuery;
-
-        if (cartError) {
-          console.error('Error fetching cart items:', cartError);
-        }
-
-        // Separate cart items by type and include cart_id for editing/deleting
-        const cartFlights = (cartItems?.filter(item => item.type === 'flight') || []).map(item => ({
+        const cartFlights = byType('flight').map(item => ({
           ...(item.item_data as any),
           cost: item.price,
           booking_status: (item.item_data as any)?.bookingStatus || 'pending',
           from_cart: true,
-          cart_id: item.id
+          cart_id: item.id,
         }));
 
-        const cartHotels = (cartItems?.filter(item => item.type === 'hotel') || []).map(item => {
+        const cartHotels = byType('hotel').map(item => {
           const itemData = (item.item_data as any) || {};
           const serviceDates = itemData.service_dates || {};
           const nights = Number(itemData.nights || 0);
@@ -100,108 +127,105 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
             city: itemData.city || itemData.location?.city,
             booking_status: itemData.bookingStatus || 'pending',
             from_cart: true,
-            cart_id: item.id
+            cart_id: item.id,
           };
         });
 
-        const cartActivities = (cartItems?.filter(item => item.type === 'activity') || []).map(item => ({
+        const cartActivities = byType('activity').map(item => ({
           ...(item.item_data as any),
           cost: item.price,
           city: (item.item_data as any)?.location?.city || (item.item_data as any)?.location,
           booking_status: (item.item_data as any)?.bookingStatus || 'pending',
           from_cart: true,
-          cart_id: item.id
+          cart_id: item.id,
         }));
 
-        const cartReservations = (cartItems?.filter(item => item.type === 'reservation') || []).map(item => ({
+        const cartReservations = byType('reservation').map(item => ({
           ...(item.item_data as any),
           cost: item.price,
           booking_status: (item.item_data as any)?.bookingStatus || 'pending',
           from_cart: true,
-          cart_id: item.id
+          cart_id: item.id,
         }));
 
-        // Calculate total spending from all cart items
-        const totalSpending = cartItems?.reduce((sum, item) => sum + item.price, 0) || 0;
-        
-        // Only owner should update spending
-        if (isOwner && totalSpending !== data.spending) {
-          await supabase
+        const totalSpending = cartItems.reduce((sum, item) => sum + (item.price ?? 0), 0);
+        if (isOwner && totalSpending !== row.spending) {
+          void supabase
             .from('itinerary')
             .update({ spending: totalSpending })
-            .eq('id', data.id);
+            .eq('id', row.id);
         }
 
-        // Transform and enhance data with cart items
         const transformedData: ItineraryData = {
-          ...data,
-          itin_locations: data.itin_locations as string[],
-          itin_map_locations: data.itin_map_locations as Array<{ city: string; lat: number; lng: number }>,
-          attendees: data.attendees as Array<{ id: number; name: string; email: string; avatar: string; status: string }>,
+          ...(row as unknown as ItineraryData),
+          itin_locations: row.itin_locations as string[],
+          itin_map_locations: row.itin_map_locations as Array<{ city: string; lat: number; lng: number }>,
+          attendees: (row.attendees as ItineraryData['attendees']) ?? [],
           flights: [
-            ...((data.flights as Array<any>)?.map(flight => ({
+            ...((row.flights as Array<any>)?.map(flight => ({
               ...flight,
               images: flight.images || [],
               booking_status: flight.booking_status || 'pending',
-              expedia_property_id: flight.expedia_property_id,
               location: flight.location || flight.to,
-              rating: flight.rating || 4.0
+              rating: flight.rating || 4.0,
             })) || []),
-            ...cartFlights
+            ...cartFlights,
           ],
           hotels: [
-            ...((data.hotels as Array<any>)?.map(hotel => ({
+            ...((row.hotels as Array<any>)?.map(hotel => ({
               ...hotel,
               images: hotel.images || [],
               booking_status: hotel.booking_status || 'pending',
-              expedia_property_id: hotel.expedia_property_id,
               location: hotel.location || hotel.city,
               rating: hotel.rating || 4.0,
-              price: hotel.price || hotel.cost
+              price: hotel.price || hotel.cost,
             })) || []),
-            ...cartHotels
+            ...cartHotels,
           ],
           activities: [
-            ...((data.activities as Array<any>)?.map(activity => ({
+            ...((row.activities as Array<any>)?.map(activity => ({
               ...activity,
               images: activity.images || [],
               booking_status: activity.booking_status || 'pending',
               location: activity.location || activity.city,
               rating: activity.rating || 4.0,
-              price: activity.price || activity.cost
+              price: activity.price || activity.cost,
             })) || []),
-            ...cartActivities
+            ...cartActivities,
           ],
           reservations: [
-            ...((data.reservations as Array<any>)?.map(reservation => ({
+            ...((row.reservations as Array<any>)?.map(reservation => ({
               ...reservation,
               images: reservation.images || [],
               booking_status: reservation.booking_status || 'pending',
               location: reservation.location || reservation.city,
-              cuisine: reservation.cuisine || 'International'
+              cuisine: reservation.cuisine || 'International',
             })) || []),
-            ...cartReservations
+            ...cartReservations,
           ],
-          expedia_data: data.expedia_data || {}
         };
 
         setItineraryData(transformedData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching authenticated itinerary:', error);
-        toast({
+      })
+      .catch(error => {
+        if (cancelled || requestId !== requestIdRef.current) return;
+        if ((error as Error)?.name === 'AbortError') return;
+        console.error('Error fetching authenticated itinerary:', (error as Error)?.message);
+        toastRef.current({
           title: 'Error',
           description: 'Failed to load itinerary. Please make sure you are logged in and have access.',
           variant: 'destructive',
         });
-        setLoading(false);
-      }
-    };
+      })
+      .finally(() => {
+        if (!cancelled && requestId === requestIdRef.current) setLoading(false);
+      });
 
-    if (itineraryId) {
-      fetchAuthenticatedItinerary();
-    }
-  }, [itineraryId, budgetRefreshTrigger, mapRefreshTrigger, toast]);
+    return () => {
+      cancelled = true;
+      handle.release();
+    };
+  }, [itineraryId, userId, budgetRefreshTrigger, mapRefreshTrigger]);
 
   return {
     itineraryData,
@@ -211,6 +235,6 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
     refreshBudgetData,
     refreshMapData,
     syncMapLocations,
-    isUpdating
+    isUpdating,
   };
 };

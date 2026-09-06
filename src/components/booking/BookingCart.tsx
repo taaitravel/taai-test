@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ShoppingCart, Trash2, Calendar, CreditCard, Plane, Hotel, MapPin, Loader2, Info, Briefcase, Users, CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { CART_DETAIL_FIELDS, CART_SPLIT_FIELDS, PAGE_SIZES } from '@/lib/data/projections';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBookingCheckout, type ValidationItem, type ValidationResult } from '@/hooks/useBookingCheckout';
@@ -133,11 +134,15 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
   const fetchCartItems = async () => {
     try {
-      let query = supabase.from('cart_items').select('*').order('saved_at', { ascending: false });
+      let query = supabase
+        .from('cart_items')
+        .select(CART_DETAIL_FIELDS)
+        .order('saved_at', { ascending: false })
+        .limit(PAGE_SIZES.cartItems);
       if (itineraryId) query = query.eq('itinerary_id', itineraryId);
       const { data, error } = await query;
       if (error) throw error;
-      const items = (data || []).filter((d: any) => d.booking_status !== 'booked') as CartItem[];
+      const items = ((data || []) as unknown as CartItem[]).filter((d) => d.booking_status !== 'booked');
       setCartItems(items);
       onCartUpdate?.(items);
 
@@ -167,10 +172,10 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       if (itemIds.length > 0) {
         const { data: splitRows } = await supabase
           .from('cart_item_splits')
-          .select('*')
+          .select(CART_SPLIT_FIELDS)
           .in('cart_item_id', itemIds);
         const grouped: Record<string, CartItemSplit[]> = {};
-        ((splitRows as CartItemSplit[]) || []).forEach((s) => {
+        ((splitRows as unknown as CartItemSplit[]) || []).forEach((s) => {
           if (!grouped[s.cart_item_id]) grouped[s.cart_item_id] = [];
           grouped[s.cart_item_id].push(s);
         });

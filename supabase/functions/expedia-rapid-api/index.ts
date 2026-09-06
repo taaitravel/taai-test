@@ -2,6 +2,12 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import {
+  capGenericProviderPayload,
+  normalizeHotelDetail,
+  normalizeHotelSearchResponse,
+} from "../_shared/hotel-contract.ts";
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,6 +25,25 @@ const expediaRequestSchema = z.object({
   params: z.record(z.string()).optional().default({}),
   body: z.any().optional()
 });
+
+
+/**
+ * Egress containment: the browser never receives the full upstream provider
+ * response. Hotel search/detail payloads are normalized to the canonical
+ * contract (capped at 20 results, affiliate attribution preserved); any other
+ * endpoint is array-capped and stripped of raw/debug envelopes. Nothing is
+ * persisted.
+ */
+const shapeProviderPayload = (path: string, upstream: unknown, provider: string) => {
+  const p = path.toLowerCase();
+  if (p.includes('hotel') && (p.includes('search') || p.includes('list'))) {
+    return normalizeHotelSearchResponse(upstream, provider);
+  }
+  if (p.includes('hotel') && (p.includes('detail') || p.includes('info'))) {
+    return normalizeHotelDetail(upstream, provider);
+  }
+  return capGenericProviderPayload(upstream);
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -66,7 +91,6 @@ serve(async (req) => {
 
     // Validate input
     const rawData = await req.json();
-    console.log('Received raw data:', JSON.stringify(rawData, null, 2));
     
     let validatedData;
     
@@ -74,12 +98,10 @@ serve(async (req) => {
       validatedData = expediaRequestSchema.parse(rawData);
     } catch (validationError) {
       console.error('Validation error:', validationError);
-      console.error('Raw data that failed validation:', JSON.stringify(rawData, null, 2));
       return new Response(
         JSON.stringify({ 
           error: 'Invalid input parameters',
           details: validationError instanceof Error ? validationError.message : 'Validation failed',
-          receivedData: rawData
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -141,9 +163,10 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    const shaped = shapeProviderPayload(parsedEndpoint.pathname, data, 'expedia');
     console.log('RapidAPI response received successfully');
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify(shaped), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 

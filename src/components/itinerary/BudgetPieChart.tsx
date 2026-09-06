@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Save, X, Plus, Plane, Hotel, Compass, Utensils, Car, ShoppingBag, MoreHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { CART_BUDGET_FIELDS, ITINERARY_BUDGET_FIELDS, PAGE_SIZES } from "@/lib/data/projections";
 import { useToast } from "@/hooks/use-toast";
 
 interface BudgetCategory {
@@ -44,7 +45,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
     try {
       const { data, error } = await supabase
         .from('itinerary_budget_breakdown')
-        .select('*')
+        .select('id, itinerary_id, category, budgeted_amount, spent_amount')
         .eq('itinerary_id', itineraryId)
         .order('category');
 
@@ -59,56 +60,50 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       // Get the current itinerary to fetch itin_id and budget
       const { data: itinerary, error: itinError } = await supabase
         .from('itinerary')
-        .select('itin_id, budget, flights, hotels, activities, reservations')
+        .select(ITINERARY_BUDGET_FIELDS)
         .eq('id', itineraryId)
         .single();
 
       if (itinError) throw itinError;
+      const trip = itinerary as unknown as { id: number; itin_id: string; budget: number | null; spending: number | null };
 
       // Fetch cart items to recalculate spent amounts
       const { data: cartItems, error: cartError } = await supabase
         .from('cart_items')
-        .select('*')
-        .eq('itinerary_id', itinerary.itin_id);
+        .select(CART_BUDGET_FIELDS)
+        .eq('itinerary_id', trip.itin_id)
+        .limit(PAGE_SIZES.cartItems);
 
       if (cartError) {
         console.error('Error fetching cart items:', cartError);
       }
 
       // Calculate actual spending from cart_items by type
-      const flightCostFromCart = cartItems?.filter(item => item.type === 'flight')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const cartRows = (cartItems || []) as unknown as Array<{ id: string; type: string; price: number; item_kind: string | null }>;
+      const flightCostFromCart = cartRows.filter(item => item.type === 'flight')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const hotelCostFromCart = cartItems?.filter(item => item.type === 'hotel')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const hotelCostFromCart = cartRows.filter(item => item.type === 'hotel')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const activityCostFromCart = cartItems?.filter(item => item.type === 'activity')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const activityCostFromCart = cartRows.filter(item => item.type === 'activity')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const diningCostFromCart = cartItems?.filter(item => item.type === 'reservation')
+      const diningCostFromCart = cartRows.filter(item => item.type === 'reservation')
         .reduce((sum, item) => {
-          const itemData = item.item_data as any;
-          if (itemData?.type === 'restaurant') {
+          if (item.item_kind === 'restaurant') {
             return sum + item.price;
           }
           return sum;
-        }, 0) || 0;
+        }, 0);
 
-      // Also include legacy JSON data if it exists
-      const flightCostFromJSON = itinerary.flights ? 
-        (itinerary.flights as any[]).reduce((sum: number, flight: any) => sum + (flight.cost || 0), 0) : 0;
-      
-      const hotelCostFromJSON = itinerary.hotels ? 
-        (itinerary.hotels as any[]).reduce((sum: number, hotel: any) => sum + (hotel.cost || 0), 0) : 0;
-      
-      const activityCostFromJSON = itinerary.activities ? 
-        (itinerary.activities as any[]).reduce((sum: number, activity: any) => sum + (activity.cost || 0), 0) : 0;
-      
-      const diningCostFromJSON = itinerary.reservations ? 
-        (itinerary.reservations as any[]).reduce((sum: number, reservation: any) => {
-          // Include all reservations with cost in dining category
-          return sum + (reservation.cost || reservation.estimated_cost || 0);
-        }, 0) : 0;
+      // Legacy itinerary JSON sections are intentionally NOT loaded here:
+      // cart_items is the commerce source of truth and the JSON arrays carry
+      // large provider snapshots (egress containment).
+      const flightCostFromJSON = 0;
+      const hotelCostFromJSON = 0;
+      const activityCostFromJSON = 0;
+      const diningCostFromJSON = 0;
 
       // Combine cart and JSON costs
       const costsByCategory: Record<string, number> = {
@@ -120,7 +115,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
 
       // Calculate budget allocations if they're all 0
       const needsAllocation = data.every(cat => cat.budgeted_amount === 0);
-      const totalBudget = itinerary.budget || 0;
+      const totalBudget = trip.budget || 0;
 
       // Update the budget data with actual spent amounts and budgeted amounts if needed
       const updatedData = data.map(category => {
@@ -187,58 +182,50 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       // Get the current itinerary data
       const { data: itinerary, error: itinError } = await supabase
         .from('itinerary')
-        .select('*')
+        .select(ITINERARY_BUDGET_FIELDS)
         .eq('id', itineraryId)
         .single();
 
       if (itinError) throw itinError;
+      const trip = itinerary as unknown as { id: number; itin_id: string; budget: number | null; spending: number | null };
 
       // Get cart items for this itinerary
       const { data: cartItems, error: cartError } = await supabase
         .from('cart_items')
-        .select('*')
-        .eq('itinerary_id', itinerary.itin_id);
+        .select(CART_BUDGET_FIELDS)
+        .eq('itinerary_id', trip.itin_id)
+        .limit(PAGE_SIZES.cartItems);
 
       if (cartError) {
         console.error('Error fetching cart items:', cartError);
       }
 
       // Calculate costs from cart_items by type
-      const flightCostFromCart = cartItems?.filter(item => item.type === 'flight')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const cartRows = (cartItems || []) as unknown as Array<{ id: string; type: string; price: number; item_kind: string | null }>;
+      const flightCostFromCart = cartRows.filter(item => item.type === 'flight')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const hotelCostFromCart = cartItems?.filter(item => item.type === 'hotel')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const hotelCostFromCart = cartRows.filter(item => item.type === 'hotel')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const activityCostFromCart = cartItems?.filter(item => item.type === 'activity')
-        .reduce((sum, item) => sum + item.price, 0) || 0;
+      const activityCostFromCart = cartRows.filter(item => item.type === 'activity')
+        .reduce((sum, item) => sum + item.price, 0);
       
-      const diningCostFromCart = cartItems?.filter(item => item.type === 'reservation')
+      const diningCostFromCart = cartRows.filter(item => item.type === 'reservation')
         .reduce((sum, item) => {
-          const itemData = item.item_data as any;
-          if (itemData?.type === 'restaurant') {
+          if (item.item_kind === 'restaurant') {
             return sum + item.price;
           }
           return sum;
-        }, 0) || 0;
+        }, 0);
 
-      // Also include legacy JSON data if it exists
-      const flightCostFromJSON = itinerary.flights ? 
-        (itinerary.flights as any[]).reduce((sum: number, flight: any) => sum + (flight.cost || 0), 0) : 0;
-      
-      const hotelCostFromJSON = itinerary.hotels ? 
-        (itinerary.hotels as any[]).reduce((sum: number, hotel: any) => sum + (hotel.cost || 0), 0) : 0;
-      
-      const activityCostFromJSON = itinerary.activities ? 
-        (itinerary.activities as any[]).reduce((sum: number, activity: any) => sum + (activity.cost || 0), 0) : 0;
-      
-      const diningCostFromJSON = itinerary.reservations ? 
-        (itinerary.reservations as any[]).reduce((sum: number, reservation: any) => {
-          if (reservation.type === 'restaurant') {
-            return sum + (reservation.estimated_cost || reservation.cost || 0);
-          }
-          return sum;
-        }, 0) : 0;
+      // Legacy itinerary JSON sections are intentionally NOT loaded here:
+      // cart_items is the commerce source of truth and the JSON arrays carry
+      // large provider snapshots (egress containment).
+      const flightCostFromJSON = 0;
+      const hotelCostFromJSON = 0;
+      const activityCostFromJSON = 0;
+      const diningCostFromJSON = 0;
 
       // Combine cart and JSON costs
       const flightCost = flightCostFromCart + flightCostFromJSON;
@@ -248,11 +235,11 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
 
       // Create default budget breakdown
       const categories = [
-        { category: 'Flights', budgeted_amount: Math.max(flightCost, (itinerary.budget || 0) * 0.25), spent_amount: flightCost },
-        { category: 'Accommodation', budgeted_amount: Math.max(hotelCost, (itinerary.budget || 0) * 0.30), spent_amount: hotelCost },
-        { category: 'Activities', budgeted_amount: Math.max(activityCost, (itinerary.budget || 0) * 0.20), spent_amount: activityCost },
-        { category: 'Dining', budgeted_amount: Math.max(diningCost, (itinerary.budget || 0) * 0.15), spent_amount: diningCost },
-        { category: 'Transportation', budgeted_amount: (itinerary.budget || 0) * 0.10, spent_amount: 0 },
+        { category: 'Flights', budgeted_amount: Math.max(flightCost, (trip.budget || 0) * 0.25), spent_amount: flightCost },
+        { category: 'Accommodation', budgeted_amount: Math.max(hotelCost, (trip.budget || 0) * 0.30), spent_amount: hotelCost },
+        { category: 'Activities', budgeted_amount: Math.max(activityCost, (trip.budget || 0) * 0.20), spent_amount: activityCost },
+        { category: 'Dining', budgeted_amount: Math.max(diningCost, (trip.budget || 0) * 0.15), spent_amount: diningCost },
+        { category: 'Transportation', budgeted_amount: (trip.budget || 0) * 0.10, spent_amount: 0 },
         { category: 'Shopping', budgeted_amount: 0, spent_amount: 0 },
         { category: 'Miscellaneous', budgeted_amount: 0, spent_amount: 0 }
       ];
