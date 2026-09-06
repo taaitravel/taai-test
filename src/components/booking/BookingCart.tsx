@@ -391,7 +391,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                                       open: true,
                                       cartItemId: item.id,
                                       itineraryId: tripBigintId,
-                                      itemName: item.item_data?.name || item.external_ref || item.type,
+                                      itemName: item.item_name || item.external_ref || item.type,
                                       itemPrice: item.price,
                                     })
                                   }
