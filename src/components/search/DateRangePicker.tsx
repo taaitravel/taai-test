@@ -14,6 +14,7 @@ interface DateRangePickerProps {
   startLabel: string;
   endLabel: string;
   showNights?: boolean;
+  singleDate?: boolean;
 }
 
 export const DateRangePicker = ({
