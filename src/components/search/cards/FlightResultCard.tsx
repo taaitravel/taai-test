@@ -142,9 +142,15 @@ export const FlightResultCard = ({ flight, planningAction }: FlightResultCardPro
 
       {/* Test-mode / reference-only disclosure */}
       {isTestMode && (
-        <Badge variant="secondary" className="mb-3 w-full justify-center text-[10px] uppercase">
-          Test result — reference only
-        </Badge>
+        <div className="mb-3 space-y-1">
+          <Badge variant="secondary" className="w-full justify-center text-[10px] uppercase">
+            Sandbox test data — not a real flight
+          </Badge>
+          <p className="text-[10px] leading-snug text-muted-foreground text-center">
+            Airline, flight number and times come from the provider's test environment and do not
+            match real-world schedules.
+          </p>
+        </div>
       )}
 
       {/* Route */}
@@ -197,7 +203,7 @@ export const FlightResultCard = ({ flight, planningAction }: FlightResultCardPro
           <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
           <span>
             {isTestMode
-              ? 'Price observed in test mode; not live availability.'
+              ? 'Simulated test price; not real availability or fares.'
               : 'Price observed at search time; not live availability.'}
           </span>
         </p>

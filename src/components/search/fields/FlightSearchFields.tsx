@@ -52,7 +52,14 @@ export const FlightSearchFields = ({
   return (
     <div className="space-y-3">
       {/* Trip Type */}
-      <RadioGroup value={tripType} onValueChange={onTripTypeChange} className="flex gap-4">
+      <RadioGroup
+        value={tripType}
+        onValueChange={(value) => {
+          onTripTypeChange(value as 'roundtrip' | 'oneway');
+          if (value === 'oneway') onReturnDateChange(undefined);
+        }}
+        className="flex gap-4"
+      >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="roundtrip" id="roundtrip" />
           <Label htmlFor="roundtrip" className="text-foreground cursor-pointer text-sm">Round-trip</Label>
@@ -109,8 +116,9 @@ export const FlightSearchFields = ({
         onStartDateChange={onDepartDateChange}
         onEndDateChange={onReturnDateChange}
         startLabel="Depart"
-        endLabel={tripType === 'roundtrip' ? 'Return' : 'N/A'}
+        endLabel="Return"
         showNights={false}
+        singleDate={tripType === 'oneway'}
       />
 
       {/* Travelers & Class */}
