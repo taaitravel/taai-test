@@ -56,49 +56,67 @@ export const DateRangePicker = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                selected={startDate && endDate ? { from: startDate, to: endDate } : startDate ? { from: startDate, to: startDate } : undefined}
-                onSelect={(range) => {
-                  if (range?.from) {
-                    if (!selectingEnd) {
-                      onStartDateChange(range.from);
-                      setSelectingEnd(true);
-                    } else if (range?.to) {
-                      onEndDateChange(range.to);
-                      setIsOpen(false);
-                      setSelectingEnd(false);
+              {singleDate ? (
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    onStartDateChange(date ?? undefined);
+                    if (date) setIsOpen(false);
+                  }}
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                  className="pointer-events-auto"
+                />
+              ) : (
+                <Calendar
+                  mode="range"
+                  selected={startDate && endDate ? { from: startDate, to: endDate } : startDate ? { from: startDate, to: startDate } : undefined}
+                  onSelect={(range) => {
+                    if (range?.from) {
+                      if (!selectingEnd) {
+                        onStartDateChange(range.from);
+                        setSelectingEnd(true);
+                      } else if (range?.to) {
+                        onEndDateChange(range.to);
+                        setIsOpen(false);
+                        setSelectingEnd(false);
+                      }
                     }
-                  }
-                }}
-                initialFocus
-                disabled={(date) => date < new Date()}
-                className="pointer-events-auto"
-              />
+                  }}
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                  className="pointer-events-auto"
+                />
+              )}
             </PopoverContent>
           </Popover>
 
-          {/* Arrow */}
-          <ArrowRight className="hidden md:block h-3 w-3 text-muted-foreground flex-shrink-0" />
+          {!singleDate && (
+            <>
+              {/* Arrow */}
+              <ArrowRight className="hidden md:block h-3 w-3 text-muted-foreground flex-shrink-0" />
 
-          {/* End Date */}
-          <Button
-            variant="outline"
-            className={cn(
-              'flex-1 justify-start text-left font-normal bg-background/50 border-border h-auto py-1.5 px-2 hover:bg-accent w-full',
-              !endDate && 'text-muted-foreground'
-            )}
-            onClick={() => {
-              setSelectingEnd(true);
-              setIsOpen(true);
-            }}
-          >
-            <CalendarIcon className={cn("mr-1.5 h-3.5 w-3.5 flex-shrink-0", endDate ? "text-primary" : "text-muted-foreground")} />
-            <div className="flex items-center gap-2 w-full">
-              <span className="text-xs text-muted-foreground w-[40%] md:w-[25%]">{endLabel}</span>
-              <span className={cn("text-sm w-[60%] md:w-[75%]", endDate ? "text-primary" : "text-foreground")}>{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
-            </div>
-          </Button>
+              {/* End Date */}
+              <Button
+                variant="outline"
+                className={cn(
+                  'flex-1 justify-start text-left font-normal bg-background/50 border-border h-auto py-1.5 px-2 hover:bg-accent w-full',
+                  !endDate && 'text-muted-foreground'
+                )}
+                onClick={() => {
+                  setSelectingEnd(true);
+                  setIsOpen(true);
+                }}
+              >
+                <CalendarIcon className={cn("mr-1.5 h-3.5 w-3.5 flex-shrink-0", endDate ? "text-primary" : "text-muted-foreground")} />
+                <div className="flex items-center gap-2 w-full">
+                  <span className="text-xs text-muted-foreground w-[40%] md:w-[25%]">{endLabel}</span>
+                  <span className={cn("text-sm w-[60%] md:w-[75%]", endDate ? "text-primary" : "text-foreground")}>{endDate ? format(endDate, 'MMM dd') : 'Select'}</span>
+                </div>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Duration Display */}
