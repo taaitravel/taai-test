@@ -99,23 +99,27 @@ export const useSearchOrchestrator = () => {
       switch (type) {
       case 'hotels': {
           console.log('🏨 Searching hotels via Booking.com API...');
-          
-          // Only use Booking.com for hotel searches (Expedia API endpoint not available)
+
           const bookingData = await (async () => {
             try {
               const { data: destData, error: destError } = await searchDestinations(params.destination);
               if (destError || !destData) return null;
-              
+
               let destinations = destData?.data || destData?.destinations || destData;
               if (!Array.isArray(destinations)) destinations = [destinations];
               if (!destinations || destinations.length === 0) return null;
-              
+
               const destination = destinations[0];
               const destId = destination.dest_id || destination.id;
               const destType = destination.dest_type || destination.type || 'city';
-              const searchLat = destination.latitude || destination.lat;
-              const searchLon = destination.longitude || destination.lon || destination.lng;
-              
+              const searchLat = Number(destination.latitude ?? destination.lat);
+              const searchLon = Number(destination.longitude ?? destination.lon ?? destination.lng);
+
+              if (!destId) {
+                console.warn('🏨 No destination id returned for', params.destination);
+                return null;
+              }
+
               const { data, error } = await searchHotels({
                 dest_id: destId,
                 search_type: destType,
@@ -124,72 +128,107 @@ export const useSearchOrchestrator = () => {
                 adults: params.adults || 2,
                 room_qty: params.rooms || 1,
               });
-              
-              if (error || !data?.data?.hotels) return null;
-              
-              return { hotels: data.data.hotels, searchLat, searchLon };
+
+              if (error || !data) return null;
+
+              // Canonical normalized contract (current) with legacy fallback.
+              const hotels =
+                (Array.isArray(data.results) && data.results) ||
+                (Array.isArray(data?.data?.hotels) && data.data.hotels) ||
+                [];
+
+              if (hotels.length === 0) return null;
+              return { hotels, searchLat, searchLon };
             } catch (err) {
               console.error('🏨 Booking.com error:', err);
               return null;
             }
           })();
-          
+
           const checkinDate = new Date(params.checkin);
           const checkoutDate = new Date(params.checkout);
           const nights = Math.ceil((checkoutDate.getTime() - checkinDate.getTime()) / (1000 * 60 * 60 * 24)) || 1;
-          
+
           // Rental-type keywords for categorization
           const rentalKeywords = ['apartment', 'vacation home', 'villa', 'holiday home', 'homestay', 'hostel', 'guest house', 'cottage', 'cabin', 'chalet', 'bungalow', 'condo', 'townhouse'];
-          
-          // Process Booking.com results
-          const bookingHotels = bookingData ? await Promise.all(
-            bookingData.hotels.map(async (hotel: any) => {
-              const totalPrice = Math.round((hotel.property?.priceBreakdown?.grossPrice?.value || 0) * 100) / 100;
-              const pricePerNight = Math.round((totalPrice / nights) * 100) / 100;
-              
-              const hotelLat = hotel.property?.latitude;
-              const hotelLon = hotel.property?.longitude;
-              
-              let cityName = 'Location';
-              let distanceFromSearch = 0;
-              
-              if (hotelLat && hotelLon) {
-                cityName = await getCityName(hotelLat, hotelLon);
-                if (bookingData.searchLat && bookingData.searchLon) {
-                  distanceFromSearch = calculateDistance(bookingData.searchLat, bookingData.searchLon, hotelLat, hotelLon);
-                }
-              }
-              
-              // Determine property category from accommodation type
-              const accommType = (hotel.property?.propertyType || hotel.property?.accommodationTypeName || hotel.property?.type || '').toLowerCase();
-              const isRental = rentalKeywords.some(kw => accommType.includes(kw));
-              
-              return {
-                id: `booking-${hotel.hotel_id}`,
-                name: hotel.property?.name || hotel.accessibilityLabel?.split('.')[0] || 'Unknown Hotel',
-                images: hotel.property?.photoUrls || [],
-                rating: hotel.property?.reviewScore || hotel.property?.accuratePropertyClass || 0,
-                review_count: hotel.property?.reviewCount || 0,
-                pricePerNight,
-                totalPrice,
-                nights,
-                cityName,
-                distanceFromSearch,
-                latitude: hotelLat,
-                longitude: hotelLon,
-                bookingUrl: hotel.property?.url || `https://www.booking.com/hotel/us/${hotel.hotel_id}.html`,
-                source: 'Booking.com',
-                propertyCategory: isRental ? 'rental' : 'hotel',
-                providerTag: 'Booking.com',
-                check_in: params.checkin,
-                check_out: params.checkout,
-                rooms: params.rooms || 1,
-                adults: params.adults || 2,
-                children: params.children || 0,
-                currency: hotel.property?.priceBreakdown?.grossPrice?.currency || 'USD',
-              };
-            })
-          ) : [];
+
+          const bookingHotels = bookingData
+            ? bookingData.hotels.map((hotel: any) => {
+                // Support both the normalized contract and the legacy raw shape.
+                const legacy = hotel.property ?? null;
+
+                const totalPrice = Math.round(
+                  Number(
+                    hotel.price_total ??
+                      hotel.total_price ??
+                      legacy?.priceBreakdown?.grossPrice?.value ??
+                      0,
+                  ) * 100,
+                ) / 100;
+                const pricePerNight = Math.round(
+                  Number(hotel.price_per_night ?? totalPrice / nights) * 100,
+                ) / 100;
+
+                const hotelLat = Number(hotel.latitude ?? legacy?.latitude);
+                const hotelLon = Number(hotel.longitude ?? legacy?.longitude);
+
+                const cityName =
+                  hotel.city ||
+                  hotel.location ||
+                  hotel.address ||
+                  params.destination ||
+                  'Location';
+
+                const distanceFromSearch =
+                  Number.isFinite(hotelLat) && Number.isFinite(hotelLon) &&
+                  Number.isFinite(bookingData.searchLat) && Number.isFinite(bookingData.searchLon)
+                    ? calculateDistance(bookingData.searchLat, bookingData.searchLon, hotelLat, hotelLon)
+                    : 0;
+
+                const images = Array.isArray(hotel.images) && hotel.images.length
+                  ? hotel.images
+                  : hotel.image
+                    ? [hotel.image]
+                    : legacy?.photoUrls || [];
+
+                const name = hotel.name || legacy?.name || hotel.accessibilityLabel?.split('.')[0] || 'Property';
+                const accommType = String(
+                  legacy?.propertyType || legacy?.accommodationTypeName || legacy?.type || name,
+                ).toLowerCase();
+                const isRental = rentalKeywords.some((kw) => accommType.includes(kw));
+
+                const id = String(hotel.id ?? legacy?.id ?? hotel.hotel_id ?? crypto.randomUUID());
+
+                return {
+                  id: id.startsWith('booking-') ? id : `booking-${id}`,
+                  name,
+                  images,
+                  rating: Number(hotel.review_score ?? hotel.rating ?? hotel.star_rating ?? legacy?.reviewScore ?? 0) || 0,
+                  review_count: Number(hotel.review_count ?? legacy?.reviewCount ?? 0) || 0,
+                  pricePerNight,
+                  totalPrice,
+                  nights,
+                  cityName,
+                  distanceFromSearch,
+                  latitude: Number.isFinite(hotelLat) ? hotelLat : undefined,
+                  longitude: Number.isFinite(hotelLon) ? hotelLon : undefined,
+                  bookingUrl:
+                    hotel.affiliate?.redirect_url ||
+                    legacy?.url ||
+                    `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(params.destination || name)}`,
+                  source: 'Booking.com',
+                  propertyCategory: isRental ? 'rental' : 'hotel',
+                  providerTag: 'Booking.com',
+                  check_in: params.checkin,
+                  check_out: params.checkout,
+                  rooms: params.rooms || 1,
+                  adults: params.adults || 2,
+                  children: params.children || 0,
+                  currency: hotel.currency || legacy?.priceBreakdown?.grossPrice?.currency || 'USD',
+                };
+              })
+            : [];
+
           
           // VRBO/Expedia search disabled - the expedia13 RapidAPI provider
           // does not have a working hotel search endpoint. Booking.com is the
