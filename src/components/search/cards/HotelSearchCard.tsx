@@ -233,11 +233,10 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
             <Button
               onClick={() => setShowRates(true)}
               disabled={saving || booking.issues.length > 0}
-              variant="outline"
-              className="flex-1 h-8 px-2 text-xs border-white/20 text-white hover:bg-white/10"
+              className="flex-1 h-8 px-2 text-xs font-semibold bg-white text-black border border-white hover:bg-white/90 disabled:opacity-100 disabled:bg-white/30 disabled:text-white"
             >
               <BedDouble className="mr-1 h-3 w-3" />
-              Rooms
+              See Rooms
             </Button>
           </div>
         </div>
