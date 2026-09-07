@@ -135,9 +135,13 @@ export const useBookingAPI = () => {
         arrival_date: params.arrival_date,
         departure_date: params.departure_date,
         adults: (params.adults || 2).toString(),
-        children: (params.children || 0).toString(),
+        ...(params.children && params.children > 0
+          ? { children_age: Array.from({ length: params.children }, () => '10').join(',') }
+          : {}),
         room_qty: (params.room_qty || 1).toString(),
-        currency_code: params.currency_code || 'USD'
+        currency_code: params.currency_code || 'USD',
+        languagecode: 'en-us',
+        page_number: '1',
       }
     });
   };

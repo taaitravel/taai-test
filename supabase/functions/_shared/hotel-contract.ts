@@ -134,15 +134,15 @@ const amenityList = (raw: unknown): string[] => {
     .slice(0, MAX_HOTEL_AMENITIES);
 };
 
-const candidateList = (payload: Row): Row[] => {
+const candidateList = (payload: Row, depth = 0): Row[] => {
+  if (depth > 4) return [];
   const keys = ['properties', 'results', 'hotels', 'data', 'items', 'searchResults'];
   for (const key of keys) {
     const value = payload?.[key];
     if (Array.isArray(value)) return value as Row[];
     if (value && typeof value === 'object') {
-      for (const inner of keys) {
-        if (Array.isArray((value as Row)[inner])) return (value as Row)[inner] as Row[];
-      }
+      const nested = candidateList(value as Row, depth + 1);
+      if (nested.length > 0) return nested;
     }
   }
   return Array.isArray(payload) ? (payload as unknown as Row[]) : [];
@@ -153,34 +153,35 @@ export const normalizeHotelSummary = (
   provider: string,
   affiliateDefaults: { partner_id?: string | null; attribution?: string | null } = {}
 ): CanonicalHotelSummary => {
-  const price = raw?.price ?? raw?.pricing ?? raw?.rate ?? {};
-  const location = raw?.location ?? raw?.coordinates ?? raw?.geo ?? {};
-  const address = raw?.address ?? raw?.destinationInfo ?? {};
+  const property = raw?.property && typeof raw.property === 'object' ? raw.property as Row : raw;
+  const price = property?.price ?? property?.pricing ?? property?.rate ?? property?.priceBreakdown ?? {};
+  const location = property?.location ?? property?.coordinates ?? property?.geo ?? {};
+  const address = property?.address ?? property?.destinationInfo ?? {};
   return {
-    id: str(raw?.id, raw?.hotel_id, raw?.hotelId, raw?.property_id, raw?.propertyId) ?? 'unknown',
-    name: str(raw?.name, raw?.hotel_name, raw?.propertyName, raw?.title) ?? 'Unnamed property',
-    city: str(address?.city, raw?.city, raw?.cityName),
-    country: str(address?.country, raw?.country, raw?.countryCode),
-    star_rating: numOrNull(raw?.star_rating, raw?.starRating, raw?.stars, raw?.class),
-    review_score: numOrNull(raw?.review_score, raw?.reviewScore, raw?.rating, raw?.reviews?.score),
-    review_count: numOrNull(raw?.review_count, raw?.reviewCount, raw?.reviews?.total),
-    price_total: numOrNull(price?.total, price?.grossPrice?.value, price?.amount, raw?.total_price),
-    price_per_night: numOrNull(price?.per_night, price?.perNight, price?.lead?.amount, raw?.price_per_night),
-    currency: str(price?.currency, price?.currencyCode, raw?.currency) ?? 'USD',
-    image: imageList(raw?.images ?? raw?.photos ?? raw?.propertyImage ?? raw?.image)[0] ?? null,
-    amenities: amenityList(raw?.amenities ?? raw?.facilities),
-    images: imageList(raw?.images ?? raw?.photos ?? raw?.propertyImage ?? raw?.image),
-    rating: numOrNull(raw?.review_score, raw?.reviewScore, raw?.rating, raw?.star_rating, raw?.starRating),
-    location: str(address?.city, raw?.city, raw?.cityName, raw?.location_name),
-    address: str(address?.line1, address?.addressLine, raw?.address_line, raw?.full_address, address?.city, raw?.city),
-    total_price: numOrNull(price?.total, price?.grossPrice?.value, price?.amount, raw?.total_price),
-    latitude: numOrNull(location?.latitude, location?.lat, raw?.latitude),
-    longitude: numOrNull(location?.longitude, location?.lng, location?.lon, raw?.longitude),
+    id: str(raw?.id, raw?.hotel_id, raw?.hotelId, property?.id, property?.hotel_id, property?.property_id, property?.propertyId) ?? 'unknown',
+    name: str(property?.name, property?.hotel_name, property?.propertyName, property?.title, raw?.accessibilityLabel) ?? 'Unnamed property',
+    city: str(address?.city, property?.city, property?.cityName),
+    country: str(address?.country, property?.country, property?.countryCode),
+    star_rating: numOrNull(property?.star_rating, property?.starRating, property?.stars, property?.class, property?.accuratePropertyClass),
+    review_score: numOrNull(property?.review_score, property?.reviewScore, property?.rating, property?.reviews?.score),
+    review_count: numOrNull(property?.review_count, property?.reviewCount, property?.reviews?.total),
+    price_total: numOrNull(price?.total, price?.grossPrice?.value, price?.amount, property?.total_price),
+    price_per_night: numOrNull(price?.per_night, price?.perNight, price?.lead?.amount, property?.price_per_night),
+    currency: str(price?.currency, price?.grossPrice?.currency, price?.currencyCode, property?.currency) ?? 'USD',
+    image: imageList(property?.images ?? property?.photos ?? property?.photoUrls ?? property?.propertyImage ?? property?.image)[0] ?? null,
+    amenities: amenityList(property?.amenities ?? property?.facilities),
+    images: imageList(property?.images ?? property?.photos ?? property?.photoUrls ?? property?.propertyImage ?? property?.image),
+    rating: numOrNull(property?.review_score, property?.reviewScore, property?.rating, property?.star_rating, property?.starRating),
+    location: str(address?.city, property?.city, property?.cityName, property?.location_name),
+    address: str(address?.line1, address?.addressLine, property?.address_line, property?.full_address, address?.city, property?.city),
+    total_price: numOrNull(price?.total, price?.grossPrice?.value, price?.amount, property?.total_price),
+    latitude: numOrNull(location?.latitude, location?.lat, property?.latitude),
+    longitude: numOrNull(location?.longitude, location?.lng, location?.lon, property?.longitude),
     affiliate: {
       provider,
-      partner_id: str(raw?.partner_id, raw?.partnerId, affiliateDefaults.partner_id),
-      redirect_url: str(raw?.deep_link, raw?.deepLink, raw?.url, raw?.booking_url, raw?.affiliate_url),
-      attribution: str(raw?.attribution, affiliateDefaults.attribution) ?? provider,
+      partner_id: str(property?.partner_id, property?.partnerId, affiliateDefaults.partner_id),
+      redirect_url: str(property?.deep_link, property?.deepLink, property?.url, property?.booking_url, property?.affiliate_url),
+      attribution: str(property?.attribution, affiliateDefaults.attribution) ?? provider,
     },
   };
 };

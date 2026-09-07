@@ -100,14 +100,21 @@ export const useSearchOrchestrator = () => {
       case 'hotels': {
           console.log('🏨 Searching hotels via Booking.com API...');
 
-          const bookingData = await (async () => {
+          const bookingOutcome = await (async (): Promise<
+            | { ok: true; hotels: any[]; searchLat: number; searchLon: number }
+            | { ok: false; message: string }
+          > => {
             try {
               const { data: destData, error: destError } = await searchDestinations(params.destination);
-              if (destError || !destData) return null;
+              if (destError || !destData) {
+                return { ok: false, message: destError || 'The destination service returned no response.' };
+              }
 
-              let destinations = destData?.data || destData?.destinations || destData;
+              let destinations = destData?.data?.data || destData?.data || destData?.destinations || destData?.results || destData;
               if (!Array.isArray(destinations)) destinations = [destinations];
-              if (!destinations || destinations.length === 0) return null;
+              if (!destinations || destinations.length === 0) {
+                return { ok: false, message: `Booking.com could not resolve “${params.destination}”.` };
+              }
 
               const destination = destinations[0];
               const destId = destination.dest_id || destination.id;
@@ -117,7 +124,7 @@ export const useSearchOrchestrator = () => {
 
               if (!destId) {
                 console.warn('🏨 No destination id returned for', params.destination);
-                return null;
+                return { ok: false, message: `Booking.com did not return a destination ID for “${params.destination}”.` };
               }
 
               const { data, error } = await searchHotels({
@@ -126,10 +133,13 @@ export const useSearchOrchestrator = () => {
                 arrival_date: params.checkin,
                 departure_date: params.checkout,
                 adults: params.adults || 2,
+                children: params.children || 0,
                 room_qty: params.rooms || 1,
               });
 
-              if (error || !data) return null;
+              if (error || !data) {
+                return { ok: false, message: error || 'The property provider returned no response.' };
+              }
 
               // Canonical normalized contract (current) with legacy fallback.
               const hotels =
@@ -137,11 +147,13 @@ export const useSearchOrchestrator = () => {
                 (Array.isArray(data?.data?.hotels) && data.data.hotels) ||
                 [];
 
-              if (hotels.length === 0) return null;
-              return { hotels, searchLat, searchLon };
+              if (hotels.length === 0) {
+                return { ok: false, message: 'The property provider returned no available properties for this search.' };
+              }
+              return { ok: true, hotels, searchLat, searchLon };
             } catch (err) {
               console.error('🏨 Booking.com error:', err);
-              return null;
+              return { ok: false, message: err instanceof Error ? err.message : 'Property search failed.' };
             }
           })();
 
@@ -152,8 +164,8 @@ export const useSearchOrchestrator = () => {
           // Rental-type keywords for categorization
           const rentalKeywords = ['apartment', 'vacation home', 'villa', 'holiday home', 'homestay', 'hostel', 'guest house', 'cottage', 'cabin', 'chalet', 'bungalow', 'condo', 'townhouse'];
 
-          const bookingHotels = bookingData
-            ? bookingData.hotels.map((hotel: any) => {
+          const bookingHotels = bookingOutcome.ok
+            ? bookingOutcome.hotels.map((hotel: any) => {
                 // Support both the normalized contract and the legacy raw shape.
                 const legacy = hotel.property ?? null;
 
@@ -181,8 +193,8 @@ export const useSearchOrchestrator = () => {
 
                 const distanceFromSearch =
                   Number.isFinite(hotelLat) && Number.isFinite(hotelLon) &&
-                  Number.isFinite(bookingData.searchLat) && Number.isFinite(bookingData.searchLon)
-                    ? calculateDistance(bookingData.searchLat, bookingData.searchLon, hotelLat, hotelLon)
+                   Number.isFinite(bookingOutcome.searchLat) && Number.isFinite(bookingOutcome.searchLon)
+                    ? calculateDistance(bookingOutcome.searchLat, bookingOutcome.searchLon, hotelLat, hotelLon)
                     : 0;
 
                 const images = Array.isArray(hotel.images) && hotel.images.length
@@ -240,10 +252,14 @@ export const useSearchOrchestrator = () => {
           console.log(`✅ Found ${searchResults.length} total properties (${bookingHotels.length} Booking.com + ${vrboResults.length} VRBO)`);
           
           if (searchResults.length === 0) {
+            const message = bookingOutcome.ok
+              ? 'Try adjusting your dates or destination.'
+              : bookingOutcome.message;
+            setNotice({ title: 'Property search unavailable', message, kind: 'error' });
             toast({
-              title: 'No Hotels Found',
-              description: 'Try adjusting your dates or destination.',
-              variant: 'default',
+              title: 'Property search unavailable',
+              description: message,
+              variant: 'destructive',
             });
           }
           break;
