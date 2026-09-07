@@ -39,14 +39,16 @@ const expediaRequestSchema = z.object({
  */
 const shapeProviderPayload = (path: string, upstream: unknown, provider: string) => {
   const p = path.toLowerCase();
-  if (p.includes('hotel') && (p.includes('search') || p.includes('list'))) {
+  const isDestinationLookup = p.includes('destination');
+  if (!isDestinationLookup && p.includes('hotel') && (p.includes('search') || p.includes('list'))) {
     return normalizeHotelSearchResponse(upstream, provider);
   }
-  if (p.includes('hotel') && (p.includes('detail') || p.includes('info'))) {
+  if (!isDestinationLookup && p.includes('hotel') && (p.includes('detail') || p.includes('info'))) {
     return normalizeHotelDetail(upstream, provider);
   }
   return capGenericProviderPayload(upstream);
 };
+
 
 serve(async (req) => {
   const origin = req.headers.get('origin');

@@ -30,14 +30,18 @@ const rapidApiKey = Deno.env.get('RAPID_API_KEY')!
  */
 const shapeProviderPayload = (path: string, upstream: unknown, provider: string) => {
   const p = path.toLowerCase();
-  if (p.includes('hotel') && (p.includes('search') || p.includes('list'))) {
+  // Destination/autocomplete lookups are NOT property searches: normalizing
+  // them would strip dest_id and break the hotel search that follows.
+  const isDestinationLookup = p.includes('destination');
+  if (!isDestinationLookup && p.includes('hotel') && (p.includes('searchhotels') || p.includes('list'))) {
     return normalizeHotelSearchResponse(upstream, provider);
   }
-  if (p.includes('hotel') && (p.includes('detail') || p.includes('info'))) {
+  if (!isDestinationLookup && p.includes('hotel') && (p.includes('detail') || p.includes('info'))) {
     return normalizeHotelDetail(upstream, provider);
   }
   return capGenericProviderPayload(upstream);
 };
+
 
 serve(async (req) => {
   const origin = req.headers.get('origin');
