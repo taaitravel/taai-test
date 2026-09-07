@@ -253,7 +253,7 @@ export const useSearchOrchestrator = () => {
           
           if (searchResults.length === 0) {
             let message = 'Try adjusting your dates or destination.';
-            if (!bookingOutcome.ok) message = bookingOutcome.message;
+            if ('message' in bookingOutcome) message = bookingOutcome.message;
             setNotice({ title: 'Property search unavailable', message, kind: 'error' });
             toast({
               title: 'Property search unavailable',
