@@ -260,8 +260,12 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
               <Plus className="mr-1 h-4 w-4" />
               {saving ? 'Saving...' : 'Save'}
             </Button>
-            <Button variant="outline" onClick={() => setShowRates(true)} disabled={booking.issues.length > 0}>
-              <BedDouble className="mr-1 h-4 w-4" /> Rooms
+            <Button
+              onClick={() => setShowRates(true)}
+              disabled={booking.issues.length > 0}
+              className="font-semibold bg-white text-black border border-white hover:bg-white/90 disabled:opacity-100 disabled:bg-white/30 disabled:text-white"
+            >
+              <BedDouble className="mr-1 h-4 w-4" /> See Rooms
             </Button>
           </div>
         ) : planningAction.mode === 'enabled' ? (
