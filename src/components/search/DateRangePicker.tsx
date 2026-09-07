@@ -25,6 +25,7 @@ export const DateRangePicker = ({
   startLabel,
   endLabel,
   showNights = false,
+  singleDate = false,
 }: DateRangePickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectingEnd, setSelectingEnd] = useState(false);
