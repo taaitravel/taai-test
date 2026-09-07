@@ -252,9 +252,8 @@ export const useSearchOrchestrator = () => {
           console.log(`✅ Found ${searchResults.length} total properties (${bookingHotels.length} Booking.com + ${vrboResults.length} VRBO)`);
           
           if (searchResults.length === 0) {
-            const message = bookingOutcome.ok
-              ? 'Try adjusting your dates or destination.'
-              : bookingOutcome.message;
+            let message = 'Try adjusting your dates or destination.';
+            if (!bookingOutcome.ok) message = bookingOutcome.message;
             setNotice({ title: 'Property search unavailable', message, kind: 'error' });
             toast({
               title: 'Property search unavailable',
