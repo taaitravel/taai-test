@@ -11,5 +11,7 @@
 - [x] Browse sections rebuilt as dashboard-style boxes: "taai Featured" then "taai Creators", 3/2/1 columns, arrows in a reserved gutter with 44x44 targets and boundary disabling.
 
 ## Open (local, next)
+- [ ] Live provider corrective action: flights off sandbox onto live Duffel; properties onto Duffel Stays (or repaired Booking.com); activities off Amadeus onto a real activities provider.
 - [ ] Public itinerary publication proposal (unapplied SQL/RLS/storage + frontend contract), readiness flags stay false.
 - [ ] Profile-loading tolerance for a missing profile row without dropping a valid session.
+
