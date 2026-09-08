@@ -58,7 +58,7 @@ export const useUnifiedSearch = (searchType: 'hotel' | 'flight' | 'activity' | '
           radius: 5, // 5km radius
         });
 
-        if (error) throw new Error(error);
+        if (error) throw new Error(error.message);
         setResults(data?.activities || []);
       }
       else if (searchType === 'package') {
