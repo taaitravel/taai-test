@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
     }
     const request = parsed.value;
 
-    const token = Deno.env.get('DUFFEL_TEST_KEY');
+    const token = DUFFEL_TOKEN;
     if (!token) {
       return fail(
         requestId,
