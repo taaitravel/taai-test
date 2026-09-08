@@ -63,13 +63,14 @@ export const useBookingAPI = () => {
       });
 
       if (error) {
-        console.error('🏨 Booking.com API error:', error);
+        const detail = await readProviderFailure(error, 'Failed to call the property provider.');
+        console.error('🏨 Booking.com API error:', detail);
         toast({
-          title: "API Error",
-          description: error.message || "Failed to call Booking.com API",
-          variant: "destructive",
+          title: 'Property provider error',
+          description: detail,
+          variant: 'destructive',
         });
-        return { data: null, error: error.message, loading: false };
+        return { data: null, error: detail, loading: false };
       }
 
       // Handle API-level errors sent back with 2xx status (like QUOTA_EXCEEDED)
