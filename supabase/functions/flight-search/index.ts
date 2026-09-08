@@ -18,7 +18,17 @@ import {
   normalizeDuffelOffer,
 } from './duffel.ts';
 
-const MODE = 'test' as const;
+/**
+ * Duffel credential resolution decides the mode. A live key (either supplied as
+ * DUFFEL_LIVE_KEY or a `duffel_live_...` token) yields real, sellable offers and
+ * `mode: 'live'`; a test key stays sandbox and keeps every offer labelled as
+ * test data in the UI. There is no way to report live mode without a live key.
+ */
+const LIVE_KEY = Deno.env.get('DUFFEL_LIVE_KEY')?.trim() || '';
+const TEST_KEY = Deno.env.get('DUFFEL_TEST_KEY')?.trim() || '';
+const DUFFEL_TOKEN = LIVE_KEY || TEST_KEY || '';
+const MODE: 'test' | 'live' =
+  DUFFEL_TOKEN && (LIVE_KEY !== '' || DUFFEL_TOKEN.startsWith('duffel_live')) ? 'live' : 'test';
 
 /**
  * Explicit least-privilege CORS headers. Defined locally rather than imported
