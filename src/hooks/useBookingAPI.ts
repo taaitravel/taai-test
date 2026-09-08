@@ -1,6 +1,29 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
+
+/**
+ * Reads the real failure text out of a non-2xx edge response so a provider
+ * subscription/authorization problem is reported as such instead of being
+ * flattened into a generic "no properties" message.
+ */
+const readProviderFailure = async (error: unknown, fallback: string): Promise<string> => {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = await error.context.clone().json();
+      const detail = body?.message || body?.error;
+      if (typeof detail === 'string' && detail.trim()) {
+        return /upstream request failed \(40[13]\)/i.test(detail)
+          ? 'The property provider rejected our request (not authorized). The provider subscription needs review.'
+          : detail;
+      }
+    } catch {
+      // Fall through to the generic message.
+    }
+  }
+  return error instanceof Error && error.message ? error.message : fallback;
+};
 
 interface BookingAPIParams {
   endpoint: string;
@@ -40,13 +63,14 @@ export const useBookingAPI = () => {
       });
 
       if (error) {
-        console.error('🏨 Booking.com API error:', error);
+        const detail = await readProviderFailure(error, 'Failed to call the property provider.');
+        console.error('🏨 Booking.com API error:', detail);
         toast({
-          title: "API Error",
-          description: error.message || "Failed to call Booking.com API",
-          variant: "destructive",
+          title: 'Property provider error',
+          description: detail,
+          variant: 'destructive',
         });
-        return { data: null, error: error.message, loading: false };
+        return { data: null, error: detail, loading: false };
       }
 
       // Handle API-level errors sent back with 2xx status (like QUOTA_EXCEEDED)

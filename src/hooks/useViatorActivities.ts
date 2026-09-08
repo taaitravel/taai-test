@@ -16,6 +16,26 @@ export interface ActivitySearchError {
   requestId?: string;
 }
 
+export interface ViatorActivity {
+  id: string;
+  name: string;
+  description: string | null;
+  location: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  category: string | null;
+  rating: number | null;
+  reviewCount: number | null;
+  price: number | null;
+  currency: string | null;
+  images: string[];
+  duration: string | null;
+  groupSize: string | null;
+  bookingLink: string | null;
+  provider: string;
+}
+
 const readFunctionError = async (error: unknown): Promise<ActivitySearchError> => {
   if (error instanceof FunctionsHttpError) {
     try {
@@ -31,25 +51,22 @@ const readFunctionError = async (error: unknown): Promise<ActivitySearchError> =
   };
 };
 
-export const useAmadeusActivities = () => {
+/** Live activity inventory from Viator (replaces the retired Amadeus path). */
+export const useViatorActivities = () => {
   const [loading, setLoading] = useState(false);
 
-  const searchActivities = async (params: {
-    latitude: number;
-    longitude: number;
-    radius?: number;
-  }) => {
+  const searchActivities = async (params: { destination: string; currency?: string }) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('amadeus-activities', {
-        body: params,
-      });
+      const { data, error } = await supabase.functions.invoke<{
+        status: string;
+        activities: ViatorActivity[];
+      }>('viator-activities', { body: params });
 
       if (error) return { data: null, error: await readFunctionError(error) };
-
       return { data, error: null };
     } catch (err) {
-      console.error('Amadeus activities search error:', err);
+      console.error('Viator activities search error:', err);
       return { data: null, error: await readFunctionError(err) };
     } finally {
       setLoading(false);

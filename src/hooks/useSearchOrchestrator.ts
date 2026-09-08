@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
 import { useExpediaAPI } from './useExpediaAPI';
-import { useAmadeusActivities } from './useAmadeusActivities';
+import { useViatorActivities } from './useViatorActivities';
 import { useFlightSearch } from './useFlightSearch';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,7 +82,7 @@ export const useSearchOrchestrator = () => {
 
   const { searchHotels, searchDestinations } = useBookingAPI();
   const { callExpediaAPI } = useExpediaAPI();
-  const { searchActivities: searchAmadeusActivities } = useAmadeusActivities();
+  const { searchActivities: searchViatorActivities } = useViatorActivities();
   const { searchFlights } = useFlightSearch();
   const { toast } = useToast();
 
@@ -339,45 +339,18 @@ export const useSearchOrchestrator = () => {
         }
 
       case 'activities': {
-          console.log('🎯 Searching activities via Amadeus...');
-          
-          try {
-            let lat = Number(params.latitude);
-            let lon = Number(params.longitude);
-            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-              console.log(`🗺️ Geocoding destination: "${params.destination}"`);
-              const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke(
-                'search-cities',
-                { body: { query: params.destination } }
-              );
-              if (geocodeError) {
-                const message = await readFunctionMessage(
-                  geocodeError,
-                  'We could not locate that destination. Please choose it from the suggestions and try again.',
-                );
-                throw new Error(message);
-              }
-              const location = geocodeData?.locations?.[0];
-              if (!location || !Number.isFinite(Number(location.lat)) || !Number.isFinite(Number(location.lng))) {
-                throw new Error(`Could not find coordinates for "${params.destination}". Choose a more specific city or region.`);
-              }
-              lat = Number(location.lat);
-              lon = Number(location.lng);
-            }
-            console.log(`📍 Geocoded "${params.destination}" to [${lat}, ${lon}]`);
+          console.log('🎯 Searching activities via Viator...');
 
-            // Search activities using Amadeus
-            const { data, error } = await searchAmadeusActivities({
-              latitude: lat,
-              longitude: lon,
-              radius: 5, // 5km radius
+          try {
+            const { data, error } = await searchViatorActivities({
+              destination: String(params.destination || '').trim(),
             });
 
             if (error) {
               const activityTitles: Record<string, string> = {
                 AUTH_REQUIRED: 'Sign in required',
                 VALIDATION_ERROR: 'Check your destination',
-                PROVIDER_NOT_CONFIGURED: 'Activities not configured',
+                PROVIDER_NOT_CONFIGURED: 'Activities not connected',
                 PROVIDER_AUTH_FAILED: 'Activity search unavailable',
                 PROVIDER_RATE_LIMITED: 'Too many activity searches',
                 PROVIDER_UNAVAILABLE: 'Activity provider unavailable',
@@ -389,7 +362,7 @@ export const useSearchOrchestrator = () => {
               break;
             }
 
-            searchResults = (data?.activities || []).map((activity: any) => ({
+            searchResults = (data?.activities || []).map((activity) => ({
               id: activity.id,
               name: activity.name,
               description: activity.description,
@@ -398,12 +371,15 @@ export const useSearchOrchestrator = () => {
               longitude: activity.longitude,
               category: activity.category,
               rating: activity.rating,
+              reviewCount: activity.reviewCount,
               price: activity.price,
               currency: activity.currency,
               images: activity.images,
               duration: activity.duration,
               groupSize: activity.groupSize,
               bookingLink: activity.bookingLink,
+              providerTag: activity.provider,
+              source: activity.provider,
               date: params.checkin,
               participants: params.participants,
             }));
@@ -435,6 +411,7 @@ export const useSearchOrchestrator = () => {
           }
           break;
         }
+
 
         case 'cars': {
           console.log('🚗 Car rentals - coming soon');
