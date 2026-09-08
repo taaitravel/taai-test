@@ -84,14 +84,23 @@ serve(async (req) => {
       return fail(requestId, 'PROVIDER_NOT_CONFIGURED', 'Activity search is not configured for this environment.', 503);
     }
 
-    // Get access token
-    const tokenResponse = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `grant_type=client_credentials&client_id=${AMADEUS_API_KEY}&client_secret=${AMADEUS_API_SECRET}`,
-    });
+    // Host is configurable; some runtimes cannot resolve the test host.
+    const host = (Deno.env.get('AMADEUS_API_HOST') || 'api.amadeus.com').replace(/^https?:\/\//, '').replace(/\/+$/, '');
+
+    // Get access token (network failures must not surface as an unhandled crash)
+    let tokenResponse: Response;
+    try {
+      tokenResponse = await fetch(`https://${host}/v1/security/oauth2/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `grant_type=client_credentials&client_id=${AMADEUS_API_KEY}&client_secret=${AMADEUS_API_SECRET}`,
+      });
+    } catch (networkError) {
+      console.error(`[amadeus-activities ${requestId}] provider unreachable (${host})`, String(networkError));
+      return fail(requestId, 'PROVIDER_UNAVAILABLE', 'Activity search cannot reach its provider right now. Please try again shortly.', 503);
+    }
 
     if (!tokenResponse.ok) {
       await tokenResponse.text().catch(() => '');
@@ -102,15 +111,21 @@ serve(async (req) => {
     const { access_token } = await tokenResponse.json();
 
     // Search points of interest
-    const searchUrl = `https://test.api.amadeus.com/v1/shopping/activities?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
-    
+    const searchUrl = `https://${host}/v1/shopping/activities?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
+
     console.log('Searching activities at:', searchUrl);
 
-    const activitiesResponse = await fetch(searchUrl, {
-      headers: {
-        'Authorization': `Bearer ${access_token}`,
-      },
-    });
+    let activitiesResponse: Response;
+    try {
+      activitiesResponse = await fetch(searchUrl, {
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+        },
+      });
+    } catch (networkError) {
+      console.error(`[amadeus-activities ${requestId}] provider unreachable (${host})`, String(networkError));
+      return fail(requestId, 'PROVIDER_UNAVAILABLE', 'Activity search cannot reach its provider right now. Please try again shortly.', 503);
+    }
 
     if (!activitiesResponse.ok) {
       await activitiesResponse.text().catch(() => '');
