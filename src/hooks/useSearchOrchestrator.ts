@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
 import { useExpediaAPI } from './useExpediaAPI';
-import { useAmadeusActivities } from './useAmadeusActivities';
+import { useViatorActivities } from './useViatorActivities';
 import { useFlightSearch } from './useFlightSearch';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,7 +82,7 @@ export const useSearchOrchestrator = () => {
 
   const { searchHotels, searchDestinations } = useBookingAPI();
   const { callExpediaAPI } = useExpediaAPI();
-  const { searchActivities: searchAmadeusActivities } = useAmadeusActivities();
+  const { searchActivities: searchViatorActivities } = useViatorActivities();
   const { searchFlights } = useFlightSearch();
   const { toast } = useToast();
 
