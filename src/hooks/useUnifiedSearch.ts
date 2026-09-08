@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useExpediaAPI } from './useExpediaAPI';
-import { useAmadeusActivities } from './useAmadeusActivities';
+import { useViatorActivities } from './useViatorActivities';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -8,7 +8,7 @@ export const useUnifiedSearch = (searchType: 'hotel' | 'flight' | 'activity' | '
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { searchHotels } = useExpediaAPI();
-  const { searchActivities: searchAmadeusActivities } = useAmadeusActivities();
+  const { searchActivities: searchViatorActivities } = useViatorActivities();
   const { toast } = useToast();
 
   const executeSearch = async (params: any) => {
@@ -39,23 +39,8 @@ export const useUnifiedSearch = (searchType: 'hotel' | 'flight' | 'activity' | '
         setResults([]);
       }
       else if (searchType === 'activity') {
-        // First, geocode the destination to get coordinates
-        const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke(
-          'search-cities',
-          { body: { query: params.destination } }
-        );
-
-        if (geocodeError || !geocodeData?.features?.[0]) {
-          throw new Error('Could not find location coordinates');
-        }
-
-        const [longitude, latitude] = geocodeData.features[0].center;
-
-        // Search activities using Amadeus
-        const { data, error } = await searchAmadeusActivities({
-          latitude,
-          longitude,
-          radius: 5, // 5km radius
+        const { data, error } = await searchViatorActivities({
+          destination: String(params.destination || '').trim(),
         });
 
         if (error) throw new Error(error.message);
