@@ -193,15 +193,30 @@ export const useBookingAPI = () => {
     });
   };
 
-  // Search destinations
+  // Search destinations (cached per session to conserve the provider quota:
+  // repeating the same city lookup must not spend another provider request).
   const searchDestinations = async (query: string) => {
-    return callBookingAPI({
+    const cacheKey = `taai:dest:${query.trim().toLowerCase()}`;
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch {
+      // Ignore unavailable/corrupt session storage and fall through to a live lookup.
+    }
+    const result = await callBookingAPI({
       endpoint: 'https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination',
       params: {
         query
       }
     });
+    try {
+      if (result) sessionStorage.setItem(cacheKey, JSON.stringify(result));
+    } catch {
+      // Caching is best-effort only.
+    }
+    return result;
   };
+
 
   return {
     callBookingAPI,
