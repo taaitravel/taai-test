@@ -159,12 +159,14 @@ export const useBookingAPI = () => {
         arrival_date: params.arrival_date,
         departure_date: params.departure_date,
         adults: (params.adults || 2).toString(),
-        ...(params.children && params.children > 0
-          ? { children_age: Array.from({ length: params.children }, () => '10').join(',') }
-          : {}),
+        // booking-com15 expects an explicit zero when no children are present.
+        children_age: params.children && params.children > 0
+          ? Array.from({ length: params.children }, () => '10').join(',')
+          : '0',
         room_qty: (params.room_qty || 1).toString(),
         currency_code: params.currency_code || 'USD',
         languagecode: 'en-us',
+        sort_by: 'popularity',
         page_number: '1',
       }
     });
@@ -196,7 +198,8 @@ export const useBookingAPI = () => {
   // Search destinations (cached per session to conserve the provider quota:
   // repeating the same city lookup must not spend another provider request).
   const searchDestinations = async (query: string) => {
-    const cacheKey = `taai:dest:${query.trim().toLowerCase()}`;
+    const normalizedQuery = query.trim();
+    const cacheKey = `taai:dest:v2:${normalizedQuery.toLowerCase()}`;
     try {
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) return JSON.parse(cached);
@@ -206,11 +209,12 @@ export const useBookingAPI = () => {
     const result = await callBookingAPI({
       endpoint: 'https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination',
       params: {
-        query
+        query: normalizedQuery
       }
     });
     try {
-      if (result) sessionStorage.setItem(cacheKey, JSON.stringify(result));
+      // Never retain a provider failure or empty response as a successful city.
+      if (!result.error && result.data) sessionStorage.setItem(cacheKey, JSON.stringify(result));
     } catch {
       // Caching is best-effort only.
     }
