@@ -21,6 +21,16 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
 const rapidApiKey = Deno.env.get('RAPID_API_KEY')!
 
+const readProviderEnvelopeError = (value: unknown): string | null => {
+  if (!value || typeof value !== 'object') return null;
+  const payload = value as Record<string, unknown>;
+  const failed = payload.status === false || payload.success === false || payload.error === true;
+  if (!failed) return null;
+  const detail = [payload.message, payload.error, payload.error_message]
+    .find((candidate) => typeof candidate === 'string' && candidate.trim());
+  return typeof detail === 'string' ? detail.slice(0, 240) : 'The property provider rejected this search.';
+};
+
 /**
  * Egress containment: the browser never receives the full upstream provider
  * response. Hotel search/detail payloads are normalized to the canonical
@@ -99,6 +109,14 @@ serve(async (req) => {
       }
       console.error('🏨 Booking.com upstream error status:', upstream.status);
       return json({ error: upstream.error }, upstream.status === 504 ? 504 : 502);
+    }
+
+    // RapidAPI providers sometimes return HTTP 200 for subscription, parameter,
+    // or upstream failures. Do not normalize those envelopes into an empty list.
+    const envelopeError = readProviderEnvelopeError(upstream.data);
+    if (envelopeError) {
+      console.error('🏨 Booking.com provider envelope reported failure');
+      return json({ error: envelopeError }, 502);
     }
 
     const shaped = shapeProviderPayload(target.path, upstream.data, 'booking.com')
