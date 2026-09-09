@@ -21,14 +21,37 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
 const rapidApiKey = Deno.env.get('RAPID_API_KEY')!
 
+/** booking-com15 reports parameter problems as `message: [{ field: reason }]`. */
+const flattenEnvelopeDetail = (candidate: unknown): string | null => {
+  if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+  if (Array.isArray(candidate)) {
+    const parts = candidate
+      .map((entry) => {
+        if (typeof entry === 'string') return entry;
+        if (entry && typeof entry === 'object') {
+          return Object.entries(entry as Record<string, unknown>)
+            .map(([key, val]) => `${key}: ${typeof val === 'string' ? val : JSON.stringify(val)}`)
+            .join(', ');
+        }
+        return null;
+      })
+      .filter((p): p is string => Boolean(p));
+    if (parts.length) return parts.join('; ');
+  }
+  return null;
+};
+
 const readProviderEnvelopeError = (value: unknown): string | null => {
   if (!value || typeof value !== 'object') return null;
   const payload = value as Record<string, unknown>;
   const failed = payload.status === false || payload.success === false || payload.error === true;
   if (!failed) return null;
   const detail = [payload.message, payload.error, payload.error_message]
-    .find((candidate) => typeof candidate === 'string' && candidate.trim());
-  return typeof detail === 'string' ? detail.slice(0, 240) : 'The property provider rejected this search.';
+    .map(flattenEnvelopeDetail)
+    .find((d): d is string => Boolean(d));
+  return detail
+    ? `The property provider rejected this search (${detail.slice(0, 200)}).`
+    : 'The property provider rejected this search.';
 };
 
 /**
