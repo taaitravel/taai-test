@@ -159,10 +159,10 @@ export const useBookingAPI = () => {
         arrival_date: params.arrival_date,
         departure_date: params.departure_date,
         adults: (params.adults || 2).toString(),
-        // booking-com15 expects an explicit zero when no children are present.
-        children_age: params.children && params.children > 0
-          ? Array.from({ length: params.children }, () => '10').join(',')
-          : '0',
+        // booking-com15 rejects children_age when there are no children — omit it.
+        ...(params.children && params.children > 0
+          ? { children_age: Array.from({ length: params.children }, () => '10').join(',') }
+          : {}),
         room_qty: (params.room_qty || 1).toString(),
         currency_code: params.currency_code || 'USD',
         languagecode: 'en-us',
