@@ -13,7 +13,8 @@ import { z } from 'npm:zod@4.4.3';
  * No raw provider body is logged, returned or persisted.
  */
 
-const VIATOR_API_BASE = 'https://api.viator.com/partner';
+const VIATOR_LIVE_BASE = 'https://api.viator.com/partner';
+const VIATOR_SANDBOX_BASE = 'https://api.sandbox.viator.com/partner';
 const VIATOR_TIMEOUT_MS = 15_000;
 const MAX_ACTIVITIES = 20;
 const MAX_IMAGES = 5;
