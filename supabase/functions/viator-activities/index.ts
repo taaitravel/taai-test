@@ -13,7 +13,8 @@ import { z } from 'npm:zod@4.4.3';
  * No raw provider body is logged, returned or persisted.
  */
 
-const VIATOR_API_BASE = 'https://api.viator.com/partner';
+const VIATOR_LIVE_BASE = 'https://api.viator.com/partner';
+const VIATOR_SANDBOX_BASE = 'https://api.sandbox.viator.com/partner';
 const VIATOR_TIMEOUT_MS = 15_000;
 const MAX_ACTIVITIES = 20;
 const MAX_IMAGES = 5;
@@ -146,50 +147,68 @@ Deno.serve(async (req) => {
       );
     }
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), VIATOR_TIMEOUT_MS);
-    let upstream: Response;
-    try {
-      upstream = await fetch(`${VIATOR_API_BASE}/search/freetext`, {
-        method: 'POST',
-        signal: controller.signal,
-        redirect: 'manual',
-        headers: {
-          'exp-api-key': apiKey,
-          'Accept': 'application/json;version=2.0',
-          'Accept-Language': 'en-US',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          searchTerm: destination,
-          currency,
-          productFiltering: { rating: { from: 3 } },
-          searchTypes: [
-            { searchType: 'PRODUCTS', pagination: { start: 1, count: MAX_ACTIVITIES } },
-          ],
-        }),
-      });
-    } catch (networkError) {
-      console.error(`[viator-activities ${requestId}] provider unreachable`, String(networkError));
-      return fail(
-        requestId,
-        'PROVIDER_UNAVAILABLE',
-        'Activity search cannot reach its provider right now. Please try again shortly.',
-        503,
-      );
-    } finally {
-      clearTimeout(timer);
+    // A sandbox key rejects the live host (and vice versa) with 401, so try the
+    // configured host first and fall back to the other Viator environment once.
+    const configuredHost = Deno.env.get('VIATOR_API_BASE');
+    const bases = configuredHost
+      ? [configuredHost.replace(/\/+$/, '')]
+      : [VIATOR_LIVE_BASE, VIATOR_SANDBOX_BASE];
+
+    const payload = JSON.stringify({
+      searchTerm: destination,
+      currency,
+      productFiltering: { rating: { from: 3 } },
+      searchTypes: [
+        { searchType: 'PRODUCTS', pagination: { start: 1, count: MAX_ACTIVITIES } },
+      ],
+    });
+
+    let upstream: Response | null = null;
+    for (const base of bases) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), VIATOR_TIMEOUT_MS);
+      try {
+        upstream = await fetch(`${base}/search/freetext`, {
+          method: 'POST',
+          signal: controller.signal,
+          redirect: 'manual',
+          headers: {
+            'exp-api-key': apiKey,
+            'Accept': 'application/json;version=2.0',
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+          },
+          body: payload,
+        });
+      } catch (networkError) {
+        console.error(`[viator-activities ${requestId}] provider unreachable`, String(networkError));
+        return fail(
+          requestId,
+          'PROVIDER_UNAVAILABLE',
+          'Activity search cannot reach its provider right now. Please try again shortly.',
+          503,
+        );
+      } finally {
+        clearTimeout(timer);
+      }
+      // Only an auth rejection is worth retrying on the other environment.
+      if (upstream.ok || (upstream.status !== 401 && upstream.status !== 403)) break;
+      console.error(`[viator-activities ${requestId}] auth rejected by host`, { status: upstream.status });
+    }
+
+    if (!upstream) {
+      return fail(requestId, 'PROVIDER_UNAVAILABLE', 'Activity search is temporarily unavailable.', 503);
     }
 
     if (!upstream.ok) {
-      await upstream.text().catch(() => '');
+      const detail = (await upstream.text().catch(() => '')).slice(0, 200);
       const status = upstream.status;
-      console.error(`[viator-activities ${requestId}] provider request failed`, status);
+      console.error(`[viator-activities ${requestId}] provider request failed`, status, detail);
       if (status === 401 || status === 403) {
         return fail(
           requestId,
           'PROVIDER_AUTH_FAILED',
-          'The activity provider rejected our credentials. The key or its access level needs review.',
+          'The activity provider rejected our key. In Viator, confirm the key is active and that its environment (sandbox vs live) matches, then re-save it.',
           502,
         );
       }
