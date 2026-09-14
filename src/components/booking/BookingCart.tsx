@@ -411,9 +411,30 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                         const serviceTime = getServiceTime(item);
                         const itemSplits = splitsByItem[item.id] || [];
                         const tripBigintId = item.itinerary_id ? tripBigintIds[item.itinerary_id] : undefined;
+                        const isSelected = selectedIds.has(item.id);
+                        const category = categorizeCartType(item.type);
                         return (
-                          <div key={item.id} className="bg-background rounded-md p-4 border border-border space-y-1.5">
+                          <div
+                            key={item.id}
+                            className={`relative bg-background rounded-md p-4 pl-5 border space-y-1.5 transition-opacity ${
+                              showBudget && !isSelected ? 'border-border opacity-60' : 'border-border'
+                            }`}
+                          >
+                            {showBudget && (
+                              <span
+                                aria-hidden
+                                className="absolute left-0 top-0 bottom-0 w-1 rounded-l-md"
+                                style={{ backgroundColor: `hsl(var(--cat-${category}))`, opacity: isSelected ? 1 : 0.35 }}
+                              />
+                            )}
                             <div className="flex items-center gap-2">
+                              {showBudget && (
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => toggleSelected(item.id)}
+                                  aria-label={`Include ${item.item_name || item.type} in checkout`}
+                                />
+                              )}
                               <Badge variant="outline" className="text-xs gap-1">
                                 {getItemIcon(item.type)}
                                 <span>{item.type}</span>
