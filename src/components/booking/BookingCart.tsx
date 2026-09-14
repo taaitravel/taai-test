@@ -52,6 +52,8 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [openItemDetail, setOpenItemDetail] = useState<Record<string, unknown> | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  // Items ticked for checkout. Defaults to everything in the cart.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { toast } = useToast();
   const { user } = useAuth();
@@ -137,6 +139,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       const rows = await fetchCartList(supabase, { itineraryId });
       const items = rows.filter((d) => d.booking_status !== 'booked');
       setCartItems(items);
+      setSelectedIds(new Set(items.map((i) => i.id)));
       setOpenItemId(null);
       setOpenItemDetail(null);
       onCartUpdate?.(items);
