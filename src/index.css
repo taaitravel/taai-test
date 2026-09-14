@@ -60,6 +60,12 @@
     /* Rental/VRBO accent - gold tone */
     --rental: 36 100% 70%;              /* #ffce87 gold */
     --rental-foreground: 30 50% 15%;    /* dark warm text on gold */
+
+    /* Cart / itinerary category tokens - Light Mode */
+    --cat-activities: 186 72% 38%;
+    --cat-transportation: 351 74% 58%;
+    --cat-properties: 36 88% 48%;
+    --cat-reservations: 268 60% 55%;
   }
 
   /* Dark Mode - Current luxury dark theme */
@@ -114,6 +120,12 @@
     /* Rental/VRBO accent - gold tone */
     --rental: 36 100% 76%;              /* #ffce87 gold */
     --rental-foreground: 30 50% 15%;
+
+    /* Cart / itinerary category tokens - Dark Mode */
+    --cat-activities: 182 100% 72%;
+    --cat-transportation: 348 100% 76%;
+    --cat-properties: 36 100% 76%;
+    --cat-reservations: 272 90% 76%;
   }
 }
 
