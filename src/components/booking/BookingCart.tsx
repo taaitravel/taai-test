@@ -524,6 +524,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
                       })}
                     </div>
+                    </div>
 
                     <div className="mt-3 pt-3 border-t border-rental/40 space-y-1 text-sm">
                       <div className="flex justify-between text-muted-foreground">
