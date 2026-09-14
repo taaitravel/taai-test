@@ -40,6 +40,7 @@ export const DiscoverRow = ({ row }: { row: DiscoverRowType }) => {
           <PublicItineraryCard key={`${row.id}-${card.id}`} card={card} size="stack" className="w-full max-w-[255px]" />
         ))}
       </div>
+      )}
 
       {showNav && (
         <div className="flex items-center justify-center gap-5 pt-1">
