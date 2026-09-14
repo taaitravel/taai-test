@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PublicItineraryCard } from '@/components/social/PublicItineraryCard';
+import { PublicItineraryStack } from '@/components/social/PublicItineraryStack';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { DiscoverRow as DiscoverRowType } from '@/lib/social/mock-discover';
 
 /**
@@ -16,9 +18,10 @@ const PER_PAGE = 3;
 
 export const DiscoverRow = ({ row }: { row: DiscoverRowType }) => {
   const [page, setPage] = useState(0);
+  const isMobile = useIsMobile();
   const pages = Math.max(1, Math.ceil(row.cards.length / PER_PAGE));
   const visible = row.cards.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
-  const showNav = pages > 1;
+  const showNav = pages > 1 && !isMobile;
 
   return (
     <section className="bright-card p-4 sm:p-6 space-y-5">
@@ -27,11 +30,17 @@ export const DiscoverRow = ({ row }: { row: DiscoverRowType }) => {
         <p className="text-xs sm:text-sm text-muted-foreground">{row.subtitle}</p>
       </header>
 
+      {isMobile ? (
+        <div className="pb-2">
+          <PublicItineraryStack cards={row.cards} />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 justify-items-center">
         {visible.map(card => (
           <PublicItineraryCard key={`${row.id}-${card.id}`} card={card} size="stack" className="w-full max-w-[255px]" />
         ))}
       </div>
+      )}
 
       {showNav && (
         <div className="flex items-center justify-center gap-5 pt-1">
