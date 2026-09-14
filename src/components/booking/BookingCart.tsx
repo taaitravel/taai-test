@@ -367,18 +367,43 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
           <>
             <div className="space-y-4">
               {groups.map(([key, items]) => {
-                const totals = computeTotals(items);
+                const groupSelected = items.filter((i) => selectedIds.has(i.id));
+                const totals = computeTotals(groupSelected);
                 const isUnassigned = key === UNASSIGNED_KEY;
                 const tripName = isUnassigned ? 'Unassigned' : (tripNames[key] || 'Trip');
+                const showBudget = items.length > 1;
+                const allSelected = groupSelected.length === items.length;
                 return (
                   <div key={key} className="rounded-lg border border-rental/60 bg-rental/30 p-3">
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-rental" />
                         <span className="font-semibold text-foreground">{tripName}</span>
                         <Badge variant="outline" className="text-xs">{items.length} item{items.length > 1 ? 's' : ''}</Badge>
                       </div>
+                      {showBudget && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => setGroupSelection(items, !allSelected)}
+                        >
+                          {allSelected ? 'Clear selection' : 'Select all'}
+                        </Button>
+                      )}
                     </div>
+
+                    <div className={showBudget ? 'grid gap-4 lg:grid-cols-[248px_minmax(0,1fr)] lg:items-start' : ''}>
+                    {showBudget && (
+                      <div className="rounded-lg border border-border bg-card/70 p-3 lg:sticky lg:top-4">
+                        <CartBudgetRing
+                          totals={categoryTotals(groupSelected)}
+                          centerValue={totals.total}
+                          selectedCount={groupSelected.length}
+                          totalCount={items.length}
+                        />
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       {items.map(item => {
