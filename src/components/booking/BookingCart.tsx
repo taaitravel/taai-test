@@ -307,7 +307,37 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     return { provider: t.subtotal, taxesAndFees: t.taxesAndFees, total: t.total };
   };
 
-  const grand = computeTotals(cartItems);
+  const toggleSelected = (itemId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  };
+
+  const setGroupSelection = (items: CartItem[], selected: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      items.forEach((i) => (selected ? next.add(i.id) : next.delete(i.id)));
+      return next;
+    });
+  };
+
+  const categoryTotals = (items: CartItem[]): Record<CartCategory, number> => {
+    const totals = CART_CATEGORIES.reduce(
+      (acc, c) => ({ ...acc, [c.key]: 0 }),
+      {} as Record<CartCategory, number>
+    );
+    items.forEach((i) => {
+      const cat = categorizeCartType(i.type);
+      totals[cat] += i.price;
+    });
+    return totals;
+  };
+
+  const selectedCartItems = cartItems.filter((i) => selectedIds.has(i.id));
+  const grand = computeTotals(selectedCartItems);
 
   return (
     <Card className="bg-card border-border">
