@@ -541,7 +541,6 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                         {groupSelected.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(totals.total)}`}
                       </Button>
                     </div>
-                    </div>
                   </div>
                 );
               })}
