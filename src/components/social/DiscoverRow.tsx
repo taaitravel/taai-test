@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PublicItineraryCard } from '@/components/social/PublicItineraryCard';
+import { PublicItineraryStack } from '@/components/social/PublicItineraryStack';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { DiscoverRow as DiscoverRowType } from '@/lib/social/mock-discover';
 
 /**
