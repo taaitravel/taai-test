@@ -67,6 +67,12 @@ export default {
 					DEFAULT: 'hsl(var(--rental))',
 					foreground: 'hsl(var(--rental-foreground))'
 				},
+				cat: {
+					activities: 'hsl(var(--cat-activities))',
+					transportation: 'hsl(var(--cat-transportation))',
+					properties: 'hsl(var(--cat-properties))',
+					reservations: 'hsl(var(--cat-reservations))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

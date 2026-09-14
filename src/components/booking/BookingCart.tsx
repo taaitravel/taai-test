@@ -18,6 +18,8 @@ import { SplitCostDialog } from '@/components/booking/SplitCostDialog';
 import { SplitChip } from '@/components/booking/SplitChip';
 import type { CartItemSplit } from '@/hooks/useCartItemSplits';
 import { formatDateOnlyRange, formatDualTime } from '@/lib/date-time';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CartBudgetRing, CART_CATEGORIES, categorizeCartType, type CartCategory } from '@/components/booking/CartBudgetRing';
 
 /** List rows carry no provider snapshot — `item_data` loads only when opened. */
 type CartItem = CartListItem;
@@ -50,6 +52,8 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [openItemDetail, setOpenItemDetail] = useState<Record<string, unknown> | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  // Items ticked for checkout. Defaults to everything in the cart.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { toast } = useToast();
   const { user } = useAuth();
@@ -135,6 +139,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       const rows = await fetchCartList(supabase, { itineraryId });
       const items = rows.filter((d) => d.booking_status !== 'booked');
       setCartItems(items);
+      setSelectedIds(new Set(items.map((i) => i.id)));
       setOpenItemId(null);
       setOpenItemDetail(null);
       onCartUpdate?.(items);
@@ -302,7 +307,37 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
     return { provider: t.subtotal, taxesAndFees: t.taxesAndFees, total: t.total };
   };
 
-  const grand = computeTotals(cartItems);
+  const toggleSelected = (itemId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  };
+
+  const setGroupSelection = (items: CartItem[], selected: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      items.forEach((i) => (selected ? next.add(i.id) : next.delete(i.id)));
+      return next;
+    });
+  };
+
+  const categoryTotals = (items: CartItem[]): Record<CartCategory, number> => {
+    const totals = CART_CATEGORIES.reduce(
+      (acc, c) => ({ ...acc, [c.key]: 0 }),
+      {} as Record<CartCategory, number>
+    );
+    items.forEach((i) => {
+      const cat = categorizeCartType(i.type);
+      totals[cat] += i.price;
+    });
+    return totals;
+  };
+
+  const selectedCartItems = cartItems.filter((i) => selectedIds.has(i.id));
+  const grand = computeTotals(selectedCartItems);
 
   return (
     <Card className="bg-card border-border">
@@ -332,18 +367,43 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
           <>
             <div className="space-y-4">
               {groups.map(([key, items]) => {
-                const totals = computeTotals(items);
+                const groupSelected = items.filter((i) => selectedIds.has(i.id));
+                const totals = computeTotals(groupSelected);
                 const isUnassigned = key === UNASSIGNED_KEY;
                 const tripName = isUnassigned ? 'Unassigned' : (tripNames[key] || 'Trip');
+                const showBudget = items.length > 1;
+                const allSelected = groupSelected.length === items.length;
                 return (
                   <div key={key} className="rounded-lg border border-rental/60 bg-rental/30 p-3">
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-rental" />
                         <span className="font-semibold text-foreground">{tripName}</span>
                         <Badge variant="outline" className="text-xs">{items.length} item{items.length > 1 ? 's' : ''}</Badge>
                       </div>
+                      {showBudget && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => setGroupSelection(items, !allSelected)}
+                        >
+                          {allSelected ? 'Clear selection' : 'Select all'}
+                        </Button>
+                      )}
                     </div>
+
+                    <div className={showBudget ? 'grid gap-4 lg:grid-cols-[248px_minmax(0,1fr)] lg:items-start' : ''}>
+                    {showBudget && (
+                      <div className="rounded-lg border border-border bg-card/70 p-3 lg:sticky lg:top-4">
+                        <CartBudgetRing
+                          totals={categoryTotals(groupSelected)}
+                          centerValue={totals.total}
+                          selectedCount={groupSelected.length}
+                          totalCount={items.length}
+                        />
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       {items.map(item => {
@@ -351,9 +411,30 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                         const serviceTime = getServiceTime(item);
                         const itemSplits = splitsByItem[item.id] || [];
                         const tripBigintId = item.itinerary_id ? tripBigintIds[item.itinerary_id] : undefined;
+                        const isSelected = selectedIds.has(item.id);
+                        const category = categorizeCartType(item.type);
                         return (
-                          <div key={item.id} className="bg-background rounded-md p-4 border border-border space-y-1.5">
+                          <div
+                            key={item.id}
+                            className={`relative bg-background rounded-md p-4 pl-5 border space-y-1.5 transition-opacity ${
+                              showBudget && !isSelected ? 'border-border opacity-60' : 'border-border'
+                            }`}
+                          >
+                            {showBudget && (
+                              <span
+                                aria-hidden
+                                className="absolute left-0 top-0 bottom-0 w-1 rounded-l-md"
+                                style={{ backgroundColor: `hsl(var(--cat-${category}))`, opacity: isSelected ? 1 : 0.35 }}
+                              />
+                            )}
                             <div className="flex items-center gap-2">
+                              {showBudget && (
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => toggleSelected(item.id)}
+                                  aria-label={`Include ${item.item_name || item.type} in checkout`}
+                                />
+                              )}
                               <Badge variant="outline" className="text-xs gap-1">
                                 {getItemIcon(item.type)}
                                 <span>{item.type}</span>
@@ -443,10 +524,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
                       })}
                     </div>
+                    </div>
 
                     <div className="mt-3 pt-3 border-t border-rental/40 space-y-1 text-sm">
                       <div className="flex justify-between text-muted-foreground">
-                        <span>Subtotal</span><span>{formatPrice(totals.provider)}</span>
+                        <span>Subtotal{showBudget ? ` (${groupSelected.length} selected)` : ''}</span><span>{formatPrice(totals.provider)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>{taxesLabel}</span><span>{formatPrice(totals.taxesAndFees)}</span>
@@ -454,9 +536,9 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                       <div className="flex justify-between font-semibold">
                         <span>Trip total</span><span className="text-rental">{formatPrice(totals.total)}</span>
                       </div>
-                      <Button onClick={() => handleCheckout(items)} disabled={isCheckingOut} className="w-full mt-2 bg-rental text-rental-foreground hover:bg-rental/90" size="sm">
+                      <Button onClick={() => handleCheckout(groupSelected)} disabled={isCheckingOut || groupSelected.length === 0} className="w-full mt-2 bg-rental text-rental-foreground hover:bg-rental/90" size="sm">
                         {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                        Checkout this trip — {formatPrice(totals.total)}
+                        {groupSelected.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(totals.total)}`}
                       </Button>
                     </div>
                   </div>
@@ -468,7 +550,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Grand subtotal ({cartItems.length} items)</span>
+                <span className="text-muted-foreground">Grand subtotal ({selectedCartItems.length} of {cartItems.length} items selected)</span>
                 <span>{formatPrice(grand.provider)}</span>
               </div>
               <div className="flex justify-between items-center">
@@ -491,9 +573,9 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                 </Button>
               </div>
 
-              <Button onClick={() => handleCheckout(cartItems)} disabled={isCheckingOut} className="w-full" size="lg">
+              <Button onClick={() => handleCheckout(selectedCartItems)} disabled={isCheckingOut || selectedCartItems.length === 0} className="w-full" size="lg">
                 {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                Checkout everything — {formatPrice(grand.total)}
+                {selectedCartItems.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(grand.total)}`}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
                 Payments processed securely by Stripe. TAAI never sees your card details.
