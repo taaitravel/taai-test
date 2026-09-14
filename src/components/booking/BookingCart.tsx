@@ -550,7 +550,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Grand subtotal ({cartItems.length} items)</span>
+                <span className="text-muted-foreground">Grand subtotal ({selectedCartItems.length} of {cartItems.length} items selected)</span>
                 <span>{formatPrice(grand.provider)}</span>
               </div>
               <div className="flex justify-between items-center">
@@ -573,9 +573,9 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                 </Button>
               </div>
 
-              <Button onClick={() => handleCheckout(cartItems)} disabled={isCheckingOut} className="w-full" size="lg">
+              <Button onClick={() => handleCheckout(selectedCartItems)} disabled={isCheckingOut || selectedCartItems.length === 0} className="w-full" size="lg">
                 {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                Checkout everything — {formatPrice(grand.total)}
+                {selectedCartItems.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(grand.total)}`}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
                 Payments processed securely by Stripe. TAAI never sees your card details.
