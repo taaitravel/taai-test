@@ -527,7 +527,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
                     <div className="mt-3 pt-3 border-t border-rental/40 space-y-1 text-sm">
                       <div className="flex justify-between text-muted-foreground">
-                        <span>Subtotal</span><span>{formatPrice(totals.provider)}</span>
+                        <span>Subtotal{showBudget ? ` (${groupSelected.length} selected)` : ''}</span><span>{formatPrice(totals.provider)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>{taxesLabel}</span><span>{formatPrice(totals.taxesAndFees)}</span>
@@ -535,10 +535,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                       <div className="flex justify-between font-semibold">
                         <span>Trip total</span><span className="text-rental">{formatPrice(totals.total)}</span>
                       </div>
-                      <Button onClick={() => handleCheckout(items)} disabled={isCheckingOut} className="w-full mt-2 bg-rental text-rental-foreground hover:bg-rental/90" size="sm">
+                      <Button onClick={() => handleCheckout(groupSelected)} disabled={isCheckingOut || groupSelected.length === 0} className="w-full mt-2 bg-rental text-rental-foreground hover:bg-rental/90" size="sm">
                         {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                        Checkout this trip — {formatPrice(totals.total)}
+                        {groupSelected.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(totals.total)}`}
                       </Button>
+                    </div>
                     </div>
                   </div>
                 );
