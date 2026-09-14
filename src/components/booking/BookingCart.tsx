@@ -18,6 +18,8 @@ import { SplitCostDialog } from '@/components/booking/SplitCostDialog';
 import { SplitChip } from '@/components/booking/SplitChip';
 import type { CartItemSplit } from '@/hooks/useCartItemSplits';
 import { formatDateOnlyRange, formatDualTime } from '@/lib/date-time';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CartBudgetRing, CART_CATEGORIES, categorizeCartType, type CartCategory } from '@/components/booking/CartBudgetRing';
 
 /** List rows carry no provider snapshot — `item_data` loads only when opened. */
 type CartItem = CartListItem;
