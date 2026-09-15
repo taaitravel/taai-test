@@ -10,6 +10,7 @@ import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItineraryCalendarView } from "./ItineraryCalendarView";
 import { BudgetPieChart } from "./BudgetPieChart";
+import { SectionErrorBoundary } from "./SectionErrorBoundary";
 import { BookingCart } from "@/components/booking/BookingCart";
 import { AddItemDialog, ItemType } from "./AddItemDialog";
 import { AddDestinationDialog } from "./AddDestinationDialog";
