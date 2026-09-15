@@ -20,6 +20,16 @@ interface BudgetPieChartProps {
   totalBudget?: number | null;
   totalSpent?: number | null;
   refreshTrigger?: number; // Add this to force refresh when itinerary changes
+  /** Only the trip organizer sees per-traveler spending detail. */
+  isOrganizer?: boolean;
+  /** Trip text id used by cart_items.itinerary_id. */
+  tripCartId?: string | null;
+}
+
+interface TravelerSpend {
+  userId: string;
+  name: string;
+  actual: number;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -30,16 +40,73 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Transportation': '#a855f7', // Purple
 };
 
-export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, totalSpent: totalSpentProp, refreshTrigger }: BudgetPieChartProps) => {
+export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, totalSpent: totalSpentProp, refreshTrigger, isOrganizer = false, tripCartId }: BudgetPieChartProps) => {
   const [budgetData, setBudgetData] = useState<BudgetCategory[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<BudgetCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
+  const [travelerSpend, setTravelerSpend] = useState<TravelerSpend[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchBudgetData();
   }, [itineraryId, refreshTrigger]); // Add refreshTrigger to dependencies
+
+  // Per-traveler spend (organizer only). Actual spend = cart items the
+  // traveler saved for this trip; no inference beyond stored rows.
+  useEffect(() => {
+    if (!isOrganizer) {
+      setTravelerSpend([]);
+      return;
+    }
+    let cancelled = false;
+
+    const load = async () => {
+      const { data: profiles, error: profileError } = await supabase
+        .rpc('get_itinerary_participant_profiles', { p_itinerary_id: itineraryId });
+      if (profileError) {
+        console.warn('Failed to load trip participants', profileError);
+        return;
+      }
+
+      let cartId = tripCartId || null;
+      if (!cartId) {
+        const { data: trip } = await supabase
+          .from('itinerary')
+          .select('itin_id')
+          .eq('id', itineraryId)
+          .maybeSingle();
+        cartId = (trip as { itin_id?: string } | null)?.itin_id ?? null;
+      }
+
+      const spendByUser: Record<string, number> = {};
+      if (cartId) {
+        const { data: rows } = await supabase
+          .from('cart_items')
+          .select('user_id, price')
+          .eq('itinerary_id', cartId)
+          .limit(PAGE_SIZES.cartItems);
+        (rows || []).forEach((row) => {
+          const key = String((row as { user_id: string }).user_id);
+          spendByUser[key] = (spendByUser[key] || 0) + (Number((row as { price: number }).price) || 0);
+        });
+      }
+
+      if (cancelled) return;
+      setTravelerSpend((profiles || []).map((profile: {
+        user_id: string; first_name: string | null; last_name: string | null; username: string | null;
+      }) => ({
+        userId: profile.user_id,
+        name: [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.username || 'Traveler',
+        actual: spendByUser[profile.user_id] || 0,
+      })));
+    };
+
+    load();
+    return () => { cancelled = true; };
+  }, [isOrganizer, itineraryId, tripCartId, refreshTrigger]);
 
   const fetchBudgetData = async () => {
     try {
