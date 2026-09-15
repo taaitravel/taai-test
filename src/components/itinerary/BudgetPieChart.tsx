@@ -380,7 +380,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
   };
 
   // Filter to categories with actual spending for the pie chart
-  const chartData = budgetData
+  const allChartData = budgetData
     .filter(item => item.spent_amount > 0)
     .map((item) => ({
       name: item.category,
@@ -389,10 +389,20 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       fill: CATEGORY_COLORS[item.category] || '#6b7280'
     }));
 
+  const chartData = allChartData.filter(item => !hiddenCategories.includes(item.name));
+
+  const toggleCategory = (category: string) => {
+    setHiddenCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+    );
+    setActiveCategory((prev) => (prev === category ? null : prev));
+  };
+
   const totalBudgetFromBreakdown = budgetData.reduce((sum, item) => sum + item.budgeted_amount, 0);
   const totalSpentFromBreakdown = budgetData.reduce((sum, item) => sum + item.spent_amount, 0);
   const totalBudget = (totalBudgetProp ?? totalBudgetFromBreakdown) || 0;
   const totalSpent = (totalSpentProp ?? totalSpentFromBreakdown) || 0;
+  const visibleSpent = chartData.reduce((sum, item) => sum + item.spent, 0);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -407,58 +417,18 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
     }
   };
 
-  const CustomLegend = ({ payload }: any) => {
-    return (
-      <div className="flex flex-wrap justify-center gap-4 mb-6">
-        {payload.map((entry: any, index: number) => {
-          const IconComponent = getCategoryIcon(entry.value);
-          const percentage = ((entry.payload.spent / totalSpent) * 100).toFixed(1);
-          return (
-            <div key={`legend-${index}`} className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: entry.color }}
-              />
-              <IconComponent className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{percentage}%</span>
-            </div>
-          );
-        })}
-      </div>
-    );
+  const activeSlice = chartData.find((item) => item.name === activeCategory) || null;
+  const detail = activeSlice ?? {
+    name: 'All visible categories',
+    budgeted: chartData.reduce((sum, item) => sum + item.budgeted, 0),
+    spent: visibleSpent,
+    fill: 'hsl(var(--primary))',
   };
+  const money = (value: number) =>
+    `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-card border border-border rounded-lg p-3 shadow-2xl backdrop-blur-xl">
-          <p className="text-foreground font-bold text-xs mb-2">{label}</p>
-          <div className="space-y-1">
-            <p className="text-xs">
-              <span className="text-muted-foreground">Budgeted:</span>
-              <span className="text-[hsl(351,85%,75%)] font-semibold ml-2">
-                ${data.budgeted.toLocaleString()}
-              </span>
-            </p>
-            <p className="text-xs">
-              <span className="text-muted-foreground">Spent:</span>
-              <span className="text-[hsl(15,80%,70%)] font-semibold ml-2">
-                ${data.spent.toLocaleString()}
-              </span>
-            </p>
-            <p className="text-xs">
-              <span className="text-muted-foreground">Remaining:</span>
-              <span className="text-foreground font-semibold ml-2">
-                ${(data.budgeted - data.spent).toLocaleString()}
-              </span>
-            </p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+  const travelerCount = Math.max(travelerSpend.length, 1);
+  const projectedPerTraveler = totalBudget > 0 ? totalBudget / travelerCount : 0;
 
   if (loading) {
     return (
