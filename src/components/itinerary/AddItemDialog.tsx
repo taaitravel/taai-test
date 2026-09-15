@@ -468,7 +468,7 @@ if (type === 'hotels') {
                 }
               }} 
               disabled={loading}
-              className="h-10 w-10 bg-red-500 hover:bg-red-600 text-black border-0"
+              className="h-10 w-10 bg-destructive text-destructive-foreground hover:bg-destructive/90 border-0"
               aria-label="Delete"
             >
               <Trash2 className="h-5 w-5" />
@@ -479,7 +479,7 @@ if (type === 'hotels') {
             size="icon"
             onClick={onClose} 
             disabled={loading}
-            className="h-10 w-10 bg-white hover:bg-white/90 text-card-foreground border-0"
+            className="h-10 w-10 bg-muted text-foreground hover:bg-accent border border-border"
             aria-label="Cancel"
           >
             <X className="h-5 w-5" />
