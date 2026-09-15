@@ -375,6 +375,8 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
       totalBudget={itineraryData.budget}
       totalSpent={itineraryData.spending}
       refreshTrigger={budgetRefreshTrigger}
+      isOrganizer={userRole === 'owner'}
+      tripCartId={cartItineraryId}
     />
   );
 
