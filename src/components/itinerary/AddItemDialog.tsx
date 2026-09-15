@@ -35,7 +35,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ open, type, onClos
   const [form, setForm] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const inputClass = "bg-white text-card-foreground border-0 focus-visible:ring-2 focus-visible:ring-primary text-base";
+  const inputClass = "bg-background text-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring text-base";
 
   useEffect(() => {
     if (open && type) {
@@ -289,21 +289,21 @@ if (type === 'hotels') {
             <div className="sm:col-span-2">
               <Label htmlFor="name">Hotel name</Label>
               <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="hotels" className={inputClass} />
-              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
             </div>
             <div className="sm:col-span-2">
               <PlaceSearch id="hotel-location" label="Hotel Search" placeholder="Search hotels by name or location" mode="hotel" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
-              {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
+              {errors.location && <p className="text-sm text-destructive mt-1">{errors.location}</p>}
             </div>
 <div>
   <Label htmlFor="check_in">Check-in</Label>
   <Input id="check_in" type="date" value={form.check_in || ''} onChange={(e) => { const v = e.target.value; handleChange('check_in', v); if (form.check_out) { const s = new Date(v); const eDate = new Date(form.check_out); const n = Math.ceil((eDate.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)); setForm((prev:any)=>({ ...prev, nights: Math.max(n, 0) })); } }} className={inputClass} />
-  {errors.check_in && <p className="text-sm text-red-600 mt-1">{errors.check_in}</p>}
+  {errors.check_in && <p className="text-sm text-destructive mt-1">{errors.check_in}</p>}
 </div>
 <div>
   <Label htmlFor="check_out">Check-out</Label>
   <Input id="check_out" type="date" value={form.check_out || ''} onChange={(e) => { const v = e.target.value; handleChange('check_out', v); if (form.check_in) { const s = new Date(form.check_in); const eDate = new Date(v); const n = Math.ceil((eDate.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)); setForm((prev:any)=>({ ...prev, nights: Math.max(n, 0) })); } }} className={inputClass} />
-  {errors.check_out && <p className="text-sm text-red-600 mt-1">{errors.check_out}</p>}
+  {errors.check_out && <p className="text-sm text-destructive mt-1">{errors.check_out}</p>}
 </div>
             <div>
               <Label htmlFor="rating">Rating</Label>
@@ -338,16 +338,16 @@ if (type === 'hotels') {
             <div className="sm:col-span-2">
               <Label htmlFor="name">Activity name</Label>
               <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} list="activities" className={inputClass} />
-              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
             </div>
             <div className="sm:col-span-2">
               <PlaceSearch id="activity-location" label="Activity Search" placeholder="Search activities and attractions" mode="activity" onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
-              {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
+              {errors.location && <p className="text-sm text-destructive mt-1">{errors.location}</p>}
             </div>
             <div>
               <Label htmlFor="date">Date</Label>
               <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} className={inputClass} />
-              {errors.date && <p className="text-sm text-red-600 mt-1">{errors.date}</p>}
+              {errors.date && <p className="text-sm text-destructive mt-1">{errors.date}</p>}
             </div>
             <div>
               <Label htmlFor="duration">Duration</Label>
@@ -378,7 +378,7 @@ if (type === 'hotels') {
             <div>
               <Label htmlFor="name">Reservation name</Label>
               <Input id="name" value={form.name || ''} onChange={(e) => handleChange('name', e.target.value)} className={inputClass} />
-              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
             </div>
             <div>
               <Label htmlFor="type">Type</Label>
@@ -392,21 +392,21 @@ if (type === 'hotels') {
                 <option value="show" />
                 <option value="other" />
               </datalist>
-              {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type}</p>}
+              {errors.type && <p className="text-sm text-destructive mt-1">{errors.type}</p>}
             </div>
             <div className="sm:col-span-2">
               <PlaceSearch id="reservation-location" label="Location" placeholder="Search venue or restaurant" mode={form.type === 'restaurant' ? 'restaurant' : 'poi'} onSelect={setSelectedLocation} locationBias={{ city: form.city || defaultCity }} />
-              {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
+              {errors.location && <p className="text-sm text-destructive mt-1">{errors.location}</p>}
             </div>
             <div>
               <Label htmlFor="date">Date</Label>
               <Input id="date" type="date" value={form.date || ''} onChange={(e) => handleChange('date', e.target.value)} className={inputClass} />
-              {errors.date && <p className="text-sm text-red-600 mt-1">{errors.date}</p>}
+              {errors.date && <p className="text-sm text-destructive mt-1">{errors.date}</p>}
             </div>
             <div>
               <Label htmlFor="time">Time</Label>
               <Input id="time" type="time" value={form.time || ''} onChange={(e) => handleChange('time', e.target.value)} className={inputClass} />
-              {errors.time && <p className="text-sm text-red-600 mt-1">{errors.time}</p>}
+              {errors.time && <p className="text-sm text-destructive mt-1">{errors.time}</p>}
             </div>
             <div>
               <Label htmlFor="party_size">Party size</Label>
@@ -427,10 +427,10 @@ if (type === 'hotels') {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg gold-gradient text-card-foreground text-base max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-lg bg-card text-card-foreground border-border text-base max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-xl">{title}</DialogTitle>
-          <DialogDescription className="text-base">
+          <DialogDescription className="text-base text-muted-foreground">
             Fill in the details below to add to your itinerary.
           </DialogDescription>
         </DialogHeader>
@@ -456,7 +456,7 @@ if (type === 'hotels') {
           {renderFields()}
         </div>
 
-        <DialogFooter className="mt-4 flex flex-row items-center justify-end gap-2 flex-shrink-0 border-t border-black/10 pt-4">
+        <DialogFooter className="mt-4 flex flex-row items-center justify-end gap-2 flex-shrink-0 border-t border-border pt-4">
           {initialItem && onDelete && (
             <Button 
               variant="ghost" 
@@ -468,7 +468,7 @@ if (type === 'hotels') {
                 }
               }} 
               disabled={loading}
-              className="h-10 w-10 bg-red-500 hover:bg-red-600 text-black border-0"
+              className="h-10 w-10 bg-destructive text-destructive-foreground hover:bg-destructive/90 border-0"
               aria-label="Delete"
             >
               <Trash2 className="h-5 w-5" />
@@ -479,7 +479,7 @@ if (type === 'hotels') {
             size="icon"
             onClick={onClose} 
             disabled={loading}
-            className="h-10 w-10 bg-white hover:bg-white/90 text-card-foreground border-0"
+            className="h-10 w-10 bg-muted text-foreground hover:bg-accent border border-border"
             aria-label="Cancel"
           >
             <X className="h-5 w-5" />

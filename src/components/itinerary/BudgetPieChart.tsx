@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,16 @@ interface BudgetPieChartProps {
   totalBudget?: number | null;
   totalSpent?: number | null;
   refreshTrigger?: number; // Add this to force refresh when itinerary changes
+  /** Only the trip organizer sees per-traveler spending detail. */
+  isOrganizer?: boolean;
+  /** Trip text id used by cart_items.itinerary_id. */
+  tripCartId?: string | null;
+}
+
+interface TravelerSpend {
+  userId: string;
+  name: string;
+  actual: number;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -30,16 +40,73 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Transportation': '#a855f7', // Purple
 };
 
-export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, totalSpent: totalSpentProp, refreshTrigger }: BudgetPieChartProps) => {
+export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, totalSpent: totalSpentProp, refreshTrigger, isOrganizer = false, tripCartId }: BudgetPieChartProps) => {
   const [budgetData, setBudgetData] = useState<BudgetCategory[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<BudgetCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
+  const [travelerSpend, setTravelerSpend] = useState<TravelerSpend[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchBudgetData();
   }, [itineraryId, refreshTrigger]); // Add refreshTrigger to dependencies
+
+  // Per-traveler spend (organizer only). Actual spend = cart items the
+  // traveler saved for this trip; no inference beyond stored rows.
+  useEffect(() => {
+    if (!isOrganizer) {
+      setTravelerSpend([]);
+      return;
+    }
+    let cancelled = false;
+
+    const load = async () => {
+      const { data: profiles, error: profileError } = await supabase
+        .rpc('get_itinerary_participant_profiles', { p_itinerary_id: itineraryId });
+      if (profileError) {
+        console.warn('Failed to load trip participants', profileError);
+        return;
+      }
+
+      let cartId = tripCartId || null;
+      if (!cartId) {
+        const { data: trip } = await supabase
+          .from('itinerary')
+          .select('itin_id')
+          .eq('id', itineraryId)
+          .maybeSingle();
+        cartId = (trip as { itin_id?: string } | null)?.itin_id ?? null;
+      }
+
+      const spendByUser: Record<string, number> = {};
+      if (cartId) {
+        const { data: rows } = await supabase
+          .from('cart_items')
+          .select('user_id, price')
+          .eq('itinerary_id', cartId)
+          .limit(PAGE_SIZES.cartItems);
+        (rows || []).forEach((row) => {
+          const key = String((row as { user_id: string }).user_id);
+          spendByUser[key] = (spendByUser[key] || 0) + (Number((row as { price: number }).price) || 0);
+        });
+      }
+
+      if (cancelled) return;
+      setTravelerSpend((profiles || []).map((profile: {
+        user_id: string; first_name: string | null; last_name: string | null; username: string | null;
+      }) => ({
+        userId: profile.user_id,
+        name: [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.username || 'Traveler',
+        actual: spendByUser[profile.user_id] || 0,
+      })));
+    };
+
+    load();
+    return () => { cancelled = true; };
+  }, [isOrganizer, itineraryId, tripCartId, refreshTrigger]);
 
   const fetchBudgetData = async () => {
     try {
@@ -313,7 +380,7 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
   };
 
   // Filter to categories with actual spending for the pie chart
-  const chartData = budgetData
+  const allChartData = budgetData
     .filter(item => item.spent_amount > 0)
     .map((item) => ({
       name: item.category,
@@ -322,10 +389,20 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
       fill: CATEGORY_COLORS[item.category] || '#6b7280'
     }));
 
+  const chartData = allChartData.filter(item => !hiddenCategories.includes(item.name));
+
+  const toggleCategory = (category: string) => {
+    setHiddenCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+    );
+    setActiveCategory((prev) => (prev === category ? null : prev));
+  };
+
   const totalBudgetFromBreakdown = budgetData.reduce((sum, item) => sum + item.budgeted_amount, 0);
   const totalSpentFromBreakdown = budgetData.reduce((sum, item) => sum + item.spent_amount, 0);
   const totalBudget = (totalBudgetProp ?? totalBudgetFromBreakdown) || 0;
   const totalSpent = (totalSpentProp ?? totalSpentFromBreakdown) || 0;
+  const visibleSpent = chartData.reduce((sum, item) => sum + item.spent, 0);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -340,58 +417,18 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
     }
   };
 
-  const CustomLegend = ({ payload }: any) => {
-    return (
-      <div className="flex flex-wrap justify-center gap-4 mb-6">
-        {payload.map((entry: any, index: number) => {
-          const IconComponent = getCategoryIcon(entry.value);
-          const percentage = ((entry.payload.spent / totalSpent) * 100).toFixed(1);
-          return (
-            <div key={`legend-${index}`} className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: entry.color }}
-              />
-              <IconComponent className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{percentage}%</span>
-            </div>
-          );
-        })}
-      </div>
-    );
+  const activeSlice = chartData.find((item) => item.name === activeCategory) || null;
+  const detail = activeSlice ?? {
+    name: 'All visible categories',
+    budgeted: chartData.reduce((sum, item) => sum + item.budgeted, 0),
+    spent: visibleSpent,
+    fill: 'hsl(var(--primary))',
   };
+  const money = (value: number) =>
+    `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-card border border-border rounded-lg p-3 shadow-2xl backdrop-blur-xl">
-          <p className="text-foreground font-bold text-xs mb-2">{label}</p>
-          <div className="space-y-1">
-            <p className="text-xs">
-              <span className="text-muted-foreground">Budgeted:</span>
-              <span className="text-[hsl(351,85%,75%)] font-semibold ml-2">
-                ${data.budgeted.toLocaleString()}
-              </span>
-            </p>
-            <p className="text-xs">
-              <span className="text-muted-foreground">Spent:</span>
-              <span className="text-[hsl(15,80%,70%)] font-semibold ml-2">
-                ${data.spent.toLocaleString()}
-              </span>
-            </p>
-            <p className="text-xs">
-              <span className="text-muted-foreground">Remaining:</span>
-              <span className="text-foreground font-semibold ml-2">
-                ${(data.budgeted - data.spent).toLocaleString()}
-              </span>
-            </p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+  const travelerCount = Math.max(travelerSpend.length, 1);
+  const projectedPerTraveler = totalBudget > 0 ? totalBudget / travelerCount : 0;
 
   if (loading) {
     return (
@@ -468,44 +505,192 @@ export const BudgetPieChart = ({ itineraryId, totalBudget: totalBudgetProp, tota
           </div>
         </div>
 
-        {/* Modern Donut Chart */}
-        {chartData.length > 0 && (
-          <div className="relative h-96">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <defs>
-                  {chartData.map((entry, index) => (
-                    <linearGradient key={`gradient-${index}`} id={`gradient-${index}`} x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor={entry.fill} stopOpacity={1} />
-                      <stop offset="100%" stopColor={entry.fill} stopOpacity={0.7} />
-                    </linearGradient>
-                  ))}
-                </defs>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={104}
-                  outerRadius={130}
-                  fill="#8884d8"
-                  dataKey="spent"
-                  stroke="hsl(var(--card))"
-                  strokeWidth={2}
+        {/* Category filter */}
+        {allChartData.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {allChartData.map((entry) => {
+              const Icon = getCategoryIcon(entry.name);
+              const hidden = hiddenCategories.includes(entry.name);
+              return (
+                <button
+                  key={`filter-${entry.name}`}
+                  type="button"
+                  onClick={() => toggleCategory(entry.name)}
+                  aria-pressed={!hidden}
+                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    hidden
+                      ? 'border-border bg-transparent text-muted-foreground opacity-60'
+                      : 'border-border bg-muted text-foreground'
+                  }`}
                 >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={`url(#gradient-${index})`} stroke="hsl(var(--card))" />
-                  ))}
-                </Pie>
-                <Legend content={<CustomLegend />} />
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            
-            {/* Center Label */}
-            <div className="absolute top-[calc(50%-24px)] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
-              <p className="text-[hsl(351,85%,75%)] text-xl font-bold">${totalSpent.toLocaleString()}</p>
-              <p className="text-muted-foreground text-[9px] font-medium uppercase tracking-wider">total spent of</p>
-              <p className="text-foreground text-base font-bold">${totalBudget.toLocaleString()}</p>
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
+                  <Icon className="h-3 w-3" />
+                  {entry.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Two donuts: trip total and category detail */}
+        {chartData.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Total spend vs budget */}
+            <div className="rounded-2xl border border-border bg-muted/40 p-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Trip total</p>
+              <div className="relative h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <defs>
+                      {chartData.map((entry, index) => (
+                        <linearGradient key={`gradient-${index}`} id={`gradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor={entry.fill} stopOpacity={1} />
+                          <stop offset="100%" stopColor={entry.fill} stopOpacity={0.7} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={78}
+                      outerRadius={104}
+                      dataKey="spent"
+                      stroke="hsl(var(--card))"
+                      strokeWidth={2}
+                      onMouseEnter={(_, index) => setActiveCategory(chartData[index]?.name ?? null)}
+                      onClick={(_, index) => setActiveCategory(chartData[index]?.name ?? null)}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={`url(#gradient-${index})`}
+                          stroke="hsl(var(--card))"
+                          opacity={activeCategory && activeCategory !== entry.name ? 0.45 : 1}
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Center label — never covered, the detail panel sits below */}
+                <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
+                  <p className="text-xl font-bold text-[hsl(351,85%,75%)]">{money(visibleSpent)}</p>
+                  <p className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground">total spent of</p>
+                  <p className="text-base font-bold text-foreground">{money(totalBudget)}</p>
+                </div>
+              </div>
+
+              {/* Fixed detail panel replaces the floating tooltip */}
+              <div className="mt-3 rounded-xl border border-border bg-card p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: detail.fill }} />
+                  <p className="text-xs font-bold text-foreground">{detail.name}</p>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Budgeted</p>
+                    <p className="text-xs font-semibold text-foreground">{money(detail.budgeted)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Spent</p>
+                    <p className="text-xs font-semibold text-[hsl(351,85%,75%)]">{money(detail.spent)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Remaining</p>
+                    <p className="text-xs font-semibold text-foreground">{money(detail.budgeted - detail.spent)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Spend by category */}
+            <div className="rounded-2xl border border-border bg-muted/40 p-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Spend by category</p>
+              <div className="relative h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={78}
+                      outerRadius={104}
+                      dataKey="spent"
+                      stroke="hsl(var(--card))"
+                      strokeWidth={2}
+                      onMouseEnter={(_, index) => setActiveCategory(chartData[index]?.name ?? null)}
+                      onClick={(_, index) => setActiveCategory(chartData[index]?.name ?? null)}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`share-${index}`}
+                          fill={entry.fill}
+                          stroke="hsl(var(--card))"
+                          opacity={activeCategory && activeCategory !== entry.name ? 0.45 : 1}
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
+                  <p className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground">categories</p>
+                  <p className="text-xl font-bold text-foreground">{chartData.length}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-1.5">
+                {chartData.map((entry) => {
+                  const Icon = getCategoryIcon(entry.name);
+                  const share = visibleSpent > 0 ? (entry.spent / visibleSpent) * 100 : 0;
+                  return (
+                    <button
+                      key={`row-${entry.name}`}
+                      type="button"
+                      onClick={() => setActiveCategory(activeCategory === entry.name ? null : entry.name)}
+                      className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all ${
+                        activeCategory === entry.name ? 'border-border bg-card' : 'border-transparent bg-card/60 hover:bg-card'
+                      }`}
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
+                      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="flex-1 truncate text-xs text-foreground">{entry.name}</span>
+                      <span className="text-xs font-semibold text-foreground">{money(entry.spent)}</span>
+                      <span className="w-12 text-right text-[11px] text-muted-foreground">{share.toFixed(1)}%</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Organizer-only traveler spending */}
+        {isOrganizer && travelerSpend.length > 0 && (
+          <div className="rounded-2xl border border-border bg-muted/40 p-4">
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Traveler spending</p>
+              <span className="text-[10px] text-muted-foreground">Visible to the organizer only</span>
+            </div>
+            <p className="mb-3 text-[11px] text-muted-foreground">
+              Projected is the trip budget split evenly across {travelerCount} traveler{travelerCount === 1 ? '' : 's'}. Actual is what each traveler has added to this trip.
+            </p>
+            <div className="space-y-1.5">
+              {travelerSpend.map((traveler) => {
+                const over = traveler.actual > projectedPerTraveler && projectedPerTraveler > 0;
+                return (
+                  <div
+                    key={traveler.userId}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2"
+                  >
+                    <span className="flex-1 truncate text-xs font-medium text-foreground">{traveler.name}</span>
+                    <span className="text-[11px] text-muted-foreground">Projected {money(projectedPerTraveler)}</span>
+                    <span className={`text-xs font-semibold ${over ? 'text-destructive' : 'text-foreground'}`}>
+                      {money(traveler.actual)}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

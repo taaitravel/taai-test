@@ -86,7 +86,7 @@ export const PublicFooter = ({ links = DEFAULT_LINKS }: PublicFooterProps) => {
       </div>
       <div className="taai-foot-legal">
         <span>© {new Date().getFullYear()} taai travel. All rights reserved.</span>
-        <span>Every trip, arriving.</span>
+        <span>Make Every Trip Into The Everything Trip</span>
       </div>
     </footer>
   );

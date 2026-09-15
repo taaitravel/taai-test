@@ -219,9 +219,14 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
                 </div>
               </div>
             )) : (
-              <div className="flex gap-2 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
-                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                No cart, checkout, payment, or provider-confirmation evidence is available for this trip in the current cart data.
+              <div className="space-y-3 rounded-xl border border-dashed border-border p-5">
+                <div className="flex gap-2 text-sm text-muted-foreground">
+                  <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  No bookings yet — once any come in you can check out if available and book them.
+                </div>
+                <Button asChild size="sm" className="gold-gradient text-background hover:opacity-90">
+                  <Link to="/search"><Search className="mr-2 h-4 w-4" />Book now</Link>
+                </Button>
               </div>
             )}
           </CardContent>

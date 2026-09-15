@@ -10,6 +10,7 @@ import { ItineraryStackedCards } from "./ItineraryStackedCards";
 import { DailyScheduleSection } from "./DailyScheduleSection";
 import { ItineraryCalendarView } from "./ItineraryCalendarView";
 import { BudgetPieChart } from "./BudgetPieChart";
+import { SectionErrorBoundary } from "./SectionErrorBoundary";
 import { BookingCart } from "@/components/booking/BookingCart";
 import { AddItemDialog, ItemType } from "./AddItemDialog";
 import { AddDestinationDialog } from "./AddDestinationDialog";
@@ -375,6 +376,8 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
       totalBudget={itineraryData.budget}
       totalSpent={itineraryData.spending}
       refreshTrigger={budgetRefreshTrigger}
+      isOrganizer={userRole === 'owner'}
+      tripCartId={cartItineraryId}
     />
   );
 
@@ -405,22 +408,27 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
         );
       case 'bookings':
         return (
-          <TripWorkspaceBookings
-            itineraryData={itineraryData}
-            cartItems={cartItems}
-            userRole={userRole}
-            cartView={(
-              <BookingCart
-                itineraryId={cartItineraryId}
-                onCartUpdate={(items) => setCartItems(items.map((item) => ({
-                  id: String(item.id),
-                  type: item.type || 'item',
-                  price: Number(item.price) || 0,
-                  bookingStatus: item.booking_status || null,
-                })))}
-              />
-            )}
-          />
+          <SectionErrorBoundary
+            title="No bookings to show yet"
+            message="We couldn't load booking details for this trip. There are no bookings recorded here yet — once any come in you'll be able to review and book them."
+          >
+            <TripWorkspaceBookings
+              itineraryData={itineraryData}
+              cartItems={cartItems}
+              userRole={userRole}
+              cartView={(
+                <BookingCart
+                  itineraryId={cartItineraryId}
+                  onCartUpdate={(items) => setCartItems(items.map((item) => ({
+                    id: String(item.id),
+                    type: item.type || 'item',
+                    price: Number(item.price) || 0,
+                    bookingStatus: item.booking_status || null,
+                  })))}
+                />
+              )}
+            />
+          </SectionErrorBoundary>
         );
       case 'costs':
         return (
