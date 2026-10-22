@@ -13,6 +13,7 @@ import { fetchCartItemDetail, fetchCartList, type CartListItem } from '@/lib/dat
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBookingCheckout, type ValidationItem, type ValidationResult } from '@/hooks/useBookingCheckout';
+import { travelBookingCheckoutEnabled } from '@/lib/features';
 import { useTaxesAndFeesRate } from '@/hooks/useTaxesAndFeesRate';
 import { SplitCostDialog } from '@/components/booking/SplitCostDialog';
 import { SplitChip } from '@/components/booking/SplitChip';
@@ -238,6 +239,7 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
   };
 
   const handleCheckout = async (items: CartItem[]) => {
+    if (!travelBookingCheckoutEnabled) return;
     // Always validate immediately before charging so we use a fresh quote.
     const ids = items.map((i) => i.id);
     const itinNum = itineraryId ? tripBigintIds[itineraryId] : undefined;
@@ -344,13 +346,15 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-primary">
           <ShoppingCart className="h-5 w-5" />
-          Booking Cart ({cartItems.length} items)
+          {travelBookingCheckoutEnabled ? 'Booking Cart' : 'Planning cart'} ({cartItems.length} items)
           {isValidating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
         </CardTitle>
         {validation && (
           <p className="text-xs text-muted-foreground">
             {validation.all_available
-              ? 'All items verified & ready to book.'
+              ? (travelBookingCheckoutEnabled
+                ? 'All items verified & ready to book.'
+                : 'Prices checked for planning. Confirm them with the provider before you buy.')
               : `${validation.diffs.length} item(s) need attention.`}
             {' '}Quote expires {format(new Date(validation.expires_at), 'h:mm a')}.
           </p>
@@ -495,9 +499,11 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                               <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id)} className="text-destructive hover:text-destructive h-8 w-8 p-0">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleCheckout([item])} disabled={isCheckingOut} className="text-xs h-8">
-                                {isCheckingOut ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Book'}
-                              </Button>
+                              {travelBookingCheckoutEnabled && (
+                                <Button variant="outline" size="sm" onClick={() => handleCheckout([item])} disabled={isCheckingOut} className="text-xs h-8">
+                                  {isCheckingOut ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Book'}
+                                </Button>
+                              )}
                               <span className="text-sm font-medium text-rental tabular-nums">{formatPrice(item.price)}</span>
                             </div>
                             {openItemId === item.id && (
@@ -528,18 +534,22 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
                     <div className="mt-3 pt-3 border-t border-rental/40 space-y-1 text-sm">
                       <div className="flex justify-between text-muted-foreground">
-                        <span>Subtotal{showBudget ? ` (${groupSelected.length} selected)` : ''}</span><span>{formatPrice(totals.provider)}</span>
+                        <span>{travelBookingCheckoutEnabled ? 'Subtotal' : 'Estimated provider total'}{showBudget ? ` (${groupSelected.length} selected)` : ''}</span><span>{formatPrice(totals.provider)}</span>
                       </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>{taxesLabel}</span><span>{formatPrice(totals.taxesAndFees)}</span>
-                      </div>
-                      <div className="flex justify-between font-semibold">
-                        <span>Trip total</span><span className="text-rental">{formatPrice(totals.total)}</span>
-                      </div>
-                      <Button onClick={() => handleCheckout(groupSelected)} disabled={isCheckingOut || groupSelected.length === 0} className="w-full mt-2 bg-rental text-rental-foreground hover:bg-rental/90" size="sm">
-                        {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                        {groupSelected.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(totals.total)}`}
-                      </Button>
+                      {travelBookingCheckoutEnabled && (
+                        <>
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>{taxesLabel}</span><span>{formatPrice(totals.taxesAndFees)}</span>
+                          </div>
+                          <div className="flex justify-between font-semibold">
+                            <span>Trip total</span><span className="text-rental">{formatPrice(totals.total)}</span>
+                          </div>
+                          <Button onClick={() => handleCheckout(groupSelected)} disabled={isCheckingOut || groupSelected.length === 0} className="w-full mt-2 bg-rental text-rental-foreground hover:bg-rental/90" size="sm">
+                            {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
+                            {groupSelected.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(totals.total)}`}
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -550,19 +560,23 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Grand subtotal ({selectedCartItems.length} of {cartItems.length} items selected)</span>
+                <span className="text-muted-foreground">{travelBookingCheckoutEnabled ? 'Grand subtotal' : 'Estimated provider total'} ({selectedCartItems.length} of {cartItems.length} items selected)</span>
                 <span>{formatPrice(grand.provider)}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center gap-1">
-                  {taxesLabel} <Info className="h-3 w-3" />
-                </span>
-                <span>{formatPrice(grand.taxesAndFees)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between text-lg font-bold">
-                <span>Grand total</span><span className="text-primary">{formatPrice(grand.total)}</span>
-              </div>
+              {travelBookingCheckoutEnabled && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      {taxesLabel} <Info className="h-3 w-3" />
+                    </span>
+                    <span>{formatPrice(grand.taxesAndFees)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Grand total</span><span className="text-primary">{formatPrice(grand.total)}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -573,13 +587,21 @@ export const BookingCart: React.FC<BookingCartProps> = ({ itineraryId, onCartUpd
                 </Button>
               </div>
 
-              <Button onClick={() => handleCheckout(selectedCartItems)} disabled={isCheckingOut || selectedCartItems.length === 0} className="w-full" size="lg">
-                {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                {selectedCartItems.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(grand.total)}`}
-              </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                Payments processed securely by Stripe. TAAI never sees your card details.
-              </p>
+              {travelBookingCheckoutEnabled ? (
+                <>
+                  <Button onClick={() => handleCheckout(selectedCartItems)} disabled={isCheckingOut || selectedCartItems.length === 0} className="w-full" size="lg">
+                    {isCheckingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CreditCard className="h-4 w-4 mr-2" />}
+                    {selectedCartItems.length === 0 ? 'Select items to check out' : `Checkout selected — ${formatPrice(grand.total)}`}
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground">
+                    Payments processed securely by Stripe. TAAI never sees your card details.
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-center text-muted-foreground">
+                  These amounts are planning estimates. Book and pay the provider directly. taai does not take payment for travel.
+                </p>
+              )}
             </div>
           </>
         )}

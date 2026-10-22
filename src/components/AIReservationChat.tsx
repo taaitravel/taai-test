@@ -69,15 +69,15 @@ const AIReservationChat = ({ itineraryData, onUpdateData, onSaveItinerary, isSav
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I'm your AI travel assistant. I can help you plan the perfect trip. Choose from our travel services, seasonal options, explore different terrains, luxury experiences, extreme sports, or find exciting events!",
+      text: "Hello! I'm your AI trip-planning assistant. I can help you outline a trip. Pick a starting point below. When you are ready to buy, you book and pay the provider directly — taai does not sell travel.",
       isBot: true,
       timestamp: new Date(),
       actions: [
         // Travel Services
-        { type: 'quick-action', label: '✈️ Book Flights', data: { action: 'flights' } },
-        { type: 'quick-action', label: '🏨 Reserve Hotels', data: { action: 'hotels' } },
-        { type: 'quick-action', label: '📦 Travel Packages', data: { action: 'packages' } },
-        { type: 'quick-action', label: '🚗 Rent a Car', data: { action: 'car' } },
+        { type: 'quick-action', label: '✈️ Compare flights', data: { action: 'flights' } },
+        { type: 'quick-action', label: '🏨 Compare hotels', data: { action: 'hotels' } },
+        { type: 'quick-action', label: '📦 Trip ideas', data: { action: 'packages' } },
+        { type: 'quick-action', label: '🚗 Compare cars', data: { action: 'car' } },
         { type: 'quick-action', label: '🎯 Plan Activities', data: { action: 'activities' } },
         // Seasons & Deals - Reduced to 4 items
         { type: 'quick-action', label: '🌸 Spring Getaway', data: { action: 'spring' } },

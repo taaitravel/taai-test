@@ -14,8 +14,8 @@ const WhatWeDo = () => {
   const features = [
     {
       icon: <Plane className="h-12 w-12 text-foreground" />,
-      title: "AI-Powered Booking",
-      description: "Smart integration with major travel platforms for seamless booking",
+      title: "AI-Powered Planning",
+      description: "Research flights, stays, and activities, then organize them in one itinerary",
       details: "Our AI analyzes thousands of options to find the best flights, hotels, and activities within your budget and preferences."
     },
     {
@@ -64,7 +64,7 @@ const WhatWeDo = () => {
     {
       icon: <Clock className="h-8 w-8 text-foreground" />,
       title: "24/7 Support",
-      description: "Round-the-clock assistance for all your travel needs"
+      description: "Help with the planning software when you need it"
     }
   ];
 

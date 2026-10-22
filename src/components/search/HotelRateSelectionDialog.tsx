@@ -164,8 +164,8 @@ export const HotelRateSelectionDialog = ({
                     <Button onClick={() => selectRate(rate)}>Select rate</Button>
                     <div className="text-[11px] text-muted-foreground max-w-[190px]">
                       {rate.supplierBookable
-                        ? 'Provider supplied checkout evidence.'
-                        : 'Exact rate saved; provider booking confirmation is still required.'}
+                        ? 'A provider listed this rate. Confirm the price with them before you buy.'
+                        : 'Rate saved for planning. The provider must confirm it before anything is reserved.'}
                     </div>
                   </div>
                 </div>

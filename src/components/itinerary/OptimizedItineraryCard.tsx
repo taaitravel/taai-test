@@ -101,7 +101,7 @@ const OptimizedItineraryCard = memo(({ item, onEdit, onDelete }: OptimizedItiner
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-white/70">
               <Calendar className="h-4 w-4" />
-              <span>{item.check_in && item.check_out ? `${item.check_in} - ${item.check_out}` : 'Dates required before checkout'}</span>
+              <span>{item.check_in && item.check_out ? `${item.check_in} - ${item.check_out}` : 'Add dates to this stay'}</span>
             </div>
             {item.nights && (
               <div className="flex items-center gap-2 text-white/70">

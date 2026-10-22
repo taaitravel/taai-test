@@ -52,7 +52,7 @@ export const TripWorkspaceOverview = ({
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Button asChild className="gold-gradient text-background hover:opacity-90">
-              <Link to="/search"><Search className="mr-2 h-4 w-4" />Search and book through taai</Link>
+              <Link to="/search"><Search className="mr-2 h-4 w-4" />Search trip ideas</Link>
             </Button>
             {cartItemCount > 0 && (
               <Button asChild variant="outline">

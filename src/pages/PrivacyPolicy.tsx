@@ -19,7 +19,7 @@ const PrivacyPolicy = () => {
                 <img src={LOGO_URL} alt="TAAI Travel" className="h-[120px] w-auto" />
               </div>
               <CardTitle className="text-2xl text-foreground">Privacy Policy</CardTitle>
-              <p className="text-muted-foreground">Last updated: January 2025</p>
+              <p className="text-muted-foreground">Effective October 22, 2026</p>
             </CardHeader>
 
             <CardContent className="space-y-6 max-h-[70vh] overflow-y-auto">
@@ -30,19 +30,21 @@ const PrivacyPolicy = () => {
                 </div>
                 
                 <div className="text-foreground/80 space-y-4 text-sm">
+                  <p>This policy describes how Lighthouse Commerce Group LLC d/b/a TAAI Travel ("TAAI," "we") handles information when you use our AI trip-planning software. TAAI is a software and information subscription. We do not sell travel, book travel for you, or collect payment for travel. Address: 1065 SW 8th St #1411, Miami, FL 33130.</p>
+
                   <div>
                     <h3 className="font-semibold text-foreground mb-2">1. Information We Collect</h3>
-                    <p>We collect information you provide directly (name, email, travel preferences), automatically (usage data, device information), and from third parties (social media, travel partners). This enables us to provide personalized travel recommendations and seamless booking experiences.</p>
+                    <p>We collect information you provide directly (name, email, account details, and trip preferences you enter), automatically (usage data and device information), and from sign-in or subscription tools we use to run the software. We use this to operate the planning product, personalize recommendations, and manage your software subscription. We do not collect payment card details for travel purchases. Subscription payments are processed by Stripe.</p>
                   </div>
 
                   <div>
                     <h3 className="font-semibold text-foreground mb-2">2. How We Use Your Information</h3>
-                    <p>Your information is used to provide travel services, process bookings, send confirmations, improve our platform, provide customer support, and send relevant travel offers. We may use AI to analyze preferences and suggest personalized itineraries.</p>
+                    <p>We use information to provide and secure the planning software, remember your itineraries, suggest trip ideas, manage software subscriptions, provide customer support, and improve the product. We may use AI to analyze preferences you give us and suggest itineraries. Those suggestions can be wrong. We do not use your information to sell, ticket, or arrange travel on your behalf, and we do not send travel booking confirmations because we do not book travel.</p>
                   </div>
 
                   <div>
                     <h3 className="font-semibold text-foreground mb-2">3. Information Sharing</h3>
-                    <p>We share information with travel service providers (airlines, hotels, tour operators), payment processors, analytics providers, and as required by law. We do not sell personal information to third parties for marketing purposes.</p>
+                    <p>We share information with vendors that host the software, process software-subscription payments (Stripe), and provide analytics, and when the law requires it. We do not sell personal information. We do not share your information with airlines, hotels, or tour operators so that we can book travel for you. If you leave the Service and buy from a third-party site, that site collects and uses information under its own privacy policy, and that purchase is with them, not with TAAI.</p>
                   </div>
 
                   <div>
@@ -82,7 +84,7 @@ const PrivacyPolicy = () => {
 
                   <div>
                     <h3 className="font-semibold text-foreground mb-2">10. Contact Information</h3>
-                    <p>For privacy-related questions or to exercise your rights, contact us at privacy@taai.travel or write to us at our registered address. We will respond within the timeframes required by applicable law.</p>
+                    <p>For privacy-related questions or to exercise your rights, email privacy@taai.travel or write to Lighthouse Commerce Group LLC d/b/a TAAI Travel, 1065 SW 8th St #1411, Miami, FL 33130. We will respond within the timeframes required by applicable law.</p>
                   </div>
                 </div>
               </div>

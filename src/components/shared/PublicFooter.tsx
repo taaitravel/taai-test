@@ -74,7 +74,7 @@ export const PublicFooter = ({ links = DEFAULT_LINKS }: PublicFooterProps) => {
       <div className="taai-foot-in">
         <div className="taai-foot-brand">
           <img src={LOGO_WORDMARK_URL} alt="taai travel" />
-          <span className="taai-foot-tag">taai.travel · travel agent · affiliate · intelligence</span>
+          <span className="taai-foot-tag">taai.travel · trip planning · affiliate · intelligence</span>
         </div>
         <nav aria-label="Footer">
           {links.map((link) => (
@@ -85,7 +85,7 @@ export const PublicFooter = ({ links = DEFAULT_LINKS }: PublicFooterProps) => {
         </nav>
       </div>
       <div className="taai-foot-legal">
-        <span>© {new Date().getFullYear()} taai travel. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} Lighthouse Commerce Group LLC d/b/a TAAI Travel. All rights reserved.</span>
         <span>Make Every Trip Into The Everything Trip</span>
       </div>
     </footer>

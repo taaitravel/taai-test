@@ -68,9 +68,9 @@ const Subscription = () => {
           <Badge className="mb-6 bg-secondary text-foreground hover:bg-secondary/80 border-border" variant="secondary">
             Choose Your Plan
           </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4">Choose Your Travel Plan</h1>
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4">Choose your planning subscription</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Unlock the full potential of your travel planning with our subscription tiers
+            This is a software subscription for trip planning. It is not a payment for flights, stays, or other travel.
           </p>
 
           {/* Large Billing Toggle */}

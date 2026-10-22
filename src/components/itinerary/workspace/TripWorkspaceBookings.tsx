@@ -136,12 +136,12 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
         <CardHeader>
           <CardTitle>Bookings workspace</CardTitle>
           <p className="text-sm text-muted-foreground">
-            This view separates planning items from cart and checkout evidence. It does not infer bookings from Miles text, typed notes, itinerary existence, confirmation-number strings, or user claims.
+            This view keeps your plan separate from reservations you record yourself. taai does not book travel or take payment for it, and it does not treat notes or chat as a reservation.
           </p>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Button asChild className="gold-gradient text-background hover:opacity-90">
-            <Link to="/search"><Search className="mr-2 h-4 w-4" />Search and book through taai</Link>
+            <Link to="/search"><Search className="mr-2 h-4 w-4" />Search trip ideas</Link>
           </Button>
           {cartItems.length > 0 && (
             <Button asChild variant="outline">
@@ -158,7 +158,7 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
         <CardHeader>
           <CardTitle>Cost sources in this workspace</CardTitle>
           <p className="text-sm text-muted-foreground">
-            taai cart amounts stay separate from traveler-reported external booking amounts. Manual values are never merged into verified payment or provider-confirmed totals.
+            Saved estimates stay separate from amounts you report from a provider. taai does not collect or verify those payments.
           </p>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -184,7 +184,7 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
         <Card className="bg-card/80 border-border">
           <CardHeader>
-            <CardTitle>Still to book</CardTitle>
+            <CardTitle>Still planning</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {plannedItems.length > 0 ? plannedItems.map((item, index) => (
@@ -205,7 +205,7 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
 
         <Card className="bg-card/80 border-border">
           <CardHeader>
-            <CardTitle>Booked through taai</CardTitle>
+            <CardTitle>Saved in this plan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {cartItems.length > 0 ? cartItems.map((item) => (
@@ -222,10 +222,10 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
               <div className="space-y-3 rounded-xl border border-dashed border-border p-5">
                 <div className="flex gap-2 text-sm text-muted-foreground">
                   <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                  No bookings yet — once any come in you can check out if available and book them.
+                  Nothing saved here yet. Search for ideas, or add a reservation you already made with a provider.
                 </div>
                 <Button asChild size="sm" className="gold-gradient text-background hover:opacity-90">
-                  <Link to="/search"><Search className="mr-2 h-4 w-4" />Book now</Link>
+                  <Link to="/search"><Search className="mr-2 h-4 w-4" />Search ideas</Link>
                 </Button>
               </div>
             )}

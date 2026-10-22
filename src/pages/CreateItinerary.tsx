@@ -197,7 +197,7 @@ const CreateItinerary = () => {
         <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 py-6 md:pb-6">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Perfect Itinerary</h1>
-            <p className="text-foreground/70">Compare our traditional booking assistant with the new TAAI Assistant</p>
+            <p className="text-foreground/70">Compare the classic planning assistant with Bob, the Create Itinerary specialist</p>
           </div>
 
           {/* Two Column Layout for Chat Comparison */}
@@ -205,7 +205,7 @@ const CreateItinerary = () => {
             {/* Left Side - Traditional AI Reservation Chat */}
             <div className="flex flex-col">
               <div className="bg-muted text-foreground text-center py-2 rounded-t-lg font-medium text-sm border border-border border-b-0">
-                Classic booking assistant
+                Classic planning assistant
               </div>
               <div className="flex-1 border border-border rounded-b-lg bg-secondary p-4">
                 <AIReservationChat 
@@ -243,8 +243,8 @@ const CreateItinerary = () => {
           {savedItineraryId && (
             <div className="mt-8">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Book Your Trip</h2>
-                <p className="text-foreground/70">Add items to cart, save price snapshots, or book individual items</p>
+                <h2 className="text-2xl font-bold text-foreground mb-2">Save ideas for your trip</h2>
+                <p className="text-foreground/70">Keep options and price snapshots in one place. Buy travel directly from the provider.</p>
               </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -270,12 +270,12 @@ const CreateItinerary = () => {
                 disabled={isSaving || !itineraryData.name}
                 className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold"
               >
-                {isSaving ? "Saving..." : "Save Itinerary & Enable Booking"}
+                {isSaving ? "Saving..." : "Save itinerary"}
               </Button>
             ) : (
               <div className="space-y-2">
                 <p className="text-foreground/70 text-sm">
-                  ✅ Itinerary saved! You can now add items to your booking cart above.
+                  Itinerary saved. You can keep planning notes and price snapshots above.
                 </p>
                 <Button
                   onClick={() => navigate(`/itinerary?id=${savedItineraryId}`)}

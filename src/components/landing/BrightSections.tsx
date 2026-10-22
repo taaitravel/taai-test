@@ -110,7 +110,7 @@ const CSS = `
 `;
 
 const FEATURES = [
-  { n: "01", title: "Booking that lands", desc: "Flights, stays, activities and tables dock straight into the itinerary — no copy-paste between tabs." },
+  { n: "01", title: "Plans that land", desc: "Flights, stays, activities and tables you save dock straight into the itinerary — no copy-paste between tabs." },
   { n: "02", title: "A map that stays quiet", desc: "Muted land, warm roads, gradient pins. The only saturated thing on screen is where you're going." },
   { n: "03", title: "One itinerary, five tabs", desc: "Overview, Plan, Bookings, Costs, People. The whole group sees the same trip in real time." },
   { n: "04", title: "Costs, split cleanly", desc: "Booked and unbooked totals by type, per-person splits and a ledger that always balances." },
@@ -152,7 +152,7 @@ export const BrightSections = () => {
                 </svg>
               </div>
               <h3>Individual travel</h3>
-              <p>Personal trips and long weekends — planned, booked and remembered in one place.</p>
+              <p>Personal trips and long weekends — planned, saved and remembered in one place.</p>
             </button>
 
             <button
@@ -201,7 +201,7 @@ export const BrightSections = () => {
               Everything a trip needs, <b>in one surface.</b>
             </h2>
             <p className="tbs-lead">
-              From search to receipts — taai keeps planning, booking, costs and people on the same page.
+              From search to a shared plan — taai keeps planning, costs and people on the same page.
             </p>
           </div>
 

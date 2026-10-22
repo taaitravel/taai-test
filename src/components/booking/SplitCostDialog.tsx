@@ -286,7 +286,7 @@ export const SplitCostDialog: React.FC<SplitCostDialogProps> = ({
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
-              In this phase the payer is the person running checkout. Others will owe their share back.
+              This is a planning note only. taai does not collect the payment. Whoever pays the provider can be tracked here.
             </p>
           </div>
 
