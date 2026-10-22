@@ -78,14 +78,14 @@ var search_places_default = defineTool({
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
 var ABOUT = {
   name: "TAAI Travel",
-  tagline: "AI-powered travel planning and booking",
-  description: "TAAI Travel is a premium travel-planning platform that combines an AI concierge with real-time hotel, flight, and activity search. Users create itineraries, collaborate with travel companions, capture and book options, and manage trips end-to-end.",
+  tagline: "AI trip-planning software",
+  description: "TAAI Travel is AI trip-planning software from Lighthouse Commerce Group LLC. It helps people research and organize itineraries. It does not sell travel or take payment for travel. Purchases are made directly with third-party providers.",
   website: "https://taai-test.lovable.app",
   capabilities: [
     "Search hotels, flights, and activities across multiple providers",
     "AI-generated itineraries with day-by-day planning",
     "Shared itineraries and collaborative trip planning",
-    "Integrated checkout and booking"
+    "Software subscription for planning tools. Travel checkout is not offered."
   ]
 };
 var about_taai_default = defineTool2({

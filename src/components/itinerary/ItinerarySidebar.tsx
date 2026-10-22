@@ -37,9 +37,9 @@ export const ItinerarySidebar = ({ itineraryData, refreshTrigger }: ItinerarySid
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="p-3 bg-muted rounded-lg border border-border">
-            <p className="text-sm font-medium text-foreground">🏨 Best Time to Book</p>
+            <p className="text-sm font-medium text-foreground">🏨 When to compare stays</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Book your hotels 2-3 weeks before travel for optimal rates in Europe.
+              Compare hotel prices a few weeks before travel, then confirm the rate with the provider.
             </p>
           </div>
           <div className="p-3 bg-muted rounded-lg border border-border">

@@ -68,6 +68,18 @@ serve(async (req) => {
   }
 
   try {
+    // Default off. TAAI is not a Florida Seller of Travel and must not charge
+    // travelers for flights, hotels, or other travel. Subscription checkout
+    // is a different function and is not affected. Do not change Stripe keys.
+    if (Deno.env.get("TRAVEL_BOOKING_CHECKOUT_ENABLED") !== "true") {
+      return new Response(
+        JSON.stringify({
+          error: "Travel booking checkout is not available. Book and pay the travel provider directly.",
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
     if (!checkRateLimit(clientIp)) {
       return new Response(JSON.stringify({ error: "Too many checkout attempts. Try again later." }), {

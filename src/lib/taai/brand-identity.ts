@@ -6,13 +6,13 @@
 export const TAAI_BRAND = {
   name: 'TAAI Travel',
   
-  acronym: 'Travel Agent (TA) Affiliate (A) Intelligence (I)',
+  acronym: 'Trip planning, affiliate links, and intelligence',
   
-  mission: 'To make luxury and group travel effortless by combining intelligent AI, seamless booking tools, and collaborative planning into a single, intuitive platform.',
+  mission: 'To make trip planning easier with AI recommendations, collaborative itineraries, and one workspace for organizing a trip. Travel is purchased from third-party providers.',
   
   vision: 'To become the default infrastructure for how modern travelers plan, manage, and experience trips—globally, collaboratively, and intelligently.',
   
-  usp: 'TAAI unifies inspiration, planning, booking, and coordination into one intelligent system—eliminating fragmentation, guesswork, and friction common in traditional travel platforms.',
+  usp: 'TAAI unifies inspiration, planning, and coordination into one information tool. Travel purchases are made with third-party providers.',
   
   coreBenefits: {
     individuals: 'Faster, smarter planning with premium results.',

@@ -410,7 +410,7 @@ const handleAddSubmit = async (type: ItemType, item: any) => {
         return (
           <SectionErrorBoundary
             title="No bookings to show yet"
-            message="We couldn't load booking details for this trip. There are no bookings recorded here yet — once any come in you'll be able to review and book them."
+            message="We couldn't load saved plans for this trip. Reservations are made with the provider, not with taai."
           >
             <TripWorkspaceBookings
               itineraryData={itineraryData}

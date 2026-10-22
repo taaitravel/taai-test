@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { travelBookingCheckoutEnabled } from '@/lib/features';
 
 interface CheckoutItem {
   cart_item_id: string;
@@ -109,10 +110,19 @@ export const useBookingCheckout = () => {
     items: CheckoutItem[] | { quote_id: string },
     itineraryId?: number
   ) => {
+    if (!travelBookingCheckoutEnabled) {
+      toast({
+        title: 'Travel checkout is unavailable',
+        description: 'Book and pay the provider directly. taai does not take payment for travel.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!user) {
       toast({
         title: 'Login Required',
-        description: 'Please log in to proceed with booking.',
+        description: 'Please log in to continue.',
         variant: 'destructive',
       });
       return;

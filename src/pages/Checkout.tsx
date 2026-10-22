@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
+import { travelBookingCheckoutEnabled } from '@/lib/features';
 import { format, addDays, differenceInCalendarDays, parseISO } from 'date-fns';
 import {
   Loader2, ArrowLeft, ShieldCheck, Calendar, Users, BedDouble, Plane, MapPin,
@@ -202,6 +203,7 @@ export default function Checkout() {
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
+    if (!travelBookingCheckoutEnabled) return;
     if (!quoteId) {
       navigate('/cart', { replace: true });
       return;
@@ -344,6 +346,14 @@ export default function Checkout() {
   };
 
   const handleContinue = async () => {
+    if (!travelBookingCheckoutEnabled) {
+      toast({
+        title: 'Travel checkout is unavailable',
+        description: 'Book and pay the provider directly. taai does not take payment for travel.',
+        variant: 'destructive',
+      });
+      return;
+    }
     const err = validateForms();
     if (err) {
       toast({ title: 'Missing details', description: err, variant: 'destructive' });
@@ -396,6 +406,30 @@ export default function Checkout() {
     const totalPax = items.reduce((s, i) => s + (paxByItem[i.cart_item_id] || 1), 0) || 1;
     return grandTotal / totalPax;
   }, [grandTotal, items, paxByItem]);
+
+  if (!travelBookingCheckoutEnabled) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container max-w-lg mx-auto px-4 py-16">
+          <Card>
+            <CardHeader>
+              <CardTitle>Travel checkout is not available</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <p>
+                taai is a trip-planning subscription. It does not sell travel or take payment for flights, stays, or activities. Book and pay the provider directly.
+              </p>
+              <p>Software subscriptions are separate and remain available.</p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => navigate('/home')}>Back home</Button>
+                <Button onClick={() => navigate('/subscription')}>View subscription</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-32">

@@ -43,7 +43,7 @@ export class SectionErrorBoundary extends Component<SectionErrorBoundaryProps, S
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">{this.props.message}</p>
           <Button asChild size="sm" className="gold-gradient text-background hover:opacity-90">
-            <Link to="/search"><Search className="mr-2 h-4 w-4" />Book now</Link>
+            <Link to="/search"><Search className="mr-2 h-4 w-4" />Search ideas</Link>
           </Button>
         </CardContent>
       </Card>
