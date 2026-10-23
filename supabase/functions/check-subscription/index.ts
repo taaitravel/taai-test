@@ -59,6 +59,7 @@ serve(async (req) => {
       subscription_end: resolved.subscriptionEnd,
       subscription_status: resolved.status,
       credits_remaining: resolved.creditsRemaining,
+      monthly_ai_credits: resolved.monthlyAiCredits,
       max_itineraries: resolved.maxItineraries,
       max_shared_friends: resolved.maxSharedFriends,
     });

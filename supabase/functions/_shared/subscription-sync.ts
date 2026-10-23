@@ -15,6 +15,7 @@ export interface ResolvedSubscription {
   customerId: string | null;
   subscriptionEnd: string | null;
   creditsRemaining: number;
+  monthlyAiCredits: number;
   maxItineraries: number;
   maxSharedFriends: number;
   status: string | null;
@@ -119,6 +120,7 @@ export const resolveSubscription = async (
     customerId,
     subscriptionEnd,
     creditsRemaining,
+    monthlyAiCredits: limits.monthlyAiCredits,
     maxItineraries: limits.maxItineraries,
     maxSharedFriends: limits.maxSharedFriends,
     status,

@@ -3,13 +3,14 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, Map, Share2, Zap, AlertTriangle, CreditCard, Plus } from 'lucide-react';
+import { Map, Share2, Zap, AlertTriangle, CreditCard, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface UsageDashboardProps {
   userId: string;
   subscriptionData: {
     credits_remaining: number;
+    monthly_ai_credits?: number;
     max_itineraries: number;
     max_shared_friends: number;
   };
@@ -19,8 +20,6 @@ interface UsageDashboardProps {
 interface UsageMetrics {
   memberSince: string | null;
   itineraryCount: number;
-  pdfExportCount: number;
-  searchCount: number;
 }
 
 interface PaymentMethod {
@@ -51,8 +50,6 @@ const UsageDashboard: React.FC<UsageDashboardProps> = ({ userId, subscriptionDat
   const [metrics, setMetrics] = useState<UsageMetrics>({
     memberSince: null,
     itineraryCount: 0,
-    pdfExportCount: 0,
-    searchCount: 0,
   });
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,18 +58,14 @@ const UsageDashboard: React.FC<UsageDashboardProps> = ({ userId, subscriptionDat
   useEffect(() => {
     const fetchMetrics = async () => {
       setLoading(true);
-      const [itinRes, pdfRes, searchRes, userRes] = await Promise.all([
+      const [itinRes, userRes] = await Promise.all([
         supabase.from('itinerary').select('id', { count: 'exact', head: true }).eq('userid', userId),
-        supabase.from('usage_tracking').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('usage_type', 'pdf_export'),
-        supabase.from('search_history').select('id', { count: 'exact', head: true }).eq('user_id', userId),
         supabase.from('users').select('created_at').eq('userid', userId).maybeSingle(),
       ]);
 
       setMetrics({
         memberSince: userRes.data?.created_at ?? null,
         itineraryCount: itinRes.count ?? 0,
-        pdfExportCount: pdfRes.count ?? 0,
-        searchCount: searchRes.count ?? 0,
       });
       setLoading(false);
     };
@@ -107,16 +100,16 @@ const UsageDashboard: React.FC<UsageDashboardProps> = ({ userId, subscriptionDat
     }
   };
 
-  const creditCost = metrics.searchCount * 0.25;
   const maxItin = subscriptionData.max_itineraries;
   const maxSharing = subscriptionData.max_shared_friends;
-  const maxCredits = subscriptionData.credits_remaining;
+  const creditAllowance = subscriptionData.monthly_ai_credits;
+  const creditsLeft = subscriptionData.credits_remaining;
+  const creditsUsed = creditAllowance != null && creditAllowance >= 0 && creditsLeft >= 0
+    ? Math.max(creditAllowance - creditsLeft, 0)
+    : null;
 
   const itinDelta = maxItin === -1 ? null : maxItin - metrics.itineraryCount;
-  const sharingDelta = maxSharing === -1 ? null : maxSharing - metrics.pdfExportCount;
-  const creditDelta = maxCredits - creditCost;
-
-  const isOverAny = (itinDelta !== null && itinDelta < 0) || (sharingDelta !== null && sharingDelta < 0) || creditDelta < 0;
+  const tripsBlocked = itinDelta !== null && itinDelta <= 0;
 
   const renderRow = (
     icon: React.ReactNode,
@@ -232,26 +225,25 @@ const UsageDashboard: React.FC<UsageDashboardProps> = ({ userId, subscriptionDat
         )}
         {renderRow(
           <Share2 className="h-4 w-4" />,
-          'Sharing (PDF Exports)',
-          metrics.pdfExportCount,
+          'People per trip',
+          'enforced on invite',
           maxSharing === -1 ? '∞' : maxSharing,
-          sharingDelta
+          null
         )}
         {renderRow(
           <Zap className="h-4 w-4" />,
-          'Credit Utilization',
-          creditCost.toFixed(2),
-          maxCredits,
-          Math.round(creditDelta * 100) / 100,
-          ' credits'
+          'Planning credits this month',
+          creditsUsed ?? (creditsLeft < 0 ? 'unlimited' : `${creditsLeft} left`),
+          creditAllowance == null ? '—' : creditAllowance < 0 ? '∞' : creditAllowance,
+          null
         )}
       </Card>
 
-      {isOverAny && (
-        <Card className="p-3 bg-destructive/70 border-destructive flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-destructive-foreground shrink-0" />
-          <p className="text-sm text-destructive-foreground font-semibold">
-            You have exceeded your plan limits. Upgrade before excess trips are removed (each billing cycle).
+      {tripsBlocked && (
+        <Card className="p-3 bg-secondary border-border flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-foreground shrink-0" />
+          <p className="text-sm text-foreground">
+            This plan blocks new trips at {maxItin}. Trips you already saved stay.
           </p>
         </Card>
       )}
