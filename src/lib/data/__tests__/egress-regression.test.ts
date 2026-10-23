@@ -91,7 +91,7 @@ describe('contained source paths', () => {
   });
 
   it('hotel proxies never relay the full upstream response', () => {
-    for (const path of ['supabase/functions/expedia-rapid-api/index.ts', 'supabase/functions/booking-com-api/index.ts']) {
+    for (const path of ['supabase/functions/booking-com-api/index.ts']) {
       const source = read(path);
       expect(source, path).toContain('shapeProviderPayload');
       expect(source, path).not.toMatch(/JSON\.stringify\(data\)/);

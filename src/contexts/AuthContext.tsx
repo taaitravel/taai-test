@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { setRequestOwner, clearRequestCache } from '@/lib/data/request-controller';
 import { supabase } from '@/integrations/supabase/client';
+import { AUTH_REDIRECT_PATHS, authRedirect } from '@/lib/auth/redirects';
+import { describeAuthError } from '@/lib/auth/messages';
 
 interface UserProfile {
   id: number;
@@ -48,6 +50,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<{ error: any }>;
   resendVerificationEmail: (email: string) => Promise<{ error: any }>;
+  requestPasswordReset: (email: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -83,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           await fetchUserProfile(session.user.id);
+          void supabase.rpc('touch_last_active' as never).then(() => undefined, () => undefined);
         }
         
         setLoading(false);
@@ -173,8 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, metadata: any) => {
-    // After email confirmation, redirect to terms page
-    const redirectUrl = `${window.location.origin}/terms?fromSignup=true`;
+    const redirectUrl = authRedirect(AUTH_REDIRECT_PATHS.confirmEmail);
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -185,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
     
-    return { error };
+    return { error: error ? { ...error, message: describeAuthError(error) } : null };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -195,25 +198,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     
     // Handle email confirmation errors specifically
-    if (error?.message === "Email not confirmed") {
-      return { 
-        error: { 
-          ...error, 
-          message: "Please check your email and click the confirmation link before signing in. Check your spam folder if you don't see it." 
-        } 
-      };
-    }
-    
-    return { error };
+    return { error: error ? { ...error, message: describeAuthError(error) } : null };
   };
 
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/home`
+        redirectTo: authRedirect(AUTH_REDIRECT_PATHS.google)
       }
     });
+    if (error) {
+      throw new Error(describeAuthError(error));
+    }
   };
 
   const signOut = async () => {
@@ -225,7 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resendVerificationEmail = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/terms?fromSignup=true`;
+    const redirectUrl = authRedirect(AUTH_REDIRECT_PATHS.confirmEmail);
     
     const { error } = await supabase.auth.resend({
       type: 'signup',
@@ -235,7 +232,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
     
-    return { error };
+    return { error: error ? { ...error, message: describeAuthError(error) } : null };
+  };
+
+  const requestPasswordReset = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: authRedirect(AUTH_REDIRECT_PATHS.recovery),
+    });
+    return { error: error ? { ...error, message: describeAuthError(error) } : null };
   };
 
   const value = {
@@ -248,7 +252,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signOut,
     updateUserProfile,
-    resendVerificationEmail
+    resendVerificationEmail,
+    requestPasswordReset
   };
 
   return (

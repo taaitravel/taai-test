@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { travelBookingCheckoutEnabled } from '@/lib/features';
 import { useCartCount } from '@/hooks/useCartCount';
 
 export const CartIcon = () => {
   const navigate = useNavigate();
   const { count } = useCartCount();
+  if (!travelBookingCheckoutEnabled) return null;
 
   return (
     <Button

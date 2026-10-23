@@ -7,8 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ChromeStateProvider } from "@/contexts/ChromeStateContext";
-import { ExpediaSwipeProvider } from "@/components/swipe/ExpediaSwipeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { PlanLimitProvider } from "@/components/plans/PlanLimitProvider";
+import { travelBookingCheckoutEnabled } from "@/lib/features";
 import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
 import Index from "./pages/Index";
 import Signup from "./pages/Signup";
@@ -34,6 +35,7 @@ import Profile from "./pages/Profile";
 import BookingSuccess from "./pages/BookingSuccess";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import ResetPassword from "./pages/ResetPassword";
 import InternalTOS from "./pages/InternalTOS";
 import AgentOperations from "./pages/AgentOperations";
 import Discover from "./pages/Discover";
@@ -48,14 +50,15 @@ const App = () => (
       <AuthProvider>
         <ThemeProvider defaultTheme="dark" storageKey="taai-theme">
           <ChromeStateProvider>
-          <ExpediaSwipeProvider>
             <Toaster />
             <Sonner />
           <BrowserRouter>
+            <PlanLimitProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/profile-setup" element={
@@ -125,21 +128,25 @@ const App = () => (
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
-              <Route path="/booking-success" element={
-                <ProtectedRoute>
-                  <BookingSuccess />
-                </ProtectedRoute>
-              } />
-              <Route path="/cart" element={
-                <ProtectedRoute>
-                  <Cart />
-                </ProtectedRoute>
-              } />
-              <Route path="/checkout" element={
-                <ProtectedRoute>
-                  <Checkout />
-                </ProtectedRoute>
-              } />
+              {travelBookingCheckoutEnabled && (
+                <>
+                  <Route path="/booking-success" element={
+                    <ProtectedRoute>
+                      <BookingSuccess />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/cart" element={
+                    <ProtectedRoute>
+                      <Cart />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/checkout" element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  } />
+                </>
+              )}
               <Route path="/internal/tos" element={
                 <ProtectedRoute requireAdmin>
                   <InternalTOS />
@@ -154,8 +161,8 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <MobileBottomNav />
+            </PlanLimitProvider>
           </BrowserRouter>
-        </ExpediaSwipeProvider>
           </ChromeStateProvider>
         </ThemeProvider>
       </AuthProvider>

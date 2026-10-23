@@ -104,9 +104,12 @@ export const useInvitations = () => {
     } catch (error: any) {
       console.error('Error accepting invitation:', error);
       const description = await getFunctionErrorMessage(error, 'Failed to accept invitation');
+      const limit = description.includes('PLAN_LIMIT_SHARING');
       toast({
-        title: 'Error',
-        description,
+        title: limit ? 'Sharing limit reached' : 'Error',
+        description: limit
+          ? 'This trip has reached its sharing limit. The trip owner can upgrade to invite more people.'
+          : description,
         variant: 'destructive',
       });
       return null;

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Network, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BusinessMetricsDashboard } from '@/components/admin/BusinessMetricsDashboard';
+import { UsageMetricsPanel } from '@/components/admin/UsageMetricsPanel';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -35,6 +36,9 @@ const AdminDashboard: React.FC = () => {
           </button>
         </div>
 
+        <div className="mb-8">
+          <UsageMetricsPanel />
+        </div>
         <BusinessMetricsDashboard />
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOptionalPlanLimit } from '@/components/plans/PlanLimitProvider';
 
 interface ParticipantProfile {
   user_id: string;
@@ -47,6 +48,7 @@ const getFunctionErrorMessage = async (error: any, fallback: string) => {
 export const useItineraryAttendees = (itineraryId: number | null) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const planLimit = useOptionalPlanLimit();
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [pendingInvitations, setPendingInvitations] = useState<PendingItineraryInvitation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,11 +138,13 @@ export const useItineraryAttendees = (itineraryId: number | null) => {
     } catch (error: any) {
       console.error('Error inviting attendee:', error);
       const description = await getFunctionErrorMessage(error, 'Failed to create invitation');
-      toast({
-        title: 'Error',
-        description,
-        variant: 'destructive',
-      });
+      if (!planLimit?.reportError(new Error(description))) {
+        toast({
+          title: 'Error',
+          description,
+          variant: 'destructive',
+        });
+      }
       throw new Error(description);
     }
   };

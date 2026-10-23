@@ -33,7 +33,14 @@ serve(async (req) => {
       { p_invitation_id: invitation_id, p_accept: accept },
     );
     if (responseError) {
-      const message = responseError.message?.replace(/^.*?: /, '') || 'Unable to process invitation.';
+      const raw = responseError.message || '';
+      if (raw.includes('PLAN_LIMIT_SHARING')) {
+        return jsonResponse({
+          error: 'PLAN_LIMIT_SHARING: This trip has reached its sharing limit. The trip owner can upgrade to invite more people.',
+          code: 'PLAN_LIMIT_SHARING',
+        }, 402);
+      }
+      const message = raw.replace(/^.*?: /, '') || 'Unable to process invitation.';
       return jsonResponse({ error: message, code: 'invitation_response_failed' }, 409);
     }
 

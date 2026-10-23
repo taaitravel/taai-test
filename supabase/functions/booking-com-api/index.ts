@@ -16,6 +16,7 @@ import {
   serializeBounded,
   stripCallerIdentity,
 } from "../_shared/edge-guard.ts";
+import { recordUsage } from "../_shared/usage.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -101,6 +102,7 @@ serve(async (req) => {
       return { userId: error || !data?.user ? null : data.user.id };
     });
     if (!auth.ok) return json({ error: auth.error }, auth.status);
+    recordUsage(auth.userId, 'search').catch(() => undefined);
 
     if (!allowRequest(`booking:${auth.userId}`)) {
       return json({ error: 'Too many requests. Please retry shortly.' }, 429);

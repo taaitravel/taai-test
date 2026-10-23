@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useBookingAPI } from './useBookingAPI';
-import { useExpediaAPI } from './useExpediaAPI';
 import { useViatorActivities } from './useViatorActivities';
+import { assignHotelLabels, resolveStayPrice } from '../../supabase/functions/_shared/hotel-presentation';
 import { useFlightSearch } from './useFlightSearch';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -81,7 +81,6 @@ export const useSearchOrchestrator = () => {
   const [notice, setNotice] = useState<SearchNotice | null>(null);
 
   const { searchHotels, searchDestinations } = useBookingAPI();
-  const { callExpediaAPI } = useExpediaAPI();
   const { searchActivities: searchViatorActivities } = useViatorActivities();
   const { searchFlights } = useFlightSearch();
   const { toast } = useToast();
@@ -169,17 +168,21 @@ export const useSearchOrchestrator = () => {
                 // Support both the normalized contract and the legacy raw shape.
                 const legacy = hotel.property ?? null;
 
-                const totalPrice = Math.round(
-                  Number(
-                    hotel.price_total ??
-                      hotel.total_price ??
-                      legacy?.priceBreakdown?.grossPrice?.value ??
-                      0,
-                  ) * 100,
-                ) / 100;
-                const pricePerNight = Math.round(
-                  Number(hotel.price_per_night ?? totalPrice / nights) * 100,
-                ) / 100;
+                const stayTotal = Number(
+                  hotel.price_total ??
+                    hotel.total_price ??
+                    legacy?.priceBreakdown?.grossPrice?.value ??
+                    0,
+                );
+                const nightlyCandidate = Number(hotel.price_per_night ?? hotel.pricePerNight ?? 0);
+                const priced = resolveStayPrice({
+                  nightly: nightlyCandidate > 0 ? nightlyCandidate : null,
+                  total: stayTotal > 0 ? stayTotal : null,
+                  nights,
+                  rooms: Number(params.rooms) || 1,
+                });
+                const totalPrice = priced.total;
+                const pricePerNight = priced.nightly;
 
                 const hotelLat = Number(hotel.latitude ?? legacy?.latitude);
                 const hotelLon = Number(hotel.longitude ?? legacy?.longitude);
@@ -248,7 +251,17 @@ export const useSearchOrchestrator = () => {
           const vrboResults: any[] = [];
           
           // Merge and interleave results
-          searchResults = [...bookingHotels, ...vrboResults];
+          const labels = assignHotelLabels(bookingHotels.map((hotel) => ({
+            id: String(hotel.id),
+            pricePerNight: Number(hotel.pricePerNight) || 0,
+            rating: Number(hotel.rating) || 0,
+            reviewCount: Number(hotel.review_count) || 0,
+            distanceMiles: Number(hotel.distanceFromSearch) || null,
+          })));
+          searchResults = [...bookingHotels, ...vrboResults].map((hotel) => {
+            const label = labels.get(String(hotel.id));
+            return label ? { ...hotel, highlightLabel: label.label, highlightReason: label.reason } : hotel;
+          });
           console.log(`✅ Found ${searchResults.length} total properties (${bookingHotels.length} Booking.com + ${vrboResults.length} VRBO)`);
           
           if (searchResults.length === 0) {

@@ -17,14 +17,18 @@ import {
   guardOrigin,
   stripCallerIdentity,
 } from "../_shared/edge-guard.ts";
+import { assignHotelLabels, nightsBetween, resolveStayPrice } from "../_shared/hotel-presentation.ts";
+import { todayPrompt } from "../_shared/today.ts";
+import { consumeAiCredit, recordUsage } from "../_shared/usage.ts";
+import { searchDuffelFlights } from "../_shared/providers/duffel-search.ts";
+import { searchViatorActivities } from "../_shared/providers/viator-search.ts";
 
 // API Keys
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 const yelpApiKey = Deno.env.get('YELP_API_KEY');
 const rapidApiKey = Deno.env.get('RAPID_API_KEY');
-const amadeusApiKey = Deno.env.get('AMADEUS_API_KEY');
-const amadeusApiSecret = Deno.env.get('AMADEUS_API_SECRET');
-const mapboxToken = Deno.env.get('MAPBOX_TAAI_TOKEN') || Deno.env.get('MAPBOX-TAAI-TOKEN');
+const MAX_CHAT_BYTES = 96 * 1024;
+const SEARCH_TOOLS = new Set(['search_hotels', 'search_flights', 'search_activities', 'search_restaurants']);
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -136,11 +140,7 @@ In general planning chat, itinerary changes must use the explicit Save or edit c
 - Always summarize the user's constraints back in one line before results.
 
 # Search Result Diversity Rules
-When presenting hotels/flights/activities, return 3-6 diverse options:
-- 1 "Best Overall" - highest combined score
-- 1 "Best Value" - best price-to-quality ratio  
-- 1 "Best Location" - optimal positioning for itinerary
-- Optional: "Boutique/Design", "Spacious/Comfort"
+Return 3-6 options from the tool results. Do not invent "Best Overall", "Best Value", or "Best Location" labels. If a tool result already includes a diversityLabel, you may repeat that label. Never describe a place as walkable unless the tool result says so. Restaurant prices come from priceRange, not a numeric price of 0.
 
 # Card Output Requirements
 Each result card must include:
@@ -719,62 +719,6 @@ function guardAssistantResponse(text: string, evidence: ClaimEvidence): string {
 // REAL API SEARCH FUNCTIONS
 // ============================================================================
 
-// Get Amadeus access token
-async function getAmadeusToken(): Promise<string | null> {
-  if (!amadeusApiKey || !amadeusApiSecret) {
-    console.error('Amadeus API credentials not configured');
-    return null;
-  }
-
-  try {
-    const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `grant_type=client_credentials&client_id=${amadeusApiKey}&client_secret=${amadeusApiSecret}`,
-    });
-
-    if (!response.ok) {
-      console.error('Failed to get Amadeus token:', await response.text());
-      return null;
-    }
-
-    const data = await response.json();
-    return data.access_token;
-  } catch (error) {
-    console.error('Error getting Amadeus token:', error);
-    return null;
-  }
-}
-
-// Geocode destination to coordinates using Mapbox
-async function geocodeDestination(destination: string): Promise<{ lat: number; lng: number } | null> {
-  if (!mapboxToken) {
-    console.error('Mapbox token not configured');
-    return null;
-  }
-
-  try {
-    const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(destination)}.json?access_token=${mapboxToken}&types=place&limit=1`
-    );
-
-    if (!response.ok) {
-      console.error('Geocoding failed:', await response.text());
-      return null;
-    }
-
-    const data = await response.json();
-    if (data.features && data.features.length > 0) {
-      const [lng, lat] = data.features[0].center;
-      return { lat, lng };
-    }
-    return null;
-  } catch (error) {
-    console.error('Geocoding error:', error);
-    return null;
-  }
-}
-
 // Search Hotels using Booking.com API (Real Data)
 async function searchHotels(params: any) {
   console.log('Searching hotels with Booking.com API:', params);
@@ -840,26 +784,25 @@ async function searchHotels(params: any) {
 
     const searchData = await searchResponse.json();
     const hotels = searchData.data?.hotels || [];
+    const nights = nightsBetween(params.check_in, params.check_out) || 1;
 
     console.log(`Found ${hotels.length} hotels`);
 
-    // Transform and add diversity labels
-    const transformedHotels = hotels.slice(0, 6).map((hotel: any, index: number) => {
-      let diversityLabel = '';
-      if (index === 0) diversityLabel = 'Best Overall';
-      else if (index === 1) diversityLabel = 'Best Value';
-      else if (index === 2) diversityLabel = 'Best Location';
-
-      const price = hotel.property?.priceBreakdown?.grossPrice?.value || 
-                   hotel.composite_price_breakdown?.gross_amount?.value || 0;
-
+    const draft = hotels.slice(0, 6).map((hotel: any, index: number) => {
+      const stayTotal = Number(hotel.property?.priceBreakdown?.grossPrice?.value
+        || hotel.composite_price_breakdown?.gross_amount?.value
+        || 0);
+      const priced = resolveStayPrice({ nightly: null, total: stayTotal, nights, rooms: Number(params.rooms) || 1 });
+      const id = String(hotel.hotel_id || `booking_${index}`);
       return {
-        id: hotel.hotel_id || `booking_${index}`,
+        id,
         name: hotel.property?.name || hotel.hotel_name || 'Hotel',
-        price: Math.round(price),
-        pricePerNight: Math.round(price),
-        rating: hotel.property?.reviewScore || hotel.review_score || 0,
-        reviewCount: hotel.property?.reviewCount || hotel.review_nr || 0,
+        price: priced.total,
+        pricePerNight: priced.nightly,
+        totalPrice: priced.total,
+        nights,
+        rating: Number(hotel.property?.reviewScore || hotel.review_score || 0),
+        reviewCount: Number(hotel.property?.reviewCount || hotel.review_nr || 0),
         location: params.destination,
         neighborhood: hotel.property?.wishlistName || '',
         checkIn: params.check_in,
@@ -873,9 +816,23 @@ async function searchHotels(params: any) {
           lng: hotel.property?.longitude || 0,
         },
         source: 'booking.com',
-        diversityLabel,
-        bookingUrl: hotel.property?.deeplink || `https://www.booking.com/hotel/${hotel.hotel_id}`,
-        reasons: getDiversityReasons(diversityLabel, hotel),
+        bookingUrl: hotel.property?.deeplink || null,
+        distanceMiles: null as number | null,
+      };
+    });
+    const labels = assignHotelLabels(draft.map((hotel) => ({
+      id: hotel.id,
+      pricePerNight: hotel.pricePerNight,
+      rating: hotel.rating,
+      reviewCount: hotel.reviewCount,
+      distanceMiles: hotel.distanceMiles,
+    })));
+    const transformedHotels = draft.map((hotel) => {
+      const label = labels.get(hotel.id);
+      return {
+        ...hotel,
+        diversityLabel: label?.label || '',
+        reasons: label ? [label.reason] : [],
       };
     });
 
@@ -890,183 +847,21 @@ async function searchHotels(params: any) {
   }
 }
 
-function getDiversityReasons(label: string, hotel: any): string[] {
-  const reasons: string[] = [];
-  const rating = hotel.property?.reviewScore || hotel.review_score || 0;
-  
-  if (label === 'Best Overall') {
-    reasons.push('Highest rated');
-    if (rating >= 8) reasons.push('Excellent reviews');
-    reasons.push('Popular choice');
-  } else if (label === 'Best Value') {
-    reasons.push('Great price-to-quality');
-    reasons.push('Budget-friendly');
-  } else if (label === 'Best Location') {
-    reasons.push('Prime location');
-    reasons.push('Walkable area');
-  }
-  
-  return reasons.slice(0, 3);
-}
-
-// Search Flights using Amadeus API (Real Data)
 async function searchFlights(params: any) {
-  console.log('Searching flights with Amadeus API:', params);
-
-  const token = await getAmadeusToken();
-  if (!token) {
-    return { error: 'Flight search is currently unavailable', results: [] };
-  }
-
-  try {
-    const searchParams = new URLSearchParams({
-      originLocationCode: params.origin.toUpperCase(),
-      destinationLocationCode: params.destination.toUpperCase(),
-      departureDate: params.depart_date,
-      adults: String(params.passengers || 1),
-      currencyCode: 'USD',
-      max: '10',
-    });
-
-    if (params.return_date) {
-      searchParams.append('returnDate', params.return_date);
-    }
-    if (params.cabin_class) {
-      searchParams.append('travelClass', params.cabin_class);
-    }
-
-    const response = await fetch(
-      `https://test.api.amadeus.com/v2/shopping/flight-offers?${searchParams}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Amadeus flight search failed:', errorText);
-      return { error: 'Flight search failed', results: [] };
-    }
-
-    const data = await response.json();
-    const flights = data.data || [];
-    const dictionaries = data.dictionaries || {};
-
-    console.log(`Found ${flights.length} flight offers`);
-
-    const transformedFlights = flights.slice(0, 6).map((offer: any, index: number) => {
-      const itinerary = offer.itineraries?.[0];
-      const firstSegment = itinerary?.segments?.[0];
-      const lastSegment = itinerary?.segments?.[itinerary.segments.length - 1];
-      const carrierCode = firstSegment?.carrierCode || '';
-      const carrierName = dictionaries?.carriers?.[carrierCode] || carrierCode;
-
-      let diversityLabel = '';
-      if (index === 0) diversityLabel = 'Best Overall';
-      else if (index === 1) diversityLabel = 'Best Value';
-      else if (index === 2) diversityLabel = 'Fastest';
-
-      return {
-        id: offer.id || `amadeus_flight_${index}`,
-        airline: carrierName,
-        carrierCode,
-        flightNumber: `${carrierCode}${firstSegment?.number || ''}`,
-        price: parseFloat(offer.price?.total || '0'),
-        currency: offer.price?.currency || 'USD',
-        departure: firstSegment?.departure?.at || '',
-        arrival: lastSegment?.arrival?.at || '',
-        origin: params.origin.toUpperCase(),
-        destination: params.destination.toUpperCase(),
-        duration: itinerary?.duration || '',
-        stops: (itinerary?.segments?.length || 1) - 1,
-        date: params.depart_date,
-        cabin: offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'ECONOMY',
-        source: 'amadeus',
-        diversityLabel,
-        bookable: offer.instantTicketingRequired !== true,
-      };
-    });
-
-    return {
-      constraint_summary: `Flights from ${params.origin} to ${params.destination} on ${params.depart_date}`,
-      results: transformedFlights,
-      action_buttons: ['select', 'shuffle'],
-    };
-  } catch (error) {
-    console.error('Flight search error:', error);
-    return { error: 'Flight search failed', results: [] };
-  }
+  console.log('Searching flights with Duffel');
+  return searchDuffelFlights({
+    origin: params.origin,
+    destination: params.destination,
+    departDate: params.depart_date,
+    returnDate: params.return_date,
+    passengers: params.passengers,
+    cabinClass: params.cabin_class,
+  });
 }
 
-// Search Activities using Amadeus API (Real Data)
 async function searchActivities(params: any) {
-  console.log('Searching activities with Amadeus API:', params);
-
-  const token = await getAmadeusToken();
-  const coords = await geocodeDestination(params.destination);
-
-  if (!token || !coords) {
-    return { error: 'Activity search is currently unavailable', results: [] };
-  }
-
-  try {
-    const response = await fetch(
-      `https://test.api.amadeus.com/v1/shopping/activities?latitude=${coords.lat}&longitude=${coords.lng}&radius=5`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Amadeus activities search failed:', errorText);
-      return { error: 'Activity search failed', results: [] };
-    }
-
-    const data = await response.json();
-    const activities = data.data || [];
-
-    console.log(`Found ${activities.length} activities`);
-
-    const transformedActivities = activities.slice(0, 6).map((activity: any, index: number) => {
-      let diversityLabel = '';
-      if (index === 0) diversityLabel = 'Best Overall';
-      else if (index === 1) diversityLabel = 'Best Value';
-      else if (index === 2) diversityLabel = 'Most Popular';
-
-      return {
-        id: activity.id || `amadeus_activity_${index}`,
-        name: activity.name || 'Activity',
-        price: parseFloat(activity.price?.amount || '0'),
-        currency: activity.price?.currencyCode || 'USD',
-        rating: activity.rating || 0,
-        duration: activity.duration || '',
-        description: activity.shortDescription || activity.description || '',
-        location: params.destination,
-        image: activity.pictures?.[0] || '',
-        images: activity.pictures || [],
-        category: activity.type || 'activity',
-        bookingLink: activity.bookingLink || '',
-        source: 'amadeus',
-        diversityLabel,
-      };
-    });
-
-    return {
-      constraint_summary: `Activities in ${params.destination}`,
-      results: transformedActivities,
-      action_buttons: ['select', 'save_to_shortlist'],
-    };
-  } catch (error) {
-    console.error('Activity search error:', error);
-    return { error: 'Activity search failed', results: [] };
-  }
+  console.log('Searching activities with Viator');
+  return searchViatorActivities(params.destination);
 }
 
 // Search Restaurants using Yelp API (Real Data)
@@ -1102,16 +897,11 @@ async function searchRestaurants(params: any) {
 
     console.log(`Found ${businesses.length} restaurants`);
 
-    const transformedRestaurants = businesses.slice(0, 6).map((b: any, index: number) => {
-      let diversityLabel = '';
-      if (index === 0) diversityLabel = 'Best Overall';
-      else if (index === 1) diversityLabel = 'Best Value';
-      else if (index === 2) diversityLabel = 'Highest Rated';
-
+    const transformedRestaurants = businesses.slice(0, 6).map((b: any) => {
       return {
         id: b.id,
         name: b.name,
-        price: 0,
+        price: null,
         priceRange: b.price || '',
         image: b.image_url,
         description: b.location?.display_address?.join(', ') || '',
@@ -1124,7 +914,6 @@ async function searchRestaurants(params: any) {
         url: b.url,
         phone: b.phone,
         source: 'yelp',
-        diversityLabel,
       };
     });
 
@@ -1794,6 +1583,7 @@ const chatSchema = z.object({
   userId: z.string().uuid().optional(),
   itineraryId: z.string().optional(),
   assistantKey: z.enum(['miles', 'bob']).default('miles'),
+  timeZone: z.string().max(64).optional(),
   chatMode: z.preprocess(
     (value: unknown) => typeof value === 'string' && (CHAT_MODES as readonly string[]).includes(value)
       ? value
@@ -1847,8 +1637,29 @@ serve(async (req) => {
 
     console.log('User authenticated:', user.id);
 
-    // Validate input
-    const rawData = await req.json();
+    const declared = Number(req.headers.get('content-length') ?? '0');
+    if (Number.isFinite(declared) && declared > MAX_CHAT_BYTES) {
+      return new Response(
+        JSON.stringify({ error: 'Request body too large' }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    const rawText = await req.text();
+    if (rawText.length > MAX_CHAT_BYTES) {
+      return new Response(
+        JSON.stringify({ error: 'Request body too large' }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    let rawData: unknown = {};
+    try {
+      rawData = JSON.parse(rawText || '{}');
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
     let validatedData;
     
     try {
@@ -1864,9 +1675,10 @@ serve(async (req) => {
     }
 
 
-    const { message, context, itineraryId, chatMode, assistantKey } = validatedData;
+    const { message, context, itineraryId, chatMode, assistantKey, timeZone } = validatedData;
     const validatedHistory = trimHistoryToTotalLimit(validatedData.history);
-    console.log('Received chat request:', { message, context, itineraryId, chatMode, assistantKey });
+    console.log('Received chat request:', { itineraryId, chatMode, assistantKey });
+    await recordUsage(user.id, 'ai_message');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
@@ -1895,6 +1707,8 @@ serve(async (req) => {
       : `# Assistant Identity\nYou are Miles, TAAI's general traveler companion and concierge. Help with trip context, recommendations, and traveler guidance. Do not claim ownership of the Create Itinerary planning specialist role.`;
 
     const fullSystemPrompt = `${TAAI_SYSTEM_PROMPT}
+
+${todayPrompt(timeZone)}
 
 ${assistantIdentity}
 
@@ -1955,7 +1769,23 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
       const functionName = toolCall.function?.name;
       const functionArgs = JSON.parse(toolCall.function?.arguments || '{}');
 
-      console.log(`Executing tool: ${functionName}`, functionArgs);
+      console.log(`Executing tool: ${functionName}`);
+
+      if (SEARCH_TOOLS.has(functionName)) {
+        const remaining = await consumeAiCredit(user.id);
+        if (remaining === 0) {
+          return new Response(JSON.stringify({
+            error: 'You have used this month\'s planning credits.',
+            code: 'PLAN_LIMIT_AI',
+            remaining: 0,
+            upgrade_url: '/subscription?limit=PLAN_LIMIT_AI',
+          }), {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        await recordUsage(user.id, 'search');
+      }
 
       if (WRITE_TOOL_NAMES.has(functionName)) {
         return new Response(JSON.stringify({

@@ -84,7 +84,7 @@ export const PackageResultCard = ({ package: pkg }: PackageResultCardProps) => {
           <p className="text-3xl font-bold text-white">
             ${pkg.totalPrice || ((hotel.price || 399) + (flight.price || 450))}
           </p>
-          <p className="text-primary text-sm font-semibold">Best Value</p>
+          <p className="text-primary text-sm font-semibold">Package idea</p>
         </div>
       </div>
     </div>

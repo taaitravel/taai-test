@@ -12,6 +12,7 @@ import type { UserRole } from '@/hooks/useAuthenticatedItineraryData';
 import { ExternalBookingCard } from './ExternalBookingCard';
 import { ExternalBookingDetails } from './ExternalBookingDetails';
 import { ExternalBookingForm } from './ExternalBookingForm';
+import { travelBookingCheckoutEnabled } from '@/lib/features';
 import {
   getMissingExternalBookingDetails,
   type ExternalBookingFormValues,
@@ -145,7 +146,7 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
           </Button>
           {cartItems.length > 0 && (
             <Button asChild variant="outline">
-              <Link to="/cart"><ShoppingCart className="mr-2 h-4 w-4" />Continue to cart · {formatMoney(cartTotal)}</Link>
+              {travelBookingCheckoutEnabled && <Link to="/cart"><ShoppingCart className="mr-2 h-4 w-4" />Continue to cart · {formatMoney(cartTotal)}</Link>}
             </Button>
           )}
           <Button type="button" variant="outline" onClick={() => setFormOpen(true)} disabled={!canCreateExternalBooking} title={canCreateExternalBooking ? undefined : 'Only trip owners and collaborators can add traveler-entered bookings'}>

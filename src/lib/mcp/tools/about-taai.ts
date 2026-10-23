@@ -6,7 +6,7 @@ const ABOUT = {
   tagline: "AI trip-planning software",
   description:
     "TAAI Travel is AI trip-planning software from Lighthouse Commerce Group LLC. It helps people research and organize itineraries. It does not sell travel or take payment for travel. Purchases are made directly with third-party providers.",
-  website: "https://taai-test.lovable.app",
+  website: "https://taai-travel.lovable.app",
   capabilities: [
     "Search hotels, flights, and activities across multiple providers",
     "AI-generated itineraries with day-by-day planning",

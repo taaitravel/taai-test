@@ -2,11 +2,14 @@
 // To take ownership, delete this banner line; the plugin then leaves the file alone.
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
+// <define:import.meta.env>
+var define_import_meta_env_default = { MODE: "production", BASE_URL: "/", DEV: false, PROD: true, SSR: false };
+
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.1";
 
 // src/lib/mcp/tools/search-places.ts
-import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z } from "npm:zod@^4.4.3";
 
 // src/lib/mcp/env.ts
@@ -75,12 +78,12 @@ var search_places_default = defineTool({
 });
 
 // src/lib/mcp/tools/about-taai.ts
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.1";
 var ABOUT = {
   name: "TAAI Travel",
   tagline: "AI trip-planning software",
   description: "TAAI Travel is AI trip-planning software from Lighthouse Commerce Group LLC. It helps people research and organize itineraries. It does not sell travel or take payment for travel. Purchases are made directly with third-party providers.",
-  website: "https://taai-test.lovable.app",
+  website: "https://taai-travel.lovable.app",
   capabilities: [
     "Search hotels, flights, and activities across multiple providers",
     "AI-generated itineraries with day-by-day planning",
@@ -101,7 +104,7 @@ var about_taai_default = defineTool2({
 });
 
 // src/lib/mcp/index.ts
-var projectRef = "dhbvweazpqnviqwgpurv";
+var projectRef = define_import_meta_env_default.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 var mcp_default = defineMcp({
   name: "taai-test",
   title: "taai-test",
@@ -115,5 +118,5 @@ var mcp_default = defineMcp({
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.1/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));

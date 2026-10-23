@@ -15,12 +15,27 @@
  * Nothing here logs a provider body or a secret value.
  */
 
-/** Exact approved production origin. */
-export const PRODUCTION_ORIGIN = 'https://taai-test.lovable.app';
-/** Exact approved preview origin. */
-export const PREVIEW_ORIGIN = 'https://id-preview--f8b1d397-680f-4f30-95f9-82a6b0a9eafd.lovable.app';
-/** Local development origins — allowed only outside production. */
-export const DEV_ORIGINS = ['http://localhost:8080', 'http://localhost:5173'] as const;
+/** Live site first, then the previous Lovable host. */
+export const PRODUCTION_ORIGINS = [
+  'https://taai-travel.lovable.app',
+  'https://taai-test.lovable.app',
+] as const;
+/** Known Lovable preview hosts. UUID preview hosts are also matched below. */
+export const PREVIEW_ORIGINS = [
+  'https://id-preview--f8b1d397-680f-4f30-95f9-82a6b0a9eafd.lovable.app',
+  'https://f8b1d397-680f-4f30-95f9-82a6b0a9eafd.lovableproject.com',
+] as const;
+/** Local development. Allowed in every environment so a local app can call deployed functions. */
+export const DEV_ORIGINS = ['http://localhost:8080', 'http://localhost:5173', 'http://127.0.0.1:8080', 'http://127.0.0.1:5173'] as const;
+
+/** Primary origins kept for existing imports. */
+export const PRODUCTION_ORIGIN = PRODUCTION_ORIGINS[0];
+export const PREVIEW_ORIGIN = PREVIEW_ORIGINS[0];
+
+const LOVABLE_PREVIEW_ORIGINS = [
+  /^https:\/\/id-preview--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.lovable\.app$/i,
+  /^https:\/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.lovableproject\.com$/i,
+];
 
 /** True when the isolate runs in the production deployment. */
 export const isProductionEnv = (env?: string | null): boolean =>
@@ -35,14 +50,21 @@ const readEnv = (name: string): string | null => {
   }
 };
 
-/** The exact list of origins this deployment accepts. */
-export const allowedOrigins = (env: string | null = readEnv('TAAI_ENV')): string[] =>
-  isProductionEnv(env)
-    ? [PRODUCTION_ORIGIN, PREVIEW_ORIGIN]
-    : [PRODUCTION_ORIGIN, PREVIEW_ORIGIN, ...DEV_ORIGINS];
+const extraOrigins = (): string[] =>
+  (readEnv('TAAI_ALLOWED_ORIGINS') ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => /^https?:\/\/[^\s]+$/.test(origin));
+
+/** Exact origins this deployment accepts, plus Lovable preview patterns. */
+export const allowedOrigins = (_env: string | null = readEnv('TAAI_ENV')): string[] =>
+  [...new Set([...PRODUCTION_ORIGINS, ...PREVIEW_ORIGINS, ...DEV_ORIGINS, ...extraOrigins()])];
+
+export const isLovablePreviewOrigin = (origin: string): boolean =>
+  LOVABLE_PREVIEW_ORIGINS.some((pattern) => pattern.test(origin));
 
 export const isAllowedOrigin = (origin: string | null, env?: string | null): boolean =>
-  !!origin && allowedOrigins(env ?? readEnv('TAAI_ENV')).includes(origin);
+  !!origin && (allowedOrigins(env ?? readEnv('TAAI_ENV')).includes(origin) || isLovablePreviewOrigin(origin));
 
 /**
  * CORS headers for an approved origin. Never returns a wildcard: unapproved
@@ -169,18 +191,6 @@ export const stripCallerIdentity = <T extends Record<string, unknown>>(payload: 
 // ---------------------------------------------------------------------------
 
 export const PROVIDER_ALLOW_LIST = {
-  expedia: {
-    host: 'expedia13.p.rapidapi.com',
-    paths: [
-      '/api/v1/test',
-      '/api/v1/hotels/search',
-      '/api/v1/hotels/details',
-      '/api/v1/flights/search',
-      '/api/v1/flights/details',
-      '/api/v1/activities/search',
-      '/api/v1/destinations/search',
-    ],
-  },
   'booking.com': {
     host: 'booking-com15.p.rapidapi.com',
     paths: [

@@ -1,6 +1,7 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2.50.3';
 import { z } from 'npm:zod@4.4.3';
+import { recordUsage } from '../_shared/usage.ts';
 
 /**
  * Viator Partner API activity search.
@@ -130,6 +131,7 @@ Deno.serve(async (req) => {
     if (userError || !userData?.user) {
       return fail(requestId, 'AUTH_REQUIRED', 'Please sign in to search activities.', 401);
     }
+    recordUsage(userData.user.id, 'search').catch(() => undefined);
 
     const parsed = RequestSchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) {

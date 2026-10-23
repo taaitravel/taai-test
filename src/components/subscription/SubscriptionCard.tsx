@@ -75,7 +75,11 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <h3 className="text-xl font-bold text-foreground mb-2">{tier.name}</h3>
         <p className="text-muted-foreground text-sm mb-4">{tier.description}</p>
         <div className="text-3xl font-bold text-foreground">
-          {billingFrequency === 'monthly' ? `$${currentMonthlyPrice.toFixed(2)}/mo` : `$${currentAnnualPrice.toFixed(2)}/yr`}
+          {tier.isInquiryOnly || tier.monthlyPrice === 0
+            ? tier.priceText.monthly
+            : billingFrequency === 'monthly'
+              ? `$${currentMonthlyPrice.toFixed(2)}/mo`
+              : `$${currentAnnualPrice.toFixed(2)}/yr`}
         </div>
         {tier.annualPrice && billingFrequency === 'annual' && tier.id !== 'traveler' && tier.id !== 'taai_enterprise_plus' && <div className="text-sm text-green-300 mt-1">
             Save {dynamicSavings}% annually
@@ -86,10 +90,15 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       </div>
 
       <ul className="space-y-3 mb-6 flex-grow">
-        {tier.features.map((feature, index) => <li key={index} className="flex items-start text-sm">
+        {tier.features.map((feature, index) => {
+          const comingSoon = feature.includes('Coming soon');
+          const label = feature.replace(/ · Coming soon$/, '');
+          return <li key={index} className="flex items-start text-sm">
             <Check className="h-4 w-4 text-foreground mr-2 mt-0.5 flex-shrink-0" />
-            <span className="text-muted-foreground">{feature}</span>
-          </li>)}
+            <span className="text-muted-foreground">{label}</span>
+            {comingSoon && <Badge variant="outline" className="ml-2">Coming soon</Badge>}
+          </li>;
+        })}
       </ul>
 
       <div className="mt-auto">
