@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Mail } from 'lucide-react';
-import { TierData, BillingFrequency, getAnnualSavings, getStripeCheckoutUrl } from '@/lib/stripeConfig';
+import { TierData, BillingFrequency, getAnnualSavings } from '@/lib/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useStripePricing } from '@/hooks/useStripePricing';
