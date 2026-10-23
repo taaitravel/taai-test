@@ -198,7 +198,7 @@ export const BrightSections = () => {
           <div className="tbs-head">
             <span className="tbs-script">the workspace</span>
             <h2 className="tbs-h2">
-              Everything a trip needs, <b>in one surface.</b>
+              Everything a trip needs, <b>start to finish.</b>
             </h2>
             <p className="tbs-lead">
               From search to a shared plan — taai keeps planning, costs and people on the same page.
@@ -223,21 +223,18 @@ export const BrightSections = () => {
         <div className="orbx" />
         <div className="orby" />
         <div className="tbs-wrap">
-          <span className="tbs-mono">contact us</span>
+          <span className="tbs-mono">taai</span>
           <h2>
-            Let's work
+            Where travel
             <br />
-            <b>together.</b>
+            <b>meets technology.</b>
           </h2>
           <p>
-            Questions, partnerships or a trip you want help shaping — send us a note and a
-            specialist gets back to you.
+            Search, plan, book and split costs in one place — taai brings the whole trip,
+            and everyone on it, into a single surface.
           </p>
           <div className="tbs-actions" style={{ justifyContent: "center" }}>
-            <button type="button" className="tbs-btn tbs-btn-grad" onClick={() => navigate("/contact")}>
-              Contact us
-            </button>
-            <button type="button" className="tbs-btn tbs-btn-ghost" onClick={() => navigate("/signup")}>
+            <button type="button" className="tbs-btn tbs-btn-grad" onClick={() => navigate("/signup")}>
               Join taai
             </button>
           </div>
