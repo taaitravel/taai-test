@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Captcha } from '@/components/ui/captcha';
 import { LOGO_URL } from "@/lib/constants";
+import { captureFirstTouchAttribution, toSignupMetadata } from "@/lib/attribution/utm";
 
 const Signup = () => {
   const location = useLocation();
@@ -43,6 +44,11 @@ const Signup = () => {
       navigate('/home');
     }
   }, [user, navigate]);
+
+  // Persist the signup URL's first-touch attribution before the visitor leaves.
+  useEffect(() => {
+    captureFirstTouchAttribution();
+  }, []);
 
   // Cooldown timer for resend button
   useEffect(() => {
@@ -166,7 +172,8 @@ const Signup = () => {
         company_name: formData.companyName,
         admin_name: formData.adminName,
         registered_address: formData.registeredAddress,
-        phone: formData.phone
+        phone: formData.phone,
+        ...toSignupMetadata(captureFirstTouchAttribution()),
       };
 
       const { error } = await signUp(formData.email, formData.password, metadata);
