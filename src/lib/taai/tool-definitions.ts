@@ -56,7 +56,7 @@ export const READ_TOOLS: ToolDefinition[] = [
 export const SEARCH_TOOLS: ToolDefinition[] = [
   {
     name: 'search_hotels',
-    description: 'Search hotels by destination and dates. Returns diverse options with "Best Overall", "Best Value", "Best Location" labels.',
+    description: 'Search hotels by destination and dates. Labels are added only when price, rating, or distance supports them.',
     parameters: {
       type: 'object',
       properties: {

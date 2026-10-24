@@ -1,1 +1,16 @@
 project_id = "dhbvweazpqnviqwgpurv"
+
+[auth]
+site_url = "https://taai-travel.lovable.app"
+additional_redirect_urls = [
+  "https://taai-travel.lovable.app/**",
+  "https://taai-test.lovable.app/**",
+  "https://id-preview--f8b1d397-680f-4f30-95f9-82a6b0a9eafd.lovable.app/**",
+  "https://f8b1d397-680f-4f30-95f9-82a6b0a9eafd.lovableproject.com/**",
+  "http://localhost:5173/**",
+  "http://localhost:8080/**",
+]
+
+# Stripe calls this without a user JWT. Every other function keeps JWT verification.
+[functions.stripe-subscription-webhook]
+verify_jwt = false

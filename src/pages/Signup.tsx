@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Captcha } from '@/components/ui/captcha';
 import { LOGO_URL } from "@/lib/constants";
+import { describeAuthError } from "@/lib/auth/messages";
+import { captureFirstTouchAttribution, toSignupMetadata } from "@/lib/attribution/utm";
 
 const Signup = () => {
   const location = useLocation();
@@ -43,6 +45,11 @@ const Signup = () => {
       navigate('/home');
     }
   }, [user, navigate]);
+
+  // Persist the signup URL's first-touch attribution before the visitor leaves.
+  useEffect(() => {
+    captureFirstTouchAttribution();
+  }, []);
 
   // Cooldown timer for resend button
   useEffect(() => {
@@ -166,7 +173,8 @@ const Signup = () => {
         company_name: formData.companyName,
         admin_name: formData.adminName,
         registered_address: formData.registeredAddress,
-        phone: formData.phone
+        phone: formData.phone,
+        ...toSignupMetadata(captureFirstTouchAttribution()),
       };
 
       const { error } = await signUp(formData.email, formData.password, metadata);
@@ -183,7 +191,7 @@ const Signup = () => {
     } catch (error) {
       toast({
         title: "Signup Failed",
-        description: "An unexpected error occurred.",
+        description: describeAuthError(error, "An unexpected error occurred."),
         variant: "destructive"
       });
     } finally {
@@ -318,7 +326,13 @@ const Signup = () => {
           <Button
             variant="outline"
             className="w-full border-border text-foreground hover:bg-accent flex items-center justify-center gap-3 h-11"
-            onClick={signInWithGoogle}
+            onClick={async () => {
+              try {
+                await signInWithGoogle();
+              } catch (error) {
+                toast({ title: "Google sign-in failed", description: describeAuthError(error), variant: "destructive" });
+              }
+            }}
           >
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>

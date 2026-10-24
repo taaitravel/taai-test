@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { recordUsage } from '../_shared/usage.ts';
 import {
   CanonicalFlightOffer,
   FlightSearchError,
@@ -156,6 +157,8 @@ Deno.serve(async (req) => {
     if (userError || !userData?.user) {
       return fail(requestId, 'AUTH_REQUIRED', 'Please sign in to search flights.');
     }
+
+    recordUsage(userData.user.id, 'search').catch(() => undefined);
 
     if (rateLimitExceeded(userData.user.id)) {
       return fail(

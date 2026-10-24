@@ -5,6 +5,7 @@ import {
 } from './booking-contract';
 import type { Json } from '@/integrations/supabase/types';
 import { asDateOnly, differenceInDateOnlyDays } from '@/lib/date-time';
+import { resolveStayPrice } from '../../../supabase/functions/_shared/hotel-presentation';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -97,12 +98,14 @@ export const buildHotelBookingSnapshot = (
     pricing.price_per_night,
   );
   const ambiguousUnitPrice = asPositiveNumber(hotel.price, hotel.cost);
-  const pricePerNight = explicitNightly
-    ?? (explicitTotal && nights > 0 && rooms > 0 ? explicitTotal / (nights * rooms) : null)
-    ?? ambiguousUnitPrice
-    ?? 0;
-  const totalPrice = explicitTotal
-    ?? (pricePerNight > 0 && nights > 0 ? pricePerNight * nights * rooms : 0);
+  const priced = resolveStayPrice({
+    nightly: explicitNightly ?? ambiguousUnitPrice,
+    total: explicitTotal,
+    nights,
+    rooms,
+  });
+  const pricePerNight = priced.nightly;
+  const totalPrice = priced.total;
 
   const currency = String(
     pricing.currency

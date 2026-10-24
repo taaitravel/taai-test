@@ -8,6 +8,7 @@ export interface SubscriptionData {
   subscription_tier: string;
   subscription_end: string | null;
   credits_remaining: number;
+  monthly_ai_credits?: number;
   max_itineraries: number;
   max_shared_friends: number;
 }

@@ -1,10 +1,46 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.3";
+import { limitsForTier } from "../_shared/tier-map.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+/** Fail open when plan_limits is not migrated yet so invites keep working. */
+async function assertShareCapacity(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  itineraryId: number | string,
+  ownerId: string,
+) {
+  const { data: tierValue, error: tierError } = await supabaseAdmin.rpc('current_tier', { uid: ownerId });
+  if (tierError) return;
+  const limits = limitsForTier(typeof tierValue === 'string' ? tierValue : null);
+  if (limits.maxSharedFriends < 0) return;
+
+  const { count: attendees, error: attendeeError } = await supabaseAdmin
+    .from('itinerary_attendees')
+    .select('id', { count: 'exact', head: true })
+    .eq('itinerary_id', itineraryId)
+    .neq('role', 'owner')
+    .not('status', 'in', '(declined,removed,left,cancelled)');
+  if (attendeeError) return;
+
+  const { count: pending, error: pendingError } = await supabaseAdmin
+    .from('itinerary_invitations')
+    .select('id', { count: 'exact', head: true })
+    .eq('itinerary_id', itineraryId)
+    .eq('status', 'pending');
+  if (pendingError) return;
+
+  if ((attendees ?? 0) + (pending ?? 0) >= limits.maxSharedFriends) {
+    throw new InvitationRequestError(
+      'PLAN_LIMIT_SHARING: This trip is at its sharing limit. Upgrade to invite more people.',
+      'PLAN_LIMIT_SHARING',
+      402,
+    );
+  }
+}
 
 class InvitationRequestError extends Error {
   constructor(
@@ -71,6 +107,8 @@ serve(async (req) => {
     if (!senderAttendee || senderAttendee.role !== 'owner') {
       throw new InvitationRequestError('Only the trip owner can send invitations.', 'owner_required', 403);
     }
+
+    await assertShareCapacity(supabaseAdmin, itinerary_id, user.id);
 
     // Check if target is already an attendee
     let recipientId: string | null = null;

@@ -3,6 +3,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Paperclip, Image, Calendar, Plane, Building2, MapPin, Utensils } from 'lucide-react';
 import { ItineraryData } from '@/types/itinerary';
+import { validateUpload } from '@/lib/uploads/limits';
+import { toast } from 'sonner';
 
 interface ChatAttachmentPickerProps {
   itineraryData: ItineraryData;
@@ -28,7 +30,14 @@ export const ChatAttachmentPicker = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) onImageSelected(file);
+    if (file) {
+      const problem = validateUpload('chat', file);
+      if (problem) {
+        toast.error(problem);
+      } else {
+        onImageSelected(file);
+      }
+    }
     e.target.value = '';
   };
 

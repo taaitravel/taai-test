@@ -5,6 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Send, Bot, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
+import { usePlanLimit } from '@/components/plans/PlanLimitProvider';
+import { planLimitCodeFromText } from '../../../supabase/functions/_shared/plan-limits';
 import { useToast } from '@/hooks/use-toast';
 import { ChatResultsCarousel } from '@/components/chat/ChatResultsCarousel';
 import { useAuth } from '@/contexts/AuthContext';
@@ -105,6 +108,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { openUpgrade } = usePlanLimit();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -140,11 +144,28 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           itineraryId: itineraryId,
           chatMode,
           assistantKey,
-          history
+          history,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        let bodyText = error.message;
+        if (error instanceof FunctionsHttpError) {
+          try {
+            const body = await error.context.clone().json();
+            bodyText = body?.code || body?.error || error.message;
+          } catch {
+            bodyText = error.message;
+          }
+        }
+        const code = planLimitCodeFromText(bodyText);
+        if (code) {
+          openUpgrade(code);
+          return;
+        }
+        throw error;
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -163,7 +184,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       console.error('Error sending message:', error);
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: error instanceof Error && error.message ? error.message : "Failed to send message. Please try again.",
         variant: "destructive",
       });
     } finally {

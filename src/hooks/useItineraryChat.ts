@@ -7,6 +7,7 @@ import {
   CHAT_REACTION_FIELDS,
   PAGE_SIZES,
 } from '@/lib/data/projections';
+import { validateUpload } from '@/lib/uploads/limits';
 
 export interface ChatMessage {
   id: string;
@@ -343,6 +344,16 @@ export const useItineraryChat = (itineraryId: number | null) => {
   };
 
   const uploadAttachment = async (file: File): Promise<string | null> => {
+    const problem = validateUpload('chat', file);
+    if (problem) {
+      console.error(problem);
+      return null;
+    }
+    const { data: existing } = await supabase.storage.from('chat-attachments').list(String(itineraryId), { limit: 21 });
+    if ((existing?.length ?? 0) >= 20) {
+      console.error('Attachment limit reached');
+      return null;
+    }
     const ext = file.name.split('.').pop();
     const path = `${itineraryId}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage

@@ -42,8 +42,8 @@ Failure taxonomy → HTTP: `VALIDATION_ERROR` 400, `AUTH_REQUIRED` 401,
   `{ status, requestId, offers, error }`.
 - `src/hooks/useSearchOrchestrator.ts` flight branch uses it and renders a
   distinct, actionable message for each taxonomy member plus no-results.
-- `src/hooks/useAmadeusFlights.ts` and `supabase/functions/amadeus-flights`
-  remain on disk but are no longer wired to search.
+- Amadeus (`useAmadeusFlights`, `amadeus-flights`) was removed after the
+  Self-Service free tier shut down. Search and Miles both use this Duffel path.
 - `src/components/search/cards/FlightResultCard.tsx` consumes only
   `CanonicalFlightOffer`, shows "Test result — reference only" and
   "Price observed in test mode; not live availability.", and exposes

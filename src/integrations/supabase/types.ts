@@ -2304,6 +2304,14 @@ export type Database = {
           user_type: string | null
           userid: string
           username: string | null
+          utm_source: string | null
+          utm_medium: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_term: string | null
+          signup_referrer: string | null
+          landing_path: string | null
+          first_touch_at: string | null
           zip: string | null
         }
         Insert: {
@@ -2338,6 +2346,14 @@ export type Database = {
           user_type?: string | null
           userid: string
           username?: string | null
+          utm_source?: string | null
+          utm_medium?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_term?: string | null
+          signup_referrer?: string | null
+          landing_path?: string | null
+          first_touch_at?: string | null
           zip?: string | null
         }
         Update: {
@@ -2372,6 +2388,14 @@ export type Database = {
           user_type?: string | null
           userid?: string
           username?: string | null
+          utm_source?: string | null
+          utm_medium?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_term?: string | null
+          signup_referrer?: string | null
+          landing_path?: string | null
+          first_touch_at?: string | null
           zip?: string | null
         }
         Relationships: []

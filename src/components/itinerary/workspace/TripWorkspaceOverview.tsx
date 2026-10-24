@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ItineraryData } from '@/types/itinerary';
 import { formatDateOnlyRange } from '@/lib/date-time';
+import { travelBookingCheckoutEnabled } from '@/lib/features';
 
 interface TripWorkspaceOverviewProps {
   itineraryData: ItineraryData;
@@ -56,7 +57,7 @@ export const TripWorkspaceOverview = ({
             </Button>
             {cartItemCount > 0 && (
               <Button asChild variant="outline">
-                <Link to="/cart"><ShoppingCart className="mr-2 h-4 w-4" />Continue to cart</Link>
+                {travelBookingCheckoutEnabled && <Link to="/cart"><ShoppingCart className="mr-2 h-4 w-4" />Continue to cart</Link>}
               </Button>
             )}
             <Button type="button" variant="outline" onClick={onInvite}>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Camera, Loader2, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { UPLOAD_LIMITS, validateUpload } from "@/lib/uploads/limits";
 
 interface AvatarUploadProps {
   currentUrl: string | null;
@@ -11,8 +12,7 @@ interface AvatarUploadProps {
   onUpload: (url: string) => void;
 }
 
-const MAX_SIZE = 2 * 1024 * 1024; // 2MB
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED_TYPES = UPLOAD_LIMITS.avatar.mimeTypes;
 const CROP_SIZE = 400;
 
 function cropToSquare(file: File): Promise<Blob> {
@@ -47,12 +47,9 @@ export const AvatarUpload = ({ currentUrl, userId, onUpload }: AvatarUploadProps
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!ACCEPTED_TYPES.includes(file.type)) {
-      toast({ title: "Invalid file type", description: "Please upload JPG, PNG, or WEBP.", variant: "destructive" });
-      return;
-    }
-    if (file.size > MAX_SIZE) {
-      toast({ title: "File too large", description: "Maximum size is 2MB.", variant: "destructive" });
+    const problem = validateUpload('avatar', file);
+    if (problem) {
+      toast({ title: "Upload blocked", description: problem, variant: "destructive" });
       return;
     }
 
@@ -112,7 +109,7 @@ export const AvatarUpload = ({ currentUrl, userId, onUpload }: AvatarUploadProps
       <input
         ref={inputRef}
         type="file"
-        accept=".jpg,.jpeg,.png,.webp"
+        accept={ACCEPTED_TYPES.join(',')}
         className="hidden"
         onChange={handleFileChange}
       />

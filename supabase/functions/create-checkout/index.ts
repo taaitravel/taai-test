@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { isAllowedOrigin, PRODUCTION_ORIGIN } from "../_shared/edge-guard.ts";
+import { normalizeTier } from "../_shared/tier-map.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -120,6 +122,14 @@ serve(async (req) => {
       
       const productName = product.name?.toLowerCase() || '';
       const interval = price.recurring?.interval;
+      const tierFromMeta = normalizeTier(price.metadata?.tier)
+        || normalizeTier(product.metadata?.tier)
+        || normalizeTier(price.lookup_key);
+      if (tierFromMeta && tierFromMeta !== 'traveler' && tierFromMeta !== 'taai_enterprise_plus') {
+        if (interval === 'month') priceMapping[tierFromMeta].monthly = price.id;
+        if (interval === 'year') priceMapping[tierFromMeta].annual = price.id;
+        continue;
+      }
       
       logStep("Processing price", { 
         priceId: price.id, 
@@ -172,16 +182,35 @@ serve(async (req) => {
 
     logStep("Using dynamic price ID", { tier, billing, priceId });
 
-    // Check if customer exists
-    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Found existing customer", { customerId });
-    } else {
-      logStep("No existing customer found, will create during checkout");
+    let customerId: string | undefined;
+    if (user) {
+      const { data: subscriber } = await supabaseClient
+        .from('subscribers')
+        .select('stripe_customer_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      customerId = subscriber?.stripe_customer_id || undefined;
+    }
+    if (!customerId) {
+      const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
+      customerId = customers.data[0]?.id;
+    }
+    if (!customerId && user) {
+      const created = await stripe.customers.create({
+        email: userEmail,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = created.id;
+      await supabaseClient.from('subscribers').upsert({
+        email: userEmail,
+        user_id: user.id,
+        stripe_customer_id: customerId,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' });
     }
 
+    const requestOrigin = req.headers.get("origin");
+    const site = requestOrigin && isAllowedOrigin(requestOrigin) ? requestOrigin : PRODUCTION_ORIGIN;
     const sessionParams: any = {
       line_items: [
         {
@@ -190,8 +219,14 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/subscription`,
+      success_url: `${site}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${site}/subscription`,
+      subscription_data: {
+        metadata: {
+          tier,
+          supabase_user_id: user?.id || '',
+        },
+      },
       automatic_tax: {
         enabled: true,
       },

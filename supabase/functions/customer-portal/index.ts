@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { isAllowedOrigin, PRODUCTION_ORIGIN } from "../_shared/edge-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,16 +42,33 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    if (customers.data.length === 0) {
+    const { data: subscriber } = await supabaseClient
+      .from('subscribers')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    let customerId = subscriber?.stripe_customer_id as string | null;
+    if (!customerId) {
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      customerId = customers.data[0]?.id ?? null;
+      if (customerId) {
+        await supabaseClient.from('subscribers').upsert({
+          email: user.email,
+          user_id: user.id,
+          stripe_customer_id: customerId,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'email' });
+      }
+    }
+    if (!customerId) {
       throw new Error("No Stripe customer found for this user");
     }
-    const customerId = customers.data[0].id;
 
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+    const requestOrigin = req.headers.get("origin");
+    const site = requestOrigin && isAllowedOrigin(requestOrigin) ? requestOrigin : PRODUCTION_ORIGIN;
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${origin}/subscription`,
+      return_url: `${site}/profile?tab=billing`,
     });
 
     logStep("Customer portal session created", { sessionId: portalSession.id });

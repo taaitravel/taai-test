@@ -7,6 +7,7 @@ import { Plus, Plane, Hotel, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { travelBookingCheckoutEnabled } from '@/lib/features';
 
 interface QuickAddToCartProps {
   itineraryId?: string;
@@ -106,7 +107,7 @@ export const QuickAddToCart: React.FC<QuickAddToCartProps> = ({ itineraryId, onI
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-orange-400">
           <Plus className="h-5 w-5" />
-          Quick Add to Cart
+          {travelBookingCheckoutEnabled ? 'Quick Add to Cart' : 'Save a price snapshot'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -166,7 +167,7 @@ export const QuickAddToCart: React.FC<QuickAddToCartProps> = ({ itineraryId, onI
           className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
         >
           {getTypeIcon()}
-          <span className="ml-2">Add to Cart</span>
+          <span className="ml-2">{travelBookingCheckoutEnabled ? 'Add to Cart' : 'Save to trip'}</span>
         </Button>
       </CardContent>
     </Card>

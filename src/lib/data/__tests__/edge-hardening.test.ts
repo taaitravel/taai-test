@@ -5,7 +5,9 @@ import {
   DEV_ORIGINS,
   MAX_NORMALIZED_BYTES,
   MAX_UPSTREAM_BYTES,
+  PREVIEW_ORIGINS,
   PREVIEW_ORIGIN,
+  PRODUCTION_ORIGINS,
   PRODUCTION_ORIGIN,
   RATE_LIMIT_IS_PROCESS_LOCAL,
   RATE_LIMIT_NOTE,
@@ -29,13 +31,20 @@ const withAuth = (token: string | null) =>
   });
 
 describe('CORS origin allow-list', () => {
-  it('lists exactly the approved production and preview origins in production', () => {
-    expect(allowedOrigins('production')).toEqual([PRODUCTION_ORIGIN, PREVIEW_ORIGIN]);
+  it('allows the live site, the previous host, Lovable previews, and localhost', () => {
+    const origins = allowedOrigins('production');
+    for (const origin of [...PRODUCTION_ORIGINS, ...PREVIEW_ORIGINS, ...DEV_ORIGINS]) {
+      expect(origins).toContain(origin);
+    }
+    expect(PRODUCTION_ORIGIN).toBe('https://taai-travel.lovable.app');
+    expect(guardOrigin('https://preview-id.lovable.app', 'production').ok).toBe(false);
+    expect(guardOrigin('https://id-preview--aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.lovable.app', 'production').ok).toBe(true);
+    expect(guardOrigin('https://aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.lovableproject.com', 'production').ok).toBe(true);
   });
 
-  it('adds local development origins only outside production', () => {
-    expect(allowedOrigins('development')).toEqual([PRODUCTION_ORIGIN, PREVIEW_ORIGIN, ...DEV_ORIGINS]);
-    expect(allowedOrigins('production')).not.toContain(DEV_ORIGINS[0]);
+  it('keeps localhost available when the deployment env is production', () => {
+    expect(allowedOrigins('production')).toEqual(expect.arrayContaining([...DEV_ORIGINS]));
+    expect(guardOrigin('http://localhost:5173', 'production').ok).toBe(true);
   });
 
   it('never emits a wildcard origin', () => {
@@ -51,11 +60,11 @@ describe('CORS origin allow-list', () => {
     expect(guardOrigin(PRODUCTION_ORIGIN, 'production').ok).toBe(true);
     expect(guardOrigin(PREVIEW_ORIGIN, 'production').ok).toBe(true);
     // Look-alike suffix must not pass.
-    expect(guardOrigin('https://taai-test.lovable.app.evil.com', 'production').ok).toBe(false);
+    expect(guardOrigin('https://taai-travel.lovable.app.evil.com', 'production').ok).toBe(false);
   });
 
-  it('all three functions handle OPTIONS and use the shared guard', () => {
-    for (const fn of ['chat-with-gpt', 'expedia-rapid-api', 'booking-com-api']) {
+  it('guarded functions handle OPTIONS and use the shared guard', () => {
+    for (const fn of ['chat-with-gpt', 'booking-com-api']) {
       const src = read(`supabase/functions/${fn}/index.ts`);
       expect(src).toContain("req.method === 'OPTIONS'");
       expect(src).toContain('buildCorsHeaders');
@@ -108,7 +117,7 @@ describe('authentication', () => {
   });
 
   it('each function verifies the token and scopes data access to it', () => {
-    for (const fn of ['chat-with-gpt', 'expedia-rapid-api', 'booking-com-api']) {
+    for (const fn of ['chat-with-gpt', 'booking-com-api']) {
       const src = read(`supabase/functions/${fn}/index.ts`);
       expect(src).toContain('authenticate(req');
       expect(src).toContain('stripCallerIdentity');
@@ -139,35 +148,35 @@ describe('rate limiter limitations', () => {
 describe('provider host and path allow-lists', () => {
   it('rejects a caller-supplied foreign absolute URL', () => {
     for (const url of [
-      'https://evil.example/api/v1/hotels/search',
-      'http://localhost:8080/api/v1/hotels/search',
-      'https://127.0.0.1/api/v1/hotels/search',
+      'https://evil.example/api/v1/hotels/searchHotels',
+      'http://localhost:8080/api/v1/hotels/searchHotels',
+      'https://127.0.0.1/api/v1/hotels/searchHotels',
       'https://169.254.169.254/latest/meta-data/',
-      'https://10.0.0.5/api/v1/hotels/search',
-      'https://user:pass@expedia13.p.rapidapi.com/api/v1/hotels/search',
-      'https://expedia13.p.rapidapi.com:8443/api/v1/hotels/search',
+      'https://10.0.0.5/api/v1/hotels/searchHotels',
+      'https://user:pass@booking-com15.p.rapidapi.com/api/v1/hotels/searchHotels',
+      'https://booking-com15.p.rapidapi.com:8443/api/v1/hotels/searchHotels',
       'file:///etc/passwd',
     ]) {
-      const result = resolveProviderUrl('expedia', url);
+      const result = resolveProviderUrl('booking.com', url);
       expect(result.ok, url).toBe(false);
     }
   });
 
   it('rejects a path outside the allow-list and path traversal', () => {
-    expect(resolveProviderUrl('expedia', '/api/v1/admin/keys').ok).toBe(false);
-    expect(resolveProviderUrl('expedia', '/api/v1/../../secret').ok).toBe(false);
+    expect(resolveProviderUrl('booking.com', '/api/v1/admin/keys').ok).toBe(false);
+    expect(resolveProviderUrl('booking.com', '/api/v1/../../secret').ok).toBe(false);
     expect(resolveProviderUrl('booking.com', '/api/v1/hotels/search').ok).toBe(false);
   });
 
   it('always rebuilds the request from the fixed https host', () => {
-    const result = resolveProviderUrl('expedia', 'https://expedia13.p.rapidapi.com/api/v1/hotels/search', {
+    const result = resolveProviderUrl('booking.com', 'https://booking-com15.p.rapidapi.com/api/v1/hotels/searchHotels', {
       destination: 'Lisbon',
       empty: '',
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.url.origin).toBe('https://expedia13.p.rapidapi.com');
-    expect(result.url.pathname).toBe('/api/v1/hotels/search');
+    expect(result.url.origin).toBe('https://booking-com15.p.rapidapi.com');
+    expect(result.url.pathname).toBe('/api/v1/hotels/searchHotels');
     expect(result.url.searchParams.get('destination')).toBe('Lisbon');
     expect(result.url.searchParams.has('empty')).toBe(false);
   });
@@ -195,10 +204,8 @@ describe('normalized response ceiling', () => {
     expect(fine.ok).toBe(true);
   });
 
-  it('is applied by both hotel proxies before responding', () => {
-    for (const fn of ['expedia-rapid-api', 'booking-com-api']) {
-      expect(read(`supabase/functions/${fn}/index.ts`)).toContain('serializeBounded(shaped)');
-    }
+  it('is applied by the hotel proxy before responding', () => {
+    expect(read('supabase/functions/booking-com-api/index.ts')).toContain('serializeBounded(shaped)');
   });
 });
 

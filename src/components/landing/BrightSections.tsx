@@ -230,7 +230,7 @@ export const BrightSections = () => {
             <b>meets technology.</b>
           </h2>
           <p>
-            Search, plan, book and split costs in one place — taai brings the whole trip,
+            Search, plan, and split costs in one place — taai brings the whole trip,
             and everyone on it, into a single surface.
           </p>
           <div className="tbs-actions" style={{ justifyContent: "center" }}>

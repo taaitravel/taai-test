@@ -9,17 +9,20 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { LOGO_URL } from "@/lib/constants";
+import { describeAuthError } from "@/lib/auth/messages";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, signInWithGoogle, user } = useAuth();
+  const { signIn, signInWithGoogle, requestPasswordReset, user } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [showReset, setShowReset] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -63,7 +66,7 @@ const Login = () => {
     } catch (error) {
       toast({
         title: "Login Failed",
-        description: "An unexpected error occurred.",
+        description: describeAuthError(error, "An unexpected error occurred."),
         variant: "destructive"
       });
     } finally {
@@ -124,10 +127,36 @@ const Login = () => {
           </div>
 
           <div className="text-right">
-            <Button variant="link" className="p-0 h-auto font-normal text-primary hover:text-primary/80 text-sm">
+            <Button
+              variant="link"
+              className="p-0 h-auto font-normal text-primary hover:text-primary/80 text-sm"
+              onClick={() => setShowReset((open) => !open)}
+            >
               Forgot password?
             </Button>
           </div>
+          {showReset && (
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={resetting || !formData.email}
+              onClick={async () => {
+                setResetting(true);
+                const { error } = await requestPasswordReset(formData.email);
+                setResetting(false);
+                if (error) {
+                  toast({ title: "Could not send reset email", description: error.message, variant: "destructive" });
+                  return;
+                }
+                toast({
+                  title: "Check your email",
+                  description: "If an account exists for that address, we sent a link to choose a new password.",
+                });
+              }}
+            >
+              {resetting ? "Sending…" : "Email me a reset link"}
+            </Button>
+          )}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -141,7 +170,13 @@ const Login = () => {
           <Button
             variant="outline"
             className="w-full border-border text-foreground hover:bg-accent flex items-center justify-center gap-3 h-11"
-            onClick={signInWithGoogle}
+            onClick={async () => {
+              try {
+                await signInWithGoogle();
+              } catch (error) {
+                toast({ title: "Google sign-in failed", description: describeAuthError(error), variant: "destructive" });
+              }
+            }}
           >
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>

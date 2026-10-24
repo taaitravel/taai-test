@@ -165,6 +165,11 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
       {/* Image Gallery */}
       <div className="relative">
         {isVRBO && <VRBOBadge />}
+        {hotel.highlightLabel && (
+          <div className="absolute top-2 right-2 z-10 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground shadow-md">
+            {hotel.highlightLabel}
+          </div>
+        )}
         {images.length > 0 && (
           <ImageGallery images={images} alt={hotel.name} aspectRatio="wide" className="h-28 flex-shrink-0" />
         )}
