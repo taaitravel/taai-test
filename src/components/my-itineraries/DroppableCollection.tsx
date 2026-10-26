@@ -43,7 +43,8 @@ export const DroppableCollection: React.FC<DroppableCollectionProps> = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent"
+        aria-label={`Edit ${collection.name}`}
+        className="h-8 w-8 hover-reveal transition-opacity shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent"
         onClick={(e) => {
           e.stopPropagation();
           onEdit();

@@ -69,7 +69,8 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Previous image"
+            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 hover-reveal transition-opacity"
             onClick={prevImage}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -77,7 +78,8 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Next image"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 hover-reveal transition-opacity"
             onClick={nextImage}
           >
             <ChevronRight className="h-4 w-4" />

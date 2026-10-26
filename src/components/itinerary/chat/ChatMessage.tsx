@@ -183,8 +183,10 @@ export const ChatMessageComponent = ({ message, onReply, onEdit, onDelete, onRea
 
           {/* Quick reply on hover (desktop) */}
           <button
+            type="button"
+            aria-label="Reply"
             onClick={() => onReply(message)}
-            className="opacity-0 group-hover:opacity-100 text-[10px] px-1.5 py-0.5 rounded-full hover:bg-muted text-muted-foreground transition-opacity"
+            className="hover-reveal touch-target text-[10px] px-1.5 py-0.5 rounded-full hover:bg-muted text-muted-foreground transition-opacity"
           >
             <Reply className="h-3 w-3" />
           </button>
@@ -194,7 +196,7 @@ export const ChatMessageComponent = ({ message, onReply, onEdit, onDelete, onRea
       {/* Context menu */}
       <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
         <DropdownMenuTrigger asChild>
-          <button className="opacity-0 group-hover:opacity-100 self-center transition-opacity">
+          <button type="button" aria-label="Message actions" className="hover-reveal touch-target self-center transition-opacity">
             <MoreVertical className="h-4 w-4 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>
