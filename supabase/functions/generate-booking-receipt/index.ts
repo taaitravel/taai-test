@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import { documentUploadBlock } from "../_shared/upload-limits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -215,11 +216,42 @@ serve(async (req) => {
 
     const pdfBytes = await buildPdf(receiptJson);
     const path = `${userId}/${receiptNumber}.pdf`;
+    const { data: stored, error: listError } = await supabase.storage
+      .from("receipts")
+      .list(String(userId), { limit: 100 });
+    if (listError) {
+      return new Response(JSON.stringify({
+        error: "Couldn't check your saved documents. Try again in a moment.",
+      }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    // A retry of this same receipt replaces the object and must not count as a new file.
+    // The storage trigger is the race-free backstop.
+    const replacing = (stored ?? []).some((item) => item.name === `${receiptNumber}.pdf`);
+    const existingCount = Math.max((stored?.length ?? 0) - (replacing ? 1 : 0), 0);
+    const block = documentUploadBlock(pdfBytes.byteLength, existingCount);
+    if (block === "DOCUMENT_TOO_LARGE") {
+      return new Response(JSON.stringify({
+        error: "This receipt is over 10 MB, so it was not saved. Try again or contact support.",
+      }), { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (block === "DOCUMENT_LIMIT") {
+      return new Response(JSON.stringify({
+        error: "You can keep 10 documents. Remove one, then try again.",
+      }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const { error: upErr } = await supabase.storage.from("receipts").upload(path, pdfBytes, {
       contentType: "application/pdf",
       upsert: true,
     });
-    if (upErr) throw upErr;
+    if (upErr) {
+      const raw = upErr.message || "";
+      if (raw.includes("DOCUMENT_LIMIT")) {
+        return new Response(JSON.stringify({
+          error: "You can keep 10 documents. Remove one, then try again.",
+        }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      throw upErr;
+    }
 
     const { data: inserted, error: insErr } = await supabase
       .from("booking_receipts")

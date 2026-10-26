@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Camera, Loader2, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { UPLOAD_LIMITS, validateUpload } from "@/lib/uploads/limits";
+import { acceptFor, validateUpload } from "@/lib/uploads/limits";
+import { prepareAndValidate } from "@/lib/uploads/prepare";
+import { describeStorageFailure, describeUnreadableFile, describeUploadViolation, type UploadNotice } from "@/lib/uploads/notices";
+import { UploadErrorAlert } from "@/components/uploads/UploadErrorAlert";
 
 interface AvatarUploadProps {
   currentUrl: string | null;
@@ -12,7 +15,6 @@ interface AvatarUploadProps {
   onUpload: (url: string) => void;
 }
 
-const ACCEPTED_TYPES = UPLOAD_LIMITS.avatar.mimeTypes;
 const CROP_SIZE = 400;
 
 function cropToSquare(file: File): Promise<Blob> {
@@ -40,29 +42,43 @@ function cropToSquare(file: File): Promise<Blob> {
 
 export const AvatarUpload = ({ currentUrl, userId, onUpload }: AvatarUploadProps) => {
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<UploadNotice | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  const showError = (notice: UploadNotice) => setUploadError(notice);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (inputRef.current) inputRef.current.value = "";
     if (!file) return;
 
-    const problem = validateUpload('avatar', file);
-    if (problem) {
-      toast({ title: "Upload blocked", description: problem, variant: "destructive" });
+    const prepared = await prepareAndValidate('avatar', file);
+    if (prepared.ok === false) {
+      showError(prepared);
       return;
     }
 
     setUploading(true);
     try {
-      const cropped = await cropToSquare(file);
+      const cropped = await cropToSquare(prepared.file);
+      const croppedFile = new File([cropped], "avatar.jpg", { type: "image/jpeg" });
+      const violation = validateUpload('avatar', croppedFile);
+      if (violation) {
+        showError(describeUploadViolation('avatar', violation));
+        return;
+      }
+
       const filePath = `${userId}/avatar.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, cropped, { upsert: true, contentType: "image/jpeg" });
+        .upload(filePath, croppedFile, { upsert: true, contentType: "image/jpeg" });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        showError(describeStorageFailure('avatar', uploadError));
+        return;
+      }
 
       const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
       const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
@@ -72,16 +88,17 @@ export const AvatarUpload = ({ currentUrl, userId, onUpload }: AvatarUploadProps
         .update({ avatar_url: publicUrl } as any)
         .eq("userid", userId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        showError(describeStorageFailure('avatar', updateError));
+        return;
+      }
 
       onUpload(publicUrl);
-      toast({ title: "Avatar updated!" });
-    } catch (err: any) {
-      console.error("Avatar upload error:", err);
-      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+      toast({ title: "Profile photo updated" });
+    } catch {
+      showError(describeUnreadableFile('avatar'));
     } finally {
       setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
     }
   };
 
@@ -109,11 +126,12 @@ export const AvatarUpload = ({ currentUrl, userId, onUpload }: AvatarUploadProps
       <input
         ref={inputRef}
         type="file"
-        accept={ACCEPTED_TYPES.join(',')}
+        accept={acceptFor('avatar')}
         className="hidden"
         onChange={handleFileChange}
       />
-      <p className="text-xs text-muted-foreground">JPG, PNG or WEBP • Max 2MB</p>
+      <p className="text-xs text-muted-foreground">JPG, PNG, or WEBP · Max 2 MB</p>
+      <UploadErrorAlert notice={uploadError} onDismiss={() => setUploadError(null)} />
     </div>
   );
 };
