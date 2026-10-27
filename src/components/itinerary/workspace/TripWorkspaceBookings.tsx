@@ -1,8 +1,18 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, CreditCard, Search, ShoppingCart } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useExternalTripBookings } from '@/hooks/useExternalTripBookings';
@@ -89,6 +99,7 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
   const [formOpen, setFormOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<ExternalBookingRow | null>(null);
   const [detailsBooking, setDetailsBooking] = useState<ExternalBookingRow | null>(null);
+  const [bookingPendingArchive, setBookingPendingArchive] = useState<ExternalBookingRow | null>(null);
 
   const plannedItems = [
     ...(itineraryData.flights || []).map((item) => ({ type: 'Flight', label: item.airline || item.flight_number || 'Flight' })),
@@ -121,8 +132,14 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
     }
   };
 
-  const handleArchiveExternalBooking = async (booking: ExternalBookingRow) => {
-    if (!window.confirm('Archive this traveler-entered booking? The itinerary item, if any, will not be changed.')) return;
+  const handleArchiveExternalBooking = (booking: ExternalBookingRow) => {
+    setBookingPendingArchive(booking);
+  };
+
+  const confirmArchiveExternalBooking = async () => {
+    const booking = bookingPendingArchive;
+    if (!booking) return;
+    setBookingPendingArchive(null);
     try {
       await archiveBooking(booking.id);
     } catch (error) {
@@ -306,6 +323,33 @@ export const TripWorkspaceBookings = ({ itineraryData, cartItems, cartView, user
           if (!open) setDetailsBooking(null);
         }}
       />
+
+      <AlertDialog
+        open={bookingPendingArchive !== null}
+        onOpenChange={(open) => {
+          if (!open) setBookingPendingArchive(null);
+        }}
+      >
+        <AlertDialogContent className="bg-card text-card-foreground border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive this booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Archive this traveler-entered booking? The itinerary item, if any, will not be changed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-11">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: 'destructive', size: 'lg' })}
+              onClick={() => {
+                void confirmArchiveExternalBooking();
+              }}
+            >
+              Archive
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 };
