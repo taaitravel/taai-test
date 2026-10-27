@@ -36,12 +36,18 @@ export const shareInsertDecision = (existingShares: number, tier: string | null 
 };
 
 export const aiCreditDecision = (usedThisMonth: number, tier: string | null | undefined) => {
-  const limits = PUBLISHED_LIMITS[normalizeTier(tier) ?? 'traveler'];
-  const remaining = remainingCredits(usedThisMonth, limits.monthlyAiCredits);
-  if (remaining === -1 || remaining > 0) {
-    return { ok: true as const, remaining: remaining === -1 ? -1 : remaining - 1 };
+  const normalized = normalizeTier(tier) ?? 'traveler';
+  const limits = PUBLISHED_LIMITS[normalized];
+  if (!Number.isFinite(limits.monthlyAiCredits) || limits.monthlyAiCredits < 0) {
+    return { ok: true as const, remaining: -1 };
   }
-  return { ok: false as const, code: 'PLAN_LIMIT_AI' as const, remaining: 0, limit: limits.monthlyAiCredits };
+  const balance = limits.monthlyAiCredits - Math.max(usedThisMonth, 0);
+  // A balance already at or below zero blocks the next turn. The turn that
+  // spends the last included credit is allowed and reports remaining 0.
+  if (balance <= 0) {
+    return { ok: false as const, code: 'PLAN_LIMIT_AI' as const, remaining: 0, limit: limits.monthlyAiCredits };
+  }
+  return { ok: true as const, remaining: balance - 1 };
 };
 
 const CODES: PlanLimitCode[] = ['PLAN_LIMIT_ITINERARIES', 'PLAN_LIMIT_SHARING', 'PLAN_LIMIT_AI'];
