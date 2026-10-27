@@ -7,7 +7,7 @@ import { MessageCircle, Send, Bot, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import { usePlanLimit } from '@/components/plans/PlanLimitProvider';
-import { planLimitCodeFromText } from '../../../supabase/functions/_shared/plan-limits';
+import { assistantErrorPresentation } from '../../../supabase/functions/_shared/ai-meter';
 import { useToast } from '@/hooks/use-toast';
 import { ChatResultsCarousel } from '@/components/chat/ChatResultsCarousel';
 import { useAuth } from '@/contexts/AuthContext';
@@ -150,21 +150,20 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       });
 
       if (error) {
-        let bodyText = error.message;
+        let body: unknown = null;
         if (error instanceof FunctionsHttpError) {
           try {
-            const body = await error.context.clone().json();
-            bodyText = body?.code || body?.error || error.message;
+            body = await error.context.clone().json();
           } catch {
-            bodyText = error.message;
+            body = null;
           }
         }
-        const code = planLimitCodeFromText(bodyText);
-        if (code) {
-          openUpgrade(code);
+        const presentation = assistantErrorPresentation(body, error.message);
+        if (presentation.kind === 'upgrade') {
+          openUpgrade(presentation.code);
           return;
         }
-        throw error;
+        throw new Error(presentation.message);
       }
 
       const assistantMessage: Message = {

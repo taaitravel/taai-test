@@ -2162,23 +2162,35 @@ export type Database = {
       }
       usage_tracking: {
         Row: {
+          completion_tokens: number | null
           created_at: string
           credits_used: number | null
           id: string
+          model: string | null
+          prompt_tokens: number | null
+          total_tokens: number | null
           usage_type: string
           user_id: string | null
         }
         Insert: {
+          completion_tokens?: number | null
           created_at?: string
           credits_used?: number | null
           id?: string
+          model?: string | null
+          prompt_tokens?: number | null
+          total_tokens?: number | null
           usage_type: string
           user_id?: string | null
         }
         Update: {
+          completion_tokens?: number | null
           created_at?: string
           credits_used?: number | null
           id?: string
+          model?: string | null
+          prompt_tokens?: number | null
+          total_tokens?: number | null
           usage_type?: string
           user_id?: string | null
         }

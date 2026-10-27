@@ -38,7 +38,8 @@ export const PUBLISHED_AMOUNT_CENTS: Record<number, TierId> = {
   799: 'taai_traveler',
   7999: 'taai_traveler',
   1900: 'taai_traveler_plus',
-  18499: 'taai_traveler_plus',
+  // Yearly taaiTraveler+ amount fallback is $183. This map is not a Stripe price.
+  18300: 'taai_traveler_plus',
   9900: 'corp_taai_traveler_plus',
   99900: 'corp_taai_traveler_plus',
 };

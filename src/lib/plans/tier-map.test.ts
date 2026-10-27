@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapSubscriptionTier, normalizeTier } from '../../../supabase/functions/_shared/tier-map';
+import { PUBLISHED_AMOUNT_CENTS, mapSubscriptionTier, normalizeTier } from '../../../supabase/functions/_shared/tier-map';
 
 describe('subscription tier mapping', () => {
   it('does not treat a hard-coded legacy price id as a tier', () => {
@@ -38,6 +38,16 @@ describe('subscription tier mapping', () => {
     expect(mapSubscriptionTier({ subscribed: true, unitAmount: 1900 })).toEqual({
       tier: 'taai_traveler_plus',
       source: 'published_amount',
+    });
+    expect(mapSubscriptionTier({ subscribed: true, unitAmount: 18300 })).toEqual({
+      tier: 'taai_traveler_plus',
+      source: 'published_amount',
+    });
+    expect(PUBLISHED_AMOUNT_CENTS[18300]).toBe('taai_traveler_plus');
+    expect(PUBLISHED_AMOUNT_CENTS[18499]).toBeUndefined();
+    expect(mapSubscriptionTier({ subscribed: true, unitAmount: 18499 })).toEqual({
+      tier: 'traveler',
+      source: 'unmapped_paid',
     });
     expect(mapSubscriptionTier({ subscribed: false, unitAmount: 1900 })).toEqual({
       tier: 'traveler',
