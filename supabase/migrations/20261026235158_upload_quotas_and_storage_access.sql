@@ -54,114 +54,117 @@ language plpgsql
 security definer
 set search_path = pg_catalog, storage, public, private
 as $$
+#variable_conflict error
 declare
-  folder text;
-  max_count integer;
-  current_count integer;
-  actor uuid;
-  actor_role text;
-  can_read_objects boolean := true;
+  -- Prefixed so none of these match reservation or storage.objects columns
+  -- (folder, bucket_id, name, object_name, reserved_by, reserved_at, owner).
+  v_folder text;
+  v_max_count integer;
+  v_current_count integer;
+  v_actor uuid;
+  v_actor_role text;
+  v_can_read_objects boolean := true;
 begin
-  actor := auth.uid();
-  actor_role := coalesce(auth.role(), '');
+  v_actor := auth.uid();
+  v_actor_role := coalesce(auth.role(), '');
 
-  max_count := case p_bucket
+  v_max_count := case p_bucket
     when 'avatars' then 1
     when 'chat-attachments' then 20
     when 'receipts' then 10
     else null
   end;
 
-  if max_count is null or p_object_name is null or btrim(p_object_name) = '' then
+  if v_max_count is null or p_object_name is null or btrim(p_object_name) = '' then
     raise exception 'STORAGE_PATH_REQUIRED' using errcode = '42501';
   end if;
 
-  folder := (storage.foldername(p_object_name))[1];
-  if folder is null or folder = '' or position('/' in p_object_name) = 0 then
+  v_folder := (storage.foldername(p_object_name))[1];
+  if v_folder is null or v_folder = '' or position('/' in p_object_name) = 0 then
     raise exception 'STORAGE_PATH_REQUIRED' using errcode = '42501';
   end if;
 
-  if actor_role = 'service_role' then
+  if v_actor_role = 'service_role' then
     null;
   elsif p_bucket = 'avatars' then
-    if actor is null or folder <> actor::text then
+    if v_actor is null or v_folder <> v_actor::text then
       raise exception 'STORAGE_FORBIDDEN' using errcode = '42501';
     end if;
   elsif p_bucket = 'chat-attachments' then
-    if actor is null
-      or not public.is_itinerary_attendee(folder::bigint, actor)
-      or not public.is_chat_participant(folder::bigint, actor) then
+    if v_actor is null
+      or not public.is_itinerary_attendee(v_folder::bigint, v_actor)
+      or not public.is_chat_participant(v_folder::bigint, v_actor) then
       raise exception 'STORAGE_FORBIDDEN' using errcode = '42501';
     end if;
   else
     raise exception 'STORAGE_FORBIDDEN' using errcode = '42501';
   end if;
 
-  perform pg_advisory_xact_lock(hashtext(p_bucket), hashtext(folder));
+  perform pg_advisory_xact_lock(hashtext(p_bucket), hashtext(v_folder));
 
-  delete from private.storage_upload_reservations
-  where bucket_id = p_bucket
-    and folder = folder
-    and reserved_at < now() - interval '10 minutes';
+  delete from private.storage_upload_reservations as r
+  where r.bucket_id = p_bucket
+    and r.folder = v_folder
+    and r.reserved_at < now() - interval '10 minutes';
 
   begin
     if exists (
       select 1
-      from storage.objects
-      where bucket_id = p_bucket
-        and name = p_object_name
+      from storage.objects as o
+      where o.bucket_id = p_bucket
+        and o.name = p_object_name
     ) then
       return true;
     end if;
   exception
     when insufficient_privilege then
-      can_read_objects := false;
+      v_can_read_objects := false;
   end;
 
   if exists (
     select 1
-    from private.storage_upload_reservations
-    where bucket_id = p_bucket
-      and object_name = p_object_name
+    from private.storage_upload_reservations as r
+    where r.bucket_id = p_bucket
+      and r.object_name = p_object_name
   ) then
-    update private.storage_upload_reservations
+    update private.storage_upload_reservations as r
       set reserved_at = now(),
-          reserved_by = actor
-    where bucket_id = p_bucket
-      and object_name = p_object_name;
+          reserved_by = v_actor
+    where r.bucket_id = p_bucket
+      and r.object_name = p_object_name;
     return true;
   end if;
 
-  if can_read_objects then
+  if v_can_read_objects then
     begin
       select count(*)::integer
-        into current_count
+        into v_current_count
       from (
-        select name as object_name
-        from storage.objects
-        where bucket_id = p_bucket
-          and (storage.foldername(name))[1] = folder
+        select o.name as object_name
+        from storage.objects as o
+        where o.bucket_id = p_bucket
+          and (storage.foldername(o.name))[1] = v_folder
         union
-        select object_name
-        from private.storage_upload_reservations
-        where bucket_id = p_bucket
-          and folder = folder
-      ) slots;
+        select r.object_name
+        from private.storage_upload_reservations as r
+        where r.bucket_id = p_bucket
+          and r.folder = v_folder
+      ) as slots;
     exception
       when insufficient_privilege then
-        can_read_objects := false;
+        v_can_read_objects := false;
     end;
   end if;
 
-  if not can_read_objects then
+  if not v_can_read_objects then
     select count(*)::integer
-      into current_count
-    from private.storage_upload_reservations
-    where bucket_id = p_bucket
-      and folder = folder;
+      into v_current_count
+    from private.storage_upload_reservations as r
+    where r.bucket_id = p_bucket
+      and r.folder = v_folder;
   end if;
 
-  if current_count >= max_count then
+  if v_current_count >= v_max_count then
     raise exception '%', case p_bucket
       when 'avatars' then 'AVATAR_LIMIT'
       when 'chat-attachments' then 'CHAT_ATTACHMENT_LIMIT'
@@ -173,7 +176,7 @@ begin
   insert into private.storage_upload_reservations (
     bucket_id, object_name, folder, reserved_by
   ) values (
-    p_bucket, p_object_name, folder, actor
+    p_bucket, p_object_name, v_folder, v_actor
   );
 
   return true;
@@ -201,20 +204,21 @@ language plpgsql
 security definer
 set search_path = pg_catalog, public, private
 as $$
+#variable_conflict error
 declare
-  actor uuid := auth.uid();
-  actor_role text := coalesce(auth.role(), '');
+  v_actor uuid := auth.uid();
+  v_actor_role text := coalesce(auth.role(), '');
 begin
-  if actor_role <> 'service_role' and actor is null then
+  if v_actor_role <> 'service_role' and v_actor is null then
     raise exception 'STORAGE_FORBIDDEN' using errcode = '42501';
   end if;
 
-  delete from private.storage_upload_reservations
-  where bucket_id = p_bucket
-    and object_name = p_object_name
+  delete from private.storage_upload_reservations as r
+  where r.bucket_id = p_bucket
+    and r.object_name = p_object_name
     and (
-      actor_role = 'service_role'
-      or reserved_by = actor
+      v_actor_role = 'service_role'
+      or r.reserved_by = v_actor
     );
 end;
 $$;

@@ -164,6 +164,10 @@ describe('upload contract', () => {
     expect(migration).toContain('is_itinerary_attendee');
     expect(migration).toContain('reserve_storage_upload');
     expect(migration).toContain('private.claim_storage_folder_slot');
+    expect(migration).toContain('v_folder');
+    expect(migration).toContain('r.folder = v_folder');
+    expect(migration).toContain('#variable_conflict error');
+    expect(migration).not.toMatch(/\bfolder\s*=\s*folder\b/);
     expect(migration.toLowerCase()).not.toContain('to public');
     expect(migration.toLowerCase()).not.toContain('to anon');
     expect(migration.toLowerCase()).not.toMatch(/create\s+trigger[\s\S]*storage\.objects/);
