@@ -12,6 +12,29 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const THEME_STORAGE_KEY = "taai-theme";
+
+function readStoredTheme(): "light" | "dark" | "system" {
+  const stored = localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === "light" || stored === "dark" || stored === "system") return stored;
+  return "system";
+}
+
+function applyTheme(newTheme: string) {
+  const root = window.document.documentElement;
+  root.classList.remove("light", "dark");
+
+  const resolved =
+    newTheme === "system"
+      ? window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light"
+      : newTheme;
+
+  root.classList.add(resolved);
+  root.style.colorScheme = resolved === "dark" ? "dark" : "light";
+}
+
 interface ThemeProviderProps {
   children: React.ReactNode;
   defaultTheme?: string;
@@ -32,14 +55,12 @@ function ThemeProviderInner({ children }: { children: React.ReactNode }) {
           setThemeState(savedTheme);
           applyTheme(savedTheme);
         } else {
-          // Default to dark if no preference saved
-          setThemeState('dark');
-          applyTheme('dark');
+          const initialTheme = readStoredTheme();
+          setThemeState(initialTheme);
+          applyTheme(initialTheme);
         }
       } else {
-        // For non-logged-in users, check localStorage or default to dark
-        const stored = localStorage.getItem('taai-theme');
-        const initialTheme = stored || 'dark';
+        const initialTheme = readStoredTheme();
         setThemeState(initialTheme);
         applyTheme(initialTheme);
       }
@@ -49,22 +70,19 @@ function ThemeProviderInner({ children }: { children: React.ReactNode }) {
     loadTheme();
   }, [user, userProfile]);
 
-  const applyTheme = (newTheme: string) => {
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    
-    if (newTheme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(newTheme);
-    }
-  };
+  useEffect(() => {
+    if (theme !== "system") return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyTheme("system");
+    onChange();
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, [theme]);
 
   const setTheme = async (newTheme: 'light' | 'dark' | 'system') => {
     setThemeState(newTheme);
     applyTheme(newTheme);
-    localStorage.setItem('taai-theme', newTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
 
     // Save to database if user is logged in
     if (user) {
@@ -91,7 +109,7 @@ function ThemeProviderInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function ThemeProvider({ children, defaultTheme = 'dark', storageKey = 'taai-theme' }: ThemeProviderProps) {
+export function ThemeProvider({ children, defaultTheme = 'system', storageKey = THEME_STORAGE_KEY }: ThemeProviderProps) {
   return (
     <NextThemesProvider
       attribute="class"

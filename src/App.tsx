@@ -48,7 +48,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <ThemeProvider defaultTheme="dark" storageKey="taai-theme">
+        <ThemeProvider defaultTheme="system" storageKey="taai-theme">
           <ChromeStateProvider>
             <Toaster />
             <Sonner />
