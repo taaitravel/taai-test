@@ -302,18 +302,22 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     );
   }
 
-  // Floating mode behavior (original)
-  // Hide floating chat button on mobile when user is authenticated (bottom nav handles chat)
+  // Floating mode. On a phone the tab bar owns the bottom edge, so Miles sits above it.
+  const aboveTabBar = isMobile && !!user;
+  const fabBottom = aboveTabBar
+    ? 'calc(env(safe-area-inset-bottom, 0px) + 64px + 16px + 16px)'
+    : 'max(16px, env(safe-area-inset-bottom, 0px))';
+
   if (!isOpen) {
-    if (isMobile && user) {
-      return null; // Don't show floating button on mobile when logged in
-    }
-    
     return (
       <Button
         onClick={() => setIsOpen(true)}
         aria-label={`Chat with ${assistantName}`}
-        className="fixed right-4 sm:right-6 bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 z-40 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+        className="fixed z-40 h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90"
+        style={{
+          right: 'max(16px, env(safe-area-inset-right, 0px))',
+          bottom: fabBottom,
+        }}
         size="icon"
       >
         <MessageCircle className="h-6 w-6" />
@@ -322,7 +326,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <Card className="fixed z-50 inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] h-[72vh] w-auto sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96 sm:h-[500px] flex flex-col overflow-hidden shadow-xl bg-background border">
+    <Card
+      className="fixed z-50 inset-x-3 h-[72vh] w-auto sm:inset-x-auto sm:right-6 sm:w-96 sm:h-[500px] flex flex-col overflow-hidden shadow-xl bg-background border"
+      style={{
+        bottom: aboveTabBar
+          ? 'calc(env(safe-area-inset-bottom, 0px) + 64px + 16px + 16px)'
+          : 'max(16px, env(safe-area-inset-bottom, 0px))',
+      }}
+    >
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5" />

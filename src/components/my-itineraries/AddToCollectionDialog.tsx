@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Folder, Check } from 'lucide-react';
 import { Collection } from '@/hooks/useItineraryCollections';
+import { pluralize } from '@/lib/pluralize';
 
 interface AddToCollectionDialogProps {
   open: boolean;
@@ -65,7 +66,7 @@ export const AddToCollectionDialog: React.FC<AddToCollectionDialogProps> = ({
       <DialogContent className="sm:max-w-[400px] bg-card border-primary/30">
         <DialogHeader>
           <DialogTitle className="text-foreground">
-            Add {itineraryCount} itinerary{itineraryCount !== 1 ? 's' : ''} to collection
+            Add {pluralize(itineraryCount, 'itinerary', 'itineraries')} to collection
           </DialogTitle>
         </DialogHeader>
 
@@ -125,7 +126,7 @@ export const AddToCollectionDialog: React.FC<AddToCollectionDialogProps> = ({
                         {collection.name}
                       </p>
                       <p className="text-xs text-primary/70">
-                        {collection.itinerary_count || 0} itinerary{(collection.itinerary_count || 0) !== 1 ? 's' : ''}
+                        {pluralize(collection.itinerary_count || 0, 'itinerary', 'itineraries')}
                       </p>
                     </div>
                     {selectedId === collection.id && (

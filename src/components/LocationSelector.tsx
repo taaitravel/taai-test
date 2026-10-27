@@ -114,26 +114,26 @@ export const LocationSelector = ({
           placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white pr-10"
+          className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring pr-10"
         />
         {isSearching && (
-          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-white/50" />
+          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
         )}
       </div>
 
       {/* Search Results */}
       {searchResults.length > 0 && (
-        <div className="bg-[#1f1f27] border border-white/30 rounded-md max-h-40 overflow-y-auto">
+        <div className="bg-popover border border-border rounded-md max-h-40 overflow-y-auto">
           {searchResults.map((location, index) => (
             <Button
               key={`${location.city}-${index}`}
               variant="ghost"
-              className="w-full justify-start text-white hover:bg-white/10 px-3 py-2 h-auto"
+              className="w-full justify-start text-foreground hover:bg-accent px-3 py-2 h-auto"
               onClick={() => handleLocationSelect(location)}
             >
-              <MapPin className="h-4 w-4 mr-2 text-white/70" />
+              <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
               <span>{location.city}</span>
-              <span className="ml-auto text-xs text-white/50">
+              <span className="ml-auto text-xs text-muted-foreground">
                 {location.lat.toFixed(2)}, {location.lng.toFixed(2)}
               </span>
             </Button>
@@ -144,20 +144,20 @@ export const LocationSelector = ({
       {/* Selected Locations */}
       {selectedLocations.length > 0 && (
         <div className="space-y-2">
-          <p className="text-sm text-white/70">Selected Destinations:</p>
+          <p className="text-sm text-muted-foreground">Selected Destinations:</p>
           <div className="flex flex-wrap gap-2">
             {selectedLocations.map((location, index) => (
               <Badge
                 key={`${location.city}-selected-${index}`}
                 variant="secondary"
-                className="bg-white/10 text-white border-white/30 pr-1"
+                className="bg-muted text-foreground border-border pr-1"
               >
                 <MapPin className="h-3 w-3 mr-1" />
                 {location.city}
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-4 w-4 p-0 ml-1 hover:bg-white/20"
+                  className="h-4 w-4 p-0 ml-1 hover:bg-accent"
                   onClick={() => handleLocationRemove(location.city)}
                 >
                   <X className="h-3 w-3" />

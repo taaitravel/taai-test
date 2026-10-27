@@ -1,4 +1,5 @@
 import { asDateOnly, compareDateOnly, formatDateOnlyRange, localDateOnlyFromDate } from '@/lib/date-time';
+import { flightsFromProfile } from '@/lib/travelerLevel';
 
 export const formatDateRange = (startDate: string, endDate: string) => {
   return formatDateOnlyRange(startDate, endDate, 'MMM d, yyyy', 'MMM d, yyyy') || 'Dates TBD';
@@ -22,10 +23,7 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
     ? userProfile.countries_visited as string[] 
     : [];
 
-  // Calculate flights this year from user profile
-  const flightsThisYear = userProfile?.flight_freq && typeof userProfile.flight_freq === 'object' 
-    ? Object.values(userProfile.flight_freq).reduce((sum: number, flights: any) => sum + (Number(flights) || 0), 0)
-    : 0;
+  const flightsThisYear = flightsFromProfile(userProfile?.flight_freq);
 
   // Count unique cities from all itineraries
   const uniqueCities = new Set();

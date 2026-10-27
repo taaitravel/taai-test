@@ -1,4 +1,5 @@
 import React from 'react';
+import { Luggage } from 'lucide-react';
 import { ItineraryCard } from './ItineraryCard';
 import { ItineraryData } from '@/types/itinerary';
 
@@ -19,7 +20,7 @@ export const ItineraryGrid: React.FC<ItineraryGridProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <span className="text-2xl">✈️</span>
+          <Luggage className="h-7 w-7 text-muted-foreground" aria-hidden />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-2">No itineraries found</h3>
         <p className="text-muted-foreground">Create a new itinerary or drag one into this collection</p>

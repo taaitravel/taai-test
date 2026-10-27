@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { escapeHtml, sanitizeCategory, sanitizePrice } from '@/lib/sanitize';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { getMapStyle, getPopupColors, getMarkerDotColor, getMarkerGlow } from '@/lib/mapStyles';
+import { defaultMapCamera } from '@/lib/maps/default-view';
 
 interface MapLocation {
   city: string;
@@ -345,14 +346,16 @@ const Map = ({
     try {
       mapboxgl.accessToken = mapboxToken;
       
+      const camera = defaultMapCamera();
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: getMapStyle(theme, 'itinerary'),
-        center: [0, 20],
-        zoom: 2,
+        center: camera.center,
+        zoom: camera.zoom,
         projection: 'mercator' as any,
         antialias: true,
-        attributionControl: false
+        attributionControl: { compact: true },
+        logoPosition: 'bottom-left',
       });
 
       map.current = newMap;

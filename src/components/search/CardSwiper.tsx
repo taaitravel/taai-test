@@ -93,7 +93,7 @@ export const CardSwiper = ({
     <div className="relative w-full max-w-3xl mx-auto px-4">
       {/* Results Counter */}
       <div className="text-center mb-4">
-        <p className="text-white/70 text-sm">
+        <p className="text-muted-foreground text-sm">
           Viewing {currentIndex + 1} of {results.length} {searchType}
         </p>
       </div>
@@ -102,8 +102,8 @@ export const CardSwiper = ({
       <div className="relative h-[500px] md:h-[600px] mb-6">
         {/* Background cards for depth effect */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <Card className="absolute w-[95%] h-[95%] bg-white/5 border-white/10 transform translate-y-2 scale-95 opacity-40 blur-sm" />
-          <Card className="absolute w-[97%] h-[97%] bg-white/5 border-white/10 transform translate-y-1 scale-[0.97] opacity-60 blur-[1px]" />
+          <Card className="absolute w-[95%] h-[95%] bg-muted border-border transform translate-y-2 scale-95 opacity-40 blur-sm" />
+          <Card className="absolute w-[97%] h-[97%] bg-muted border-border transform translate-y-1 scale-[0.97] opacity-60 blur-[1px]" />
         </div>
 
         {/* Main Card */}
@@ -116,7 +116,7 @@ export const CardSwiper = ({
               : 'transform translate-x-0 opacity-100'
           }`}
         >
-          <Card className="w-full h-full bg-[#171821]/95 backdrop-blur-md border-white/30 shadow-2xl shadow-white/20 overflow-auto">
+          <Card className="w-full h-full bg-card backdrop-blur-md border-border shadow-2xl shadow-sm overflow-auto">
             <div className="p-6">
               {renderCard(currentItem, () => setIsExpanded(!isExpanded))}
             </div>
@@ -130,7 +130,7 @@ export const CardSwiper = ({
           onClick={handlePrev}
           variant="outline"
           size="lg"
-          className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+          className="bg-muted border-border text-foreground hover:bg-accent"
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
@@ -139,8 +139,8 @@ export const CardSwiper = ({
           onClick={handleToggleFavorite}
           variant="outline"
           size="lg"
-          className={`bg-white/5 border-white/20 hover:bg-white/10 ${
-            favorites.has(currentIndex) ? 'text-primary' : 'text-white'
+          className={`bg-muted border-border hover:bg-accent ${
+            favorites.has(currentIndex) ? 'text-primary' : 'text-foreground'
           }`}
         >
           <Heart className={`h-5 w-5 ${favorites.has(currentIndex) ? 'fill-current' : ''}`} />
@@ -159,14 +159,14 @@ export const CardSwiper = ({
           onClick={handleNext}
           variant="outline"
           size="lg"
-          className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+          className="bg-muted border-border text-foreground hover:bg-accent"
         >
           <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Touch Swipe Instructions */}
-      <p className="text-center text-white/50 text-xs mt-4 md:hidden">
+      <p className="text-center text-muted-foreground text-xs mt-4 md:hidden">
         Swipe left or right to browse
       </p>
     </div>

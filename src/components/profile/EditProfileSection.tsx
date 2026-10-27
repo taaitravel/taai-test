@@ -54,8 +54,8 @@ export const EditProfileSection = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-xl">
-      <Card className="border-border bg-card">
+    <div className="grid w-full gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+      <Card className="border-border bg-card shadow-sm">
         <CardHeader>
           <CardTitle className="text-foreground">Profile Photo</CardTitle>
         </CardHeader>
@@ -68,7 +68,7 @@ export const EditProfileSection = () => {
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card shadow-sm">
         <CardHeader>
           <CardTitle className="text-foreground">Personal Information</CardTitle>
         </CardHeader>

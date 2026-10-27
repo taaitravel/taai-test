@@ -5,7 +5,7 @@ import { ChatInterface } from "@/components/chat/ChatInterface";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background chrome-inset-fab">
       {/* Bright landing hero + journey scenes (static design source) */}
       <BrightLanding />
 

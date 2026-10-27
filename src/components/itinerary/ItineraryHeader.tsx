@@ -50,7 +50,6 @@ export const ItineraryHeader = ({ itineraryId, itineraryData, userRole, attendee
   return (
     <>
       <MobileNavigation 
-        travelerLevel="Master Traveler"
         showBackButton={true}
         backPath="/itineraries"
         backLabel="Back to Itineraries"

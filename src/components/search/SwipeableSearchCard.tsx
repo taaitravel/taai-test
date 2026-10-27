@@ -99,12 +99,12 @@ export const SwipeableSearchCard = ({
         {/* Swipe Indicators */}
         {swipeDirection === 'right' && (
           <div className="absolute top-4 left-4 bg-green-500/90 rounded-full p-3">
-            <Heart className="h-6 w-6 text-white" />
+            <Heart className="h-6 w-6 text-foreground" />
           </div>
         )}
         {swipeDirection === 'left' && (
           <div className="absolute top-4 right-4 bg-red-500/90 rounded-full p-3">
-            <X className="h-6 w-6 text-white" />
+            <X className="h-6 w-6 text-foreground" />
           </div>
         )}
       </Card>

@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { LOGO_URL } from "@/lib/constants";
+import { LOGO_WORDMARK_URL } from "@/lib/constants";
 import { describeAuthError } from "@/lib/auth/messages";
 
 const Login = () => {
@@ -75,9 +75,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/5"></div>
-      <Card className="w-full max-w-md shadow-2xl border-border bg-card/95 backdrop-blur-md relative">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-8">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5"></div>
+      <Card className="w-full max-w-md shadow-xl border-border bg-card relative">
         <CardHeader className="text-center space-y-2">
           <Button 
             variant="ghost" 
@@ -90,12 +90,12 @@ const Login = () => {
           </Button>
           
           <div className="flex items-center justify-center">
-            <img src={LOGO_URL} alt="TAAI Travel" className="h-[200px] w-auto" />
+            <img src={LOGO_WORDMARK_URL} alt="taai" className="h-12 w-auto dark:brightness-0 dark:invert" />
           </div>
           
           <div className="space-y-2">
             <CardTitle className="text-2xl text-card-foreground">Welcome Back</CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="text-foreground/80">
               Sign in to continue your travel planning journey
             </CardDescription>
           </div>
@@ -188,7 +188,7 @@ const Login = () => {
           </Button>
 
           <Button 
-            className="w-full gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
+            className="w-full gold-gradient hover:opacity-90 font-semibold"
             onClick={handleLogin}
             disabled={loading}
           >

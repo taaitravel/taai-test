@@ -159,8 +159,8 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
     <div className={cn(
       "w-[270px] h-[405px] flex flex-col overflow-hidden rounded-lg border pb-[20px] hover:shadow-lg transition-all duration-300",
       isRental
-        ? "border-rental/40 bg-[#1a1c2e] hover:shadow-rental/10"
-        : "border-white/20 bg-[#1a1c2e] hover:shadow-gray-500/10"
+        ? "border-rental/40 bg-card hover:shadow-rental/10"
+        : "border-border bg-card hover:shadow-gray-500/10"
     )}>
       {/* Image Gallery */}
       <div className="relative">
@@ -184,25 +184,25 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
               "text-xs border",
               isRental
                 ? "bg-rental/10 text-rental border-rental/20"
-                : "bg-white/5 text-white/40 border-white/10"
+                : "bg-muted text-muted-foreground border-border"
             )}>
               {source}
             </Badge>
           </div>
-          <h4 className="font-bold text-white text-sm mb-1 line-clamp-1">{hotel.name}</h4>
-          <p className="text-white/60 text-xs mb-2 flex items-center gap-1">
+          <h4 className="font-bold text-foreground text-sm mb-1 line-clamp-1">{hotel.name}</h4>
+          <p className="text-muted-foreground text-xs mb-2 flex items-center gap-1">
             <MapPin className="h-3 w-3" />
             {location}
           </p>
           <div className="flex flex-wrap gap-1 mb-2">
             <Badge className={cn(
               "text-xs border",
-              isRental ? "bg-rental/10 text-rental border-rental/20" : "bg-white/10 text-white/60 border-white/20"
+              isRental ? "bg-rental/10 text-rental border-rental/20" : "bg-muted text-muted-foreground border-border"
             )}>
               ${pricePerNight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/night
             </Badge>
             {hotel.rating > 0 && (
-              <Badge className="text-xs bg-white/10 text-white/60 border-white/20 flex items-center gap-1">
+              <Badge className="text-xs bg-muted text-muted-foreground border-border flex items-center gap-1">
                 <Star className="h-3 w-3 fill-current" />
                 {hotel.rating}
               </Badge>
@@ -211,7 +211,7 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
         </div>
         <div className="space-y-2">
           <div className="space-y-1 mb-4">
-            <div className="flex items-center justify-center gap-2 text-xs text-white/50">
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <span className="flex items-center"><Calendar className="h-3 w-3 mr-1" />{nights} nights</span>
               {rooms > 1 && <span>· {rooms} rooms</span>}
               <span>· {adults} guests</span>
@@ -219,14 +219,14 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
             <p className={cn("text-2xl font-bold text-center", isRental ? "text-rental" : "text-primary")}>
               ${Math.ceil(totalPrice).toLocaleString('en-US')}
             </p>
-            <p className="text-white/40 text-xs text-center">total for {nights}n · {rooms} room{rooms > 1 ? 's' : ''}</p>
+            <p className="text-muted-foreground text-xs text-center">total for {nights}n · {rooms} room{rooms > 1 ? 's' : ''}</p>
           </div>
-          <div className="pt-2 border-t border-white/10 flex gap-2 flex-shrink-0">
+          <div className="pt-2 border-t border-border flex gap-2 flex-shrink-0">
             <Button
               onClick={handleAddToItinerary}
               disabled={saving}
               className={cn(
-                "flex-1 h-8 px-2 text-xs text-white",
+                "flex-1 h-8 px-2 text-xs text-foreground",
                 isRental
                   ? "bg-gradient-to-r from-rental to-rental/80 hover:from-rental/90 hover:to-rental/70 text-rental-foreground"
                   : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
@@ -238,7 +238,7 @@ export const HotelSearchCard = ({ hotel, searchParams }: HotelSearchCardProps) =
             <Button
               onClick={() => setShowRates(true)}
               disabled={saving || booking.issues.length > 0}
-              className="flex-1 h-8 px-2 text-xs font-semibold bg-white text-black border border-white hover:bg-white/90 disabled:opacity-100 disabled:bg-white/30 disabled:text-white"
+              className="flex-1 h-8 px-2 text-xs font-semibold bg-foreground text-background border border-foreground hover:opacity-90 disabled:opacity-100 disabled:bg-muted disabled:text-muted-foreground"
             >
               <BedDouble className="mr-1 h-3 w-3" />
               See Rooms

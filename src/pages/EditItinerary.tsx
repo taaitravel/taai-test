@@ -144,7 +144,6 @@ const EditItinerary = () => {
     <div className="min-h-screen bg-background">
       {/* Navigation - Mobile Responsive */}
       <MobileNavigation 
-        travelerLevel="Master Traveler"
         showBackButton={true}
         backPath={`/itinerary?id=${itineraryId}`}
         backLabel="Back to Itinerary"

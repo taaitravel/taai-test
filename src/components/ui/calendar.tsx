@@ -16,38 +16,38 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3 pointer-events-auto bg-[#1a1c2e] rounded-lg", className)}
+      className={cn("p-3 pointer-events-auto bg-popover text-popover-foreground rounded-lg", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center text-white",
+        caption: "flex justify-center pt-1 relative items-center text-foreground",
         caption_label: "text-sm font-medium",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-white/5 border-white/10 p-0 text-white/70 hover:bg-white/10 hover:text-white"
+          "h-7 w-7 bg-background border-border p-0 text-muted-foreground hover:bg-accent hover:text-foreground"
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
-          "text-white/50 rounded-md w-9 font-normal text-[0.8rem]",
+          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected])]:bg-white first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal text-white hover:bg-white/10 transition-colors"
+          "h-9 w-9 p-0 font-normal text-foreground hover:bg-accent transition-colors"
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "!bg-white !text-[#1a1c2e] hover:opacity-90 focus:opacity-90 font-semibold",
-        day_today: "bg-white/10 text-white font-medium border border-white/20",
+          "!bg-primary !text-primary-foreground hover:opacity-90 focus:opacity-90 font-semibold",
+        day_today: "bg-accent text-foreground font-medium border border-border",
         day_outside:
-          "day-outside text-white/20 opacity-40",
-        day_disabled: "text-white/10 opacity-20 cursor-not-allowed",
+          "day-outside text-muted-foreground opacity-40",
+        day_disabled: "text-muted-foreground opacity-40 cursor-not-allowed",
         day_range_middle:
-          "aria-selected:bg-white aria-selected:text-[#1a1c2e]",
+          "aria-selected:bg-accent aria-selected:text-foreground",
         day_hidden: "invisible",
         ...classNames,
       }}

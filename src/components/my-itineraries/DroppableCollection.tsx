@@ -2,6 +2,7 @@ import React from 'react';
 import { Folder, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collection } from '@/hooks/useItineraryCollections';
+import { pluralize } from '@/lib/pluralize';
 import { cn } from '@/lib/utils';
 
 interface DroppableCollectionProps {
@@ -36,7 +37,7 @@ export const DroppableCollection: React.FC<DroppableCollectionProps> = ({
             {collection.name}
           </p>
           <p className="text-xs text-muted-foreground">
-            {collection.itinerary_count || 0} itinerary{(collection.itinerary_count || 0) !== 1 ? 's' : ''}
+            {pluralize(collection.itinerary_count || 0, 'itinerary', 'itineraries')}
           </p>
         </div>
       </button>

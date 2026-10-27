@@ -379,7 +379,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
       {/* Search Button */}
       <Button
         type="submit"
-        className="w-full mt-4 h-11 gold-gradient hover:opacity-90 text-white font-semibold"
+        className="w-full mt-4 h-11 gold-gradient hover:opacity-90 text-foreground font-semibold"
         disabled={!isFormValid()}
       >
         <Search className="mr-2 h-5 w-5" />

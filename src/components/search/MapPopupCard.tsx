@@ -234,7 +234,7 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
   };
 
   return (
-    <div className="min-w-[240px] max-w-[280px] bg-[#1a1c2e] font-sans">
+    <div className="min-w-[240px] max-w-[280px] bg-card font-sans">
       {/* Image */}
       {images[0] && (
         <div 
@@ -248,7 +248,7 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
         {/* Category and Rating */}
         <div className="flex items-center gap-2 mb-2">
           <span className="text-lg opacity-60">{getItemTypeEmoji()}</span>
-          <Badge variant="secondary" className="text-[10px] bg-white/10 text-white/60 border-white/10">
+          <Badge variant="secondary" className="text-[10px] bg-muted text-muted-foreground border-border">
             {searchType || 'item'}
           </Badge>
           {item.rating && (
@@ -260,12 +260,12 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
         </div>
         
         {/* Name */}
-        <h3 className="text-[13px] font-bold text-white mb-1 line-clamp-1">
+        <h3 className="text-[13px] font-bold text-foreground mb-1 line-clamp-1">
           {item.name || 'Unknown'}
         </h3>
         
         {/* Location */}
-        <div className="flex items-center gap-1 text-[11px] text-white/60 mb-3">
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-3">
           <MapPin className="h-3 w-3" />
           <span className="truncate">{location}</span>
           {item.distanceFromSearch && (
@@ -274,18 +274,18 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
         </div>
         
         {/* Price */}
-        <div className="flex items-baseline justify-between pt-2 border-t border-white/10 mb-3">
+        <div className="flex items-baseline justify-between pt-2 border-t border-border mb-3">
           <div>
             <div className="text-lg font-bold" style={{ color: '#ff849c' }}>
               ${Math.ceil(totalPrice).toLocaleString()}
             </div>
-            <div className="text-[9px] text-white/50">
+            <div className="text-[9px] text-muted-foreground">
               total{searchType === 'hotels' && hotelBooking.nights > 0 ? ` · ${hotelBooking.nights} nights` : ''}
             </div>
           </div>
           {item.reviews && (
             <div className="text-right">
-              <div className="text-[10px] text-white/50">
+              <div className="text-[10px] text-muted-foreground">
                 {parseInt(item.reviews).toLocaleString()} reviews
               </div>
             </div>
@@ -297,7 +297,7 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
           <Button
             onClick={handleAddToItinerary}
             disabled={saving}
-            className="flex-1 h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
+            className="flex-1 h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-foreground"
           >
             <Plus className="mr-1 h-3 w-3" />
             {saving ? 'Saving...' : getItemTypeLabel()}
@@ -307,7 +307,7 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
             <Button
               variant="outline"
               size="sm"
-              className="h-8 px-2 border-white/20 text-white/60 hover:text-white hover:bg-white/10"
+              className="h-8 px-2 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
               onClick={() => setShowRates(true)}
               disabled={hotelBooking.issues.length > 0}
               aria-label="Select a room and rate"
@@ -320,7 +320,7 @@ export const MapPopupCard = ({ item, searchType, onClose }: MapPopupCardProps) =
             <Button
               variant="outline"
               size="sm"
-              className="h-8 px-2 border-white/20 text-white/60 hover:text-white hover:bg-white/10"
+              className="h-8 px-2 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
               onClick={() => window.open(item.bookingUrl, '_blank')}
             >
               <ExternalLink className="h-3 w-3" />

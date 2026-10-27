@@ -14,10 +14,8 @@ interface PublicItineraryCardProps {
 /**
  * Public / not-yet-yours itinerary card.
  *
- * Deliberately skinned like a SEARCH result (dark panel + gold accents) rather
- * than an owned itinerary card (coral/navy trip surface), so travelers can tell
- * at a glance that this is inspiration they have not added yet. Footprint and
- * radius match the established card dimensions.
+ * Same footprint as an owned trip card, using the app theme so inspiration
+ * stays readable in light and dark. A rental accent marks it as not-yet-yours.
  */
 export const PublicItineraryCard = ({ card, size = 'responsive', className }: PublicItineraryCardProps) => {
   const isStack = size === 'stack';
@@ -31,7 +29,7 @@ export const PublicItineraryCard = ({ card, size = 'responsive', className }: Pu
       aria-label={`${card.title} — public itinerary`}
       className={cn(
         cardSize,
-        'group shrink-0 flex flex-col overflow-hidden rounded-lg border border-rental/40 bg-[#1a1c2e]',
+        'group shrink-0 flex flex-col overflow-hidden rounded-lg border border-border bg-card',
         'shadow-sm hover:shadow-lg hover:shadow-rental/10 transition-all duration-300',
         className
       )}
@@ -46,7 +44,7 @@ export const PublicItineraryCard = ({ card, size = 'responsive', className }: Pu
             className="absolute inset-0 h-full w-full object-cover"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1c2e] via-[#1a1c2e]/20 to-transparent" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" aria-hidden />
         <Badge className="absolute top-2 left-2 bg-black/55 text-white/90 border-0 text-[10px] font-semibold px-1.5 py-0.5 max-w-[55%] truncate">
           @{card.author.slug}
         </Badge>
@@ -65,8 +63,8 @@ export const PublicItineraryCard = ({ card, size = 'responsive', className }: Pu
       {/* Content — 50% of the card */}
       <div className="h-1/2 p-2 sm:p-3 lg:p-4 flex flex-col justify-between">
         <div className="min-w-0">
-          <h4 className="font-bold text-white text-sm sm:text-base leading-tight line-clamp-2">{card.title}</h4>
-          <p className="text-white/60 text-[10px] sm:text-xs mt-1 line-clamp-2">{card.summary}</p>
+          <h4 className="font-bold text-card-foreground text-sm sm:text-base leading-tight line-clamp-2">{card.title}</h4>
+          <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 line-clamp-2">{card.summary}</p>
         </div>
 
         <div className="space-y-1.5">
@@ -75,12 +73,12 @@ export const PublicItineraryCard = ({ card, size = 'responsive', className }: Pu
               <Calendar className="h-3 w-3" />
               {card.dayCount} days
             </Badge>
-            <Badge className="text-[10px] sm:text-xs bg-white/5 text-white/50 border border-white/10 flex items-center gap-1">
+            <Badge className="text-[10px] sm:text-xs bg-muted text-muted-foreground border border-border flex items-center gap-1">
               <Copy className="h-3 w-3" />
               {card.cloneCount}
             </Badge>
           </div>
-          <p className="text-white/40 text-[10px] sm:text-xs truncate">
+          <p className="text-muted-foreground text-[10px] sm:text-xs truncate">
             Add to your trips · {card.author.displayName}
           </p>
         </div>

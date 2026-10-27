@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getTravelerLevel } from "@/lib/travelerLevel";
+import { travelerLevelFromProfile } from "@/lib/travelerLevel";
 import { useDashboardData, type SortOption } from "@/hooks/useDashboardData";
 import { useTripBrowser } from "@/hooks/useTripBrowser";
 import { calculateUserStats } from "@/lib/dashboardUtils";
@@ -29,7 +29,7 @@ export const useDashboard = () => {
     ...userStats,
     projectedSpend,
     lifetimeTotal,
-    travelerLevel: getTravelerLevel(visitedCountries.length, userStats.flightsThisYear)
+    travelerLevel: travelerLevelFromProfile(userProfile)
   };
 
   // Filter handlers

@@ -67,12 +67,12 @@ export const SearchForm = ({ searchType, onSearch }: SearchFormProps) => {
         </div>
 
         <div>
-          <Label className="text-white">Check-in</Label>
+          <Label className="text-foreground">Check-in</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal mt-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="w-full justify-start text-left font-normal mt-1 bg-muted border-border text-foreground hover:bg-accent"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {checkinDate ? format(checkinDate, 'PPP') : 'Select date'}
@@ -90,12 +90,12 @@ export const SearchForm = ({ searchType, onSearch }: SearchFormProps) => {
         </div>
 
         <div>
-          <Label className="text-white">Check-out</Label>
+          <Label className="text-foreground">Check-out</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal mt-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="w-full justify-start text-left font-normal mt-1 bg-muted border-border text-foreground hover:bg-accent"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {checkoutDate ? format(checkoutDate, 'PPP') : 'Select date'}
@@ -114,7 +114,7 @@ export const SearchForm = ({ searchType, onSearch }: SearchFormProps) => {
         </div>
 
         <div>
-          <Label htmlFor="adults" className="text-white flex items-center gap-2">
+          <Label htmlFor="adults" className="text-foreground flex items-center gap-2">
             <Users className="h-4 w-4" />
             Adults
           </Label>
@@ -125,13 +125,13 @@ export const SearchForm = ({ searchType, onSearch }: SearchFormProps) => {
             max="10"
             value={adults}
             onChange={(e) => setAdults(parseInt(e.target.value))}
-            className="mt-1 bg-white/10 border-white/20 text-white"
+            className="mt-1 bg-muted border-border text-foreground"
           />
         </div>
 
         {(searchType === 'hotel' || searchType === 'package') && (
           <div>
-            <Label htmlFor="rooms" className="text-white">Rooms</Label>
+            <Label htmlFor="rooms" className="text-foreground">Rooms</Label>
             <Input
               id="rooms"
               type="number"
@@ -139,7 +139,7 @@ export const SearchForm = ({ searchType, onSearch }: SearchFormProps) => {
               max="5"
               value={rooms}
               onChange={(e) => setRooms(parseInt(e.target.value))}
-              className="mt-1 bg-white/10 border-white/20 text-white"
+              className="mt-1 bg-muted border-border text-foreground"
             />
           </div>
         )}

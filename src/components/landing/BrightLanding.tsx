@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom";
 import rawHtml from "@/pages/landing/index-bright.html?raw";
 
 /**
- * Renders the taai "bright edition" landing experience.
- * The source HTML/CSS/JS is kept verbatim (design spec fidelity) and mounted
- * into a container. The page is forced to the light palette while mounted;
- * the authenticated app keeps its own theme toggle.
+ * Renders the taai landing experience.
+ * The source HTML/CSS/JS is mounted into a container and follows the app theme.
  */
 
 const extract = () => {
@@ -28,18 +26,8 @@ export const BrightLanding = () => {
 
     const { styles, scripts, body } = extract();
 
-    // Force the light palette for the landing route only (the authenticated
-    // app keeps its own theme toggle).
     const root = document.documentElement;
-    const hadDark = root.classList.contains("dark");
-    const stripDark = () => {
-      if (root.classList.contains("dark")) root.classList.remove("dark");
-      if (!root.classList.contains("light")) root.classList.add("light");
-    };
-    stripDark();
     root.classList.add("taai-bright");
-    const observer = new MutationObserver(stripDark);
-    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
 
     const fonts = document.createElement("link");
     fonts.rel = "stylesheet";
@@ -58,7 +46,7 @@ export const BrightLanding = () => {
     const hostStyle = document.createElement("style");
     hostStyle.setAttribute("data-taai-bright", "");
     hostStyle.textContent =
-      ".taai-bright-host{position:relative;z-index:0;background:#FAF7F2;color:#171310;font-family:'Inter',-apple-system,sans-serif}";
+      ".taai-bright-host{position:relative;z-index:0;background:var(--cream,#FAF7F2);color:var(--ink,#171310);font-family:'Inter',-apple-system,sans-serif}";
     document.head.appendChild(hostStyle);
     styleEls.push(hostStyle);
 
@@ -103,7 +91,6 @@ export const BrightLanding = () => {
     host.addEventListener("click", onClick);
 
     return () => {
-      observer.disconnect();
       host.removeEventListener("click", onClick);
       host.innerHTML = "";
       styleEls.forEach((el) => el.remove());
@@ -111,10 +98,6 @@ export const BrightLanding = () => {
       fonts.remove();
       document.body.classList.remove("ready");
       root.classList.remove("taai-bright");
-      if (hadDark) {
-        root.classList.remove("light");
-        root.classList.add("dark");
-      }
     };
 
   }, [navigate]);

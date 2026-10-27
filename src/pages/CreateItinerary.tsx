@@ -163,7 +163,6 @@ const CreateItinerary = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navigation - Mobile Responsive */}
       <MobileNavigation 
-        travelerLevel="Master Traveler"
         showBackButton={true}
         backPath="/home"
         backLabel="Back to Home"

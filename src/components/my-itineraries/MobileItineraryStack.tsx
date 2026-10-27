@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Luggage } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ItineraryCard } from './ItineraryCard';
@@ -35,7 +35,7 @@ export const MobileItineraryStack: React.FC<MobileItineraryStackProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-3">
-          <span className="text-xl">✈️</span>
+          <Luggage className="h-6 w-6 text-muted-foreground" aria-hidden />
         </div>
         <p className="text-sm text-muted-foreground">No itineraries in this stack</p>
       </div>

@@ -24,7 +24,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-28 md:pb-0">
+    <div className="min-h-screen bg-background chrome-inset md:pb-0">
       <MobileNavigation
         showBackButton={true}
         backPath="/home"
@@ -32,11 +32,11 @@ const Profile = () => {
         showTripButtons={false}
       />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
         <h1 className="text-2xl font-bold text-foreground mb-6">My Profile</h1>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="mb-6 flex w-full gap-1 overflow-x-auto no-scrollbar justify-start rounded-2xl h-auto p-1">
+          <TabsList className="mb-6 flex w-full gap-2 overflow-x-auto no-scrollbar justify-start rounded-2xl h-auto p-2">
             <TabsTrigger value="edit" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
               <UserPen className="h-4 w-4" />
               Edit Profile

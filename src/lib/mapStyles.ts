@@ -15,8 +15,20 @@ const DARK_STYLES: Record<MapVariant, string> = {
 
 const LIGHT_STYLE = 'mapbox://styles/taai/cmlrf6i5q004p01qk9a5i062m';
 
+export function resolvedColorScheme(theme: string | undefined): 'light' | 'dark' {
+  if (theme === 'light' || theme === 'dark') return theme;
+  if (typeof document !== 'undefined') {
+    if (document.documentElement.classList.contains('light')) return 'light';
+    if (document.documentElement.classList.contains('dark')) return 'dark';
+  }
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+  return 'light';
+}
+
 export function getMapStyle(theme: string | undefined, variant: MapVariant = 'search'): string {
-  if (theme === 'light') return LIGHT_STYLE;
+  if (resolvedColorScheme(theme) === 'light') return LIGHT_STYLE;
   return DARK_STYLES[variant];
 }
 
@@ -27,7 +39,7 @@ export interface FogConfig {
 }
 
 export function getMapFog(theme: string | undefined): FogConfig | null {
-  if (theme === 'light') {
+  if (resolvedColorScheme(theme) === 'light') {
     return {
       color: 'rgb(230, 228, 225)',
       'high-color': 'rgb(200, 200, 210)',
@@ -43,7 +55,7 @@ export function getMapFog(theme: string | undefined): FogConfig | null {
 
 /** Returns popup inline-style colors based on theme */
 export function getPopupColors(theme: string | undefined) {
-  if (theme === 'light') {
+  if (resolvedColorScheme(theme) === 'light') {
     return {
       bg: '#ffffff',
       text: '#1a1a2e',
@@ -67,15 +79,15 @@ export function getPopupColors(theme: string | undefined) {
 
 /** Marker border color adapts to theme for better contrast */
 export function getMarkerBorderColor(theme: string | undefined): string {
-  return theme === 'light' ? '#d1d5db' : '#ffffff';
+  return resolvedColorScheme(theme) === 'light' ? '#d1d5db' : '#ffffff';
 }
 
 /** Default marker dot color — pink for light, gold for dark */
 export function getMarkerDotColor(theme: string | undefined): string {
-  return theme === 'light' ? '#ff849c' : '#ffce87';
+  return resolvedColorScheme(theme) === 'light' ? '#ff849c' : '#ffce87';
 }
 
 /** Marker glow shadow color */
 export function getMarkerGlow(theme: string | undefined): string {
-  return theme === 'light' ? 'rgba(255,132,156,0.6)' : 'rgba(255,206,135,0.6)';
+  return resolvedColorScheme(theme) === 'light' ? 'rgba(255,132,156,0.6)' : 'rgba(255,206,135,0.6)';
 }

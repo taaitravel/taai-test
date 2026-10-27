@@ -134,7 +134,7 @@ const UsageDashboard: React.FC<UsageDashboardProps> = ({ userId, subscriptionDat
             className={`text-xs font-semibold ${
               delta < 0
                 ? 'bg-destructive/20 text-destructive border-destructive/30'
-                : 'bg-green-500/20 text-green-400 border-green-500/30'
+                : 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-700/30'
             }`}
           >
             {delta > 0 ? `+${delta}` : delta}

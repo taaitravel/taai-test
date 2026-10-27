@@ -55,12 +55,12 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   };
   
   const canUpgrade = !isCurrentTier;
-  return <Card className={`relative p-6 bg-card/80 border-border backdrop-blur-sm hover:shadow-2xl transition-all duration-300 flex flex-col h-full ${isCurrentTier ? 'ring-2 ring-primary shadow-lg shadow-primary/30' : ''} ${tier.isPopular ? 'border-primary/50' : ''}`}>
-      {tier.isPopular && <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 gold-gradient text-primary-foreground">
+  return <Card className={`relative overflow-visible p-6 pt-8 bg-card border-border shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full ${isCurrentTier ? 'ring-2 ring-primary' : ''} ${tier.isPopular ? 'border-primary/60 mt-4' : ''}`}>
+      {tier.isPopular && <Badge className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 gold-gradient px-3 py-1 shadow-sm">
           Most Popular
         </Badge>}
       
-      {isCurrentTier && <Badge variant="secondary" className="absolute -top-3 right-4 bg-secondary text-secondary-foreground border-border mx-0 my-[25px]">
+      {isCurrentTier && <Badge variant="secondary" className="absolute top-4 right-4 bg-secondary text-secondary-foreground border-border">
           Current Plan
         </Badge>}
 
@@ -68,7 +68,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <div className="flex justify-center mb-4">
            <div className="w-16 h-16 gold-gradient rounded-full flex items-center justify-center shadow-lg">
             {tier.icon && React.cloneElement(tier.icon, {
-            className: "h-8 w-8 text-primary-foreground"
+            className: "h-8 w-8 text-[#171310]"
           })}
           </div>
         </div>
@@ -81,7 +81,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
               ? `$${currentMonthlyPrice.toFixed(2)}/mo`
               : `$${currentAnnualPrice.toFixed(2)}/yr`}
         </div>
-        {tier.annualPrice && billingFrequency === 'annual' && tier.id !== 'traveler' && tier.id !== 'taai_enterprise_plus' && <div className="text-sm text-green-300 mt-1">
+        {tier.annualPrice && billingFrequency === 'annual' && tier.id !== 'traveler' && tier.id !== 'taai_enterprise_plus' && <div className="text-sm text-emerald-800 dark:text-emerald-300 mt-2">
             Save {dynamicSavings}% annually
           </div>}
         {tier.taxNote && <div className="text-sm text-muted-foreground/60 mt-1">

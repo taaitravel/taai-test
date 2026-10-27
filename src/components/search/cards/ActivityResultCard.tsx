@@ -140,7 +140,7 @@ export const ActivityResultCard = ({ activity, searchParams, planningAction }: A
   return (
     <div className="w-[255px] h-[375px] p-6 flex flex-col">
       {/* Image */}
-      <div className="relative h-32 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
+      <div className="relative h-32 bg-muted rounded-lg overflow-hidden flex-shrink-0">
         {activity.images?.[0] ? (
           <img 
             src={activity.images[0]} 
@@ -148,13 +148,13 @@ export const ActivityResultCard = ({ activity, searchParams, planningAction }: A
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
             No image
           </div>
         )}
         {activity.rating && (
           <div className="absolute top-3 right-3">
-            <Badge className="bg-primary text-white text-xs">
+            <Badge className="bg-primary text-foreground text-xs">
               {activity.rating} <Star className="ml-1 h-3 w-3 fill-current" />
             </Badge>
           </div>
@@ -164,28 +164,28 @@ export const ActivityResultCard = ({ activity, searchParams, planningAction }: A
       {/* Activity info */}
       <div className="flex-1 flex flex-col justify-between space-y-3 mt-4">
         <div>
-          <h3 className="text-lg font-bold text-white line-clamp-2">{activity.name}</h3>
-          <p className="text-white/50 flex items-center gap-1 text-sm mt-1">
+          <h3 className="text-lg font-bold text-foreground line-clamp-2">{activity.name}</h3>
+          <p className="text-muted-foreground flex items-center gap-1 text-sm mt-1">
             <MapPin className="h-3.5 w-3.5" />
             {activity.location || activity.address}
           </p>
         </div>
 
         {/* Price Section */}
-        <div className="pt-4 border-t border-white/10">
+        <div className="pt-4 border-t border-border">
           <div className="flex items-baseline justify-between mb-4">
             <div>
-              <p className="text-white/60 text-sm">Price</p>
+              <p className="text-muted-foreground text-sm">Price</p>
               <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
                 ${Math.ceil(activity.price || activity.cost || 75).toLocaleString('en-US')}
               </p>
-              <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
+              <p className="text-muted-foreground text-xs mt-1">including taxes and fees</p>
             </div>
           </div>
         </div>
 
         {/* Add to Itinerary Button */}
-        <div className="pt-4 border-t border-white/10 mt-auto">
+        <div className="pt-4 border-t border-border mt-auto">
           {planningAction === undefined ? (
             <Button
               onClick={handleAddToItinerary}

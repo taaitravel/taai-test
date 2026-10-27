@@ -20,6 +20,7 @@ import { useSharedItineraries } from '@/hooks/useSharedItineraries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { ItineraryData } from '@/types/itinerary';
+import { pluralize } from '@/lib/pluralize';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'grid' | 'map' | 'list';
@@ -255,7 +256,7 @@ const MyItineraries = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-28 md:pb-0">
+    <div className="min-h-screen bg-background flex flex-col chrome-inset md:pb-0">
         {/* Consistent Navigation Header */}
         <MobileNavigation 
           showBackButton={true}
@@ -264,7 +265,7 @@ const MyItineraries = () => {
           customActions={navCustomActions}
         />
 
-        <div className="flex flex-1 flex-col md:flex-row">
+        <div className="flex flex-1 flex-col md:grid md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:items-stretch min-h-0">
           {/* Desktop Sidebar - hidden on mobile and when viewing shared tab */}
           {!isMobile && activeTab === 'mine' && (
             <CollectionsSidebar
@@ -315,8 +316,8 @@ const MyItineraries = () => {
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   {activeTab === 'shared'
-                    ? `${sharedItineraries.length} shared trip${sharedItineraries.length !== 1 ? 's' : ''}`
-                    : `${filteredItineraries.length} itinerary${filteredItineraries.length !== 1 ? 's' : ''}`
+                    ? pluralize(sharedItineraries.length, 'shared trip')
+                    : pluralize(filteredItineraries.length, 'itinerary', 'itineraries')
                   }
                 </p>
               </div>

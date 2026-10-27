@@ -59,7 +59,7 @@ export const SearchResultsSwiper = ({ results, searchType, searchParams }: Searc
     <div className="relative">
       {/* Results counter */}
       <div className="text-center mb-4">
-        <p className="text-white/60">
+        <p className="text-muted-foreground">
           {currentIndex + 1} of {results.length} results
         </p>
       </div>
@@ -68,14 +68,14 @@ export const SearchResultsSwiper = ({ results, searchType, searchParams }: Searc
       <div className="relative min-h-[500px] flex items-center justify-center">
         {/* Background cards for depth effect */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <Card className="w-full max-w-2xl h-[480px] bg-white/5 border-white/10 blur-sm opacity-50" />
+          <Card className="w-full max-w-2xl h-[480px] bg-muted border-border blur-sm opacity-50" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <Card className="w-full max-w-2xl h-[490px] bg-white/5 border-white/10 blur-sm opacity-30" />
+          <Card className="w-full max-w-2xl h-[490px] bg-muted border-border blur-sm opacity-30" />
         </div>
 
         {/* Main card */}
-        <Card className="relative w-full max-w-2xl bg-gradient-to-br from-white/10 to-white/5 border-white/20 backdrop-blur-lg overflow-hidden z-10">
+        <Card className="relative w-full max-w-2xl bg-gradient-to-br from-foreground/5 to-transparent border-border backdrop-blur-lg overflow-hidden z-10">
           {renderCard()}
         </Card>
       </div>
@@ -86,7 +86,7 @@ export const SearchResultsSwiper = ({ results, searchType, searchParams }: Searc
           variant="outline"
           size="icon"
           onClick={handlePrevious}
-          className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
+          className="bg-muted border-border hover:bg-accent text-foreground"
           disabled={results.length <= 1}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -97,7 +97,7 @@ export const SearchResultsSwiper = ({ results, searchType, searchParams }: Searc
           size="icon"
           onClick={toggleFavorite}
           className={`${
-            isFavorite ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-white/10 border-white/20 text-white'
+            isFavorite ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-muted border-border text-foreground'
           } hover:bg-red-500/30`}
         >
           <Heart className={isFavorite ? 'fill-current' : ''} />
@@ -115,7 +115,7 @@ export const SearchResultsSwiper = ({ results, searchType, searchParams }: Searc
           variant="outline"
           size="icon"
           onClick={handleNext}
-          className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
+          className="bg-muted border-border hover:bg-accent text-foreground"
           disabled={results.length <= 1}
         >
           <ChevronRight className="h-4 w-4" />

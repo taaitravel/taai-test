@@ -29,7 +29,8 @@ const Discover = () => {
     <div className="min-h-screen bg-background">
       <PublicNavigation />
 
-      <main className="mx-auto w-full max-w-6xl px-4 pt-24 pb-24 space-y-10">
+      <div className="chrome-inset">
+      <main className="mx-auto w-full max-w-6xl px-4 pt-24 space-y-8">
         <header className="space-y-2">
           <div className="flex items-center gap-2">
             <p className="text-xs uppercase tracking-[0.2em] text-primary">Discover</p>
@@ -51,6 +52,7 @@ const Discover = () => {
       </main>
 
       <PublicFooter />
+      </div>
     </div>
   );
 };

@@ -63,7 +63,7 @@ const Subscription = () => {
   return (
     <div className="min-h-screen bg-background">
       <MobileNavigation showBackButton={true} backPath="/home" backLabel="← Back" showTripButtons={false} />
-      <div className="container mx-auto px-4 py-8 pb-28 md:pb-8">
+      <div className="container mx-auto px-4 py-8 chrome-inset md:pb-8">
         <div className="text-center mb-12">
           <Badge className="mb-6 bg-secondary text-foreground hover:bg-secondary/80 border-border" variant="secondary">
             Choose Your Plan
@@ -98,7 +98,7 @@ const Subscription = () => {
               </button>
             </div>
             {billingFrequency === 'annual' && (
-              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+              <Badge className="bg-emerald-700/10 text-emerald-800 border-emerald-700/30 dark:bg-emerald-300/15 dark:text-emerald-200 dark:border-emerald-300/40">
                 Save up to 19%
               </Badge>
             )}
@@ -128,20 +128,20 @@ const Subscription = () => {
           <TabsList className="grid w-full grid-cols-2 mb-8 bg-secondary border border-border p-1">
             <TabsTrigger
               value="individual"
-              className="text-foreground/70 hover:text-foreground data-[state=active]:!bg-transparent data-[state=active]:gold-gradient data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="text-foreground/80 hover:text-foreground data-[state=active]:!bg-transparent data-[state=active]:gold-gradient data-[state=active]:shadow-md"
             >
               Individual Plans
             </TabsTrigger>
             <TabsTrigger
               value="corporate"
-              className="text-foreground/70 hover:text-foreground data-[state=active]:!bg-transparent data-[state=active]:gold-gradient data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="text-foreground/80 hover:text-foreground data-[state=active]:!bg-transparent data-[state=active]:gold-gradient data-[state=active]:shadow-md"
             >
               Corporate Plans
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="individual">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4 overflow-visible">
               {individualTiers.map((tier) => (
                 <SubscriptionCard key={tier.id} tier={tier} billingFrequency={billingFrequency} isCurrentTier={isCurrentTier(tier.id)} loading={loading} onSubscribe={handleSubscribe} />
               ))}
@@ -149,7 +149,7 @@ const Subscription = () => {
           </TabsContent>
 
           <TabsContent value="corporate">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 overflow-visible">
               {corporateTiers.map((tier) => (
                 <SubscriptionCard key={tier.id} tier={tier} billingFrequency={billingFrequency} isCurrentTier={isCurrentTier(tier.id)} loading={loading} onSubscribe={handleSubscribe} />
               ))}

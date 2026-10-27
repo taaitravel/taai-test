@@ -6,6 +6,7 @@ import { useMapboxToken } from '@/hooks/useMapboxToken';
 import { useCountryData } from '@/hooks/useCountryData';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { getMapStyle, getMarkerBorderColor, getMarkerDotColor, getMarkerGlow } from '@/lib/mapStyles';
+import { defaultMapCamera } from '@/lib/maps/default-view';
 
 interface CountriesMapProps {
   visitedCountries: string[];
@@ -46,13 +47,16 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
     setIsLoading(true);
     mapboxgl.accessToken = mapboxToken;
 
+    const camera = defaultMapCamera();
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: getMapStyle(theme, 'countries'),
       projection: 'mercator',
-      center: [0, 0],
-      zoom: 2,
+      center: camera.center,
+      zoom: camera.zoom,
       pitch: 0,
+      attributionControl: { compact: true },
+      logoPosition: 'bottom-left',
     });
 
     map.current.on('load', () => setIsLoading(false));
