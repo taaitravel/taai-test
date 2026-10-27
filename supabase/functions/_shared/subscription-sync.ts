@@ -19,6 +19,9 @@ export interface ResolvedSubscription {
   maxItineraries: number;
   maxSharedFriends: number;
   status: string | null;
+  paymentFailed: boolean;
+  cancelAtPeriodEnd: boolean;
+  productName: string | null;
 }
 
 const monthStart = () => {
@@ -61,22 +64,33 @@ export const resolveSubscription = async (
   }
 
   let subscribed = false;
+  let paymentFailed = false;
+  let cancelAtPeriodEnd = false;
   let price: Stripe.Price | null = null;
   let subscriptionEnd: string | null = null;
   let status: string | null = null;
+  let productName: string | null = null;
 
   if (customerId) {
-    const active = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 });
-    const trial = active.data[0]
-      ? null
-      : await stripe.subscriptions.list({ customer: customerId, status: 'trialing', limit: 1 });
-    const subscription = active.data[0] ?? trial?.data[0] ?? null;
+    const statuses = ['active', 'trialing', 'past_due', 'unpaid'] as const;
+    let subscription: Stripe.Subscription | null = null;
+    for (const wanted of statuses) {
+      const list = await stripe.subscriptions.list({ customer: customerId, status: wanted, limit: 1 });
+      if (list.data[0]) {
+        subscription = list.data[0];
+        break;
+      }
+    }
     if (subscription) {
-      subscribed = true;
       status = subscription.status;
+      subscribed = status === 'active' || status === 'trialing';
+      paymentFailed = status === 'past_due' || status === 'unpaid';
+      cancelAtPeriodEnd = subscribed && subscription.cancel_at_period_end === true;
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       const priceId = subscription.items.data[0]?.price?.id;
       if (priceId) price = await stripe.prices.retrieve(priceId, { expand: ['product'] });
+      const product = price?.product && typeof price.product === 'object' ? price.product as Stripe.Product : null;
+      if (product && !('deleted' in product && product.deleted)) productName = product.name ?? null;
     }
   }
 
@@ -93,13 +107,14 @@ export const resolveSubscription = async (
     previousTier: input.previousTier,
     subscribed,
   });
-  const limits = limitsForTier(mapped.tier);
+  const entitlementTier = subscribed ? mapped.tier : 'traveler';
+  const limits = limitsForTier(entitlementTier);
   const used = input.userId ? await creditsUsedThisMonth(admin, input.userId) : 0;
   const creditsRemaining = limits.monthlyAiCredits < 0
     ? -1
     : Math.max(limits.monthlyAiCredits - used, 0);
 
-  if (price?.id && mapped.source !== 'unmapped_paid' && mapped.source !== 'free' && mapped.source !== 'previous_tier') {
+  if (subscribed && price?.id && mapped.source !== 'unmapped_paid' && mapped.source !== 'free' && mapped.source !== 'previous_tier') {
     await admin.from('stripe_price_tiers').upsert({
       price_id: price.id,
       product_id: details.productId,
@@ -112,7 +127,7 @@ export const resolveSubscription = async (
 
   return {
     subscribed,
-    tier: mapped.tier,
+    tier: entitlementTier,
     source: mapped.source,
     priceId: price?.id ?? null,
     productId: details.productId,
@@ -124,6 +139,9 @@ export const resolveSubscription = async (
     maxItineraries: limits.maxItineraries,
     maxSharedFriends: limits.maxSharedFriends,
     status,
+    paymentFailed,
+    cancelAtPeriodEnd,
+    productName,
   };
 };
 
@@ -131,7 +149,17 @@ export const upsertSubscriber = async (
   admin: AdminClient,
   user: { id: string; email: string },
   resolved: ResolvedSubscription,
+  notice?: {
+    existingPaymentFailedAt?: string | null;
+    existingPaymentRetryAt?: string | null;
+    existingPaymentFailureSummary?: string | null;
+    paymentRetryAt?: string | null;
+    paymentFailureSummary?: string | null;
+  },
 ) => {
+  const failedAt = resolved.paymentFailed
+    ? (notice?.existingPaymentFailedAt ?? new Date().toISOString())
+    : null;
   await admin.from('subscribers').upsert({
     email: user.email,
     user_id: user.id,
@@ -142,6 +170,15 @@ export const upsertSubscriber = async (
     credits_remaining: resolved.creditsRemaining,
     max_itineraries: resolved.maxItineraries,
     max_shared_friends: resolved.maxSharedFriends,
+    stripe_price_id: resolved.priceId,
+    cancel_at_period_end: resolved.cancelAtPeriodEnd,
+    payment_failed_at: failedAt,
+    payment_retry_at: resolved.paymentFailed
+      ? (notice?.paymentRetryAt ?? notice?.existingPaymentRetryAt ?? null)
+      : null,
+    payment_failure_summary: resolved.paymentFailed
+      ? (notice?.paymentFailureSummary ?? notice?.existingPaymentFailureSummary ?? null)
+      : null,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'email' });
 };

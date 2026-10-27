@@ -59,8 +59,13 @@ const Itinerary = () => {
     setSearchParams(nextParams);
   };
 
+  const readOnlyTrip = Boolean(itineraryData?.editing_locked);
+
   const openEdit = (type: ItemType, index: number) => {
-    if (!itineraryData) return;
+    if (!itineraryData || readOnlyTrip) {
+      if (readOnlyTrip) toast.error('This trip is read-only on the free plan. Your newest trips stay editable.');
+      return;
+    }
     setEditType(type);
     setEditIndex(index);
     const arr = (itineraryData as any)[type] || [];
@@ -69,7 +74,7 @@ const Itinerary = () => {
   };
 
   const handleEditSubmit = async (type: ItemType, item: any) => {
-    if (!itineraryData) return;
+    if (!itineraryData || readOnlyTrip) return;
     
     try {
       // Check if editing a cart item
@@ -134,7 +139,10 @@ const Itinerary = () => {
   };
 
   const handleEdit = async (type: ItemType, index: number) => {
-    if (!itineraryData) return;
+    if (!itineraryData || readOnlyTrip) {
+      if (readOnlyTrip) toast.error('This trip is read-only on the free plan. Your newest trips stay editable.');
+      return;
+    }
     const items = ((itineraryData as any)[type] || []) as any[];
     const item = items[index];
     
@@ -149,7 +157,10 @@ const Itinerary = () => {
   };
 
   const handleDelete = async (type: string, index: number) => {
-    if (!itineraryData) return;
+    if (!itineraryData || readOnlyTrip) {
+      if (readOnlyTrip) toast.error('This trip is read-only on the free plan. Your newest trips stay editable.');
+      return;
+    }
     try {
       const itemType = type as ItemType;
       const items = ((itineraryData as any)[itemType] || []) as any[];
@@ -199,6 +210,14 @@ const Itinerary = () => {
         <AgentChip agent="miles" onClick={() => setChatOpen(true)} />
       </div>
 
+      {readOnlyTrip && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-accent/50 border border-accent rounded-lg px-4 py-2 text-sm text-muted-foreground">
+            This trip is read-only. The free Traveler plan keeps your three newest trips editable. This one stays available to view.
+          </div>
+        </div>
+      )}
+
       {userRole === 'collaborator' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-accent/50 border border-accent rounded-lg px-4 py-2 text-sm text-muted-foreground">
@@ -222,8 +241,8 @@ const Itinerary = () => {
         onHotelClick={openHotelBrowser}
         onActivityClick={openActivityBrowser}
         onReservationClick={openReservationBrowser}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={readOnlyTrip ? undefined : handleEdit}
+        onDelete={readOnlyTrip ? undefined : handleDelete}
         refreshMapData={refreshMapData}
         userRole={userRole}
         selectedSection={selectedSection}
@@ -341,9 +360,11 @@ function ItemDetailDialog({ browserState, itineraryData, onClose, onEdit }: {
           )}
         </div>
         <div className="flex justify-end pt-2">
-          <Button variant="outline" size="sm" onClick={() => onEdit(type, index)}>
-            <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
-          </Button>
+          {!itineraryData?.editing_locked && (
+            <Button variant="outline" size="sm" onClick={() => onEdit(type, index)}>
+              <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPen, Settings, Compass, Bell, Map, CreditCard } from "lucide-react";
+import { CreditCard, Compass, Bell, Map, Settings, UserPen, Shield } from "lucide-react";
 import { BillingSection } from "@/components/profile/BillingSection";
 import { ProfileTripsSection } from "@/components/profile/ProfileTripsSection";
 import { MobileNavigation } from "@/components/shared/MobileNavigation";
 import { EditProfileSection } from "@/components/profile/EditProfileSection";
 import { PreferencesSection } from "@/components/profile/PreferencesSection";
 import { NotificationPreferencesSection } from "@/components/profile/NotificationPreferencesSection";
+import { AccountSection } from "@/components/profile/AccountSection";
 
 const Profile = () => {
   const [searchParams] = useSearchParams();
@@ -57,6 +58,10 @@ const Profile = () => {
               <Bell className="h-4 w-4" />
               Notifications
             </TabsTrigger>
+            <TabsTrigger value="account" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
+              <Shield className="h-4 w-4" />
+              Account
+            </TabsTrigger>
             <TabsTrigger value="setup" className="shrink-0 gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs sm:text-sm">
               <Compass className="h-4 w-4" />
               Traveler Setup
@@ -81,6 +86,10 @@ const Profile = () => {
 
           <TabsContent value="notifications">
             <NotificationPreferencesSection />
+          </TabsContent>
+
+          <TabsContent value="account">
+            <AccountSection />
           </TabsContent>
         </Tabs>
       </div>

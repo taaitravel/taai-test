@@ -11,6 +11,10 @@ export interface SubscriptionData {
   monthly_ai_credits?: number;
   max_itineraries: number;
   max_shared_friends: number;
+  payment_failed?: boolean;
+  payment_retry_at?: string | null;
+  payment_failure_summary?: string | null;
+  cancel_at_period_end?: boolean;
 }
 
 export function useSubscription() {

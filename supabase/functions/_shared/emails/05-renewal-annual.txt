@@ -1,0 +1,13 @@
+Subject: Another year of {{plan}}
+
+Your year with taai starts again.
+
+We charged {{amount}} for 12 months of {{plan}}. Next renewal: {{next_date}}.
+
+View billing: https://taai-travel.lovable.app/account
+
+Questions about this charge? Just reply.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

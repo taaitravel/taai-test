@@ -1162,6 +1162,7 @@ export type Database = {
           budget_rate: number | null
           created_at: string
           creation_key: string | null
+          editing_locked: boolean
           expedia_data: Json | null
           flights: Json | null
           hotels: Json | null
@@ -1188,6 +1189,7 @@ export type Database = {
           budget_rate?: number | null
           created_at?: string
           creation_key?: string | null
+          editing_locked?: boolean
           expedia_data?: Json | null
           flights?: Json | null
           hotels?: Json | null
@@ -1214,6 +1216,7 @@ export type Database = {
           budget_rate?: number | null
           created_at?: string
           creation_key?: string | null
+          editing_locked?: boolean
           expedia_data?: Json | null
           flights?: Json | null
           hotels?: Json | null
@@ -1957,9 +1960,14 @@ export type Database = {
           max_itineraries: number | null
           max_shared_friends: number | null
           stripe_customer_id: string | null
+          stripe_price_id: string | null
           subscribed: boolean
           subscription_end: string | null
           subscription_tier: string | null
+          cancel_at_period_end: boolean
+          payment_failed_at: string | null
+          payment_failure_summary: string | null
+          payment_retry_at: string | null
           updated_at: string
           user_id: string | null
         }
@@ -1971,9 +1979,14 @@ export type Database = {
           max_itineraries?: number | null
           max_shared_friends?: number | null
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          cancel_at_period_end?: boolean
+          payment_failed_at?: string | null
+          payment_failure_summary?: string | null
+          payment_retry_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1985,9 +1998,14 @@ export type Database = {
           max_itineraries?: number | null
           max_shared_friends?: number | null
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          cancel_at_period_end?: boolean
+          payment_failed_at?: string | null
+          payment_failure_summary?: string | null
+          payment_retry_at?: string | null
           updated_at?: string
           user_id?: string | null
         }

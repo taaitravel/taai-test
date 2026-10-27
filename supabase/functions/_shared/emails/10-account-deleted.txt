@@ -1,0 +1,11 @@
+Subject: Your data has been deleted
+
+All done.
+
+As requested, we deleted your taai account, trips, chats, Miles memory and uploads on {{deleted_date}}. We keep only billing records required by law (up to 7 years) in Stripe and our ledger. Reference: {{request_id}}.
+
+This is the last email you'll get from us.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

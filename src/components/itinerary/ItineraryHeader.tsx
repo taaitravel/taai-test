@@ -100,7 +100,7 @@ export const ItineraryHeader = ({ itineraryId, itineraryData, userRole, attendee
             >
               <Share2 className="h-4 w-4" />
             </Button>
-            {isOwner && (
+            {isOwner && !itineraryData?.editing_locked && (
               <Button 
                 size="sm" 
                 className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-full gold-gradient hover:opacity-90 text-background font-semibold"

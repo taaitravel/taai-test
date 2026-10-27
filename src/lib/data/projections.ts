@@ -36,6 +36,7 @@ export const ITINERARY_METADATA_FIELDS = [
   'planned_traveler_count',
   'creation_key',
   'userid',
+  'editing_locked',
 ].join(', ');
 
 /** Day/item detail sections, loaded only when a section is rendered. */

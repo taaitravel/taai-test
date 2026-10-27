@@ -136,6 +136,10 @@ export const ItineraryContent = ({
   }, [cartItineraryId]);
 
   const openAdd = (type: ItemType) => {
+    if (itineraryData.editing_locked) {
+      toast.error('This trip is read-only on the free plan. Your newest trips stay editable.');
+      return;
+    }
     setAddType(type);
     setAddOpen(true);
   };

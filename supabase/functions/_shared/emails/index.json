@@ -1,0 +1,92 @@
+[
+ {
+  "id": "01-signup-confirmation",
+  "sender": "Supabase auth (Confirm signup template)",
+  "subject": "Confirm your email for taai",
+  "headline": "Welcome aboard.",
+  "body": "Tap below to confirm your email and start planning.",
+  "cta": "Confirm my email",
+  "foot": "Didn't sign up? You can ignore this email."
+ },
+ {
+  "id": "02-welcome",
+  "sender": "Edge function (new: send-lifecycle-email, on first confirmed login)",
+  "subject": "You're in. Let's plan something good.",
+  "headline": "Hi {{name}}, welcome to taai.",
+  "body": "Start an itinerary, invite your travel crew, and ask Miles for ideas. Bookings happen with third-party providers; taai keeps the plan in one place.",
+  "cta": "Start my first trip",
+  "foot": "Questions? Just reply to this email."
+ },
+ {
+  "id": "03-subscription-confirmation",
+  "sender": "Edge function (stripe-subscription-webhook on checkout.session.completed) + Stripe receipt",
+  "subject": "Your {{plan}} plan is active",
+  "headline": "Thanks for joining {{plan}}.",
+  "body": "You're on {{plan}} at {{amount}}/{{interval}}. Next charge: {{next_date}}. Your new limits are live now.",
+  "cta": "See my plan",
+  "foot": "Stripe sends your official receipt separately."
+ },
+ {
+  "id": "04-renewal-monthly",
+  "sender": "Edge function (invoice.paid, billing_reason=subscription_cycle, interval=month) + Stripe receipt",
+  "subject": "Your taai renewal went through",
+  "headline": "Renewed. Thanks for sticking around.",
+  "body": "We charged {{amount}} for another month of {{plan}}. Next charge: {{next_date}}.",
+  "cta": "View billing",
+  "foot": "Manage or cancel anytime from Account > Billing."
+ },
+ {
+  "id": "05-renewal-annual",
+  "sender": "Edge function (invoice.paid, subscription_cycle, interval=year); 7-day pre-renewal notice via Stripe 'upcoming renewal' email",
+  "subject": "Another year of {{plan}}",
+  "headline": "Your year with taai starts again.",
+  "body": "We charged {{amount}} for 12 months of {{plan}}. Next renewal: {{next_date}}.",
+  "cta": "View billing",
+  "foot": "Questions about this charge? Just reply."
+ },
+ {
+  "id": "06-payment-failed",
+  "sender": "Stripe (failed payment email + Smart Retries) and edge function (invoice.payment_failed)",
+  "subject": "Your payment didn't go through",
+  "headline": "Quick fix needed.",
+  "body": "We couldn't charge your card for {{plan}} ({{amount}}). We'll try again on {{retry_date}}. Update your card to keep your plan.",
+  "cta": "Update payment method",
+  "foot": "Your trips stay safe while we sort this out."
+ },
+ {
+  "id": "07-plan-changed",
+  "sender": "Edge function (customer.subscription.updated when price changes)",
+  "subject": "Your plan changed to {{new_plan}}",
+  "headline": "You're now on {{new_plan}}.",
+  "body": "Moved from {{old_plan}} to {{new_plan}}. New price: {{amount}}/{{interval}}, starting {{effective_date}}. Any proration shows on your next invoice.",
+  "cta": "See my plan",
+  "foot": "Didn't make this change? Reply right away."
+ },
+ {
+  "id": "08-subscription-cancelled",
+  "sender": "Edge function (customer.subscription.updated cancel_at_period_end, and .deleted)",
+  "subject": "Your subscription is cancelled",
+  "headline": "Sorry to see you go.",
+  "body": "{{plan}} stays active until {{end_date}}. After that you'll move to the free Traveler plan; your trips stay put (beyond 3 itineraries become read-only).",
+  "cta": "Resubscribe",
+  "foot": "Tell us why in one reply? It really helps."
+ },
+ {
+  "id": "09-account-closed",
+  "sender": "Edge function (new: close-account)",
+  "subject": "Your taai account is closed",
+  "headline": "Your account is closed.",
+  "body": "You've been signed out everywhere and any subscription was cancelled. We'll permanently delete your data on {{purge_date}} (30 days). Change your mind before then? Just sign in.",
+  "cta": "Reopen my account",
+  "foot": "Want it deleted sooner? Reply 'delete now'."
+ },
+ {
+  "id": "10-account-deleted",
+  "sender": "Edge function (new: purge-account, final step)",
+  "subject": "Your data has been deleted",
+  "headline": "All done.",
+  "body": "As requested, we deleted your taai account, trips, chats, Miles memory and uploads on {{deleted_date}}. We keep only billing records required by law (up to 7 years) in Stripe and our ledger. Reference: {{request_id}}.",
+  "cta": "",
+  "foot": "This is the last email you'll get from us."
+ }
+]

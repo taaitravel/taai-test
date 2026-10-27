@@ -11,6 +11,16 @@ additional_redirect_urls = [
   "http://localhost:8080/**",
 ]
 
-# Stripe calls this without a user JWT. Every other function keeps JWT verification.
+# Stripe calls this without a user JWT.
 [functions.stripe-subscription-webhook]
 verify_jwt = false
+
+# pg_cron calls this with the vault bearer, not a user JWT.
+[functions.purge-closed-accounts]
+verify_jwt = false
+
+# Signup confirmation is a Supabase Auth template. The SMTP password stays in
+# the Auth dashboard / function secret, not in this file.
+[auth.email.template.confirmation]
+subject = "Confirm your email for taai"
+content_path = "./templates/confirmation.html"
