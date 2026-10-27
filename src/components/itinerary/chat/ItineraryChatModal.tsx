@@ -12,7 +12,8 @@ import { ChatMessageComponent } from './ChatMessage';
 import { ChatAttachmentPicker } from './ChatAttachmentPicker';
 import { ItineraryData } from '@/types/itinerary';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { UploadErrorAlert } from '@/components/uploads/UploadErrorAlert';
+import type { UploadNotice } from '@/lib/uploads/notices';
 
 interface ItineraryChatModalProps {
   open: boolean;
@@ -25,7 +26,7 @@ export const ItineraryChatModal = ({ open, onOpenChange, itineraryId, itineraryD
   const {
     messages, participants, loading,
     filter, setFilter, participantFilter, setParticipantFilter,
-    sendMessage, editMessage, deleteMessage, toggleReaction, uploadAttachment,
+    sendMessage, editMessage, deleteMessage, toggleReaction, uploadAttachment, discardAttachment,
   } = useItineraryChat(itineraryId);
 
   const { isMuted, mute, unmute } = useChatMutes();
@@ -34,6 +35,7 @@ export const ItineraryChatModal = ({ open, onOpenChange, itineraryId, itineraryD
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<UploadNotice | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,33 +50,58 @@ export const ItineraryChatModal = ({ open, onOpenChange, itineraryId, itineraryD
     const trimmed = text.trim();
     if (!trimmed) return;
     setText('');
-    await sendMessage(trimmed, null, null, replyTo?.id || null);
+    const notice = await sendMessage(trimmed, null, null, replyTo?.id || null);
+    if (notice) {
+      setText(trimmed);
+      setUploadError(notice);
+      return;
+    }
     setReplyTo(null);
     inputRef.current?.focus();
   };
 
-  const handleImageUpload = async (file: File) => {
+  const handleFileUpload = async (file: File) => {
     setUploading(true);
-    const url = await uploadAttachment(file);
-    if (url) {
-      await sendMessage('', 'image', { url }, replyTo?.id || null);
+    try {
+      const uploaded = await uploadAttachment(file);
+      if (uploaded.ok === false) {
+        setUploadError(uploaded);
+        return;
+      }
+      const notice = await sendMessage('', uploaded.attachmentType, {
+        path: uploaded.path,
+        name: uploaded.name,
+        contentType: uploaded.contentType,
+      }, replyTo?.id || null);
+      if (notice) {
+        await discardAttachment(uploaded.path);
+        setUploadError(notice);
+        return;
+      }
       setReplyTo(null);
-    } else {
-      toast.error('Failed to upload image');
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   const handleCardShare = async (category: string, item: any) => {
     const name = item.name || item.airline || category;
     const details = item.city || item.from || item.date || '';
-    await sendMessage('', 'itinerary_card', { category, name, details, item }, replyTo?.id || null);
+    const notice = await sendMessage('', 'itinerary_card', { category, name, details, item }, replyTo?.id || null);
+    if (notice) {
+      setUploadError(notice);
+      return;
+    }
     setReplyTo(null);
   };
 
   const handleCalendarShare = async (date: string) => {
     const desc = `${itineraryData.itin_name || 'Trip'}: ${date}${itineraryData.itin_date_end ? ` – ${itineraryData.itin_date_end}` : ''}`;
-    await sendMessage('', 'calendar_event', { date, description: desc }, replyTo?.id || null);
+    const notice = await sendMessage('', 'calendar_event', { date, description: desc }, replyTo?.id || null);
+    if (notice) {
+      setUploadError(notice);
+      return;
+    }
     setReplyTo(null);
   };
 
@@ -210,7 +237,8 @@ export const ItineraryChatModal = ({ open, onOpenChange, itineraryId, itineraryD
         <div className="px-3 py-3 border-t border-border flex items-center gap-2 bg-card">
           <ChatAttachmentPicker
             itineraryData={itineraryData}
-            onImageSelected={handleImageUpload}
+            onFileSelected={handleFileUpload}
+            onRejected={setUploadError}
             onCardSelected={handleCardShare}
             onCalendarSelected={handleCalendarShare}
           />
@@ -234,6 +262,7 @@ export const ItineraryChatModal = ({ open, onOpenChange, itineraryId, itineraryD
             <Send className="h-4 w-4" />
           </Button>
         </div>
+        <UploadErrorAlert notice={uploadError} onDismiss={() => setUploadError(null)} />
       </SheetContent>
     </Sheet>
   );
