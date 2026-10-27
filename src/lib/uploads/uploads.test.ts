@@ -162,8 +162,14 @@ describe('upload contract', () => {
     expect(migration).toContain('file_size_limit = 10485760');
     expect(migration).toContain("'image/heic'");
     expect(migration).toContain('is_itinerary_attendee');
+    expect(migration).toContain('reserve_storage_upload');
+    expect(migration).toContain('private.claim_storage_folder_slot');
     expect(migration.toLowerCase()).not.toContain('to public');
     expect(migration.toLowerCase()).not.toContain('to anon');
+    expect(migration.toLowerCase()).not.toMatch(/create\s+trigger[\s\S]*storage\.objects/);
+    expect(migration.toLowerCase()).not.toMatch(/drop\s+trigger[\s\S]*storage\.objects/);
+    expect(migration.toLowerCase()).not.toMatch(/create\s+(unique\s+)?index[^;]*on\s+storage\.objects/);
+    expect(migration.toLowerCase()).not.toMatch(/alter\s+table\s+storage\.objects/);
     const policies = migration.match(/create policy[\s\S]*?;/g) ?? [];
     expect(policies.length).toBeGreaterThan(0);
     for (const policy of policies) {
@@ -184,6 +190,10 @@ describe('upload contract', () => {
     expect(uploadBlock).not.toContain('.list(');
     expect(uploadBlock).not.toContain('createSignedUrl');
     expect(hook).toContain('prepareAndValidate');
+    expect(hook).toContain('reserve_storage_upload');
+    expect(avatar).toContain('reserve_storage_upload');
+    expect(receipt).toContain('reserve_storage_upload');
+    expect(receipt).not.toContain('.list(');
     expect(hook).toContain('contentType: prepared.file.type');
     const modal = read('src/components/itinerary/chat/ItineraryChatModal.tsx');
     expect(modal).toContain('path: uploaded.path');

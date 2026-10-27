@@ -364,8 +364,8 @@ export const useItineraryChat = (itineraryId: number | null) => {
   const uploadAttachment = async (file: File): Promise<ChatUploadResult> => {
     if (!itineraryId || !user) return { ok: false, ...describeUploadDenied('chat') };
 
-    // Type and size are checked here. The 20-file cap is the storage trigger
-    // private.enforce_storage_folder_quota, which locks the folder before counting.
+    // Type and size are checked here. The 20-file cap is
+    // public.reserve_storage_upload, which locks the folder before counting.
     const prepared = await prepareAndValidate('chat', file);
     if (prepared.ok === false) return prepared;
 
@@ -373,6 +373,12 @@ export const useItineraryChat = (itineraryId: number | null) => {
     if (!ext) return { ok: false, ...describeUploadViolation('chat', 'type') };
 
     const path = `${itineraryId}/${crypto.randomUUID()}.${ext}`;
+    const { error: quotaError } = await supabase.rpc('reserve_storage_upload', {
+      p_bucket: 'chat-attachments',
+      p_object_name: path,
+    });
+    if (quotaError) return { ok: false, ...describeStorageFailure('chat', quotaError) };
+
     const { error } = await supabase.storage
       .from('chat-attachments')
       .upload(path, prepared.file, {
@@ -380,7 +386,13 @@ export const useItineraryChat = (itineraryId: number | null) => {
         upsert: false,
       });
 
-    if (error) return { ok: false, ...describeStorageFailure('chat', error) };
+    if (error) {
+      await supabase.rpc('release_storage_upload', {
+        p_bucket: 'chat-attachments',
+        p_object_name: path,
+      });
+      return { ok: false, ...describeStorageFailure('chat', error) };
+    }
 
     return {
       ok: true,
@@ -393,6 +405,10 @@ export const useItineraryChat = (itineraryId: number | null) => {
 
   const discardAttachment = async (path: string) => {
     await supabase.storage.from('chat-attachments').remove([path]);
+    await supabase.rpc('release_storage_upload', {
+      p_bucket: 'chat-attachments',
+      p_object_name: path,
+    });
   };
 
   // Filtered messages

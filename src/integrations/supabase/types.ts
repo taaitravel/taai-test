@@ -2471,6 +2471,14 @@ export type Database = {
         Args: { p_action_class: string }
         Returns: boolean
       }
+      release_storage_upload: {
+        Args: { p_bucket: string; p_object_name: string }
+        Returns: undefined
+      }
+      reserve_storage_upload: {
+        Args: { p_bucket: string; p_object_name: string }
+        Returns: undefined
+      }
       is_chat_participant: {
         Args: { p_itinerary_id: number; p_user_id: string }
         Returns: boolean

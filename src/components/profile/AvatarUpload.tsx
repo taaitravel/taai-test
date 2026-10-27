@@ -71,11 +71,24 @@ export const AvatarUpload = ({ currentUrl, userId, onUpload }: AvatarUploadProps
 
       const filePath = `${userId}/avatar.jpg`;
 
+      const { error: quotaError } = await supabase.rpc('reserve_storage_upload', {
+        p_bucket: 'avatars',
+        p_object_name: filePath,
+      });
+      if (quotaError) {
+        showError(describeStorageFailure('avatar', quotaError));
+        return;
+      }
+
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, croppedFile, { upsert: true, contentType: "image/jpeg" });
 
       if (uploadError) {
+        await supabase.rpc('release_storage_upload', {
+          p_bucket: 'avatars',
+          p_object_name: filePath,
+        });
         showError(describeStorageFailure('avatar', uploadError));
         return;
       }

@@ -216,34 +216,37 @@ serve(async (req) => {
 
     const pdfBytes = await buildPdf(receiptJson);
     const path = `${userId}/${receiptNumber}.pdf`;
-    const { data: stored, error: listError } = await supabase.storage
-      .from("receipts")
-      .list(String(userId), { limit: 100 });
-    if (listError) {
-      return new Response(JSON.stringify({
-        error: "Couldn't check your saved documents. Try again in a moment.",
-      }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    // A retry of this same receipt replaces the object and must not count as a new file.
-    // The storage trigger is the race-free backstop.
-    const replacing = (stored ?? []).some((item) => item.name === `${receiptNumber}.pdf`);
-    const existingCount = Math.max((stored?.length ?? 0) - (replacing ? 1 : 0), 0);
-    const block = documentUploadBlock(pdfBytes.byteLength, existingCount);
+    const block = documentUploadBlock(pdfBytes.byteLength, 0);
     if (block === "DOCUMENT_TOO_LARGE") {
       return new Response(JSON.stringify({
         error: "This receipt is over 10 MB, so it was not saved. Try again or contact support.",
       }), { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    if (block === "DOCUMENT_LIMIT") {
+    // Same-name retries do not take a new slot. The reservation locks the folder.
+    const { error: quotaError } = await supabase.rpc("reserve_storage_upload", {
+      p_bucket: "receipts",
+      p_object_name: path,
+    });
+    if (quotaError) {
+      const raw = quotaError.message || "";
+      if (raw.includes("DOCUMENT_LIMIT")) {
+        return new Response(JSON.stringify({
+          error: "You can keep 10 documents. Remove one, then try again.",
+        }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       return new Response(JSON.stringify({
-        error: "You can keep 10 documents. Remove one, then try again.",
-      }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        error: "Couldn't check your saved documents. Try again in a moment.",
+      }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const { error: upErr } = await supabase.storage.from("receipts").upload(path, pdfBytes, {
       contentType: "application/pdf",
       upsert: true,
     });
     if (upErr) {
+      await supabase.rpc("release_storage_upload", {
+        p_bucket: "receipts",
+        p_object_name: path,
+      });
       const raw = upErr.message || "";
       if (raw.includes("DOCUMENT_LIMIT")) {
         return new Response(JSON.stringify({
