@@ -180,7 +180,7 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
   return (
     <div className="w-[255px] h-[375px] p-6 flex flex-col">
       {/* Image carousel */}
-      <div className="relative h-32 bg-white/5 rounded-lg mb-4 overflow-hidden flex-shrink-0">
+      <div className="relative h-32 bg-muted rounded-lg mb-4 overflow-hidden flex-shrink-0">
         {hotel.images?.[0] ? (
           <img 
             src={hotel.images[0]} 
@@ -188,12 +188,12 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/40">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             No image available
           </div>
         )}
         <div className="absolute top-4 right-4">
-          <Badge className="bg-primary text-white">
+          <Badge className="bg-primary text-foreground">
             {hotel.rating || 4.5} <Star className="ml-1 h-3 w-3 fill-current" />
           </Badge>
         </div>
@@ -202,8 +202,8 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
       {/* Hotel info */}
       <div className="space-y-3">
         <div>
-          <h3 className="text-2xl font-bold text-white">{hotel.name}</h3>
-          <p className="text-white/60 flex items-center gap-1 mt-1">
+          <h3 className="text-2xl font-bold text-foreground">{hotel.name}</h3>
+          <p className="text-muted-foreground flex items-center gap-1 mt-1">
             <MapPin className="h-4 w-4" />
             {hotel.location || hotel.address}
           </p>
@@ -211,33 +211,33 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
 
         {/* Amenities */}
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className="bg-white/5 border-white/20 text-white">
+          <Badge variant="outline" className="bg-muted border-border text-foreground">
             <Wifi className="mr-1 h-3 w-3" />
             Free WiFi
           </Badge>
-          <Badge variant="outline" className="bg-white/5 border-white/20 text-white">
+          <Badge variant="outline" className="bg-muted border-border text-foreground">
             <Coffee className="mr-1 h-3 w-3" />
             Breakfast
           </Badge>
-          <Badge variant="outline" className="bg-white/5 border-white/20 text-white">
+          <Badge variant="outline" className="bg-muted border-border text-foreground">
             <ParkingCircle className="mr-1 h-3 w-3" />
             Parking
           </Badge>
         </div>
 
         {/* Price */}
-        <div className="pt-4 border-t border-white/10">
+        <div className="pt-4 border-t border-border">
           <div className="flex items-baseline justify-between">
             <div>
-              <p className="text-white/60 text-sm">Price per night</p>
-              <p className="text-3xl font-bold text-white">
+              <p className="text-muted-foreground text-sm">Price per night</p>
+              <p className="text-3xl font-bold text-foreground">
                 ${booking.pricePerNight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             {booking.nights > 0 && (
               <div className="text-right">
-                <p className="text-white/60 text-sm">Total ({booking.nights} nights)</p>
-                <p className="text-xl font-semibold text-white">
+                <p className="text-muted-foreground text-sm">Total ({booking.nights} nights)</p>
+                <p className="text-xl font-semibold text-foreground">
                   ${booking.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
@@ -246,7 +246,7 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
         </div>
 
         {hotel.description && (
-          <p className="text-white/70 text-sm line-clamp-2">{hotel.description}</p>
+          <p className="text-muted-foreground text-sm line-clamp-2">{hotel.description}</p>
         )}
 
         {/* Add to Itinerary Button */}
@@ -263,7 +263,7 @@ export const HotelResultCard = ({ hotel, searchParams, planningAction }: HotelRe
             <Button
               onClick={() => setShowRates(true)}
               disabled={booking.issues.length > 0}
-              className="font-semibold bg-white text-black border border-white hover:bg-white/90 disabled:opacity-100 disabled:bg-white/30 disabled:text-white"
+              className="font-semibold bg-foreground text-background border border-foreground hover:opacity-90 disabled:opacity-100 disabled:bg-muted disabled:text-muted-foreground"
             >
               <BedDouble className="mr-1 h-4 w-4" /> See Rooms
             </Button>

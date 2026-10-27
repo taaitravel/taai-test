@@ -61,9 +61,9 @@ export const Captcha = ({ onVerify, isValid }: CaptchaProps) => {
 
   return (
     <div className="space-y-2">
-      <Label className="text-white">Security Check</Label>
+      <Label className="text-foreground">Security Check</Label>
       <div className="flex items-center space-x-2">
-        <div className="flex items-center space-x-2 bg-white/10 border border-white/30 rounded-md px-3 py-2 text-white font-mono text-lg">
+        <div className="flex items-center space-x-2 bg-muted border border-border rounded-md px-3 py-2 text-foreground font-mono text-lg">
           <span>{num1}</span>
           <span>{operator}</span>
           <span>{num2}</span>
@@ -75,7 +75,7 @@ export const Captcha = ({ onVerify, isValid }: CaptchaProps) => {
           variant="outline"
           size="sm"
           onClick={generateCaptcha}
-          className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+          className="bg-background border-border text-foreground hover:bg-accent"
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
@@ -85,15 +85,15 @@ export const Captcha = ({ onVerify, isValid }: CaptchaProps) => {
         placeholder="Enter your answer"
         value={userAnswer}
         onChange={(e) => handleAnswerChange(e.target.value)}
-        className={`bg-[#1f1f27] border-white/30 text-white placeholder:text-white/50 focus:border-white ${
-          isValid === true ? 'border-green-500' : isValid === false && userAnswer ? 'border-red-500' : ''
+        className={`bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring ${
+          isValid === true ? 'border-emerald-700' : isValid === false && userAnswer ? 'border-destructive' : ''
         }`}
       />
       {isValid === false && userAnswer && (
-        <p className="text-red-400 text-sm">Incorrect answer. Please try again.</p>
+        <p className="text-destructive text-sm">Incorrect answer. Please try again.</p>
       )}
       {isValid === true && (
-        <p className="text-green-400 text-sm">✓ Verification successful</p>
+        <p className="text-emerald-800 dark:text-emerald-300 text-sm">Verification successful</p>
       )}
     </div>
   );

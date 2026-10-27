@@ -29,7 +29,7 @@ const CSS = `
 .tbs *{box-sizing:border-box}
 .tbs-wrap{max-width:1320px;margin:0 auto;padding:0 40px}
 .tbs-sec{padding:108px 0;border-top:1px solid var(--tbs-line2)}
-.tbs-sec.alt{background:linear-gradient(180deg,var(--tbs-cream),#F3EDE4)}
+.tbs-sec.alt{background:linear-gradient(180deg,var(--tbs-cream),var(--cream-2,#F3EDE4))}
 .tbs-mono{font-family:var(--tbs-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--tbs-ink3)}
 .tbs-script{font-family:var(--tbs-script);font-size:26px;line-height:1;color:#E2913C}
 .tbs-h2{font-family:var(--tbs-display);font-weight:300;font-size:clamp(30px,4vw,52px);line-height:1.04;
@@ -59,8 +59,9 @@ const CSS = `
 .tbs-btn-grad{background:var(--tbs-deep);color:#fff;box-shadow:0 12px 28px -14px rgba(242,83,110,.85)}
 .tbs-btn-grad:hover:not(:disabled){transform:translateY(-1.5px);box-shadow:0 18px 34px -14px rgba(242,83,110,1)}
 .tbs-btn-grad:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
-.tbs-btn-ghost{border-color:var(--tbs-line);color:var(--tbs-ink);background:rgba(255,255,255,.7);font-weight:500}
-.tbs-btn-ghost:hover{border-color:rgba(23,19,16,.24);background:#fff}
+.tbs-btn-ghost{border-color:var(--tbs-line);color:var(--tbs-ink);background:var(--tbs-card);font-weight:500}
+.tbs-btn-ghost:hover{border-color:rgba(242,83,110,.45)}
+.tbs-btn-grad{color:#171310}
 .tbs-hint{font-family:var(--tbs-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--tbs-ink3)}
 
 .tbs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -74,7 +75,7 @@ const CSS = `
 .tbs-card .bar{height:2px;width:34px;border-radius:2px;background:var(--tbs-deep);margin-top:18px}
 
 .tbs-cta{position:relative;overflow:hidden;text-align:center;padding:118px 0 126px;color:var(--tbs-ink);
-  background:linear-gradient(180deg,#F3EDE4 0%,var(--tbs-cream) 62%,var(--tbs-cream) 100%);
+  background:linear-gradient(180deg,var(--cream-2,#F3EDE4) 0%,var(--tbs-cream) 62%,var(--tbs-cream) 100%);
   border-top:1px solid var(--tbs-line2)}
 .tbs-cta .orbx,.tbs-cta .orby{position:absolute;border-radius:50%;background:var(--tbs-grad);
   pointer-events:none;filter:blur(96px);will-change:transform}

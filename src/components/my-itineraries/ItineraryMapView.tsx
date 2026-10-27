@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { getMapStyle, getMapFog, getPopupColors, getMarkerBorderColor, getMarkerDotColor } from '@/lib/mapStyles';
+import { defaultMapCamera } from '@/lib/maps/default-view';
 
 interface ItineraryMapViewProps {
   itineraries: ItineraryData[];
@@ -48,12 +49,15 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
 
     mapboxgl.accessToken = mapToken;
 
+    const camera = defaultMapCamera();
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: getMapStyle(theme, 'itinerary-overview'),
-      center: [0, 20],
-      zoom: 1.5,
-      projection: 'globe'
+      center: camera.center,
+      zoom: camera.zoom,
+      projection: 'globe',
+      attributionControl: { compact: true },
+      logoPosition: 'bottom-left',
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');

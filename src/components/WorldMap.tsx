@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { getMapStyle, getMapFog, getMarkerBorderColor, getMarkerDotColor, getMarkerGlow } from '@/lib/mapStyles';
+import { defaultMapCamera } from '@/lib/maps/default-view';
 
 interface WorldMapProps {
   visitedCountries: string[];
@@ -70,13 +71,16 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
     setIsLoading(true);
     mapboxgl.accessToken = mapboxToken;
 
+    const camera = defaultMapCamera();
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
       style: getMapStyle(theme, 'world'),
       projection: 'globe',
-      zoom: 1.2,
-      center: [0, 30],
+      zoom: Math.min(camera.zoom, 1.3),
+      center: camera.center,
       interactive: false,
+      attributionControl: { compact: true },
+      logoPosition: 'bottom-left',
     });
 
     map.current.on('style.load', () => {

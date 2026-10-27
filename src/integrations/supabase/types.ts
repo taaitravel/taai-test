@@ -2162,23 +2162,35 @@ export type Database = {
       }
       usage_tracking: {
         Row: {
+          completion_tokens: number | null
           created_at: string
           credits_used: number | null
           id: string
+          model: string | null
+          prompt_tokens: number | null
+          total_tokens: number | null
           usage_type: string
           user_id: string | null
         }
         Insert: {
+          completion_tokens?: number | null
           created_at?: string
           credits_used?: number | null
           id?: string
+          model?: string | null
+          prompt_tokens?: number | null
+          total_tokens?: number | null
           usage_type: string
           user_id?: string | null
         }
         Update: {
+          completion_tokens?: number | null
           created_at?: string
           credits_used?: number | null
           id?: string
+          model?: string | null
+          prompt_tokens?: number | null
+          total_tokens?: number | null
           usage_type?: string
           user_id?: string | null
         }
@@ -2458,6 +2470,14 @@ export type Database = {
       is_agent_state_changing_action: {
         Args: { p_action_class: string }
         Returns: boolean
+      }
+      release_storage_upload: {
+        Args: { p_bucket: string; p_object_name: string }
+        Returns: undefined
+      }
+      reserve_storage_upload: {
+        Args: { p_bucket: string; p_object_name: string }
+        Returns: undefined
       }
       is_chat_participant: {
         Args: { p_itinerary_id: number; p_user_id: string }

@@ -19,7 +19,8 @@ import {
 } from "../_shared/edge-guard.ts";
 import { assignHotelLabels, nightsBetween, resolveStayPrice } from "../_shared/hotel-presentation.ts";
 import { todayPrompt } from "../_shared/today.ts";
-import { consumeAiCredit, recordUsage } from "../_shared/usage.ts";
+import { consumeAiCredit, recordAiTurnTokens, recordUsage, releaseAiCredit } from "../_shared/usage.ts";
+import { addTokenUsage, creditDenial, tokenUsageFromGateway, type CreditAllowance, type TokenUsage } from "../_shared/ai-meter.ts";
 import { searchDuffelFlights } from "../_shared/providers/duffel-search.ts";
 import { searchViatorActivities } from "../_shared/providers/viator-search.ts";
 
@@ -1615,6 +1616,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let credit: CreditAllowance | null = null;
+  let modelAccepted = false;
+  let delivered = false;
+  let userIdForCredit: string | null = null;
+  let gatewayUsage: TokenUsage | null = null;
+  let modelName: string | null = null;
 
   try {
     // Authenticate: the JWT is verified server-side with the anon client and
@@ -1634,6 +1641,7 @@ serve(async (req) => {
       );
     }
     const user = { id: auth.userId };
+    userIdForCredit = user.id;
 
     console.log('User authenticated:', user.id);
 
@@ -1678,7 +1686,6 @@ serve(async (req) => {
     const { message, context, itineraryId, chatMode, assistantKey, timeZone } = validatedData;
     const validatedHistory = trimHistoryToTotalLimit(validatedData.history);
     console.log('Received chat request:', { itineraryId, chatMode, assistantKey });
-    await recordUsage(user.id, 'ai_message');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
@@ -1723,6 +1730,44 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
       { role: 'user', content: message },
     ];
 
+    // Every Miles and Bob turn spends one planning credit on the caller's
+    // tier immediately before the model runs. Plain chat and search turns
+    // are metered the same way. A failed or exhausted check does not call
+    // the model, and a failure while building the prompt is not charged.
+    credit = await consumeAiCredit(user.id);
+    if (!credit.ok) {
+      const denial = creditDenial(credit);
+      return new Response(JSON.stringify(denial.body), {
+        status: denial.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const acceptedCredit = credit;
+    await recordUsage(user.id, 'ai_message');
+
+    const deliver = async (payload: Record<string, unknown>, followUpPayload?: unknown) => {
+      delivered = true;
+      if (
+        !modelName
+        && followUpPayload
+        && typeof followUpPayload === 'object'
+        && typeof (followUpPayload as { model?: unknown }).model === 'string'
+      ) {
+        modelName = (followUpPayload as { model: string }).model;
+      }
+      const usage = addTokenUsage(gatewayUsage, tokenUsageFromGateway(followUpPayload));
+      await recordAiTurnTokens({
+        userId: user.id,
+        usageId: acceptedCredit.usageId,
+        creditsCharged: acceptedCredit.creditsCharged,
+        usage,
+        model: modelName,
+      });
+      return new Response(JSON.stringify(payload), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    };
+
     // Call Lovable AI Gateway
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -1738,6 +1783,8 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
     });
 
     if (!response.ok) {
+      await releaseAiCredit(user.id, acceptedCredit.usageId);
+      delivered = true;
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
@@ -1745,9 +1792,10 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
         );
       }
       if (response.status === 402) {
+        console.error('Lovable AI Gateway returned 402');
         return new Response(
-          JSON.stringify({ error: 'Usage credits exhausted. Please add credits to continue.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Planning is temporarily unavailable. Please try again in a moment.' }),
+          { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       const errorText = await response.text();
@@ -1757,11 +1805,16 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
 
     const data = await response.json();
     console.log('AI response received');
+    gatewayUsage = tokenUsageFromGateway(data);
+    if (typeof data?.model === 'string') modelName = data.model;
 
     const choice = data.choices?.[0];
     if (!choice) {
       throw new Error('No response from AI');
     }
+    // The model produced a completion, so this turn keeps its credit even if a
+    // later tool step fails. Gateway failures before this point are released.
+    modelAccepted = true;
 
     // Check for tool calls
     if (choice.message?.tool_calls && choice.message.tool_calls.length > 0) {
@@ -1772,28 +1825,17 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
       console.log(`Executing tool: ${functionName}`);
 
       if (SEARCH_TOOLS.has(functionName)) {
-        const remaining = await consumeAiCredit(user.id);
-        if (remaining === 0) {
-          return new Response(JSON.stringify({
-            error: 'You have used this month\'s planning credits.',
-            code: 'PLAN_LIMIT_AI',
-            remaining: 0,
-            upgrade_url: '/subscription?limit=PLAN_LIMIT_AI',
-          }), {
-            status: 402,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
+        // The turn was already metered. This row counts the search and does
+        // not charge a second planning credit.
         await recordUsage(user.id, 'search');
       }
 
       if (WRITE_TOOL_NAMES.has(functionName)) {
-        return new Response(JSON.stringify({
+        modelAccepted = true;
+        return deliver({
           response: 'I can help plan and search here, but itinerary changes must use the explicit Save or edit controls.',
           resultType: 'blocked_write',
           functionUsed: functionName,
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
@@ -1895,9 +1937,10 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
 
       if (!followUpResponse.ok) {
         console.error('Follow-up response error:', await followUpResponse.text());
-        // Still return results even if follow-up fails
+        // Still return results even if follow-up fails. The turn stays metered.
         const fallbackResponse = toolResult.message || toolResult.constraint_summary || 'Here are your results:';
-        return new Response(JSON.stringify({
+        modelAccepted = true;
+        return deliver({
           response: guardAssistantResponse(String(fallbackResponse), claimEvidence),
           searchResults: toolResult.results || [],
           resultType,
@@ -1906,15 +1949,14 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
           action_buttons: toolResult.action_buttons,
           writeResult: resultType === 'write_result' ? toolResult : undefined,
           [resultType]: toolResult.results || toolResult,
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
       const followUpData = await followUpResponse.json();
       const aiResponse = followUpData.choices?.[0]?.message?.content || toolResult.message || 'Here are your results:';
 
-      return new Response(JSON.stringify({
+      modelAccepted = true;
+      return deliver({
         response: guardAssistantResponse(String(aiResponse), claimEvidence),
         searchResults: toolResult.results || [],
         resultType,
@@ -1923,22 +1965,32 @@ ${chatMode === 'itinerary-edit' && itineraryId ? `# Active Itinerary\nCurrently 
         action_buttons: toolResult.action_buttons,
         writeResult: resultType === 'write_result' ? toolResult : undefined,
         [resultType]: toolResult.results || toolResult,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      }, followUpData);
     }
 
     // No tool call - return direct response
     const directClaimEvidence = buildClaimEvidence({ chatMode });
     const directResponse = choice.message?.content || 'I apologize, I couldn\'t generate a response.';
-    return new Response(JSON.stringify({ 
-      response: guardAssistantResponse(String(directResponse), directClaimEvidence)
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    modelAccepted = true;
+    return deliver({
+      response: guardAssistantResponse(String(directResponse), directClaimEvidence),
     });
 
   } catch (error) {
     console.error('Error in chat-with-gpt function:', error);
+    if (userIdForCredit && credit?.ok && !delivered) {
+      if (modelAccepted) {
+        await recordAiTurnTokens({
+          userId: userIdForCredit,
+          usageId: credit.usageId,
+          creditsCharged: credit.creditsCharged,
+          usage: gatewayUsage,
+          model: modelName,
+        });
+      } else {
+        await releaseAiCredit(userIdForCredit, credit.usageId);
+      }
+    }
     return new Response(
       JSON.stringify({ error: 'Unable to process chat request. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

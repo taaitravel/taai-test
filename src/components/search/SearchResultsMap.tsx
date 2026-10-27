@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { getMapStyle, getMarkerBorderColor, getMarkerDotColor } from '@/lib/mapStyles';
+import { defaultMapCamera } from '@/lib/maps/default-view';
 import { Loader2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MapLegend } from './MapLegend';
@@ -139,14 +140,16 @@ export const SearchResultsMap = ({ results, searchType }: SearchResultsMapProps)
     mapboxgl.accessToken = mapboxToken;
     
     // Use clean base style based on theme
+    const camera = defaultMapCamera();
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: getMapStyle(theme, 'search'),
-      center: [0, 20],
-      zoom: 2,
+      center: camera.center,
+      zoom: camera.zoom,
       projection: 'mercator' as any,
       antialias: true,
-      attributionControl: false
+      attributionControl: { compact: true },
+      logoPosition: 'bottom-left',
     });
 
     // Update marker config for this theme

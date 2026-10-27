@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Users, MoreVertical, ChevronUp, ChevronDown, DollarSign } from 'lucide-react';
+import { MapPin, Calendar, Users, MoreVertical, ChevronUp, ChevronDown, DollarSign, Luggage } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -153,7 +153,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <span className="text-2xl">✈️</span>
+          <Luggage className="h-7 w-7 text-muted-foreground" aria-hidden />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-2">No itineraries found</h3>
         <p className="text-muted-foreground">Create a new itinerary to get started</p>

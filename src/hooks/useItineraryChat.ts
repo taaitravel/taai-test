@@ -7,7 +7,19 @@ import {
   CHAT_REACTION_FIELDS,
   PAGE_SIZES,
 } from '@/lib/data/projections';
-import { validateUpload } from '@/lib/uploads/limits';
+import { prepareAndValidate } from '@/lib/uploads/prepare';
+import {
+  describeSendFailure,
+  describeStorageFailure,
+  describeUploadDenied,
+  describeUploadViolation,
+  type UploadNotice,
+} from '@/lib/uploads/notices';
+import { extensionForMime } from '@/lib/uploads/paths';
+
+export type ChatUploadResult =
+  | { ok: true; path: string; name: string; contentType: string; attachmentType: 'image' | 'document' }
+  | { ok: false; title: string; message: string };
 
 export interface ChatMessage {
   id: string;
@@ -283,8 +295,13 @@ export const useItineraryChat = (itineraryId: number | null) => {
     attachmentType?: string | null,
     attachmentData?: any,
     replyToId?: string | null,
-  ) => {
-    if (!itineraryId || !user) return;
+  ): Promise<UploadNotice | null> => {
+    if (!itineraryId || !user) {
+      return {
+        title: "Couldn't Send",
+        message: 'Sign in again, then try sending.',
+      };
+    }
 
     const { error } = await supabase
       .from('itinerary_chat_messages')
@@ -297,7 +314,8 @@ export const useItineraryChat = (itineraryId: number | null) => {
         reply_to_id: replyToId || null,
       });
 
-    if (error) console.error('Error sending message:', error);
+    if (error) return describeSendFailure();
+    return null;
   };
 
   const editMessage = async (messageId: string, newContent: string) => {
@@ -343,44 +361,66 @@ export const useItineraryChat = (itineraryId: number | null) => {
     }
   };
 
-  const uploadAttachment = async (file: File): Promise<string | null> => {
-    const problem = validateUpload('chat', file);
-    if (problem) {
-      console.error(problem);
-      return null;
-    }
-    const { data: existing } = await supabase.storage.from('chat-attachments').list(String(itineraryId), { limit: 21 });
-    if ((existing?.length ?? 0) >= 20) {
-      console.error('Attachment limit reached');
-      return null;
-    }
-    const ext = file.name.split('.').pop();
-    const path = `${itineraryId}/${Date.now()}.${ext}`;
+  const uploadAttachment = async (file: File): Promise<ChatUploadResult> => {
+    if (!itineraryId || !user) return { ok: false, ...describeUploadDenied('chat') };
+
+    // Type and size are checked here. The 20-file cap is
+    // public.reserve_storage_upload, which locks the folder before counting.
+    const prepared = await prepareAndValidate('chat', file);
+    if (prepared.ok === false) return prepared;
+
+    const ext = extensionForMime(prepared.file.type);
+    if (!ext) return { ok: false, ...describeUploadViolation('chat', 'type') };
+
+    const path = `${itineraryId}/${crypto.randomUUID()}.${ext}`;
+    const { error: quotaError } = await supabase.rpc('reserve_storage_upload', {
+      p_bucket: 'chat-attachments',
+      p_object_name: path,
+    });
+    if (quotaError) return { ok: false, ...describeStorageFailure('chat', quotaError) };
+
     const { error } = await supabase.storage
       .from('chat-attachments')
-      .upload(path, file);
+      .upload(path, prepared.file, {
+        contentType: prepared.file.type,
+        upsert: false,
+      });
 
     if (error) {
-      console.error('Upload error:', error);
-      return null;
+      await supabase.rpc('release_storage_upload', {
+        p_bucket: 'chat-attachments',
+        p_object_name: path,
+      });
+      return { ok: false, ...describeStorageFailure('chat', error) };
     }
 
-    // Bucket is private — generate a long-lived signed URL (1 year)
-    const { data: signed, error: signErr } = await supabase.storage
-      .from('chat-attachments')
-      .createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signErr) {
-      console.error('Sign URL error:', signErr);
-      return null;
-    }
-    return signed?.signedUrl ?? null;
+    return {
+      ok: true,
+      path,
+      name: prepared.file.name,
+      contentType: prepared.file.type,
+      attachmentType: prepared.file.type === 'application/pdf' ? 'document' : 'image',
+    };
+  };
+
+  const discardAttachment = async (path: string) => {
+    await supabase.storage.from('chat-attachments').remove([path]);
+    await supabase.rpc('release_storage_upload', {
+      p_bucket: 'chat-attachments',
+      p_object_name: path,
+    });
   };
 
   // Filtered messages
   const filteredMessages = messages.filter((m) => {
     if (participantFilter && m.sender_id !== participantFilter) return false;
     if (filter === 'media' && m.attachment_type !== 'image') return false;
-    if (filter === 'docs' && m.attachment_type !== 'calendar_event' && m.attachment_type !== 'itinerary_card') return false;
+    if (
+      filter === 'docs'
+      && m.attachment_type !== 'calendar_event'
+      && m.attachment_type !== 'itinerary_card'
+      && m.attachment_type !== 'document'
+    ) return false;
     return true;
   });
 
@@ -398,6 +438,7 @@ export const useItineraryChat = (itineraryId: number | null) => {
     deleteMessage,
     toggleReaction,
     uploadAttachment,
+    discardAttachment,
     hasMoreOlder,
     loadOlderMessages,
     refresh: () => loadMessages('newer'),

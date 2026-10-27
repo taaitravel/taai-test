@@ -60,7 +60,7 @@ export const ExternalBookingCard = ({
               </Button>
             )}
             {canArchive && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => onArchive(booking)}>
+              <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => onArchive(booking)}>
                 <Archive className="mr-2 h-4 w-4" />Archive
               </Button>
             )}

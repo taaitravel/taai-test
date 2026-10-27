@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Map } from "@/components/Map";
-import { MapTest } from "@/components/MapTest";
 
 interface MapLocation {
   city: string;

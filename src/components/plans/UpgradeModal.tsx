@@ -17,7 +17,7 @@ const COPY = {
   },
   PLAN_LIMIT_AI: {
     title: 'Planning credits used',
-    body: 'This month\'s Miles and Bob search credits are used up. Upgrade for a higher monthly allowance, or wait until next month.',
+    body: 'This month\'s Miles and Bob planning credits are used up. Every message to Miles or Bob uses one credit. Upgrade for a higher monthly allowance, or wait until next month.',
   },
 } as const;
 

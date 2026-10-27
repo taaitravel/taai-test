@@ -1,5 +1,6 @@
 import { Users, Star, Crown, Building } from 'lucide-react';
 import { TierData, type TierType } from '@/lib/stripeConfig';
+import { DISPLAY_PLAN_PRICES } from '@/lib/plans/display-prices';
 
 export const individualTiers: TierData[] = [
   {
@@ -43,11 +44,11 @@ export const individualTiers: TierData[] = [
   {
     id: 'taai_traveler_plus' as TierType,
     name: 'taaiTraveler+',
-    monthlyPrice: 19.00,
-    annualPrice: 184.99,
+    monthlyPrice: DISPLAY_PLAN_PRICES.taai_traveler_plus.monthly,
+    annualPrice: DISPLAY_PLAN_PRICES.taai_traveler_plus.annual,
     priceText: { 
       monthly: '$19.00/mo',
-      annual: '$184.99/yr'
+      annual: '$183.00/yr'
     },
     taxNote: '+ applicable taxes',
     description: 'For travel enthusiasts',

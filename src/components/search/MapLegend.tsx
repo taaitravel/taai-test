@@ -81,11 +81,11 @@ export const MapLegend = ({ searchType, showAll = false }: MapLegendProps) => {
   if (visibleItems.length <= 1 && !showAll) return null;
 
   return (
-    <div className="absolute bottom-4 left-4 bg-[#1a1c2e]/90 backdrop-blur-sm p-3 rounded-lg border border-white/10 z-10">
-      <div className="text-xs text-white/60 mb-2 font-medium">Legend</div>
+    <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur-sm p-3 rounded-lg border border-border z-10">
+      <div className="text-xs text-muted-foreground mb-2 font-medium">Legend</div>
       <div className="space-y-2">
         {visibleItems.map((item) => (
-          <div key={item.category} className="flex items-center gap-2 text-xs text-white/80">
+          <div key={item.category} className="flex items-center gap-2 text-xs text-foreground">
             {renderShape(item.shape, item.color)}
             <span>{item.label}</span>
           </div>

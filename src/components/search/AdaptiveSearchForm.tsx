@@ -1,5 +1,14 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plane, Hotel, Car, Activity, Package, Search, UtensilsCrossed } from 'lucide-react';
@@ -72,6 +81,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
   const [diningTime, setDiningTime] = useState('19:00');
   const [partySize, setPartySize] = useState(2);
   const [cuisine, setCuisine] = useState('all');
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +91,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
     switch (searchType) {
       case 'flights':
         if (!flightOrigin || !flightDestination) {
-          alert('Please enter origin and destination airport codes');
+          setValidationMessage('Please enter origin and destination airport codes');
           return;
         }
         params = {
@@ -98,7 +108,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
 
       case 'hotels':
         if (!hotelDestination) {
-          alert('Please select a destination from the dropdown');
+          setValidationMessage('Please select a destination from the dropdown');
           return;
         }
         params = {
@@ -126,7 +136,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
 
       case 'activities':
         if (!activityDestination) {
-          alert('Please select a destination from the dropdown');
+          setValidationMessage('Please select a destination from the dropdown');
           return;
         }
         params = {
@@ -155,7 +165,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
 
       case 'dining':
         if (!diningLocation) {
-          alert('Please select a location');
+          setValidationMessage('Please select a location');
           return;
         }
         params = {
@@ -203,6 +213,7 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="p-4">
       <Tabs value={searchType} onValueChange={(v) => setSearchType(v as SearchType)}>
         <TabsList className="flex w-full gap-1 overflow-x-auto no-scrollbar justify-start rounded-2xl bg-secondary border border-border mb-4 h-auto p-1 md:grid md:grid-cols-6">
@@ -368,12 +379,24 @@ export const AdaptiveSearchForm = ({ onSearch }: AdaptiveSearchFormProps) => {
       {/* Search Button */}
       <Button
         type="submit"
-        className="w-full mt-4 h-11 gold-gradient hover:opacity-90 text-white font-semibold"
+        className="w-full mt-4 h-11 gold-gradient hover:opacity-90 text-foreground font-semibold"
         disabled={!isFormValid()}
       >
         <Search className="mr-2 h-5 w-5" />
         {getSearchButtonText()}
       </Button>
     </form>
+    <AlertDialog open={validationMessage !== null} onOpenChange={(open) => { if (!open) setValidationMessage(null); }}>
+      <AlertDialogContent className="bg-card text-card-foreground border-border">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Check your search</AlertDialogTitle>
+          <AlertDialogDescription>{validationMessage}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction type="button" className="h-11">OK</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };

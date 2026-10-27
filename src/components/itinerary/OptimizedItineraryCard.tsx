@@ -72,7 +72,7 @@ interface OptimizedItineraryCardProps {
 
 const getStatusColor = (status?: string) => {
   switch (status?.toLowerCase()) {
-    case 'confirmed': return 'bg-green-500/20 text-green-300 border-green-500/30';
+    case 'confirmed': return 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-700/30';
     case 'pending': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
     case 'cancelled': return 'bg-red-500/20 text-red-300 border-red-500/30';
     default: return 'bg-blue-500/20 text-blue-300 border-blue-500/30';

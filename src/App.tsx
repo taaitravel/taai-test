@@ -3,14 +3,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ChromeStateProvider } from "@/contexts/ChromeStateContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PlanLimitProvider } from "@/components/plans/PlanLimitProvider";
 import { travelBookingCheckoutEnabled } from "@/lib/features";
 import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
+import { ChatInterface } from "@/components/chat/ChatInterface";
 import Index from "./pages/Index";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -44,11 +45,36 @@ import PublicItinerary from "./pages/PublicItinerary";
 
 const queryClient = new QueryClient();
 
+const MILES_HIDDEN_ROUTES = new Set([
+  "/",
+  "/login",
+  "/signup",
+  "/new-itinerary",
+  "/checkout",
+  "/cart",
+]);
+
+/** Signed-in Miles launcher. Landing keeps its own button. Create Itinerary has an embedded composer. */
+const SignedInMiles = () => {
+  const { user } = useAuth();
+  const { pathname } = useLocation();
+  if (!user || MILES_HIDDEN_ROUTES.has(pathname)) return null;
+  return (
+    <ChatInterface
+      context="travel planning and general travel assistance"
+      assistantName="Miles"
+      assistantSubtitle="Your taai travel specialist"
+      greeting="Hi, I'm Miles — your taai travel specialist. Tell me where you're going and I'll line up flights, stays, activities and the costs in one itinerary."
+      placeholder="Where are you going?"
+    />
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <ThemeProvider defaultTheme="dark" storageKey="taai-theme">
+        <ThemeProvider defaultTheme="system" storageKey="taai-theme">
           <ChromeStateProvider>
             <Toaster />
             <Sonner />
@@ -161,6 +187,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <MobileBottomNav />
+            <SignedInMiles />
             </PlanLimitProvider>
           </BrowserRouter>
           </ChromeStateProvider>

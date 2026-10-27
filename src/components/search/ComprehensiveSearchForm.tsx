@@ -69,7 +69,7 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
         <Button
           variant={searchTypes.flights ? "default" : "outline"}
           onClick={() => handleSearchTypeToggle('flights')}
-          className="flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
+          className="flex items-center gap-2 bg-muted border-border text-foreground hover:bg-accent"
         >
           <Plane className="h-4 w-4" />
           Flights
@@ -77,7 +77,7 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
         <Button
           variant={searchTypes.hotels ? "default" : "outline"}
           onClick={() => handleSearchTypeToggle('hotels')}
-          className="flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
+          className="flex items-center gap-2 bg-muted border-border text-foreground hover:bg-accent"
         >
           <Hotel className="h-4 w-4" />
           Hotels
@@ -85,7 +85,7 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
         <Button
           variant={searchTypes.cars ? "default" : "outline"}
           onClick={() => handleSearchTypeToggle('cars')}
-          className="flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
+          className="flex items-center gap-2 bg-muted border-border text-foreground hover:bg-accent"
         >
           <Car className="h-4 w-4" />
           Cars
@@ -93,19 +93,19 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
         <Button
           variant={searchTypes.activities ? "default" : "outline"}
           onClick={() => handleSearchTypeToggle('activities')}
-          className="flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
+          className="flex items-center gap-2 bg-muted border-border text-foreground hover:bg-accent"
         >
           <Activity className="h-4 w-4" />
           Activities
         </Button>
-        <div className="flex items-center space-x-2 p-3 bg-white/5 border border-white/20 rounded-md">
+        <div className="flex items-center space-x-2 p-3 bg-muted border border-border rounded-md">
           <Checkbox 
             id="package" 
             checked={isPackageSearch}
             onCheckedChange={handlePackageToggle}
-            className="border-white/30"
+            className="border-border"
           />
-          <label htmlFor="package" className="text-sm text-white flex items-center gap-1">
+          <label htmlFor="package" className="text-sm text-foreground flex items-center gap-1">
             <Package className="h-4 w-4" />
             Package
           </label>
@@ -117,7 +117,7 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
         {/* Origin (for flights) */}
         {searchTypes.flights && (
           <div className="space-y-2">
-            <Label className="text-white flex items-center gap-2">
+            <Label className="text-foreground flex items-center gap-2">
               <Plane className="h-4 w-4" />
               From (Origin)
             </Label>
@@ -131,7 +131,7 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
 
         {/* Destination */}
         <div className="space-y-2">
-          <Label className="text-white flex items-center gap-2">
+          <Label className="text-foreground flex items-center gap-2">
             <Activity className="h-4 w-4" />
             To (Destination) *
           </Label>
@@ -144,7 +144,7 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
 
         {/* Check-in Date */}
         <div className="space-y-2">
-          <Label htmlFor="checkin" className="text-white flex items-center gap-2">
+          <Label htmlFor="checkin" className="text-foreground flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Check-in / Departure *
           </Label>
@@ -153,13 +153,13 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
             type="date"
             value={checkIn}
             onChange={(e) => setCheckIn(e.target.value)}
-            className="bg-[#1f1f27] border-white/30 text-white"
+            className="bg-muted border-border text-foreground"
           />
         </div>
 
         {/* Check-out Date */}
         <div className="space-y-2">
-          <Label htmlFor="checkout" className="text-white flex items-center gap-2">
+          <Label htmlFor="checkout" className="text-foreground flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Check-out / Return *
           </Label>
@@ -168,13 +168,13 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
             type="date"
             value={checkOut}
             onChange={(e) => setCheckOut(e.target.value)}
-            className="bg-[#1f1f27] border-white/30 text-white"
+            className="bg-muted border-border text-foreground"
           />
         </div>
 
         {/* Travelers */}
         <div className="space-y-2">
-          <Label htmlFor="adults" className="text-white flex items-center gap-2">
+          <Label htmlFor="adults" className="text-foreground flex items-center gap-2">
             <Users className="h-4 w-4" />
             Adults
           </Label>
@@ -185,12 +185,12 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
             max="20"
             value={adults}
             onChange={(e) => setAdults(e.target.value)}
-            className="bg-[#1f1f27] border-white/30 text-white"
+            className="bg-muted border-border text-foreground"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="children" className="text-white flex items-center gap-2">
+          <Label htmlFor="children" className="text-foreground flex items-center gap-2">
             <Users className="h-4 w-4" />
             Children
           </Label>
@@ -201,14 +201,14 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
             max="10"
             value={children}
             onChange={(e) => setChildren(e.target.value)}
-            className="bg-[#1f1f27] border-white/30 text-white"
+            className="bg-muted border-border text-foreground"
           />
         </div>
 
         {/* Rooms (for hotels) */}
         {searchTypes.hotels && (
           <div className="space-y-2">
-            <Label htmlFor="rooms" className="text-white flex items-center gap-2">
+            <Label htmlFor="rooms" className="text-foreground flex items-center gap-2">
               <Hotel className="h-4 w-4" />
               Rooms
             </Label>
@@ -219,7 +219,7 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
               max="10"
               value={rooms}
               onChange={(e) => setRooms(e.target.value)}
-              className="bg-[#1f1f27] border-white/30 text-white"
+              className="bg-muted border-border text-foreground"
             />
           </div>
         )}
@@ -228,16 +228,16 @@ export const ComprehensiveSearchForm = ({ onSearch }: ComprehensiveSearchFormPro
       {/* Advanced Options */}
       <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="text-white/70 hover:text-white">
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
             {showAdvanced ? '▼' : '▶'} Advanced Options
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-4 pt-4">
           {searchTypes.flights && (
             <div className="space-y-2">
-              <Label className="text-white">Flight Class</Label>
+              <Label className="text-foreground">Flight Class</Label>
               <Select value={flightClass} onValueChange={setFlightClass}>
-                <SelectTrigger className="bg-[#1f1f27] border-white/30 text-white">
+                <SelectTrigger className="bg-muted border-border text-foreground">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

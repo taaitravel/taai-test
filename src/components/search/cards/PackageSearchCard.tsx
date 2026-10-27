@@ -151,67 +151,67 @@ export const PackageSearchCard = ({ package: pkg }: PackageSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden rounded-lg border border-white/20 bg-[#1a1c2e] p-6 pb-[20px]">
+    <div className="w-[270px] h-[385px] space-y-4 flex flex-col overflow-hidden rounded-lg border border-border bg-card p-6 pb-[20px]">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
             Complete Package Deal
           </h3>
-          <p className="text-white/70 text-xs">Flight + Hotel + Car</p>
+          <p className="text-muted-foreground text-xs">Flight + Hotel + Car</p>
         </div>
         <Badge className="bg-primary/20 text-primary border-primary/30 text-base px-4 py-2">
           Save ${discount}
         </Badge>
       </div>
 
-      <div className="bg-white/5 p-4 rounded-lg border border-white/20">
+      <div className="bg-muted p-4 rounded-lg border border-border">
         <div className="flex items-center gap-2 mb-2">
-          <Plane className="h-5 w-5 text-white/60" />
-          <h4 className="text-white font-semibold">Flight</h4>
+          <Plane className="h-5 w-5 text-muted-foreground" />
+          <h4 className="text-foreground font-semibold">Flight</h4>
         </div>
-        <p className="text-white/70 text-sm">{pkg.flight?.airline} - {pkg.flight?.from} → {pkg.flight?.to}</p>
-        <p className="text-white/60 text-sm line-through mt-1">${flightPrice}</p>
+        <p className="text-muted-foreground text-sm">{pkg.flight?.airline} - {pkg.flight?.from} → {pkg.flight?.to}</p>
+        <p className="text-muted-foreground text-sm line-through mt-1">${flightPrice}</p>
       </div>
 
-      <div className="bg-white/5 p-4 rounded-lg border border-white/20">
+      <div className="bg-muted p-4 rounded-lg border border-border">
         <div className="flex items-center gap-2 mb-2">
-          <Hotel className="h-5 w-5 text-white/60" />
-          <h4 className="text-white font-semibold">Hotel</h4>
+          <Hotel className="h-5 w-5 text-muted-foreground" />
+          <h4 className="text-foreground font-semibold">Hotel</h4>
         </div>
-        <p className="text-white/70 text-sm">{pkg.hotel?.name}</p>
-        <p className="text-white/60 text-sm">{pkg.hotel?.location}</p>
-        <p className="text-white/60 text-sm line-through mt-1">${hotelPrice}</p>
+        <p className="text-muted-foreground text-sm">{pkg.hotel?.name}</p>
+        <p className="text-muted-foreground text-sm">{pkg.hotel?.location}</p>
+        <p className="text-muted-foreground text-sm line-through mt-1">${hotelPrice}</p>
       </div>
 
-      <div className="bg-white/5 p-4 rounded-lg border border-white/20">
+      <div className="bg-muted p-4 rounded-lg border border-border">
         <div className="flex items-center gap-2 mb-2">
-          <Car className="h-5 w-5 text-white/60" />
-          <h4 className="text-white font-semibold">Car Rental</h4>
+          <Car className="h-5 w-5 text-muted-foreground" />
+          <h4 className="text-foreground font-semibold">Car Rental</h4>
         </div>
-        <p className="text-white/70 text-sm">{pkg.car?.name || 'Toyota Camry'}</p>
-        <p className="text-white/60 text-sm line-through mt-1">${carPrice}</p>
+        <p className="text-muted-foreground text-sm">{pkg.car?.name || 'Toyota Camry'}</p>
+        <p className="text-muted-foreground text-sm line-through mt-1">${carPrice}</p>
       </div>
 
-      <div className="pt-4 border-t border-white/10">
+      <div className="pt-4 border-t border-border">
         <div className="bg-gradient-to-r from-primary/20 to-primary/10 p-6 rounded-lg border border-primary/30 mb-4">
           <div className="text-center">
-            <p className="text-white/70 text-xs mb-1">Package Total</p>
-            <p className="text-white/60 text-xs line-through mb-2">${Math.ceil(regularTotal).toLocaleString('en-US')}</p>
+            <p className="text-muted-foreground text-xs mb-1">Package Total</p>
+            <p className="text-muted-foreground text-xs line-through mb-2">${Math.ceil(regularTotal).toLocaleString('en-US')}</p>
             <p className="text-3xl font-bold" style={{ color: '#ff849c' }}>
               ${Math.ceil(packagePrice).toLocaleString('en-US')}
             </p>
-            <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
+            <p className="text-muted-foreground text-xs mt-1">including taxes and fees</p>
             <p className="text-primary font-semibold text-sm mt-2">Save 15% vs booking separately!</p>
           </div>
         </div>
       </div>
 
-      <div className="pt-2 border-t border-white/10 mt-auto flex-shrink-0">
+      <div className="pt-2 border-t border-border mt-auto flex-shrink-0">
         <Button
           onClick={handleAddToItinerary}
           disabled={saving}
-          className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
+          className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-foreground"
         >
           <Plus className="mr-1 h-3 w-3" />
           {saving ? 'Saving...' : 'Package'}

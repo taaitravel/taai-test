@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { DISPLAY_PLAN_PRICES } from '@/lib/plans/display-prices';
 
 interface StripePricing {
   priceMapping: Record<string, any>;
@@ -44,12 +45,7 @@ export const useStripePricing = () => {
   // Helper function to get price for a specific tier and billing frequency
   const getPrice = (tier: string, billing: 'monthly' | 'annual'): number => {
     // Canonical prices — always use these as the source of truth
-    const canonicalPrices: Record<string, Record<string, number>> = {
-      taai_traveler: { monthly: 7.99, annual: 79.99 },
-      taai_traveler_plus: { monthly: 19.00, annual: 184.99 },
-      corp_taai_traveler_plus: { monthly: 99.00, annual: 999.00 }
-    };
-    return canonicalPrices[tier]?.[billing] || 0;
+    return DISPLAY_PLAN_PRICES[tier as keyof typeof DISPLAY_PLAN_PRICES]?.[billing] || 0;
   };
 
   // Helper function to get price ID for a specific tier and billing frequency

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Heart, MoreVertical, Reply, Copy, Pencil, Trash2, Plane, Building2, MapPin, Utensils } from 'lucide-react';
+import { ChatAttachment } from './ChatAttachment';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -121,13 +122,8 @@ export const ChatMessageComponent = ({ message, onReply, onEdit, onDelete, onRea
             <>
               {message.content && <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>}
 
-              {/* Attachment rendering */}
-              {message.attachment_type === 'image' && message.attachment_data?.url && (
-                <img
-                  src={message.attachment_data.url}
-                  alt="Shared image"
-                  className="rounded-lg max-w-full max-h-60 object-cover mt-1"
-                />
+              {(message.attachment_type === 'image' || message.attachment_type === 'document') && (
+                <ChatAttachment message={message} />
               )}
 
               {message.attachment_type === 'itinerary_card' && message.attachment_data && (
@@ -183,8 +179,10 @@ export const ChatMessageComponent = ({ message, onReply, onEdit, onDelete, onRea
 
           {/* Quick reply on hover (desktop) */}
           <button
+            type="button"
+            aria-label="Reply"
             onClick={() => onReply(message)}
-            className="opacity-0 group-hover:opacity-100 text-[10px] px-1.5 py-0.5 rounded-full hover:bg-muted text-muted-foreground transition-opacity"
+            className="hover-reveal touch-target text-[10px] px-1.5 py-0.5 rounded-full hover:bg-muted text-muted-foreground transition-opacity"
           >
             <Reply className="h-3 w-3" />
           </button>
@@ -194,7 +192,7 @@ export const ChatMessageComponent = ({ message, onReply, onEdit, onDelete, onRea
       {/* Context menu */}
       <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
         <DropdownMenuTrigger asChild>
-          <button className="opacity-0 group-hover:opacity-100 self-center transition-opacity">
+          <button type="button" aria-label="Message actions" className="hover-reveal touch-target self-center transition-opacity">
             <MoreVertical className="h-4 w-4 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>

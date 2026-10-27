@@ -17,8 +17,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 16% 15%;
 
-    --primary: 351 85% 65%;          /* slightly deeper rose for contrast */
-    --primary-foreground: 0 0% 100%; /* white text on primary */
+    --primary: 351 68% 42%;          /* rose deep enough for white text and links */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 40 30% 92%;         /* warm light gray */
     --secondary-foreground: 240 16% 15%;
@@ -73,10 +73,10 @@
     --background: 240 16% 11%;       /* #171821 */
     --foreground: 0 0% 98%;          /* near-white text for readability */
 
-    --card: 240 14% 11%;             /* #171820 cards */
+    --card: 240 12% 16%;             /* lifted above the page so cards read in dark mode */
     --card-foreground: 0 0% 98%;
 
-    --popover: 23 24% 11%;
+    --popover: 240 12% 16%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 351 85% 75%;
@@ -136,7 +136,17 @@
 
   body {
     @apply bg-background text-foreground;
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
   }
+}
+
+/* Body padding already reserves the notch and home indicator.
+   Keep full-page shells inside that box so they do not scroll by the inset height. */
+.min-h-screen {
+  min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 }
 
 /* Custom luxury gradients - Theme Aware */
@@ -150,10 +160,12 @@
 
 .gold-gradient {
   background: linear-gradient(135deg, hsl(351, 85%, 65%) 0%, hsl(15, 80%, 60%) 50%, hsl(25, 75%, 55%) 100%);
+  color: #171310;
 }
 
 .dark .gold-gradient {
   background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%);
+  color: #171310;
 }
 
 .gold-gradient-flowing {
@@ -261,12 +273,19 @@
 .trip-card-past {
   background: linear-gradient(135deg, hsl(351, 85%, 65%) 0%, hsl(15, 80%, 60%) 50%, hsl(25, 75%, 55%) 100%);
   border: 1px solid hsl(var(--border) / 0.3);
+  color: #171310;
   opacity: 1;
 }
 
 .dark .trip-card-past {
   background: linear-gradient(135deg, hsl(351, 85%, 75%) 0%, hsl(15, 80%, 70%) 50%, hsl(25, 75%, 65%) 100%);
   border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #171310;
+}
+
+/* Ink on the coral trip surface clears WCAG AA. Utilities on children would otherwise stay white. */
+.trip-card-past :where([class*="text-white"]) {
+  color: #171310;
 }
 
 .luxury-text-gradient {
@@ -432,6 +451,29 @@
   }
 }
 
+/* Mapbox chrome sits on an 8px grid so zoom, logo, and attribution do not stack. */
+.mapboxgl-ctrl-top-right { top: 8px; right: 8px; }
+.mapboxgl-ctrl-top-left { top: 8px; left: 8px; }
+.mapboxgl-ctrl-bottom-right { bottom: 8px; right: 8px; }
+.mapboxgl-ctrl-bottom-left { bottom: 8px; left: 8px; }
+.mapboxgl-ctrl-group { margin: 0 0 8px 0; }
+.mapboxgl-ctrl-group button { width: 32px; height: 32px; }
+.mapboxgl-ctrl-attrib.mapboxgl-compact { margin: 8px; }
+.mapboxgl-ctrl-logo { margin: 0 0 8px 8px !important; }
+
+/* Room for the tab bar (64) plus the Miles button (56) on a phone. */
+.chrome-inset-fab {
+  padding-bottom: calc(56px + 16px + env(safe-area-inset-bottom, 0px));
+}
+.chrome-inset {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 767px) {
+  .chrome-inset {
+    padding-bottom: calc(64px + 16px + 56px + 16px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* Mapbox popup overrides - Theme Aware */
 .mapboxgl-popup-content {
   background: hsl(var(--card)) !important;
@@ -443,8 +485,8 @@
 }
 
 .dark .mapboxgl-popup-content {
-  background: #1a1c2e !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -454,8 +496,8 @@
 }
 
 .dark .mapboxgl-popup-tip {
-  border-top-color: #1a1c2e !important;
-  border-bottom-color: #1a1c2e !important;
+  border-top-color: hsl(var(--card)) !important;
+  border-bottom-color: hsl(var(--card)) !important;
 }
 
 .mapboxgl-popup-close-button {
@@ -777,7 +819,7 @@
 /* Bright buttons */
 .bright-btn-grad {
   background: var(--grad-deep);
-  color: #fff;
+  color: #171310;
   border: 0;
   box-shadow: var(--shadow-glow);
 }
@@ -822,5 +864,87 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/*
+ * Apple HIG minimum control size is 44pt. The painted button stays whatever
+ * height/width it already has; this only extends the hit area.
+ * Skip when the control is already positioned (absolute/fixed/sticky) so we
+ * don't pull it back into normal flow.
+ */
+.touch-target:not(.absolute):not(.fixed):not(.sticky) {
+  position: relative;
+}
+.touch-target::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* Hover-only actions stay hidden for a fine pointer, and stay visible on touch. */
+@media (hover: hover) and (pointer: fine) {
+  .hover-reveal {
+    opacity: 0;
+  }
+  .group:hover .hover-reveal,
+  .group\/menu-item:hover .hover-reveal,
+  .hover-reveal:hover,
+  .hover-reveal:focus,
+  .hover-reveal:focus-visible,
+  .group:focus-within .hover-reveal,
+  .group\/menu-item:focus-within .hover-reveal,
+  .hover-reveal[data-state="open"] {
+    opacity: 1;
+  }
+}
+
+/* Sidebar icon actions: invisible hit slop on touch, at any viewport width. */
+.touch-hit::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .touch-hit::after {
+    content: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Spinners stay a progress cue, without rotation or travel. */
+  .animate-spin,
+  .animate-spin::before,
+  .animate-spin::after {
+    animation: reduced-motion-pulse 1.6s ease-in-out infinite !important;
+  }
+}
+
+@keyframes reduced-motion-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
   }
 }

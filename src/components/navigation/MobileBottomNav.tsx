@@ -83,7 +83,7 @@ export const MobileBottomNav: React.FC = () => {
           'overflow-hidden flex items-center',
           collapsed
             ? 'w-12 h-12 rounded-full justify-center px-0 border border-transparent glass-orb-base glass-orb-frost glass-orb-bezel'
-            : 'w-full max-w-md h-[64px] rounded-2xl justify-around px-1 bg-card/80 backdrop-blur-2xl border border-border/40 shadow-lg shadow-black/10'
+            : 'w-full max-w-md h-[64px] rounded-2xl justify-around px-1 bg-background/95 backdrop-blur-xl border border-border shadow-sm'
         )}
       >
         {/* Iridescent sheen — only when collapsed */}

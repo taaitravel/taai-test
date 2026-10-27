@@ -1,8 +1,9 @@
+import { DISPLAY_PLAN_PRICES } from '@/lib/plans/display-prices';
+
 /**
  * Legacy price id notes. Not used for checkout or for tier mapping.
- * Published prices are $7.99 / $79.99, $19 / $184.99, and $99 / $999.
- * An older comment on the taaiTraveler+ annual id said $199. That does not
- * match the plan cards or the amount fallback, so it is not enforced.
+ * Card copy is $7.99 / $79.99, $19 / $183, and $99 / $999.
+ * The $183 yearly taaiTraveler+ figure matches Stripe. These ids are not changed.
  */
 export const STRIPE_PRICE_IDS = {
   traveler: {
@@ -43,7 +44,7 @@ export const getAnnualSavings = (tier: TierType, monthlyPrice?: number, annualPr
   
   const annualPrices = {
     taai_traveler: annualPrice || 79.99,
-    taai_traveler_plus: annualPrice || 184.99,
+    taai_traveler_plus: annualPrice || DISPLAY_PLAN_PRICES.taai_traveler_plus.annual,
     corp_taai_traveler_plus: annualPrice || 999.00
   };
   

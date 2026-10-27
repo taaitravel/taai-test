@@ -24,7 +24,7 @@ export const CollectionsSidebar: React.FC<CollectionsSidebarProps> = ({
   totalItineraries
 }) => {
   return (
-    <div className="w-64 bg-secondary border-r border-border flex flex-col h-full">
+    <div className="w-full md:w-64 bg-secondary border-r border-border flex flex-col h-full min-h-full self-stretch">
       <div className="p-4 border-b border-border">
         <h3 className="font-semibold text-foreground mb-2">Collections</h3>
         <Button

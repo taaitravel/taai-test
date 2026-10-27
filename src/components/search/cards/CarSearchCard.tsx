@@ -148,57 +148,57 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
   };
 
   return (
-    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-white/20 bg-[#1a1c2e] pb-[20px]">
+    <div className="w-[270px] h-[385px] flex flex-col overflow-hidden rounded-lg border border-border bg-card pb-[20px]">
       {car.image && (
-        <div className="overflow-hidden bg-white/5 p-4 flex-shrink-0 h-28">
+        <div className="overflow-hidden bg-muted p-4 flex-shrink-0 h-28">
           <img src={car.image} alt={car.name} className="w-full h-full object-contain" />
         </div>
       )}
 
       <div className="p-4 flex-1 flex flex-col space-y-4">
         <div>
-          <h3 className="text-xl font-bold text-white mb-1">{car.name || 'Toyota Camry'}</h3>
-          <p className="text-white/70 text-sm">{car.type || 'Sedan'}</p>
+          <h3 className="text-xl font-bold text-foreground mb-1">{car.name || 'Toyota Camry'}</h3>
+          <p className="text-muted-foreground text-sm">{car.type || 'Sedan'}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
+          <Badge className="bg-muted text-foreground border-border flex items-center gap-1 justify-center py-2 text-xs">
             <Users className="h-4 w-4" />
             {car.seats || 5} seats
           </Badge>
-          <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
+          <Badge className="bg-muted text-foreground border-border flex items-center gap-1 justify-center py-2 text-xs">
             <Settings className="h-4 w-4" />
             {car.transmission || 'Automatic'}
           </Badge>
-          <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
+          <Badge className="bg-muted text-foreground border-border flex items-center gap-1 justify-center py-2 text-xs">
             <Fuel className="h-4 w-4" />
             {car.fuelType || 'Gasoline'}
           </Badge>
-          <Badge className="bg-white/10 text-white/80 border-white/20 flex items-center gap-1 justify-center py-2 text-xs">
+          <Badge className="bg-muted text-foreground border-border flex items-center gap-1 justify-center py-2 text-xs">
             <Navigation className="h-4 w-4" />
             GPS Included
           </Badge>
         </div>
 
-        <div className="bg-white/5 p-4 rounded-lg border border-white/20">
-          <div className="space-y-2 text-xs text-white/70">
-            <p><strong className="text-white">Pickup:</strong> {car.pickupLocation || 'Airport'}</p>
-            <p><strong className="text-white">Dropoff:</strong> {car.dropoffLocation || 'Airport'}</p>
-            <p><strong className="text-white">Mileage:</strong> {car.mileageLimit || 'Unlimited'}</p>
+        <div className="bg-muted p-4 rounded-lg border border-border">
+          <div className="space-y-2 text-xs text-muted-foreground">
+            <p><strong className="text-foreground">Pickup:</strong> {car.pickupLocation || 'Airport'}</p>
+            <p><strong className="text-foreground">Dropoff:</strong> {car.dropoffLocation || 'Airport'}</p>
+            <p><strong className="text-foreground">Mileage:</strong> {car.mileageLimit || 'Unlimited'}</p>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-white/10">
+        <div className="pt-4 border-t border-border">
           <div className="flex items-baseline justify-between mb-4">
             <div>
-              <p className="text-white/60 text-xs">Price per day</p>
+              <p className="text-muted-foreground text-xs">Price per day</p>
               <p className="text-2xl font-bold" style={{ color: '#ff849c' }}>
                 ${Math.ceil(pricePerDay).toLocaleString('en-US')}
               </p>
-              <p className="text-white/40 text-xs mt-1">including taxes and fees</p>
+              <p className="text-muted-foreground text-xs mt-1">including taxes and fees</p>
             </div>
             <div className="text-right">
-              <p className="text-white/60 text-xs">Total for {days} days</p>
+              <p className="text-muted-foreground text-xs">Total for {days} days</p>
               <p className="text-xl font-semibold" style={{ color: '#ff849c' }}>
                 ${Math.ceil(totalPrice).toLocaleString('en-US')}
               </p>
@@ -206,11 +206,11 @@ export const CarSearchCard = ({ car }: CarSearchCardProps) => {
           </div>
         </div>
 
-        <div className="pt-2 border-t border-white/10 mt-auto flex-shrink-0">
+        <div className="pt-2 border-t border-border mt-auto flex-shrink-0">
           <Button
             onClick={handleAddToItinerary}
             disabled={saving}
-            className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-white"
+            className="w-full h-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs text-foreground"
           >
             <Plus className="mr-1 h-3 w-3" />
             {saving ? 'Saving...' : 'Car'}

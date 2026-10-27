@@ -8,7 +8,7 @@ import { formatDateOnly } from '@/lib/date-time';
 const getStatusIcon = (status?: string) => {
   switch (status) {
     case 'confirmed':
-      return <CheckCircle className="h-3 w-3 text-green-400" />;
+      return <CheckCircle className="h-3 w-3 text-emerald-800 dark:text-emerald-300" />;
     case 'pending':
       return <AlertCircle className="h-3 w-3 text-yellow-400" />;
     case 'cancelled':
@@ -21,7 +21,7 @@ const getStatusIcon = (status?: string) => {
 const getStatusColor = (status?: string) => {
   switch (status) {
     case 'confirmed':
-      return 'bg-green-500/20 text-green-300 border-green-500/30';
+      return 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-700/30';
     case 'pending':
       return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
     case 'cancelled':
@@ -253,7 +253,7 @@ export const EnhancedActivityRenderer = (activity: EnhancedActivityItem, isTop: 
       
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Badge className={`text-sm ${activity.booking_status ? getStatusColor(activity.booking_status) : 'bg-green-500/20 text-green-300 border-green-500/30'}`}>
+          <Badge className={`text-sm ${activity.booking_status ? getStatusColor(activity.booking_status) : 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-700/30'}`}>
             ${activity.cost}
           </Badge>
           {activity.booking_status && (

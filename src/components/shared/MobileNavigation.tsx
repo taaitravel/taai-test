@@ -14,6 +14,7 @@ import { MobileActionCluster } from "./MobileActionCluster";
 import { getRouteChrome } from "@/lib/chrome/route-config";
 import { useChromeState } from "@/contexts/ChromeStateContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { travelerLevelFromProfile } from "@/lib/travelerLevel";
 import { cn } from "@/lib/utils";
 
 interface MobileNavigationProps {
@@ -27,7 +28,7 @@ interface MobileNavigationProps {
 }
 
 export const MobileNavigation = ({ 
-  travelerLevel = "Master Traveler",
+  travelerLevel,
   showBackButton = false,
   backPath = "/home",
   backLabel = "Back to Home",
@@ -40,6 +41,7 @@ export const MobileNavigation = ({
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { signOut, userProfile } = useAuth();
+  const rank = travelerLevel ?? travelerLevelFromProfile(userProfile);
   const { setDrawerOpen } = useChromeState();
   const chrome = getRouteChrome(location.pathname);
   const mobileVariant = chrome.variant;
@@ -159,7 +161,7 @@ export const MobileNavigation = ({
                       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
                     >
                       <Badge className="bg-accent text-foreground border-border text-sm px-3 py-1">
-                        {travelerLevel}
+                        {rank}
                       </Badge>
                       <Button
                         onClick={handleSignOut}
@@ -189,7 +191,7 @@ export const MobileNavigation = ({
             )}
             {!isMobile && (
               <Badge className="bg-accent text-foreground border-border">
-                {travelerLevel}
+                {rank}
               </Badge>
             )}
           </div>

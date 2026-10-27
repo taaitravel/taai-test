@@ -3,12 +3,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Paperclip, Image, Calendar, Plane, Building2, MapPin, Utensils } from 'lucide-react';
 import { ItineraryData } from '@/types/itinerary';
-import { validateUpload } from '@/lib/uploads/limits';
-import { toast } from 'sonner';
+import { acceptFor } from '@/lib/uploads/limits';
+import { prepareAndValidate } from '@/lib/uploads/prepare';
+import type { UploadNotice } from '@/lib/uploads/notices';
 
 interface ChatAttachmentPickerProps {
   itineraryData: ItineraryData;
-  onImageSelected: (file: File) => void;
+  onFileSelected: (file: File) => void;
+  onRejected: (notice: UploadNotice) => void;
   onCardSelected: (category: string, item: any) => void;
   onCalendarSelected: (date: string) => void;
 }
@@ -22,23 +24,23 @@ const categoryConfig = [
 
 export const ChatAttachmentPicker = ({
   itineraryData,
-  onImageSelected,
+  onFileSelected,
+  onRejected,
   onCardSelected,
   onCalendarSelected,
 }: ChatAttachmentPickerProps) => {
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const problem = validateUpload('chat', file);
-      if (problem) {
-        toast.error(problem);
-      } else {
-        onImageSelected(file);
-      }
-    }
     e.target.value = '';
+    if (!file) return;
+    const prepared = await prepareAndValidate('chat', file);
+    if (prepared.ok === false) {
+      onRejected(prepared);
+      return;
+    }
+    onFileSelected(prepared.file);
   };
 
   return (
@@ -49,14 +51,17 @@ export const ChatAttachmentPicker = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 p-2" side="top">
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+        <input ref={fileRef} type="file" accept={acceptFor('chat')} className="hidden" onChange={handleFileChange} />
 
         <button
-          className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors text-left"
           onClick={() => fileRef.current?.click()}
         >
-          <Image className="h-4 w-4 text-primary" />
-          Upload Photo
+          <Image className="h-4 w-4 text-primary shrink-0" />
+          <span className="flex flex-col">
+            <span>Photo or PDF</span>
+            <span className="text-[10px] text-muted-foreground">JPG, PNG, WEBP, GIF, HEIC, or PDF · 5 MB</span>
+          </span>
         </button>
 
         <div className="border-t border-border my-1" />

@@ -63,7 +63,7 @@ export const SearchResultsGrid = ({ results, searchType, searchParams }: SearchR
           <Button 
             onClick={() => setDisplayCount(prev => prev + 12)}
             variant="outline"
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            className="bg-muted border-border text-foreground hover:bg-accent"
           >
             Load More ({results.length - displayCount} remaining)
           </Button>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { pluralize } from '@/lib/pluralize';
 
 export interface Collection {
   id: string;
@@ -202,7 +203,7 @@ export const useItineraryCollections = () => {
 
       toast({
         title: 'Added to collection',
-        description: `${itineraryIds.length} itinerary(s) added`
+        description: `${pluralize(itineraryIds.length, 'itinerary', 'itineraries')} added`
       });
 
       await fetchCollections();
