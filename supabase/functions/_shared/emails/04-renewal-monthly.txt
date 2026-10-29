@@ -1,0 +1,13 @@
+Subject: Your taai renewal went through
+
+Renewed. Thanks for sticking around.
+
+We charged {{amount}} for another month of {{plan}}. Next charge: {{next_date}}.
+
+View billing: https://taai-travel.lovable.app/account
+
+Manage or cancel anytime from Account > Billing.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

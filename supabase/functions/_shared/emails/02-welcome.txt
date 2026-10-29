@@ -1,0 +1,13 @@
+Subject: You're in. Let's plan something good.
+
+Hi {{name}}, welcome to taai.
+
+Start an itinerary, invite your travel crew, and ask Miles for ideas. Bookings happen with third-party providers; taai keeps the plan in one place.
+
+Start my first trip: https://taai-travel.lovable.app/
+
+Questions? Just reply to this email.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

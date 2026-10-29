@@ -1,0 +1,13 @@
+Subject: Your {{plan}} plan is active
+
+Thanks for joining {{plan}}.
+
+You're on {{plan}} at {{amount}}/{{interval}}. Next charge: {{next_date}}. Your new limits are live now.
+
+See my plan: https://taai-travel.lovable.app/account
+
+Stripe sends your official receipt separately.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

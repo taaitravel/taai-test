@@ -1,0 +1,13 @@
+Subject: Your taai account is closed
+
+Your account is closed.
+
+You've been signed out everywhere and any subscription was cancelled. We'll permanently delete your data on {{purge_date}} (30 days). Change your mind before then? Just sign in.
+
+Reopen my account: https://taai-travel.lovable.app/login
+
+Want it deleted sooner? Reply 'delete now'.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

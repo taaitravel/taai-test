@@ -54,6 +54,12 @@ const EditItinerary = () => {
         .single();
 
       if (error) throw error;
+
+      if (data.editing_locked) {
+        toast.error('This trip is read-only on the free plan. Your newest trips stay editable.');
+        navigate(`/itinerary?id=${itineraryId}`);
+        return;
+      }
       
       setOriginalData(data);
       setFormData({

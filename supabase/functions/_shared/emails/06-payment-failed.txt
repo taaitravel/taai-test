@@ -1,0 +1,13 @@
+Subject: Your payment didn't go through
+
+Quick fix needed.
+
+We couldn't charge your card for {{plan}} ({{amount}}). We'll try again on {{retry_date}}. Update your card to keep your plan.
+
+Update payment method: {{portal_url}}
+
+Your trips stay safe while we sort this out.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

@@ -1,0 +1,13 @@
+Subject: Your subscription is cancelled
+
+Sorry to see you go.
+
+{{plan}} stays active until {{end_date}}. After that you'll move to the free Traveler plan; your trips stay put (beyond 3 itineraries become read-only).
+
+Resubscribe: https://taai-travel.lovable.app/pricing
+
+Tell us why in one reply? It really helps.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

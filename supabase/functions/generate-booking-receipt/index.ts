@@ -104,7 +104,7 @@ async function buildPdf(receipt: any): Promise<Uint8Array> {
   }
 
   y -= 18;
-  page.drawText("Thanks for booking with TAAI. Policies confirmed with provider after booking.", {
+  page.drawText("A record of a booking with a third-party provider. taai does not sell travel.", {
     x: 50, y: Math.max(y, 60), size: 9, font, color: c(140,140,140),
   });
 
@@ -271,15 +271,6 @@ serve(async (req) => {
       .select("id, pdf_path")
       .single();
     if (insErr) throw insErr;
-
-    // Fire-and-forget email
-    try {
-      await supabase.functions.invoke("send-booking-receipt", {
-        body: { receipt_id: inserted.id },
-      });
-    } catch (e) {
-      console.error("send-booking-receipt failed", e);
-    }
 
     // Fire-and-forget preference learning
     try {

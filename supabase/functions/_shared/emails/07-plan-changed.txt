@@ -1,0 +1,13 @@
+Subject: Your plan changed to {{new_plan}}
+
+You're now on {{new_plan}}.
+
+Moved from {{old_plan}} to {{new_plan}}. New price: {{amount}}/{{interval}}, starting {{effective_date}}. Any proration shows on your next invoice.
+
+See my plan: https://taai-travel.lovable.app/account
+
+Didn't make this change? Reply right away.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

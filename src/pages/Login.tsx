@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { LOGO_WORDMARK_URL } from "@/lib/constants";
 import { describeAuthError } from "@/lib/auth/messages";
+import { ACCOUNT_NOTICE_KEY } from "@/lib/auth/account-notice";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -23,6 +25,15 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [showReset, setShowReset] = useState(false);
+  const [accountNotice, setAccountNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    const notice = sessionStorage.getItem(ACCOUNT_NOTICE_KEY);
+    if (notice) {
+      setAccountNotice(notice);
+      sessionStorage.removeItem(ACCOUNT_NOTICE_KEY);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -102,6 +113,11 @@ const Login = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {accountNotice && (
+            <Alert>
+              <AlertDescription>{accountNotice}</AlertDescription>
+            </Alert>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-card-foreground">Email</Label>
             <Input

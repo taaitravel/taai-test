@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { Navigate } from 'react-router-dom';
+import { PaymentFailedBanner } from '@/components/billing/PaymentFailedBanner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -36,5 +37,10 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <PaymentFailedBanner />
+      {children}
+    </>
+  );
 }

@@ -201,7 +201,8 @@ export const useAuthenticatedItineraryData = (itineraryId: string | null) => {
         }));
 
         const totalSpending = cartItems.reduce((sum, item) => sum + (item.price ?? 0), 0);
-        if (isOwner && totalSpending !== row.spending) {
+        const editingLocked = Boolean((row as { editing_locked?: boolean }).editing_locked);
+        if (isOwner && !editingLocked && totalSpending !== row.spending) {
           void supabase
             .from('itinerary')
             .update({ spending: totalSpending })

@@ -102,7 +102,17 @@ export const BillingSection = () => {
           <div className="flex flex-wrap items-center gap-2">
             <Badge className="gold-gradient text-primary-foreground">{limits ? tier.replaceAll('_', ' ') : 'Traveler'}</Badge>
             <Badge variant="outline">{subscriptionData?.subscribed ? 'Active' : 'Free'}</Badge>
-            {renews && <span className="text-sm text-muted-foreground">{subscriptionData?.subscribed ? 'Renews' : 'Ended'} {renews}</span>}
+            {renews && (
+              <span className="text-sm text-muted-foreground">
+                {subscriptionData?.cancel_at_period_end ? 'Ends' : subscriptionData?.subscribed ? 'Renews' : 'Ended'} {renews}
+              </span>
+            )}
+            {subscriptionData?.payment_failed && (
+              <p className="text-sm text-destructive">
+                The last software-subscription payment failed, so this plan is not active.
+                {subscriptionData.payment_failure_summary ? ` ${subscriptionData.payment_failure_summary}` : ''}
+              </p>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">
             {limits.maxItineraries < 0 ? 'Unlimited trips' : `${limits.maxItineraries} trips`} · {limits.monthlyAiCredits < 0 ? 'Unlimited planning credits' : `${limits.monthlyAiCredits} planning credits / month`}

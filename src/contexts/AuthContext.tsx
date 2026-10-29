@@ -4,6 +4,7 @@ import { setRequestOwner, clearRequestCache } from '@/lib/data/request-controlle
 import { supabase } from '@/integrations/supabase/client';
 import { AUTH_REDIRECT_PATHS, authRedirect } from '@/lib/auth/redirects';
 import { describeAuthError } from '@/lib/auth/messages';
+import { ACCOUNT_NOTICE_KEY, accountClosureNotice } from '@/lib/auth/account-notice';
 
 interface UserProfile {
   id: number;
@@ -63,6 +64,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    const settledToken = { current: null as string | null };
+
+    const settleAccount = async (active: Session) => {
+      if (!active.access_token) return false;
+      if (settledToken.current === active.access_token) return true;
+      settledToken.current = active.access_token;
+      const { data, error } = await supabase.functions.invoke('reopen-account', {
+        body: {},
+        headers: { Authorization: `Bearer ${active.access_token}` },
+      });
+      const decision = data?.decision as string | undefined;
+      if (!error && (decision === 'reject_stale_session' || decision === 'past_grace')) {
+        sessionStorage.setItem(
+          ACCOUNT_NOTICE_KEY,
+          accountClosureNotice(decision),
+        );
+        clearRequestCache();
+        setRequestOwner(null);
+        await supabase.auth.signOut();
+        settledToken.current = null;
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setUserProfile(null);
+        }
+        return false;
+      }
+      if (!error && (decision === 'open' || decision === 'reopen')) {
+        void supabase.functions.invoke('send-lifecycle-email', {
+          body: {},
+          headers: { Authorization: `Bearer ${active.access_token}` },
+        });
+      }
+      return true;
+    };
 
     // Check for existing session FIRST
     const initializeAuth = async () => {
@@ -86,7 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           await fetchUserProfile(session.user.id);
-          void supabase.rpc('touch_last_active' as never).then(() => undefined, () => undefined);
+          const stillOpen = await settleAccount(session);
+          if (stillOpen) {
+            void supabase.rpc('touch_last_active' as never).then(() => undefined, () => undefined);
+          }
         }
         
         setLoading(false);
@@ -113,6 +152,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          if (event === 'SIGNED_IN') {
+            void settleAccount(session);
+          }
           // Fetch user profile with proper async handling
           setTimeout(() => {
             if (mounted) {

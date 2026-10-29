@@ -1,0 +1,13 @@
+Subject: Confirm your email for taai
+
+Welcome aboard.
+
+Tap below to confirm your email and start planning.
+
+Confirm my email: {{ .ConfirmationURL }}
+
+Didn't sign up? You can ignore this email.
+
+--
+TAAI Travel, a trip-planning tool. Travel is booked with third-party providers.
+info@taai.travel

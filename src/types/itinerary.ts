@@ -13,6 +13,7 @@ export interface ItineraryData {
   itin_map_locations: Array<{ city: string; lat: number; lng: number }>;
   planned_traveler_count?: number;
   creation_key?: string | null;
+  editing_locked?: boolean;
   attendees: Array<{ id: number; name: string; email: string; avatar: string; status: string }>;
   flights: Array<{ 
     airline: string; 
