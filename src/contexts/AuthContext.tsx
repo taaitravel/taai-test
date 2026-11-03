@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         void supabase.functions.invoke('send-lifecycle-email', {
           body: {},
           headers: { Authorization: `Bearer ${active.access_token}` },
-        });
+        }).catch(() => { /* best-effort welcome email; never block sign-in */ });
       }
       return true;
     };
