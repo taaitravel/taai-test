@@ -56,7 +56,7 @@ export const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({ itineraries 
       center: camera.center,
       zoom: camera.zoom,
       projection: 'globe',
-      attributionControl: { compact: true },
+      attributionControl: { compact: true } as unknown as boolean,
       logoPosition: 'bottom-left',
     });
 

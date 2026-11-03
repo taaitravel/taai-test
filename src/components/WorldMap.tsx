@@ -79,7 +79,7 @@ const WorldMap = ({ visitedCountries }: WorldMapProps) => {
       zoom: Math.min(camera.zoom, 1.3),
       center: camera.center,
       interactive: false,
-      attributionControl: { compact: true },
+      attributionControl: { compact: true } as unknown as boolean,
       logoPosition: 'bottom-left',
     });
 
