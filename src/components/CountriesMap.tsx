@@ -55,7 +55,7 @@ export const CountriesMap = ({ visitedCountries }: CountriesMapProps) => {
       center: camera.center,
       zoom: camera.zoom,
       pitch: 0,
-      attributionControl: { compact: true },
+      attributionControl: { compact: true } as unknown as boolean,
       logoPosition: 'bottom-left',
     });
 

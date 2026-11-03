@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_closures: {
+        Row: {
+          closed_at: string
+          email: string
+          purge_after: string
+          reopened_at: string | null
+          request_id: string
+          status: string
+          stripe_customer_id: string | null
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string
+          email: string
+          purge_after: string
+          reopened_at?: string | null
+          request_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          user_id: string
+        }
+        Update: {
+          closed_at?: string
+          email?: string
+          purge_after?: string
+          reopened_at?: string | null
+          request_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      account_deletion_audit: {
+        Row: {
+          billing_retain_until: string
+          email_sent: boolean
+          id: string
+          miles_memory_deleted: number
+          notes: string | null
+          purged_at: string
+          request_id: string
+          shared_itineraries_transferred: number
+          solo_itineraries_deleted: number
+          storage_objects_removed: number
+          stripe_customer_deleted: boolean
+        }
+        Insert: {
+          billing_retain_until: string
+          email_sent?: boolean
+          id?: string
+          miles_memory_deleted?: number
+          notes?: string | null
+          purged_at?: string
+          request_id: string
+          shared_itineraries_transferred?: number
+          solo_itineraries_deleted?: number
+          storage_objects_removed?: number
+          stripe_customer_deleted?: boolean
+        }
+        Update: {
+          billing_retain_until?: string
+          email_sent?: boolean
+          id?: string
+          miles_memory_deleted?: number
+          notes?: string | null
+          purged_at?: string
+          request_id?: string
+          shared_itineraries_transferred?: number
+          solo_itineraries_deleted?: number
+          storage_objects_removed?: number
+          stripe_customer_deleted?: boolean
+        }
+        Relationships: []
+      }
       agent_commissions: {
         Row: {
           agent_id: string
@@ -67,7 +142,7 @@ export type Database = {
           expires_at: string | null
           id: string
           requested_at: string
-          requested_by: string
+          requested_by: string | null
           requested_scope: Json
           status: string
           task_id: string
@@ -80,7 +155,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           requested_at?: string
-          requested_by: string
+          requested_by?: string | null
           requested_scope?: Json
           status?: string
           task_id: string
@@ -93,7 +168,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           requested_at?: string
-          requested_by?: string
+          requested_by?: string | null
           requested_scope?: Json
           status?: string
           task_id?: string
@@ -159,7 +234,7 @@ export type Database = {
           label: string
           metadata: Json
           recorded_at: string
-          recorded_by: string
+          recorded_by: string | null
           reference_url: string | null
           summary: string
           task_id: string
@@ -170,7 +245,7 @@ export type Database = {
           label: string
           metadata?: Json
           recorded_at?: string
-          recorded_by: string
+          recorded_by?: string | null
           reference_url?: string | null
           summary: string
           task_id: string
@@ -181,7 +256,7 @@ export type Database = {
           label?: string
           metadata?: Json
           recorded_at?: string
-          recorded_by?: string
+          recorded_by?: string | null
           reference_url?: string | null
           summary?: string
           task_id?: string
@@ -203,7 +278,7 @@ export type Database = {
           assigned_agent: string
           completed_at: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           id: string
           next_action: string | null
           objective: string
@@ -215,7 +290,7 @@ export type Database = {
           success_criteria: string | null
           title: string
           updated_at: string
-          updated_by: string
+          updated_by: string | null
         }
         Insert: {
           action_class?: string
@@ -223,7 +298,7 @@ export type Database = {
           assigned_agent: string
           completed_at?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           id?: string
           next_action?: string | null
           objective: string
@@ -235,7 +310,7 @@ export type Database = {
           success_criteria?: string | null
           title: string
           updated_at?: string
-          updated_by: string
+          updated_by?: string | null
         }
         Update: {
           action_class?: string
@@ -243,7 +318,7 @@ export type Database = {
           assigned_agent?: string
           completed_at?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           id?: string
           next_action?: string | null
           objective?: string
@@ -255,7 +330,7 @@ export type Database = {
           success_criteria?: string | null
           title?: string
           updated_at?: string
-          updated_by?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -263,9 +338,9 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
-          creditor_user_id: string
+          creditor_user_id: string | null
           currency: string
-          debtor_user_id: string
+          debtor_user_id: string | null
           id: string
           itinerary_id: number
           note: string | null
@@ -276,9 +351,9 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
-          creditor_user_id: string
+          creditor_user_id?: string | null
           currency?: string
-          debtor_user_id: string
+          debtor_user_id?: string | null
           id?: string
           itinerary_id: number
           note?: string | null
@@ -289,9 +364,9 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
-          creditor_user_id?: string
+          creditor_user_id?: string | null
           currency?: string
-          debtor_user_id?: string
+          debtor_user_id?: string | null
           id?: string
           itinerary_id?: number
           note?: string | null
@@ -360,7 +435,7 @@ export type Database = {
           id: string
           new_values: Json | null
           old_values: Json | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           action: string
@@ -369,7 +444,7 @@ export type Database = {
           id?: string
           new_values?: Json | null
           old_values?: Json | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           action?: string
@@ -378,7 +453,7 @@ export type Database = {
           id?: string
           new_values?: Json | null
           old_values?: Json | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1593,6 +1668,30 @@ export type Database = {
           },
         ]
       }
+      lifecycle_email_log: {
+        Row: {
+          dedupe_key: string
+          id: string
+          sent_at: string
+          template_id: string
+          to_email: string
+        }
+        Insert: {
+          dedupe_key: string
+          id?: string
+          sent_at?: string
+          template_id: string
+          to_email: string
+        }
+        Update: {
+          dedupe_key?: string
+          id?: string
+          sent_at?: string
+          template_id?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
       master_admins: {
         Row: {
           email: string
@@ -1610,6 +1709,27 @@ export type Database = {
           email?: string
           protected_at?: string
           protected_reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      miles_memory: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
           user_id?: string
         }
         Relationships: []
@@ -1707,7 +1827,7 @@ export type Database = {
           stripe_session_id: string | null
           subscriber_id: string | null
           subscription_tier: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           amount: number
@@ -1720,7 +1840,7 @@ export type Database = {
           stripe_session_id?: string | null
           subscriber_id?: string | null
           subscription_tier: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           amount?: number
@@ -1733,7 +1853,7 @@ export type Database = {
           stripe_session_id?: string | null
           subscriber_id?: string | null
           subscription_tier?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1744,6 +1864,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      plan_limits: {
+        Row: {
+          display_name: string
+          max_itineraries: number
+          max_shared_friends: number
+          monthly_ai_credits: number
+          tier: string
+        }
+        Insert: {
+          display_name: string
+          max_itineraries: number
+          max_shared_friends: number
+          monthly_ai_credits: number
+          tier: string
+        }
+        Update: {
+          display_name?: string
+          max_itineraries?: number
+          max_shared_friends?: number
+          monthly_ai_credits?: number
+          tier?: string
+        }
+        Relationships: []
       }
       quote_reprice_events: {
         Row: {
@@ -1929,7 +2073,7 @@ export type Database = {
           search_date: string | null
           search_params: Json
           search_type: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1938,7 +2082,7 @@ export type Database = {
           search_date?: string | null
           search_params: Json
           search_type: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1947,65 +2091,100 @@ export type Database = {
           search_date?: string | null
           search_params?: Json
           search_type?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
+      stripe_price_tiers: {
+        Row: {
+          active: boolean
+          lookup_key: string | null
+          price_id: string
+          product_id: string | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          lookup_key?: string | null
+          price_id: string
+          product_id?: string | null
+          tier: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          lookup_key?: string | null
+          price_id?: string
+          product_id?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_price_tiers_tier_fkey"
+            columns: ["tier"]
+            isOneToOne: false
+            referencedRelation: "plan_limits"
+            referencedColumns: ["tier"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
+          cancel_at_period_end: boolean
           created_at: string
           credits_remaining: number | null
           email: string
           id: string
           max_itineraries: number | null
           max_shared_friends: number | null
+          payment_failed_at: string | null
+          payment_failure_summary: string | null
+          payment_retry_at: string | null
           stripe_customer_id: string | null
           stripe_price_id: string | null
           subscribed: boolean
           subscription_end: string | null
           subscription_tier: string | null
-          cancel_at_period_end: boolean
-          payment_failed_at: string | null
-          payment_failure_summary: string | null
-          payment_retry_at: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          cancel_at_period_end?: boolean
           created_at?: string
           credits_remaining?: number | null
           email: string
           id?: string
           max_itineraries?: number | null
           max_shared_friends?: number | null
+          payment_failed_at?: string | null
+          payment_failure_summary?: string | null
+          payment_retry_at?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
-          cancel_at_period_end?: boolean
-          payment_failed_at?: string | null
-          payment_failure_summary?: string | null
-          payment_retry_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          cancel_at_period_end?: boolean
           created_at?: string
           credits_remaining?: number | null
           email?: string
           id?: string
           max_itineraries?: number | null
           max_shared_friends?: number | null
+          payment_failed_at?: string | null
+          payment_failure_summary?: string | null
+          payment_retry_at?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
-          cancel_at_period_end?: boolean
-          payment_failed_at?: string | null
-          payment_failure_summary?: string | null
-          payment_retry_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -2021,7 +2200,7 @@ export type Database = {
           id: string
           itinerary_id: number
           note: string | null
-          payer_user_id: string
+          payer_user_id: string | null
           source_cart_item_id: string | null
           source_receipt_id: string | null
           status: string
@@ -2036,7 +2215,7 @@ export type Database = {
           id?: string
           itinerary_id: number
           note?: string | null
-          payer_user_id: string
+          payer_user_id?: string | null
           source_cart_item_id?: string | null
           source_receipt_id?: string | null
           status?: string
@@ -2051,7 +2230,7 @@ export type Database = {
           id?: string
           itinerary_id?: number
           note?: string | null
-          payer_user_id?: string
+          payer_user_id?: string | null
           source_cart_item_id?: string | null
           source_receipt_id?: string | null
           status?: string
@@ -2072,7 +2251,7 @@ export type Database = {
           category: string
           confirmation_number: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           currency: string
           destination: string | null
           end_at: string | null
@@ -2094,7 +2273,7 @@ export type Database = {
           total_amount: number | null
           traveler_names: string[]
           updated_at: string
-          updated_by: string
+          updated_by: string | null
         }
         Insert: {
           amount_paid?: number | null
@@ -2108,7 +2287,7 @@ export type Database = {
           category: string
           confirmation_number?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           currency?: string
           destination?: string | null
           end_at?: string | null
@@ -2130,7 +2309,7 @@ export type Database = {
           total_amount?: number | null
           traveler_names?: string[]
           updated_at?: string
-          updated_by: string
+          updated_by?: string | null
         }
         Update: {
           amount_paid?: number | null
@@ -2144,7 +2323,7 @@ export type Database = {
           category?: string
           confirmation_number?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           currency?: string
           destination?: string | null
           end_at?: string | null
@@ -2166,7 +2345,7 @@ export type Database = {
           total_amount?: number | null
           traveler_names?: string[]
           updated_at?: string
-          updated_by?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2317,14 +2496,18 @@ export type Database = {
           date_format: string | null
           email: string | null
           first_name: string | null
+          first_touch_at: string | null
           flight_freq: Json | null
           id: number
           itineraries: Json | null
+          landing_path: string | null
+          last_active_at: string | null
           last_name: string | null
           p_airlines: Json | null
           p_car_rentals: Json | null
           p_hotels: Json | null
           privacy_accepted_at: string | null
+          signup_referrer: string | null
           state: string | null
           taai_rating: number | null
           taai_rating_text: string | null
@@ -2334,14 +2517,12 @@ export type Database = {
           user_type: string | null
           userid: string
           username: string | null
-          utm_source: string | null
-          utm_medium: string | null
           utm_campaign: string | null
           utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
           utm_term: string | null
-          signup_referrer: string | null
-          landing_path: string | null
-          first_touch_at: string | null
+          welcome_email_sent_at: string | null
           zip: string | null
         }
         Insert: {
@@ -2359,14 +2540,18 @@ export type Database = {
           date_format?: string | null
           email?: string | null
           first_name?: string | null
+          first_touch_at?: string | null
           flight_freq?: Json | null
           id?: number
           itineraries?: Json | null
+          landing_path?: string | null
+          last_active_at?: string | null
           last_name?: string | null
           p_airlines?: Json | null
           p_car_rentals?: Json | null
           p_hotels?: Json | null
           privacy_accepted_at?: string | null
+          signup_referrer?: string | null
           state?: string | null
           taai_rating?: number | null
           taai_rating_text?: string | null
@@ -2376,14 +2561,12 @@ export type Database = {
           user_type?: string | null
           userid: string
           username?: string | null
-          utm_source?: string | null
-          utm_medium?: string | null
           utm_campaign?: string | null
           utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
           utm_term?: string | null
-          signup_referrer?: string | null
-          landing_path?: string | null
-          first_touch_at?: string | null
+          welcome_email_sent_at?: string | null
           zip?: string | null
         }
         Update: {
@@ -2401,14 +2584,18 @@ export type Database = {
           date_format?: string | null
           email?: string | null
           first_name?: string | null
+          first_touch_at?: string | null
           flight_freq?: Json | null
           id?: number
           itineraries?: Json | null
+          landing_path?: string | null
+          last_active_at?: string | null
           last_name?: string | null
           p_airlines?: Json | null
           p_car_rentals?: Json | null
           p_hotels?: Json | null
           privacy_accepted_at?: string | null
+          signup_referrer?: string | null
           state?: string | null
           taai_rating?: number | null
           taai_rating_text?: string | null
@@ -2418,14 +2605,12 @@ export type Database = {
           user_type?: string | null
           userid?: string
           username?: string | null
-          utm_source?: string | null
-          utm_medium?: string | null
           utm_campaign?: string | null
           utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
           utm_term?: string | null
-          signup_referrer?: string | null
-          landing_path?: string | null
-          first_touch_at?: string | null
+          welcome_email_sent_at?: string | null
           zip?: string | null
         }
         Relationships: []
@@ -2459,6 +2644,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      account_is_closed: { Args: { p_user_id: string }; Returns: boolean }
+      apply_free_itinerary_locks: {
+        Args: { p_keep: number; p_user_id: string }
+        Returns: number
+      }
+      consume_ai_credit: { Args: { uid: string }; Returns: Json }
+      current_tier: { Args: { uid: string }; Returns: string }
       get_chat_joined_at: {
         Args: { p_itinerary_id: number; p_user_id: string }
         Returns: string
@@ -2478,6 +2670,7 @@ export type Database = {
         Args: { itinerary_id_param: number; user_id_param: string }
         Returns: string
       }
+      get_my_plan_usage: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2489,14 +2682,6 @@ export type Database = {
         Args: { p_action_class: string }
         Returns: boolean
       }
-      release_storage_upload: {
-        Args: { p_bucket: string; p_object_name: string }
-        Returns: undefined
-      }
-      reserve_storage_upload: {
-        Args: { p_bucket: string; p_object_name: string }
-        Returns: undefined
-      }
       is_chat_participant: {
         Args: { p_itinerary_id: number; p_user_id: string }
         Returns: boolean
@@ -2504,6 +2689,13 @@ export type Database = {
       is_itinerary_attendee: {
         Args: { itinerary_id_param: number; user_id_param: string }
         Returns: boolean
+      }
+      list_user_storage_objects: {
+        Args: { p_itinerary_ids: number[]; p_user_id: string }
+        Returns: {
+          bucket_id: string
+          name: string
+        }[]
       }
       notify_user: {
         Args: {
@@ -2518,6 +2710,10 @@ export type Database = {
         }
         Returns: string
       }
+      prepare_account_purge: {
+        Args: { p_request_id: string; p_user_id: string }
+        Returns: Json
+      }
       recompute_balances_for_item: {
         Args: { _cart_item_id: string }
         Returns: undefined
@@ -2526,9 +2722,42 @@ export type Database = {
         Args: { _cart_item_id: string }
         Returns: undefined
       }
+      record_ai_turn_tokens: {
+        Args: {
+          p_completion_tokens: number
+          p_model: string
+          p_prompt_tokens: number
+          p_total_tokens: number
+          uid: string
+          usage_id: string
+        }
+        Returns: undefined
+      }
+      record_usage: {
+        Args: { credits?: number; kind: string; uid: string }
+        Returns: undefined
+      }
+      release_ai_credit: {
+        Args: { uid: string; usage_id: string }
+        Returns: undefined
+      }
+      release_storage_upload: {
+        Args: { p_bucket: string; p_object_name: string }
+        Returns: undefined
+      }
+      reserve_storage_upload: {
+        Args: { p_bucket: string; p_object_name: string }
+        Returns: undefined
+      }
       respond_to_itinerary_invitation: {
         Args: { p_accept: boolean; p_invitation_id: string }
         Returns: Json
+      }
+      revoke_user_sessions: { Args: { p_user_id: string }; Returns: undefined }
+      touch_last_active: { Args: never; Returns: undefined }
+      transfer_itinerary_owner: {
+        Args: { p_from: string; p_itinerary_id: number; p_to: string }
+        Returns: boolean
       }
     }
     Enums: {

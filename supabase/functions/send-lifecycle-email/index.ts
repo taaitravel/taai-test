@@ -35,7 +35,11 @@ serve(async (req) => {
       emailConfirmedAt: userData.user.email_confirmed_at ?? null,
       name,
     });
-    if (!result.ok) return json({ error: 'Could not send the welcome email.' }, 500);
+    if (!result.ok) {
+      // Welcome email is best-effort: never fail sign-in because mail is unavailable.
+      console.error('send-lifecycle-email: welcome not sent', result.error);
+      return json({ ok: false, skipped: 'email_unavailable' });
+    }
     return json(result);
   } catch (error) {
     console.error('send-lifecycle-email failed', error instanceof Error ? error.message : 'error');

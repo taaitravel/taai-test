@@ -354,7 +354,7 @@ const Map = ({
         zoom: camera.zoom,
         projection: 'mercator' as any,
         antialias: true,
-        attributionControl: { compact: true },
+        attributionControl: { compact: true } as unknown as boolean,
         logoPosition: 'bottom-left',
       });
 
