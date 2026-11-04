@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { pdf } from '@react-pdf/renderer';
-import { ItineraryPDFDocument } from '@/components/itinerary/ItineraryPDFDocument';
 import { ItineraryData } from '@/types/itinerary';
 import { toast } from 'sonner';
 
@@ -13,7 +11,11 @@ export const usePDFExport = () => {
     setIsGenerating(true);
     
     try {
-      // Generate the PDF blob
+      // Load the PDF renderer only when someone actually downloads.
+      const [{ pdf }, { ItineraryPDFDocument }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('@/components/itinerary/ItineraryPDFDocument'),
+      ]);
       const blob = await pdf(<ItineraryPDFDocument data={itineraryData} />).toBlob();
       
       // Create a download link
