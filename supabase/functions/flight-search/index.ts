@@ -18,6 +18,7 @@ import {
   buildOfferRequestUrl,
   normalizeDuffelOffer,
 } from './duffel.ts';
+import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
 
 /**
  * Duffel credential resolution decides the mode. A live key (either supplied as
@@ -32,16 +33,10 @@ const MODE: 'test' | 'live' =
   DUFFEL_TOKEN && (LIVE_KEY !== '' || DUFFEL_TOKEN.startsWith('duffel_live')) ? 'live' : 'test';
 
 /**
- * Explicit least-privilege CORS headers. Defined locally rather than imported
- * from the supabase-js package, which does not officially export a `cors`
- * entrypoint for the Edge runtime.
+ * Browser callers are checked against the shared origin allow-list
+ * (buildCorsHeaders / guardOrigin). Preflight responses may be cached.
  */
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-} as const;
+
 
 /** QA-grade per-user rate limit: 10 searches per authenticated user per minute. */
 const RATE_LIMIT_MAX = 10;
@@ -65,7 +60,7 @@ function rateLimitExceeded(userId: string): boolean {
   return false;
 }
 
-const json = (body: unknown, status: number) =>
+const json = (corsHeaders: Record<string, string>, body: unknown, status: number) =>
   new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -86,7 +81,7 @@ const retryableCodes: FlightSearchErrorCode[] = [
   'PROVIDER_UNAVAILABLE',
 ];
 
-function fail(requestId: string, code: FlightSearchErrorCode, message: string, diagnosticId?: string) {
+function fail(corsHeaders: Record<string, string>, requestId: string, code: FlightSearchErrorCode, message: string, diagnosticId?: string) {
   const error: FlightSearchError = {
     code,
     message,
@@ -101,7 +96,7 @@ function fail(requestId: string, code: FlightSearchErrorCode, message: string, d
     offers: [],
     errors: [error],
   };
-  return json(body, statusForCode[code]);
+  return json(corsHeaders, body, statusForCode[code]);
 }
 
 async function callDuffel(token: string, payload: unknown) {
@@ -128,13 +123,25 @@ async function callDuffel(token: string, payload: unknown) {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders: Record<string, string> = {
+    ...buildCorsHeaders(req.headers.get("origin")),
+    'Access-Control-Max-Age': '86400',
+  };
+  const originGuard = guardOrigin(req.headers.get("origin"));
+  if (!originGuard.ok) {
+    return new Response(JSON.stringify({ error: originGuard.error }), {
+      status: originGuard.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   const requestId = crypto.randomUUID();
 
   // Only the expected methods are permitted.
   if (req.method !== 'POST') {
-    return json(
+    return json(corsHeaders,
       { requestId, status: 'error', mode: MODE, providersAttempted: [], offers: [], errors: [
         { code: 'VALIDATION_ERROR', message: 'Method not allowed.', retryable: false },
       ] },
@@ -145,7 +152,7 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization') ?? '';
     if (!authHeader.startsWith('Bearer ')) {
-      return fail(requestId, 'AUTH_REQUIRED', 'Please sign in to search flights.');
+      return fail(corsHeaders, requestId, 'AUTH_REQUIRED', 'Please sign in to search flights.');
     }
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -155,13 +162,13 @@ Deno.serve(async (req) => {
       authHeader.replace('Bearer ', ''),
     );
     if (userError || !userData?.user) {
-      return fail(requestId, 'AUTH_REQUIRED', 'Please sign in to search flights.');
+      return fail(corsHeaders, requestId, 'AUTH_REQUIRED', 'Please sign in to search flights.');
     }
 
     recordUsage(userData.user.id, 'search').catch(() => undefined);
 
     if (rateLimitExceeded(userData.user.id)) {
-      return fail(
+      return fail(corsHeaders,
         requestId,
         'PROVIDER_RATE_LIMITED',
         'Too many flight searches. Please wait a moment and try again.',
@@ -177,13 +184,13 @@ Deno.serve(async (req) => {
 
     const parsed = validateFlightSearchRequest(rawBody);
     if (!parsed.ok || !parsed.value) {
-      return fail(requestId, 'VALIDATION_ERROR', parsed.errors.join('; '));
+      return fail(corsHeaders, requestId, 'VALIDATION_ERROR', parsed.errors.join('; '));
     }
     const request = parsed.value;
 
     const token = DUFFEL_TOKEN;
     if (!token) {
-      return fail(
+      return fail(corsHeaders,
         requestId,
         'PROVIDER_NOT_CONFIGURED',
         'Flight search is not available yet. The flight provider is not configured for this environment.',
@@ -216,7 +223,7 @@ Deno.serve(async (req) => {
     }
 
     if (timedOut || !res) {
-      return fail(
+      return fail(corsHeaders,
         requestId,
         'PROVIDER_UNAVAILABLE',
         'The flight provider did not respond in time. Please try again in a moment.',
@@ -238,7 +245,7 @@ Deno.serve(async (req) => {
         PROVIDER_UNAVAILABLE: 'The flight provider is unavailable right now. Please try again shortly.',
         RESPONSE_MAPPING_ERROR: 'We could not read the flight results.',
       };
-      return fail(requestId, code, messages[code], requestId);
+      return fail(corsHeaders, requestId, code, messages[code], requestId);
     }
 
     let offers: CanonicalFlightOffer[] = [];
@@ -264,7 +271,7 @@ Deno.serve(async (req) => {
         .slice(0, MAX_RETURNED_OFFERS);
     } catch (err) {
       console.error(`[flight-search ${requestId}] mapping failure`, (err as Error).message);
-      return fail(
+      return fail(corsHeaders,
         requestId,
         'RESPONSE_MAPPING_ERROR',
         'We could not read the flight results. Please try again.',
@@ -281,10 +288,10 @@ Deno.serve(async (req) => {
       errors: [],
     };
     console.log(`[flight-search ${requestId}] completed`, { status: body.status, offers: offers.length });
-    return json(body, 200);
+    return json(corsHeaders, body, 200);
   } catch (err) {
     console.error(`[flight-search ${requestId}] unhandled`, (err as Error).message);
-    return fail(
+    return fail(corsHeaders,
       requestId,
       'PROVIDER_UNAVAILABLE',
       'Flight search failed unexpectedly. Please try again.',

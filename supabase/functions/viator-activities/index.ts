@@ -1,7 +1,7 @@
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2.50.3';
 import { z } from 'npm:zod@4.4.3';
 import { recordUsage } from '../_shared/usage.ts';
+import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
 
 /**
  * Viator Partner API activity search.
@@ -34,14 +34,14 @@ type ErrorCode =
   | 'PROVIDER_RATE_LIMITED'
   | 'PROVIDER_UNAVAILABLE';
 
-const json = (body: unknown, status = 200) =>
+const json = (corsHeaders: Record<string, string>, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 
-const fail = (requestId: string, code: ErrorCode, message: string, status: number) =>
-  json({ status: 'error', requestId, activities: [], error: { code, message, requestId } }, status);
+const fail = (corsHeaders: Record<string, string>, requestId: string, code: ErrorCode, message: string, status: number) =>
+  json(corsHeaders, { status: 'error', requestId, activities: [], error: { code, message, requestId } }, status);
 
 const cleanText = (value: unknown, max = DESCRIPTION_CHARS): string | null => {
   if (typeof value !== 'string') return null;
@@ -102,24 +102,32 @@ const minutesFromDuration = (duration: unknown): string | null => {
 };
 
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req.headers.get("origin"));
+  const originGuard = guardOrigin(req.headers.get("origin"));
+  if (!originGuard.ok) {
+    return new Response(JSON.stringify({ error: originGuard.error }), {
+      status: originGuard.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   const requestId = crypto.randomUUID();
 
   if (req.method !== 'POST') {
-    return fail(requestId, 'VALIDATION_ERROR', 'Method not allowed.', 405);
+    return fail(corsHeaders, requestId, 'VALIDATION_ERROR', 'Method not allowed.', 405);
   }
 
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return fail(requestId, 'AUTH_REQUIRED', 'Please sign in to search activities.', 401);
+      return fail(corsHeaders, requestId, 'AUTH_REQUIRED', 'Please sign in to search activities.', 401);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!supabaseUrl || !serviceRoleKey) {
-      return fail(requestId, 'PROVIDER_UNAVAILABLE', 'Activity search is temporarily unavailable.', 503);
+      return fail(corsHeaders, requestId, 'PROVIDER_UNAVAILABLE', 'Activity search is temporarily unavailable.', 503);
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -129,19 +137,19 @@ Deno.serve(async (req) => {
       authHeader.replace('Bearer ', ''),
     );
     if (userError || !userData?.user) {
-      return fail(requestId, 'AUTH_REQUIRED', 'Please sign in to search activities.', 401);
+      return fail(corsHeaders, requestId, 'AUTH_REQUIRED', 'Please sign in to search activities.', 401);
     }
     recordUsage(userData.user.id, 'search').catch(() => undefined);
 
     const parsed = RequestSchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) {
-      return fail(requestId, 'VALIDATION_ERROR', 'Choose a destination and try again.', 400);
+      return fail(corsHeaders, requestId, 'VALIDATION_ERROR', 'Choose a destination and try again.', 400);
     }
     const { destination, currency } = parsed.data;
 
     const apiKey = Deno.env.get('VIATOR_API_KEY');
     if (!apiKey) {
-      return fail(
+      return fail(corsHeaders,
         requestId,
         'PROVIDER_NOT_CONFIGURED',
         'Activity search is not connected yet. The activity provider key is missing.',
@@ -184,7 +192,7 @@ Deno.serve(async (req) => {
         });
       } catch (networkError) {
         console.error(`[viator-activities ${requestId}] provider unreachable`, String(networkError));
-        return fail(
+        return fail(corsHeaders,
           requestId,
           'PROVIDER_UNAVAILABLE',
           'Activity search cannot reach its provider right now. Please try again shortly.',
@@ -199,7 +207,7 @@ Deno.serve(async (req) => {
     }
 
     if (!upstream) {
-      return fail(requestId, 'PROVIDER_UNAVAILABLE', 'Activity search is temporarily unavailable.', 503);
+      return fail(corsHeaders, requestId, 'PROVIDER_UNAVAILABLE', 'Activity search is temporarily unavailable.', 503);
     }
 
     if (!upstream.ok) {
@@ -207,7 +215,7 @@ Deno.serve(async (req) => {
       const status = upstream.status;
       console.error(`[viator-activities ${requestId}] provider request failed`, status, detail);
       if (status === 401 || status === 403) {
-        return fail(
+        return fail(corsHeaders,
           requestId,
           'PROVIDER_AUTH_FAILED',
           'The activity provider rejected our key. In Viator, confirm the key is active and that its environment (sandbox vs live) matches, then re-save it.',
@@ -215,14 +223,14 @@ Deno.serve(async (req) => {
         );
       }
       if (status === 429) {
-        return fail(
+        return fail(corsHeaders,
           requestId,
           'PROVIDER_RATE_LIMITED',
           'Activity search is busy. Please wait a moment and try again.',
           429,
         );
       }
-      return fail(
+      return fail(corsHeaders,
         requestId,
         'PROVIDER_UNAVAILABLE',
         `The activity provider is unavailable right now (status ${status}). Please try again shortly.`,
@@ -257,14 +265,14 @@ Deno.serve(async (req) => {
     });
 
     console.log(`[viator-activities ${requestId}] completed`, { count: activities.length });
-    return json({
+    return json(corsHeaders, {
       status: activities.length > 0 ? 'ok' : 'no_results',
       requestId,
       activities,
     });
   } catch (error) {
     console.error(`[viator-activities ${requestId}] unhandled`, (error as Error)?.message);
-    return fail(
+    return fail(corsHeaders,
       requestId,
       'PROVIDER_UNAVAILABLE',
       'Activity search failed unexpectedly. Please try again.',

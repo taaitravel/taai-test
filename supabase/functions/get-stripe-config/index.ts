@@ -1,12 +1,21 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "X-Content-Type-Options": "nosniff",
-};
+
 
 serve(async (req) => {
+  const corsHeaders: Record<string, string> = {
+    ...buildCorsHeaders(req.headers.get("origin")),
+    "X-Content-Type-Options": "nosniff",
+  };
+  const originGuard = guardOrigin(req.headers.get("origin"));
+  if (!originGuard.ok) {
+    return new Response(JSON.stringify({ error: originGuard.error }), {
+      status: originGuard.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const key = Deno.env.get("STRIPE_PUBLISHABLE_KEY") ?? "";
   return new Response(JSON.stringify({ publishable_key: key }), {

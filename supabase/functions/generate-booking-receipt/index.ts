@@ -2,12 +2,9 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import { documentUploadBlock } from "../_shared/upload-limits.ts";
+import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "X-Content-Type-Options": "nosniff",
-};
+
 
 function fmtMoney(n: number, currency: string) {
   try {
@@ -112,6 +109,18 @@ async function buildPdf(receipt: any): Promise<Uint8Array> {
 }
 
 serve(async (req) => {
+  const corsHeaders: Record<string, string> = {
+    ...buildCorsHeaders(req.headers.get("origin")),
+    "X-Content-Type-Options": "nosniff",
+  };
+  const originGuard = guardOrigin(req.headers.get("origin"));
+  if (!originGuard.ok) {
+    return new Response(JSON.stringify({ error: originGuard.error }), {
+      status: originGuard.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const supabase = createClient(
