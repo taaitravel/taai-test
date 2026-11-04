@@ -15,10 +15,16 @@
  * Nothing here logs a provider body or a secret value.
  */
 
-/** Live site first, then the previous Lovable host. */
+/**
+ * Live Lovable host first (existing checkout fallback), then the previous
+ * host, then the custom domains. Lovable preview patterns and localhost stay
+ * allowed so current callers keep working.
+ */
 export const PRODUCTION_ORIGINS = [
   'https://taai-travel.lovable.app',
   'https://taai-test.lovable.app',
+  'https://taai.travel',
+  'https://www.taai.travel',
 ] as const;
 /** Known Lovable preview hosts. UUID preview hosts are also matched below. */
 export const PREVIEW_ORIGINS = [
@@ -71,9 +77,21 @@ export const isAllowedOrigin = (origin: string | null, env?: string | null): boo
  * origins get no `Access-Control-Allow-Origin` at all and the request is
  * rejected by `guardOrigin`.
  */
+/** Request headers the web client and supabase-js are allowed to send. */
+export const ALLOWED_REQUEST_HEADERS = [
+  'authorization',
+  'x-client-info',
+  'apikey',
+  'content-type',
+  'x-supabase-client-platform',
+  'x-supabase-client-platform-version',
+  'x-supabase-client-runtime',
+  'x-supabase-client-runtime-version',
+].join(', ');
+
 export const buildCorsHeaders = (origin: string | null, env?: string | null): Record<string, string> => {
   const headers: Record<string, string> = {
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': ALLOWED_REQUEST_HEADERS,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Vary': 'Origin',
   };
@@ -100,6 +118,10 @@ export const MAX_UPSTREAM_BYTES = 4 * 1024 * 1024; // 4 MB read cap before norma
 export const MAX_NORMALIZED_BYTES = 256 * 1024; // 256 KB
 export const UPSTREAM_TIMEOUT_MS = 15_000;
 export const RATE_LIMIT = { windowMs: 60_000, maxRequests: 30 } as const;
+/** Public contact form. Process-local, same limitation as RATE_LIMIT. */
+export const CONTACT_RATE_LIMIT = { windowMs: 10 * 60_000, maxRequests: 5 } as const;
+
+export type RatePolicy = { windowMs: number; maxRequests: number };
 
 /**
  * RATE LIMITER LIMITATION — read before relying on this.
@@ -120,13 +142,18 @@ export const RATE_LIMIT_IS_PROCESS_LOCAL = true;
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 /** Fixed-window per-identity, per-isolate limit. Returns false when over. */
-export const allowRequest = (identity: string, now = Date.now()): boolean => {
-  const bucket = buckets.get(identity);
+export const allowRequest = (
+  identity: string,
+  now = Date.now(),
+  policy: RatePolicy = RATE_LIMIT,
+): boolean => {
+  const key = `${policy.windowMs}:${policy.maxRequests}:${identity}`;
+  const bucket = buckets.get(key);
   if (!bucket || now >= bucket.resetAt) {
-    buckets.set(identity, { count: 1, resetAt: now + RATE_LIMIT.windowMs });
+    buckets.set(key, { count: 1, resetAt: now + policy.windowMs });
     return true;
   }
-  if (bucket.count >= RATE_LIMIT.maxRequests) return false;
+  if (bucket.count >= policy.maxRequests) return false;
   bucket.count += 1;
   return true;
 };

@@ -1,19 +1,28 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Content-Security-Policy": "default-src 'self'",
-  "X-Content-Type-Options": "nosniff",
-  "X-Frame-Options": "DENY",
-};
+
 
 type AuthUserSummary = { id: string; email?: string | null };
 type RoleRow = { user_id: string; role: string };
 type MasterAdminRow = { user_id: string };
 
 serve(async (req) => {
+  const corsHeaders: Record<string, string> = {
+    ...buildCorsHeaders(req.headers.get("origin")),
+    "Content-Security-Policy": "default-src 'self'",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+  };
+  const originGuard = guardOrigin(req.headers.get("origin"));
+  if (!originGuard.ok) {
+    return new Response(JSON.stringify({ error: originGuard.error }), {
+      status: originGuard.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {

@@ -1,11 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+
 
 serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req.headers.get("origin"));
+  const originGuard = guardOrigin(req.headers.get("origin"));
+  if (!originGuard.ok) {
+    return new Response(JSON.stringify({ error: originGuard.error }), {
+      status: originGuard.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })

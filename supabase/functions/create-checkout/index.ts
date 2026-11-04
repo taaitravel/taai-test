@@ -1,16 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { isAllowedOrigin, PRODUCTION_ORIGIN } from "../_shared/edge-guard.ts";
+import { buildCorsHeaders, guardOrigin, isAllowedOrigin, PRODUCTION_ORIGIN } from "../_shared/edge-guard.ts";
 import { normalizeTier } from "../_shared/tier-map.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Content-Security-Policy": "default-src 'self'",
-  "X-Content-Type-Options": "nosniff",
-  "X-Frame-Options": "DENY",
-};
+
 
 // Rate limiting: 5 checkout sessions per IP per hour
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -38,6 +32,20 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
+  const corsHeaders: Record<string, string> = {
+    ...buildCorsHeaders(req.headers.get("origin")),
+    "Content-Security-Policy": "default-src 'self'",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+  };
+  const originGuard = guardOrigin(req.headers.get("origin"));
+  if (!originGuard.ok) {
+    return new Response(JSON.stringify({ error: originGuard.error }), {
+      status: originGuard.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

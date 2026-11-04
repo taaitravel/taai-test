@@ -12,9 +12,11 @@ export default defineMcp({
   version: "0.1.0",
   instructions:
     "Tools for TAAI Travel. Use `about_taai` to learn what the platform does. Use `search_places` to resolve a city, region, or country name to coordinates before planning a trip.",
+  // Every tool call requires a signed-in OAuth access token. Metadata stays public.
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
+    requireOAuthClientClaim: true,
   }),
   tools: [searchPlaces, aboutTaai],
 });
