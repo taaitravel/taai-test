@@ -197,11 +197,11 @@ export const MobileNavigation = ({
           </div>
 
           {/* Centered Logo (in-flow so it cannot overlap the action clusters) */}
-          <div className="justify-self-center flex items-center">
+          <div className="justify-self-center flex min-w-0 max-w-full items-center">
             <img
               src={LOGO_URL}
               alt="TAAI Travel"
-              className={isMobile ? 'h-9' : 'h-[64px]'}
+              className={isMobile ? 'h-9 w-auto max-w-full object-contain' : 'h-[64px]'}
             />
           </div>
 

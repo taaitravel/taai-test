@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,40 +8,50 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ChromeStateProvider } from "@/contexts/ChromeStateContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { PlanLimitProvider } from "@/components/plans/PlanLimitProvider";
 import { travelBookingCheckoutEnabled } from "@/lib/features";
 import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
-import { ChatInterface } from "@/components/chat/ChatInterface";
-import Index from "./pages/Index";
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
-import Terms from "./pages/Terms";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import ProfileSetup from "./pages/ProfileSetup";
-import Dashboard from "./pages/Dashboard";
-import CreateItinerary from "./pages/CreateItinerary";
-import CreateManualItinerary from "./pages/CreateManualItinerary";
-import Itinerary from "./pages/Itinerary";
-import EditItinerary from "./pages/EditItinerary";
-import WhatWeDo from "./pages/WhatWeDo";
-import Contact from "./pages/Contact";
-import Subscription from "./pages/Subscription";
-import SubscriptionSuccess from "./pages/SubscriptionSuccess";
-import NotFound from "./pages/NotFound";
-import AdminRoles from "./pages/AdminRoles";
-import Search from "./pages/Search";
-import MyItineraries from "./pages/MyItineraries";
-import AdminDashboard from "./pages/AdminDashboard";
-import Profile from "./pages/Profile";
-import BookingSuccess from "./pages/BookingSuccess";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import ResetPassword from "./pages/ResetPassword";
-import InternalTOS from "./pages/InternalTOS";
-import AgentOperations from "./pages/AgentOperations";
-import Discover from "./pages/Discover";
-import PublicProfile from "./pages/PublicProfile";
-import PublicItinerary from "./pages/PublicItinerary";
+
+const ChatInterface = lazy(() =>
+  import("@/components/chat/ChatInterface").then((module) => ({ default: module.ChatInterface })),
+);
+const Index = lazy(() => import("./pages/Index"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Login = lazy(() => import("./pages/Login"));
+const Terms = lazy(() => import("./pages/Terms"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const CreateItinerary = lazy(() => import("./pages/CreateItinerary"));
+const CreateManualItinerary = lazy(() => import("./pages/CreateManualItinerary"));
+const Itinerary = lazy(() => import("./pages/Itinerary"));
+const EditItinerary = lazy(() => import("./pages/EditItinerary"));
+const WhatWeDo = lazy(() => import("./pages/WhatWeDo"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminRoles = lazy(() => import("./pages/AdminRoles"));
+const Search = lazy(() => import("./pages/Search"));
+const MyItineraries = lazy(() => import("./pages/MyItineraries"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const Profile = lazy(() => import("./pages/Profile"));
+const BookingSuccess = lazy(() => import("./pages/BookingSuccess"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const InternalTOS = lazy(() => import("./pages/InternalTOS"));
+const AgentOperations = lazy(() => import("./pages/AgentOperations"));
+const Discover = lazy(() => import("./pages/Discover"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const PublicItinerary = lazy(() => import("./pages/PublicItinerary"));
+
+const RouteFallback = () => (
+  <div className="min-h-screen bg-background" role="status" aria-live="polite">
+    <span className="sr-only">Loading</span>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -60,13 +70,15 @@ const SignedInMiles = () => {
   const { pathname } = useLocation();
   if (!user || MILES_HIDDEN_ROUTES.has(pathname)) return null;
   return (
-    <ChatInterface
-      context="travel planning and general travel assistance"
-      assistantName="Miles"
-      assistantSubtitle="Your taai travel specialist"
-      greeting="Hi, I'm Miles — your taai travel specialist. Tell me where you're going and I'll line up flights, stays, activities and the costs in one itinerary."
-      placeholder="Where are you going?"
-    />
+    <Suspense fallback={null}>
+      <ChatInterface
+        context="travel planning and general travel assistance"
+        assistantName="Miles"
+        assistantSubtitle="Your taai travel specialist"
+        greeting="Hi, I'm Miles — your taai travel specialist. Tell me where you're going and I'll line up flights, stays, activities and the costs in one itinerary."
+        placeholder="Where are you going?"
+      />
+    </Suspense>
   );
 };
 
@@ -79,7 +91,9 @@ const App = () => (
             <Toaster />
             <Sonner />
           <BrowserRouter>
+            <AppErrorBoundary>
             <PlanLimitProvider>
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/signup" element={<Signup />} />
@@ -186,9 +200,11 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
             <MobileBottomNav />
             <SignedInMiles />
             </PlanLimitProvider>
+            </AppErrorBoundary>
           </BrowserRouter>
           </ChromeStateProvider>
         </ThemeProvider>

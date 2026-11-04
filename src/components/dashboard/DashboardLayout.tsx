@@ -6,7 +6,7 @@ export const DashboardLayout = () => {
   const { fullUserStats } = useDashboard();
 
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative min-h-screen min-w-0 overflow-x-clip bg-background">
       {/* Ambient bright orbs */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
         <div className="bright-orb bright-orb-a h-[420px] w-[420px] opacity-[0.18] -top-40 -right-24" />

@@ -69,18 +69,27 @@ const Contact = () => {
     try {
       const validatedData = contactSchema.parse(formData);
 
-      const { error } = await supabase
-        .from('contact_inquiries')
-        .insert({
+      const { data, error } = await supabase.functions.invoke('submit-contact', {
+        body: {
           name: validatedData.name,
           email: validatedData.email,
-          company_name: validatedData.companyName || null,
-          inquiry_type: validatedData.inquiryType,
+          companyName: validatedData.companyName || null,
+          inquiryType: validatedData.inquiryType,
           subject: validatedData.subject,
-          message: validatedData.message
-        });
+          message: validatedData.message,
+        },
+      });
 
-      if (error) throw error;
+      if (error || data?.code === 'rate_limited') {
+        const status = error && 'context' in error && error.context instanceof Response
+          ? error.context.status
+          : 0;
+        if (status === 429 || data?.code === 'rate_limited') {
+          toast.error("Too many messages. Please wait a few minutes and try again.");
+          return;
+        }
+        throw error ?? new Error('Failed to send message');
+      }
 
       toast.success("Your message has been sent successfully! We'll get back to you soon.");
       

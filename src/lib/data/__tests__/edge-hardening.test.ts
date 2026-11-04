@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
+  CONTACT_RATE_LIMIT,
   DEV_ORIGINS,
   MAX_NORMALIZED_BYTES,
   MAX_UPSTREAM_BYTES,
@@ -11,10 +12,12 @@ import {
   PRODUCTION_ORIGIN,
   RATE_LIMIT_IS_PROCESS_LOCAL,
   RATE_LIMIT_NOTE,
+  allowRequest,
   allowedOrigins,
   authenticate,
   buildCorsHeaders,
   guardOrigin,
+  resetRateLimits,
   resolveProviderUrl,
   serializeBounded,
   stripCallerIdentity,
@@ -37,6 +40,9 @@ describe('CORS origin allow-list', () => {
       expect(origins).toContain(origin);
     }
     expect(PRODUCTION_ORIGIN).toBe('https://taai-travel.lovable.app');
+    expect(origins).toEqual(expect.arrayContaining(['https://taai.travel', 'https://www.taai.travel']));
+    expect(guardOrigin('https://taai.travel', 'production').ok).toBe(true);
+    expect(guardOrigin('https://www.taai.travel', 'production').ok).toBe(true);
     expect(guardOrigin('https://preview-id.lovable.app', 'production').ok).toBe(false);
     expect(guardOrigin('https://id-preview--aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.lovable.app', 'production').ok).toBe(true);
     expect(guardOrigin('https://aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.lovableproject.com', 'production').ok).toBe(true);
@@ -70,6 +76,19 @@ describe('CORS origin allow-list', () => {
       expect(src).toContain('buildCorsHeaders');
       expect(src).toContain('guardOrigin');
       expect(src).not.toContain("'Access-Control-Allow-Origin': '*'");
+    }
+  });
+
+  it('every browser function uses the shared origin guard and no wildcard', () => {
+    const names = readdirSync(resolve('supabase/functions'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && entry.name !== '_shared')
+      .map((entry) => entry.name);
+    expect(names.length).toBeGreaterThanOrEqual(44);
+    for (const name of names) {
+      const src = read(`supabase/functions/${name}/index.ts`);
+      expect(src, name).not.toMatch(/Access-Control-Allow-Origin['"]:\s*['"]\*['"]/);
+      if (name === 'purge-closed-accounts') continue;
+      expect(src, name).toContain('guardOrigin');
     }
   });
 });
@@ -135,6 +154,31 @@ describe('rate limiter limitations', () => {
     expect(RATE_LIMIT_NOTE).toMatch(/process-local/);
     const guard = read('supabase/functions/_shared/edge-guard.ts');
     expect(guard).toContain('does NOT guarantee 30 requests/minute per user globally');
+  });
+
+  it('rate-limits the public contact form more tightly than the default window', () => {
+    resetRateLimits();
+    const now = 1_700_000_000_000;
+    for (let i = 0; i < CONTACT_RATE_LIMIT.maxRequests; i += 1) {
+      expect(allowRequest('contact:203.0.113.5', now, CONTACT_RATE_LIMIT)).toBe(true);
+    }
+    expect(allowRequest('contact:203.0.113.5', now, CONTACT_RATE_LIMIT)).toBe(false);
+    expect(allowRequest('contact:203.0.113.6', now, CONTACT_RATE_LIMIT)).toBe(true);
+    const contact = read('supabase/functions/submit-contact/index.ts');
+    expect(contact).toContain('CONTACT_RATE_LIMIT');
+    expect(contact).toContain('allowRequest');
+    expect(contact).toContain('guardOrigin');
+  });
+
+  it('requires auth on the mcp function and keeps OAuth metadata reachable', () => {
+    const source = read('src/lib/mcp/index.ts');
+    expect(source).toContain('auth.oauth.issuer');
+    expect(source).toContain('requireOAuthClientClaim: true');
+    const fn = read('supabase/functions/mcp/index.ts');
+    expect(fn).toContain('guardOrigin');
+    expect(fn).toContain('Authentication required');
+    expect(fn).toContain('oauth-protected-resource');
+    expect(fn).toContain('requireOAuthClientClaim: true');
   });
 
   it('has an unapplied authoritative proposal', () => {

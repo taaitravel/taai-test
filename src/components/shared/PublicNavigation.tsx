@@ -17,7 +17,7 @@ export const PublicNavigation = ({ showGetStarted = true }: PublicNavigationProp
         <div className="flex justify-between items-center h-16">
           <Button 
             variant="ghost" 
-            className="text-foreground hover:text-foreground hover:bg-accent"
+            className="min-h-11 text-foreground hover:text-foreground hover:bg-accent"
             onClick={() => navigate('/')}
           >
             ← Back
@@ -44,14 +44,14 @@ export const PublicNavigation = ({ showGetStarted = true }: PublicNavigationProp
               user ? (
                 <Button 
                   onClick={() => navigate('/home')}
-                  className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
+                  className="min-h-11 gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
                 >
                   Dashboard
                 </Button>
               ) : (
                 <Button 
                   onClick={() => navigate('/signup')}
-                  className="gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
+                  className="min-h-11 gold-gradient hover:opacity-90 text-primary-foreground font-semibold"
                 >
                   Get Started
                 </Button>

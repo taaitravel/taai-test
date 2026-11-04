@@ -461,16 +461,20 @@
 .mapboxgl-ctrl-attrib.mapboxgl-compact { margin: 8px; }
 .mapboxgl-ctrl-logo { margin: 0 0 8px 8px !important; }
 
-/* Room for the tab bar (64) plus the Miles button (56) on a phone. */
+/* Room for the Miles button (56) plus a 16px gap, above the home indicator. */
 .chrome-inset-fab {
-  padding-bottom: calc(56px + 16px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(56px + 32px + env(safe-area-inset-bottom, 0px));
 }
 .chrome-inset {
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 @media (max-width: 767px) {
   .chrome-inset {
-    padding-bottom: calc(64px + 16px + 56px + 16px + env(safe-area-inset-bottom, 0px));
+    /* Tab bar, Miles, and a gap so the button does not cover the last content. */
+    padding-bottom: calc(64px + 16px + 56px + 32px + env(safe-area-inset-bottom, 0px));
+  }
+  body {
+    overflow-x: clip;
   }
 }
 

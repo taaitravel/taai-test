@@ -107,13 +107,58 @@ var mcp_default = defineMcp({
   title: "taai-test",
   version: "0.1.0",
   instructions: "Tools for TAAI Travel. Use `about_taai` to learn what the platform does. Use `search_places` to resolve a city, region, or country name to coordinates before planning a trip.",
+  // Every tool call requires a signed-in OAuth access token. Metadata stays public.
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
-    acceptedAudiences: "authenticated"
+    acceptedAudiences: "authenticated",
+    requireOAuthClientClaim: true
   }),
   tools: [search_places_default, about_taai_default]
 });
 
 // lovable-mcp-supabase-entry.ts
 import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@3.4.0/stacks/supabase";
-Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
+import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
+
+// taai-mcp-edge-guard: origin allow-list plus a bearer requirement on every route except
+// OAuth protected-resource metadata. Tool calls are still verified by mcp-js.
+if (!mcp_default?.auth) {
+  throw new Error("MCP auth is required");
+}
+
+const mcpHandler = createSupabaseHandler(mcp_default, { functionName: "mcp" });
+
+Deno.serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = buildCorsHeaders(origin);
+  const originGuard = guardOrigin(origin);
+  if (!originGuard.ok) {
+    return new Response(JSON.stringify({ error: originGuard.error }), {
+      status: originGuard.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+  const metadata = new URL(req.url).pathname.endsWith("/.well-known/oauth-protected-resource");
+  if (!metadata && !/^Bearer\s+\S+/i.test(req.headers.get("Authorization") ?? "")) {
+    return new Response(JSON.stringify({ error: "Authentication required" }), {
+      status: 401,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+        "WWW-Authenticate": "Bearer",
+      },
+    });
+  }
+  const response = await mcpHandler(req);
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeaders)) {
+    if (key.toLowerCase() === "access-control-allow-origin" || !headers.has(key)) {
+      headers.set(key, value);
+    }
+  }
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+});
+
