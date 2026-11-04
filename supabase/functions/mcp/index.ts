@@ -3,10 +3,10 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@3.4.0";
 
 // src/lib/mcp/tools/search-places.ts
-import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool } from "npm:@lovable.dev/mcp-js@3.4.0";
 import { z } from "npm:zod@^4.4.3";
 
 // src/lib/mcp/env.ts
@@ -75,7 +75,7 @@ var search_places_default = defineTool({
 });
 
 // src/lib/mcp/tools/about-taai.ts
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@3.4.0";
 var ABOUT = {
   name: "TAAI Travel",
   tagline: "AI trip-planning software",
@@ -117,7 +117,7 @@ var mcp_default = defineMcp({
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@3.4.0/stacks/supabase";
 import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
 
 // taai-mcp-edge-guard: origin allow-list plus a bearer requirement on every route except
@@ -161,3 +161,4 @@ Deno.serve(async (req) => {
   }
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 });
+
