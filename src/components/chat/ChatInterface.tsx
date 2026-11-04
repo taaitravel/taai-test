@@ -306,7 +306,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const aboveTabBar = isMobile && !!user;
   const fabBottom = aboveTabBar
     ? 'calc(env(safe-area-inset-bottom, 0px) + 64px + 16px + 16px)'
-    : 'max(16px, env(safe-area-inset-bottom, 0px))';
+    : 'calc(env(safe-area-inset-bottom, 0px) + 16px)';
 
   if (!isOpen) {
     return (
@@ -331,7 +331,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       style={{
         bottom: aboveTabBar
           ? 'calc(env(safe-area-inset-bottom, 0px) + 64px + 16px + 16px)'
-          : 'max(16px, env(safe-area-inset-bottom, 0px))',
+          : 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
       }}
     >
       <div className="flex items-center justify-between p-4 border-b">

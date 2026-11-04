@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ChromeStateProvider } from "@/contexts/ChromeStateContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { PlanLimitProvider } from "@/components/plans/PlanLimitProvider";
 import { travelBookingCheckoutEnabled } from "@/lib/features";
 import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
@@ -90,6 +91,7 @@ const App = () => (
             <Toaster />
             <Sonner />
           <BrowserRouter>
+            <AppErrorBoundary>
             <PlanLimitProvider>
             <Suspense fallback={<RouteFallback />}>
             <Routes>
@@ -202,6 +204,7 @@ const App = () => (
             <MobileBottomNav />
             <SignedInMiles />
             </PlanLimitProvider>
+            </AppErrorBoundary>
           </BrowserRouter>
           </ChromeStateProvider>
         </ThemeProvider>

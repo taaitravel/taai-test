@@ -83,7 +83,7 @@ export const PublicItineraryStack: React.FC<PublicItineraryStackProps> = ({ card
   return (
     <div className="flex flex-col items-center gap-4 py-2">
       <div
-        className="relative w-[255px] h-[375px] touch-pan-y select-none"
+        className="relative h-[375px] w-[255px] max-w-full touch-pan-y select-none overflow-hidden"
         onTouchStart={e => beginDrag(e.touches[0].clientX, e.touches[0].clientY)}
         onTouchMove={e => moveDrag(e.touches[0].clientX, e.touches[0].clientY)}
         onTouchEnd={endDrag}
@@ -116,13 +116,13 @@ export const PublicItineraryStack: React.FC<PublicItineraryStackProps> = ({ card
 
       <div className="flex flex-col items-center gap-1.5">
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={prev} className="h-9 w-9 rounded-full">
+          <Button variant="outline" size="icon" onClick={prev} aria-label="Previous trip" className="h-11 w-11 rounded-full">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-xs text-muted-foreground tabular-nums min-w-[52px] text-center">
             {safeIndex + 1} / {len}
           </span>
-          <Button variant="outline" size="icon" onClick={next} className="h-9 w-9 rounded-full">
+          <Button variant="outline" size="icon" onClick={next} aria-label="Next trip" className="h-11 w-11 rounded-full">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

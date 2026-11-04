@@ -27,7 +27,7 @@ const CSS = `
   color:var(--tf-ink3)}
 .taai-foot nav{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;justify-content:flex-end}
 .taai-foot a{color:var(--tf-ink2);font-size:13px;text-decoration:none;background:none;border:0;
-  font-family:inherit;cursor:pointer;padding:0;transition:color .3s cubic-bezier(.22,.61,.28,1)}
+  font-family:inherit;cursor:pointer;padding:10px 4px;min-height:44px;display:inline-flex;align-items:center;transition:color .3s cubic-bezier(.22,.61,.28,1)}
 .taai-foot a:hover{color:#C4374F}
 .taai-foot-legal{max-width:1320px;margin:26px auto 0;padding:18px 40px 0;border-top:1px solid var(--tf-line);
   font-size:11.5px;color:var(--tf-ink3);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
