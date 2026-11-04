@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Copy, MapPin } from 'lucide-react';
@@ -18,6 +19,8 @@ interface PublicItineraryCardProps {
  * stays readable in light and dark. A rental accent marks it as not-yet-yours.
  */
 export const PublicItineraryCard = ({ card, size = 'responsive', className }: PublicItineraryCardProps) => {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(card.coverImageUrl) && !imageFailed;
   const isStack = size === 'stack';
   const cardSize = isStack
     ? 'w-[255px] h-[375px]'
@@ -36,12 +39,13 @@ export const PublicItineraryCard = ({ card, size = 'responsive', className }: Pu
     >
       {/* Cover — 50% of the card */}
       <div className="relative h-1/2 w-full overflow-hidden" style={{ background: card.coverGradient }}>
-        {card.coverImageUrl && (
+        {showImage && (
           <img
-            src={card.coverImageUrl}
-            alt={`${card.title} cover`}
+            src={card.coverImageUrl!}
+            alt=""
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
+            onError={() => setImageFailed(true)}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" aria-hidden />

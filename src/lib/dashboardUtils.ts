@@ -17,7 +17,8 @@ export const getItineraryStatus = (startDate: string, endDate: string) => {
   return 'completed';
 };
 
-export const calculateUserStats = (activeItineraries: any[], userProfile: any) => {
+export const calculateUserStats = (activeItineraries: any[] | null | undefined, userProfile: any) => {
+  const trips = Array.isArray(activeItineraries) ? activeItineraries : [];
   // Get visited countries from user profile
   const visitedCountries = Array.isArray(userProfile?.countries_visited) 
     ? userProfile.countries_visited as string[] 
@@ -27,7 +28,7 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
 
   // Count unique cities from all itineraries
   const uniqueCities = new Set();
-  activeItineraries.forEach(itinerary => {
+  trips.forEach(itinerary => {
     if (Array.isArray(itinerary.locations)) {
       itinerary.locations.forEach((location: string) => uniqueCities.add(location));
     }
@@ -36,7 +37,7 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
   const today = new Date();
 
   // Calculate total spending from fully completed itineraries only
-  const totalSpent = activeItineraries.reduce((sum, itinerary) => {
+  const totalSpent = trips.reduce((sum, itinerary) => {
     const endDate = itinerary.itin_date_end;
     if (!endDate || new Date(endDate) >= today) return sum;
     const spending = Number(itinerary.spending) || 0;
@@ -44,7 +45,7 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
   }, 0);
 
   // Calculate projected spending from active + future itineraries (end date not yet passed)
-  const projectedSpend = activeItineraries.reduce((sum, itinerary) => {
+  const projectedSpend = trips.reduce((sum, itinerary) => {
     const endDate = itinerary.itin_date_end;
     if (!endDate || new Date(endDate) < today) return sum;
     const spending = Number(itinerary.spending) || 0;
@@ -52,7 +53,7 @@ export const calculateUserStats = (activeItineraries: any[], userProfile: any) =
   }, 0);
 
   return {
-    totalTrips: activeItineraries.length,
+    totalTrips: trips.length,
     countriesVisited: visitedCountries.length,
     citiesVisited: uniqueCities.size,
     totalSpent,
