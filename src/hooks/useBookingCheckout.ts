@@ -161,6 +161,9 @@ export const useBookingCheckout = () => {
   };
 
   const confirmBooking = async (sessionId: string) => {
+    if (!travelBookingCheckoutEnabled) {
+      throw new Error('Travel booking checkout is not available.');
+    }
     try {
       const { data, error } = await supabase.functions.invoke('booking-webhook', {
         body: { session_id: sessionId },

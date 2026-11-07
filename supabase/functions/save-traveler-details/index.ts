@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
+import { minimizeTraveler } from "../_shared/traveler-privacy.ts";
 
 
 
@@ -121,8 +122,8 @@ serve(async (req) => {
       user_id: user.id,
       item_type: t.item_type,
       traveler_data: {
-        lead: t.lead,
-        additional: t.additional,
+        lead: minimizeTraveler(t.item_type, t.lead),
+        additional: t.additional.map((traveler) => minimizeTraveler(t.item_type, traveler)),
         special_requests: t.special_requests ?? null,
         pax: t.pax ?? 1 + (t.additional?.length ?? 0),
       },

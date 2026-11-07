@@ -5,6 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { AUTH_REDIRECT_PATHS, authRedirect } from '@/lib/auth/redirects';
 import { describeAuthError } from '@/lib/auth/messages';
 import { ACCOUNT_NOTICE_KEY, accountClosureNotice } from '@/lib/auth/account-notice';
+import {
+  attributionFieldsForEmptyProfile,
+  captureFirstTouchAttribution,
+  shouldPersistAttributionOnSession,
+} from '@/lib/attribution/utm';
 
 interface UserProfile {
   id: number;
@@ -55,6 +60,30 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const attributionPersistAttempted = new Set<string>();
+
+/**
+ * Fill empty attribution columns for an account created in this session.
+ * A missing column (migration not applied) or a failed write does not block login.
+ */
+async function persistSignupAttribution(
+  userId: string,
+  accountCreatedAt: string | undefined,
+  profile: Record<string, unknown>,
+) {
+  if (attributionPersistAttempted.has(userId)) return;
+  if (!shouldPersistAttributionOnSession({ accountCreatedAt })) return;
+  const patch = attributionFieldsForEmptyProfile(profile, captureFirstTouchAttribution());
+  if (Object.keys(patch).length === 0) return;
+  attributionPersistAttempted.add(userId);
+  try {
+    // Unapplied attribution columns must not block sign-in or retry on every profile read.
+    await supabase.from('users').update(patch).eq('userid', userId);
+  } catch {
+    // Profile columns may not exist yet. Sign-in already succeeded.
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -121,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          await fetchUserProfile(session.user.id, session.user.created_at);
           const stillOpen = await settleAccount(session);
           if (stillOpen) {
             void supabase.rpc('touch_last_active' as never).then(() => undefined, () => undefined);
@@ -158,7 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fetch user profile with proper async handling
           setTimeout(() => {
             if (mounted) {
-              fetchUserProfile(session.user.id);
+              fetchUserProfile(session.user.id, session.user.created_at);
             }
           }, 0);
         } else {
@@ -175,7 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string, accountCreatedAt?: string) => {
     try {
       const { data, error } = await supabase
         .from('users')
@@ -189,6 +218,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUserProfile(data);
+      if (data) {
+        void persistSignupAttribution(userId, accountCreatedAt, data as Record<string, unknown>);
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
     }

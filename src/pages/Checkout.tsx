@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { travelBookingCheckoutEnabled } from '@/lib/features';
+import { minimizeTraveler } from '../../supabase/functions/_shared/traveler-privacy';
 import { format, addDays, differenceInCalendarDays, parseISO } from 'date-fns';
 import {
   Loader2, ArrowLeft, ShieldCheck, Calendar, Users, BedDouble, Plane, MapPin,
-  Hotel as HotelIcon, ChevronDown, ChevronUp, Info, AlertTriangle, Minus, Plus,
+  Hotel as HotelIcon, Info, AlertTriangle, Minus, Plus,
   Sparkles, RefreshCw,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -195,7 +196,6 @@ export default function Checkout() {
   const [savedTravelers, setSavedTravelers] = useState<SavedTraveler[]>([]);
   const [currency, setCurrency] = useState<string>('USD');
   const [payerMode, setPayerMode] = useState<PayerMode>('single_payer');
-  const [showDocs, setShowDocs] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [repricing, setRepricing] = useState(false);
@@ -246,7 +246,10 @@ export default function Checkout() {
         const existing = existingRows.find((t: any) => t.cart_item_id === it.cart_item_id);
         const lead = existing?.traveler_data?.lead;
         if (lead && Object.keys(lead).length > 0) {
-          trMap[it.cart_item_id] = lead;
+          const minimized = minimizeTraveler(it.type, lead);
+          trMap[it.cart_item_id] = Object.fromEntries(
+            Object.entries(minimized).map(([key, value]) => [key, value == null ? '' : String(value)]),
+          );
         } else if (prof) {
           trMap[it.cart_item_id] = {
             first_name: prof.first_name || '',
@@ -269,7 +272,7 @@ export default function Checkout() {
   const updateField = (cartItemId: string, key: string, value: string) =>
     setTravelers((prev) => ({ ...prev, [cartItemId]: { ...(prev[cartItemId] || {}), [key]: value } }));
 
-  const applySavedTraveler = (cartItemId: string, st: SavedTraveler) =>
+  const applySavedTraveler = (cartItemId: string, st: SavedTraveler, itemType: string) =>
     setTravelers((prev) => ({
       ...prev,
       [cartItemId]: {
@@ -277,10 +280,14 @@ export default function Checkout() {
         last_name: st.last_name,
         email: st.email || '',
         phone: st.phone || '',
-        dob: st.dob || '',
-        nationality: st.nationality || '',
-        passport_number: st.passport_number || '',
-        passport_expiry: st.passport_expiry || '',
+        ...(itemType.toLowerCase() === 'flight'
+          ? {
+              dob: st.dob || '',
+              nationality: st.nationality || '',
+              passport_number: st.passport_number || '',
+              passport_expiry: st.passport_expiry || '',
+            }
+          : {}),
       },
     }));
 
@@ -364,7 +371,7 @@ export default function Checkout() {
       const payload = items.map((it) => ({
         cart_item_id: it.cart_item_id,
         item_type: it.type,
-        lead: travelers[it.cart_item_id] || {},
+        lead: minimizeTraveler(it.type, travelers[it.cart_item_id] || {}),
         additional: [],
         pax: paxByItem[it.cart_item_id] || 1,
       }));
@@ -516,7 +523,6 @@ export default function Checkout() {
                 const lockedHotelSelection = isHotel && Boolean(it.selected_product?.room_id && it.selected_product?.rate_id);
                 const rooms = Math.max(1, Number(it.occupancy?.rooms || 1));
                 const nightly = isHotel && d?.nights ? it.new_price / (d.nights * rooms) : null;
-                const docsOpen = !!showDocs[it.cart_item_id];
                 const serviceTime = it.service_timing?.kind === 'scheduled'
                   ? formatDualTime(
                       it.service_timing.starts_at_utc,
@@ -645,7 +651,7 @@ export default function Checkout() {
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs"
-                              onClick={() => applySavedTraveler(it.cart_item_id, st)}
+                              onClick={() => applySavedTraveler(it.cart_item_id, st, it.type)}
                             >
                               {st.label || `${st.first_name} ${st.last_name}`}
                               {st.is_self && <span className="ml-1 opacity-60">(you)</span>}
@@ -672,8 +678,8 @@ export default function Checkout() {
                         ))}
                       </div>
 
-                      {/* Optional travel docs (flight = always; hotel/activity = collapsible) */}
-                      {t === 'flight' ? (
+                      {/* Travel documents are collected only for a flight. */}
+                      {t === 'flight' && (
                         <div className="grid sm:grid-cols-2 gap-3">
                           {DOC_FIELDS.map((f) => (
                             <div key={f.key} className="space-y-1">
@@ -687,28 +693,6 @@ export default function Checkout() {
                             </div>
                           ))}
                         </div>
-                      ) : (
-                        <Collapsible open={docsOpen} onOpenChange={(o) => setShowDocs((p) => ({ ...p, [it.cart_item_id]: o }))}>
-                          <CollapsibleTrigger asChild>
-                            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
-                              {docsOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                              Add travel docs (optional)
-                            </Button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="grid sm:grid-cols-2 gap-3 pt-2">
-                            {DOC_FIELDS.map((f) => (
-                              <div key={f.key} className="space-y-1">
-                                <Label htmlFor={`${it.cart_item_id}-${f.key}`} className="text-xs">{f.label}</Label>
-                                <Input
-                                  id={`${it.cart_item_id}-${f.key}`}
-                                  type={f.type || 'text'}
-                                  value={travelers[it.cart_item_id]?.[f.key] || ''}
-                                  onChange={(e) => updateField(it.cart_item_id, f.key, e.target.value)}
-                                />
-                              </div>
-                            ))}
-                          </CollapsibleContent>
-                        </Collapsible>
                       )}
 
                       {/* Policies */}
