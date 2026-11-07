@@ -19,7 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ItineraryData } from '@/types/itinerary';
-import { compareDateOnly, formatDateOnlyRange, parseDateOnly } from '@/lib/date-time';
+import { compareDateOnly, formatDateOnlyRange, localDateOnlyFromDate } from '@/lib/date-time';
+import { classifyTripPhase, type TripPhase } from '@/lib/dashboard/trip-phase';
 
 interface ItineraryListProps {
   itineraries: ItineraryData[];
@@ -44,17 +45,11 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  const getStatus = (itinerary: ItineraryData) => {
-    const now = new Date();
-    const startDate = parseDateOnly(itinerary.itin_date_start);
-    const endDate = parseDateOnly(itinerary.itin_date_end);
-
-    if (!startDate || !endDate) return 'upcoming';
-
-    if (now < startDate) return 'upcoming';
-    if (now >= startDate && now <= endDate) return 'active';
-    return 'completed';
-  };
+  const getStatus = (itinerary: ItineraryData): TripPhase => classifyTripPhase(
+    itinerary.itin_date_start,
+    itinerary.itin_date_end,
+    localDateOnlyFromDate(),
+  );
 
   const getAttendeeCount = (itinerary: ItineraryData) => {
     return itinerary.planned_traveler_count ?? itinerary.attendees?.length ?? 1;
@@ -81,10 +76,11 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
       case 'locations':
         comparison = getLocationString(a).localeCompare(getLocationString(b));
         break;
-      case 'status':
-        const statusOrder = { upcoming: 0, active: 1, completed: 2 };
+      case 'status': {
+        const statusOrder: Record<TripPhase, number> = { upcoming: 0, active: 1, planning: 2, completed: 3 };
         comparison = statusOrder[getStatus(a)] - statusOrder[getStatus(b)];
         break;
+      }
       case 'attendees':
         comparison = getAttendeeCount(a) - getAttendeeCount(b);
         break;
@@ -130,6 +126,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({
     const variants = {
       upcoming: 'bg-blue-500/20 text-blue-500 border-blue-500/30',
       active: 'bg-green-500/20 text-green-500 border-green-500/30',
+      planning: 'bg-secondary text-foreground border-border',
       completed: 'bg-muted text-muted-foreground border-border'
     };
     

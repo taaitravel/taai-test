@@ -1,28 +1,20 @@
 import { useMemo } from "react";
+import { localDateOnlyFromDate } from "@/lib/date-time";
+import { partitionTrips, type DatedTrip } from "@/lib/dashboard/trip-phase";
 
-export const useDashboardSections = (activeItineraries: any[]) => {
-  const getNextTrip = useMemo(() => {
-    const today = new Date();
-    const upcomingTrips = activeItineraries
-      .filter(trip => trip.itin_date_start && new Date(trip.itin_date_start) > today)
-      .sort((a, b) => new Date(a.itin_date_start).getTime() - new Date(b.itin_date_start).getTime());
-    
-    return upcomingTrips[0] || null;
-  }, [activeItineraries]);
-
-  const tripStats = useMemo(() => {
+export const useDashboardSections = (activeItineraries: DatedTrip[]) => {
+  const today = localDateOnlyFromDate();
+  return useMemo(() => {
+    const phases = partitionTrips(activeItineraries, today);
     return {
-      upcoming: activeItineraries.filter(trip => 
-        ['planning', 'upcoming', 'active'].includes(trip.status)
-      ).length,
-      completed: activeItineraries.filter(trip => 
-        trip.status === 'completed'
-      ).length
+      nextTrip: phases.upcoming[0] ?? null,
+      currentTrip: phases.active[0] ?? null,
+      tripStats: {
+        active: phases.active.length,
+        upcoming: phases.upcoming.length,
+        planning: phases.planning.length,
+        completed: phases.completed.length,
+      },
     };
-  }, [activeItineraries]);
-
-  return {
-    nextTrip: getNextTrip,
-    tripStats
-  };
+  }, [activeItineraries, today]);
 };
