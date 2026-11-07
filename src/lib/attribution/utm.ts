@@ -77,15 +77,13 @@ function sanitizeAttribution(value: unknown): SignupAttribution {
     if (cleaned) attribution[key] = cleaned;
   }
 
-  const referrer = clean(
+  const referrer = sanitizeReferrer(
     typeof record.signup_referrer === 'string' ? record.signup_referrer : undefined,
-    CONTEXT_MAX_LENGTH,
   );
   if (referrer) attribution.signup_referrer = referrer;
 
-  const landingPath = clean(
+  const landingPath = sanitizeLandingPath(
     typeof record.landing_path === 'string' ? record.landing_path : undefined,
-    CONTEXT_MAX_LENGTH,
   );
   if (landingPath) attribution.landing_path = landingPath;
 
@@ -158,6 +156,42 @@ function resolveEnvironment(env: AttributionEnvironment): Required<
   };
 }
 
+/**
+ * Keep the path and utm_* query values. Drop every other query parameter and
+ * the fragment so invite tokens, session ids, and emails in the landing URL
+ * are not stored or copied onto the profile.
+ */
+export function sanitizeLandingPath(path: string | null | undefined): string | undefined {
+  const cleaned = clean(path, CONTEXT_MAX_LENGTH);
+  if (!cleaned) return undefined;
+  const hashless = cleaned.split('#')[0];
+  const queryAt = hashless.indexOf('?');
+  if (queryAt === -1) return hashless;
+  const pathname = hashless.slice(0, queryAt) || '/';
+  const params = new URLSearchParams(hashless.slice(queryAt + 1));
+  const kept = new URLSearchParams();
+  for (const key of UTM_PARAM_KEYS) {
+    const value = clean(params.get(key), UTM_MAX_LENGTH);
+    if (value) kept.set(key, value);
+  }
+  const query = kept.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
+/** Origin and path only. Query, fragment, and userinfo are not attribution. */
+export function sanitizeReferrer(referrer: string | null | undefined): string | undefined {
+  const cleaned = clean(referrer, CONTEXT_MAX_LENGTH);
+  if (!cleaned) return undefined;
+  try {
+    const url = new URL(cleaned);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
+    if (url.username || url.password) return undefined;
+    return `${url.origin}${url.pathname}`.slice(0, CONTEXT_MAX_LENGTH);
+  } catch {
+    return undefined;
+  }
+}
+
 function attributionFromLocation(
   search: string,
   referrer: string,
@@ -172,10 +206,10 @@ function attributionFromLocation(
     if (value) attribution[key] = value;
   }
 
-  const cleanedReferrer = clean(referrer, CONTEXT_MAX_LENGTH);
+  const cleanedReferrer = sanitizeReferrer(referrer);
   if (cleanedReferrer) attribution.signup_referrer = cleanedReferrer;
 
-  const landingPath = clean(path, CONTEXT_MAX_LENGTH);
+  const landingPath = sanitizeLandingPath(path);
   if (landingPath) attribution.landing_path = landingPath;
 
   attribution.first_touch_at = new Date(now).toISOString();
@@ -215,6 +249,10 @@ export function captureFirstTouchAttribution(
   }
 
   if (hasUtm(stored.attribution) || !hasUtm(current)) {
+    writeStored(resolved.storage, {
+      attribution: stored.attribution,
+      expires_at: stored.expires_at,
+    });
     return stored.attribution;
   }
 
@@ -235,10 +273,55 @@ export function captureFirstTouchAttribution(
 
 /** Metadata fragment merged into the signup request. Omits empty fields. */
 export function toSignupMetadata(attribution: SignupAttribution): SignupAttribution {
+  const normalized: SignupAttribution = {
+    ...attribution,
+    signup_referrer: sanitizeReferrer(attribution.signup_referrer),
+    landing_path: sanitizeLandingPath(attribution.landing_path),
+  };
   const metadata: SignupAttribution = {};
   for (const key of SIGNUP_ATTRIBUTION_METADATA_KEYS) {
-    const value = attribution[key];
+    const value = normalized[key];
     if (value) metadata[key] = value;
   }
   return metadata;
+}
+
+const NEW_ACCOUNT_ATTRIBUTION_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * Client-side fill is only for an account that was just created (email metadata
+ * already went through the trigger; Google OAuth cannot carry that metadata).
+ * Older profiles keep their stored attribution, including an all-null row.
+ */
+export function shouldPersistAttributionOnSession(input: {
+  accountCreatedAt?: string | null;
+  now?: number;
+}): boolean {
+  if (!input.accountCreatedAt) return false;
+  const created = Date.parse(input.accountCreatedAt);
+  if (Number.isNaN(created)) return false;
+  const age = (input.now ?? Date.now()) - created;
+  return age >= -60_000 && age <= NEW_ACCOUNT_ATTRIBUTION_WINDOW_MS;
+}
+
+/**
+ * Columns still empty on a new profile. Never overwrites a saved first touch
+ * and never copies fields outside the attribution allowlist.
+ */
+export function attributionFieldsForEmptyProfile(
+  profile: Record<string, unknown> | null | undefined,
+  attribution: SignupAttribution,
+): SignupAttribution {
+  if (!profile) return {};
+  const metadata = toSignupMetadata(attribution);
+  const patch: SignupAttribution = {};
+  for (const key of SIGNUP_ATTRIBUTION_METADATA_KEYS) {
+    const incoming = metadata[key];
+    if (!incoming) continue;
+    const current = profile[key];
+    if (current == null || (typeof current === 'string' && current.trim() === '')) {
+      patch[key] = incoming;
+    }
+  }
+  return patch;
 }

@@ -58,13 +58,13 @@ const BookingSuccess: React.FC = () => {
           {status === 'loading' && (
             <>
               <Loader2 className="h-16 w-16 mx-auto mb-4 animate-spin text-primary" />
-              <CardTitle>Processing Your Booking...</CardTitle>
+              <CardTitle>Checking payment status...</CardTitle>
             </>
           )}
           {status === 'success' && (
             <>
               <CheckCircle2 className="h-16 w-16 mx-auto mb-4 text-emerald-500 dark:text-emerald-400" />
-              <CardTitle>Booking Confirmed! 🎉</CardTitle>
+              <CardTitle>Payment recorded</CardTitle>
             </>
           )}
           {status === 'error' && (
@@ -78,11 +78,13 @@ const BookingSuccess: React.FC = () => {
           {status === 'success' && bookingData && (
             <>
               <p className="text-muted-foreground">
-                {bookingData.completions} item(s) booked successfully for <strong>${bookingData.total_charged}</strong>.
+                A card payment was recorded for {bookingData.completions ?? 0} item(s)
+                {bookingData.total_charged ? <> totaling <strong>${bookingData.total_charged}</strong></> : null}.
+                This does not confirm a booking with the travel provider, and taai has not ticketed or reserved the trip.
               </p>
               <Badge variant="secondary" className="text-sm">
                 <Receipt className="h-3 w-3 mr-1" />
-                A receipt has been sent to your email
+                No booking confirmation is sent
               </Badge>
               <div className="flex flex-col gap-2 pt-4">
                 <Button variant="outline" onClick={handleDownload} disabled={downloading}>
@@ -101,7 +103,7 @@ const BookingSuccess: React.FC = () => {
           {status === 'error' && (
             <>
               <p className="text-muted-foreground">
-                We couldn't confirm your booking. If you were charged, please contact support.
+                We couldn't verify payment status. This page does not confirm a travel booking. If you were charged, contact support before paying anyone again.
               </p>
               <Button onClick={() => navigate('/dashboard')} variant="outline">
                 Return to Dashboard
