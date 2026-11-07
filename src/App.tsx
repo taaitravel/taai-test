@@ -46,6 +46,9 @@ const AgentOperations = lazy(() => import("./pages/AgentOperations"));
 const Discover = lazy(() => import("./pages/Discover"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const PublicItinerary = lazy(() => import("./pages/PublicItinerary"));
+const DashboardPreview = import.meta.env.DEV
+  ? lazy(() => import("./dev/DashboardPreview"))
+  : null;
 
 const RouteFallback = () => (
   <div className="min-h-screen bg-background" role="status" aria-live="polite">
@@ -134,6 +137,9 @@ const App = () => (
               <Route path="/what-we-do" element={<WhatWeDo />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/discover" element={<Discover />} />
+              {DashboardPreview ? (
+                <Route path="/internal/dashboard-preview" element={<DashboardPreview />} />
+              ) : null}
               <Route path="/p/:slug" element={<PublicProfile />} />
               <Route path="/t/:slug" element={<PublicItinerary />} />
               <Route path="/subscription" element={<Subscription />} />

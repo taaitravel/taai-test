@@ -1,151 +1,182 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Map, BarChart3 } from "lucide-react";
-import { CountriesMap } from "@/components/CountriesMap";
-import { FlightProgressIndicator } from "../FlightProgressIndicator";
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { CountriesMap } from '@/components/CountriesMap';
+import { localDateOnlyFromDate } from '@/lib/date-time';
+import { buildTravelMetrics, formatRecordedMoney, PROVENANCE_GAP, type CategoryFilter, type TimeFilter } from '@/lib/dashboard/travel-metrics';
+import type { TravelAnalyticsState } from '@/hooks/useTravelAnalytics';
+import { AnalyticsByMiles } from './AnalyticsByMiles';
+import { RecordedCostChart } from './RecordedCostChart';
+
 interface TravelMetricsProps {
   userStats: {
     totalTrips: number;
     countriesVisited: number;
     citiesVisited: number;
-    totalSpent: number;
-    projectedSpend: number;
-    flightsThisYear: number;
+    profileFlightFrequency: number;
     travelerLevel: string;
   };
   visitedCountries: string[];
-  activeItineraries?: any[];
-}
-export const TravelMetrics = ({
-  userStats,
-  visitedCountries,
-  activeItineraries
-}: TravelMetricsProps) => {
-  const today = new Date();
-  // Rank future trips by spending amount (highest to lowest) for projected spend
-  const rankedTrips = (activeItineraries || [])
-    .filter(itinerary => {
-      const endDate = itinerary.itin_date_end;
-      return endDate && new Date(endDate) >= today && itinerary.spending && Number(itinerary.spending) > 0;
-    })
-    .map(itinerary => ({
-      name: itinerary.title || itinerary.itin_name || 'Unnamed Trip',
-      spending: Number(itinerary.spending) || 0,
-      date: itinerary.start_date || itinerary.itin_date_start
-    }))
-    .sort((a, b) => b.spending - a.spending)
-    .slice(0, 5);
-
-  const formatMonthYear = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = String(date.getFullYear()).slice(-2);
-    return `${month}/${year}`;
+  phaseCounts: {
+    active: number;
+    upcoming: number;
+    planning: number;
+    completed: number;
   };
-  return <Card className="bright-card bright-card-hover p-4 sm:p-6 overflow-hidden">
-      <div className="flex justify-between items-center mb-6">
+  analytics: TravelAnalyticsState;
+  startOpen?: boolean;
+}
+
+export const TravelMetrics = ({ userStats, visitedCountries, phaseCounts, analytics, startOpen = false }: TravelMetricsProps) => {
+  const [open, setOpen] = useState(startOpen);
+  const [time, setTime] = useState<TimeFilter>({ kind: 'all' });
+  const [category, setCategory] = useState<CategoryFilter>('all');
+  const today = localDateOnlyFromDate();
+  const metrics = useMemo(
+    () => buildTravelMetrics(analytics.input, {
+      today,
+      time,
+      category,
+      viewerId: analytics.viewerId,
+    }),
+    [analytics.input, analytics.viewerId, today, time, category],
+  );
+  const safeTime = time.kind === 'year' && !metrics.years.includes(time.year) ? { kind: 'all' as const } : time;
+  const display = safeTime === time ? metrics : buildTravelMetrics(analytics.input, {
+    today,
+    time: safeTime,
+    category,
+    viewerId: analytics.viewerId,
+  });
+  const chart = display.settledChart.length > 0 ? display.settledChart : display.recordedChart;
+  const chartCaption = display.settledChart.length > 0
+    ? 'Verified paid, by settlement date. Recorded costs are not added to this line.'
+    : 'Recorded costs by service date. This is not money paid.';
+
+  return (
+    <Card className="bright-card p-4 sm:p-6 overflow-hidden">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <p className="font-mono-label mb-1">Overview</p>
-          <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground">Travel Metrics</h2>
+          <h2 className="font-display text-xl font-semibold text-foreground sm:text-2xl">Travel Metrics</h2>
         </div>
-        <Button size="sm" className="bright-btn-grad rounded-full px-4 h-9 font-medium">
-          View Metrics
+        <Button
+          size="sm"
+          className="bright-btn-grad h-9 rounded-full px-4 font-medium"
+          onClick={() => setOpen(true)}
+          aria-haspopup="dialog"
+        >
+          View metrics
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 mb-5">
-        {/* Flight Progress Indicator */}
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:gap-5 md:grid-cols-2">
         <Card className="bright-card">
-          <CardContent className="p-4 min-h-[250px] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="font-mono-label mb-1">Flight Progress</p>
-                <p className="text-xs text-muted-foreground">Track your journey to the next level</p>
+          <CardContent className="flex min-h-[250px] flex-col p-4">
+            <p className="font-mono-label mb-1">Costs over time</p>
+            <p className="text-xs text-muted-foreground">Cumulative, one currency at a time. Not a commission chart.</p>
+            {analytics.loading ? (
+              <p className="mt-6 text-sm text-muted-foreground">Loading cost records…</p>
+            ) : chart.length > 0 ? (
+              <RecordedCostChart series={chart} caption={chartCaption} />
+            ) : (
+              <div className="mt-4 rounded-lg border border-border bg-muted p-4">
+                <p className="text-sm font-medium text-foreground">A cumulative total is unavailable</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Verified paid spend needs a settled payment with a currency and a settlement date. Recorded costs need a currency and a service date. Stored trip totals have no currency, so they are not drawn as one line and they are not called paid.
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">{display.categories.all.missingCurrency} priced rows have no currency. {display.categories.all.missingPrice} eligible rows have no price.</p>
               </div>
-            </div>
-            <div className="flex justify-center">
-              <FlightProgressIndicator currentFlights={Number(userStats.flightsThisYear)} currentLevel={userStats.travelerLevel} />
-            </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Countries Map */}
         <Card className="bright-card">
           <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-3 flex items-center justify-between">
               <div>
-                <p className="font-mono-label mb-1">Countries Visited</p>
-                <p className="font-display font-semibold bright-grad-text text-4xl">{visitedCountries.length}</p>
+                <p className="font-mono-label mb-1">Profile countries</p>
+                <p className="font-display text-4xl font-semibold text-foreground">{visitedCountries.length}</p>
               </div>
-              <Map className="h-6 w-6 text-muted-foreground" />
             </div>
-            <div className="h-[250px]">
+            <p className="mb-2 text-xs text-muted-foreground">Saved on your profile. Not verified from bookings.</p>
+            <div className="h-[220px]">
               <CountriesMap visitedCountries={visitedCountries} />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
-        {/* Top Spending Trips */}
+      <div className="grid grid-cols-1 gap-3 sm:gap-5 md:grid-cols-2">
         <Card className="bright-card">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="font-mono-label mb-1">Projected Spend</p>
-                <p className="font-display font-semibold bright-grad-text text-2xl sm:text-4xl">${userStats.projectedSpend.toLocaleString()}</p>
-              </div>
-              <BarChart3 className="h-6 w-6 text-muted-foreground" />
-            </div>
+          <CardContent className="p-4">
+            <p className="font-mono-label mb-1">Recorded costs on open trips</p>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Stored on the trip as planned or recorded amounts. No currency is stored on the trip, so these figures are not added together and are not verified paid spend.
+            </p>
             <div className="space-y-2">
-              {rankedTrips.length > 0 ? rankedTrips.map((trip, index) => <div key={index} className="flex items-center justify-between py-2 px-3 rounded-xl bg-[hsl(var(--muted))]/60 hover:bg-accent transition-colors">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="font-mono text-[10px] text-muted-foreground w-4">#{index + 1}</span>
-                      <span className="text-sm text-foreground truncate">{trip.name}</span>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs text-muted-foreground">{formatMonthYear(trip.date)}</span>
-                      <span className="text-sm font-bold text-foreground">${trip.spending.toLocaleString()}</span>
-                    </div>
-                  </div>) : <div className="text-center py-8 text-muted-foreground text-sm">
-                  No trip spending data yet
-                </div>}
+              {display.openTripFigures.length > 0 ? display.openTripFigures.map((trip) => (
+                <div key={trip.id} className="rounded-xl bg-muted/60 px-3 py-2">
+                  <p className="truncate text-sm text-foreground">{trip.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {trip.phase === 'active' ? 'In progress' : trip.phase === 'upcoming' ? 'Upcoming' : 'No dates'}
+                    {trip.budget != null ? ` · Planned ${trip.budget.toLocaleString()}` : ''}
+                    {trip.spending != null ? ` · Recorded ${trip.spending.toLocaleString()}` : ''}
+                    {' · currency not recorded'}
+                  </p>
+                </div>
+              )) : (
+                <p className="py-6 text-center text-sm text-muted-foreground">No stored cost on an open trip.</p>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Stats Table */}
-        <Card className="bright-card hidden md:block">
-          <CardContent className="p-3">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border">
-                <span className="font-mono-label">Total Trips</span>
-                <span className="font-display font-semibold text-foreground text-2xl">{userStats.totalTrips}</span>
-              </div>
-              <div className="flex items-center justify-between pb-3 border-b border-border">
-                <span className="font-mono-label">Cities Visited</span>
-                <span className="font-display font-semibold text-foreground text-2xl">{userStats.citiesVisited}</span>
-              </div>
-              <div className="flex items-center justify-between pb-3 border-b border-border">
-                <span className="font-mono-label">Flights YTD</span>
-                <span className="font-display font-semibold text-foreground text-2xl">{Number(userStats.flightsThisYear)}</span>
-              </div>
-              <div className="flex items-center justify-between pb-3 border-b border-border">
-                <span className="font-mono-label">Upcoming Trips</span>
-                <span className="font-display font-semibold text-foreground text-2xl">
-                  {(activeItineraries || []).filter(trip => trip.itin_date_start && new Date(trip.itin_date_start) > new Date()).length}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-mono-label">Traveler Level</span>
-                <span className="text-xs font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-full">
-                  {userStats.travelerLevel}
-                </span>
-              </div>
-            </div>
+        <Card className="bright-card">
+          <CardContent className="p-4">
+            <dl className="space-y-3">
+              <Stat label="Trips" value={String(userStats.totalTrips)} />
+              <Stat label="In progress" value={String(phaseCounts.active)} />
+              <Stat label="Upcoming" value={String(phaseCounts.upcoming)} />
+              <Stat label="Past" value={String(phaseCounts.completed)} />
+              <Stat label="Undated" value={String(phaseCounts.planning)} />
+              <Stat label="Location names" value={String(userStats.citiesVisited)} hint="Names saved on your trips" />
+              <Stat label="Traveler level" value={userStats.travelerLevel} hint="From your profile. Not a verified flight count." />
+            </dl>
+            {display.groupTotals.length > 0 && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Currency-qualified booking totals: {display.groupTotals.map((row) => formatRecordedMoney(row.amount, row.currency)).join(', ')}
+              </p>
+            )}
+            <p className="mt-3 text-xs text-muted-foreground">{PROVENANCE_GAP}</p>
           </CardContent>
         </Card>
       </div>
-    </Card>;
+
+      <AnalyticsByMiles
+        open={open}
+        onOpenChange={setOpen}
+        metrics={display}
+        time={safeTime}
+        category={category}
+        onTime={setTime}
+        onCategory={setCategory}
+        loading={analytics.loading}
+        errors={analytics.errors}
+        truncated={analytics.truncated}
+      />
+    </Card>
+  );
 };
+
+function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-b-0 last:pb-0">
+      <div>
+        <dt className="text-sm text-muted-foreground">{label}</dt>
+        {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+      </div>
+      <dd className="font-display text-xl font-semibold text-foreground">{value}</dd>
+    </div>
+  );
+}

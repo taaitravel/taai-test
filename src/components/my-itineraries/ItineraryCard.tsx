@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ItineraryData } from '@/types/itinerary';
-import { formatDateOnlyRange, parseDateOnly } from '@/lib/date-time';
+import { formatDateOnlyRange, localDateOnlyFromDate } from '@/lib/date-time';
+import { classifyTripPhase } from '@/lib/dashboard/trip-phase';
 
 interface ItineraryCardProps {
   itinerary: ItineraryData;
@@ -40,17 +41,11 @@ export const ItineraryCard: React.FC<ItineraryCardProps> = ({
     navigate(`/itinerary?id=${itinerary.id}`);
   };
 
-  const getStatus = () => {
-    const now = new Date();
-    const startDate = parseDateOnly(itinerary.itin_date_start);
-    const endDate = parseDateOnly(itinerary.itin_date_end);
-
-    if (!startDate || !endDate) return 'upcoming';
-
-    if (now < startDate) return 'upcoming';
-    if (now >= startDate && now <= endDate) return 'active';
-    return 'completed';
-  };
+  const getStatus = () => classifyTripPhase(
+    itinerary.itin_date_start,
+    itinerary.itin_date_end,
+    localDateOnlyFromDate(),
+  );
 
   const getEmoji = () => {
     const status = getStatus();

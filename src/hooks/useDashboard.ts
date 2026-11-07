@@ -3,6 +3,7 @@ import { travelerLevelFromProfile } from "@/lib/travelerLevel";
 import { useDashboardData, type SortOption } from "@/hooks/useDashboardData";
 import { useTripBrowser } from "@/hooks/useTripBrowser";
 import { calculateUserStats } from "@/lib/dashboardUtils";
+import { localDateOnlyFromDate } from "@/lib/date-time";
 
 export const useDashboard = () => {
   // Filter state
@@ -12,8 +13,8 @@ export const useDashboard = () => {
 
   const { activeItineraries, loading, userProfile } = useDashboardData({
     sortBy,
-    dateFrom: dateFrom?.toISOString().split('T')[0],
-    dateTo: dateTo?.toISOString().split('T')[0]
+    dateFrom: dateFrom ? localDateOnlyFromDate(dateFrom) : undefined,
+    dateTo: dateTo ? localDateOnlyFromDate(dateTo) : undefined,
   });
 
   const { 
@@ -24,12 +25,10 @@ export const useDashboard = () => {
     closeTripBrowser 
   } = useTripBrowser();
 
-  const { visitedCountries, projectedSpend, lifetimeTotal, ...userStats } = calculateUserStats(activeItineraries, userProfile);
+  const userStats = calculateUserStats(activeItineraries, userProfile);
   const fullUserStats = {
     ...userStats,
-    projectedSpend,
-    lifetimeTotal,
-    travelerLevel: travelerLevelFromProfile(userProfile)
+    travelerLevel: travelerLevelFromProfile(userProfile),
   };
 
   // Filter handlers
@@ -57,7 +56,7 @@ export const useDashboard = () => {
     loading,
     userProfile,
     fullUserStats,
-    visitedCountries,
+    visitedCountries: userStats.visitedCountries,
     
     // Trip browser state
     showTripBrowser,
