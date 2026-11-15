@@ -315,7 +315,7 @@ const Signup = () => {
             <CardTitle className="text-2xl text-card-foreground">Create Your Account</CardTitle>
             <CardDescription className="text-muted-foreground">
               {userType === 'individual'
-                ? "Join thousands of travelers planning smarter trips"
+                ? "Plan your trip with taai. Create your free account."
                 : "Streamline your corporate travel management"
               }
             </CardDescription>
