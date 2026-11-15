@@ -3,7 +3,9 @@ import {
   SIGNUP_ATTRIBUTION_METADATA_KEYS,
   SIGNUP_ATTRIBUTION_STORAGE_KEY,
   SIGNUP_ATTRIBUTION_TTL_MS,
+  attributionFieldsForEmptyProfile,
   captureFirstTouchAttribution,
+  shouldPersistAttributionOnSession,
   toSignupMetadata,
 } from './utm';
 
@@ -264,5 +266,99 @@ describe('toSignupMetadata', () => {
     ]);
     expect(metadata).not.toHaveProperty('utm_campaign');
     expect(metadata).not.toHaveProperty('utm_content');
+  });
+
+  it('drops invite tokens, session ids, and emails from the landing path and referrer', () => {
+    const storage = memoryStorage();
+    const attribution = captureFirstTouchAttribution({
+      search: '?utm_source=newsletter&invite_token=secret-token&session_id=cs_test_123&email=a@b.c',
+      referrer: 'https://user:pass@news.example/issue?token=secret-token#frag',
+      path: '/join?utm_source=newsletter&invite_token=secret-token&session_id=cs_test_123',
+      now: Date.parse('2026-10-14T12:00:00.000Z'),
+      storage,
+    });
+
+    expect(attribution.landing_path).toBe('/join?utm_source=newsletter');
+    expect(attribution.signup_referrer).toBeUndefined();
+    expect(storage.dump()).not.toContain('secret-token');
+    expect(storage.dump()).not.toContain('cs_test_123');
+    expect(storage.dump()).not.toContain('a@b.c');
+    expect(toSignupMetadata({
+      ...attribution,
+      landing_path: '/signup?utm_medium=email&token=secret-token',
+      signup_referrer: 'https://news.example/issue?token=secret-token',
+    })).toMatchObject({
+      landing_path: '/signup?utm_medium=email',
+      signup_referrer: 'https://news.example/issue',
+    });
+  });
+
+  it('strips secrets already sitting in localStorage before they can be copied to a profile', () => {
+    const storage = memoryStorage();
+    const now = Date.parse('2026-10-14T12:00:00.000Z');
+    storage.setItem(SIGNUP_ATTRIBUTION_STORAGE_KEY, JSON.stringify({
+      expires_at: now + 1000,
+      attribution: {
+        utm_source: 'newsletter',
+        landing_path: '/invite?token=secret-token',
+        signup_referrer: 'https://partner.example/ad?email=a@b.c',
+        first_touch_at: '2026-10-14T12:00:00.000Z',
+      },
+    }));
+
+    const attribution = captureFirstTouchAttribution({
+      search: '',
+      referrer: '',
+      path: '/home',
+      now,
+      storage,
+    });
+
+    expect(attribution.utm_source).toBe('newsletter');
+    expect(attribution.landing_path).toBe('/invite');
+    expect(attribution.signup_referrer).toBe('https://partner.example/ad');
+    expect(storage.dump()).not.toContain('secret-token');
+    expect(storage.dump()).not.toContain('a@b.c');
+  });
+});
+
+describe('attribution profile fill', () => {
+  const now = Date.parse('2026-10-14T12:00:00.000Z');
+
+  it('fills only empty allowlisted columns and does not overwrite a saved first touch', () => {
+    const patch = attributionFieldsForEmptyProfile(
+      {
+        utm_source: 'newsletter',
+        email: 'person@example.com',
+        user_type: 'individual',
+        utm_medium: '   ',
+      },
+      {
+        utm_source: 'other',
+        utm_medium: 'email',
+        landing_path: '/signup?utm_campaign=spring&invite_token=secret-token',
+      },
+    );
+
+    expect(patch).toEqual({
+      utm_medium: 'email',
+      landing_path: '/signup?utm_campaign=spring',
+    });
+    expect(patch).not.toHaveProperty('email');
+    expect(patch).not.toHaveProperty('user_type');
+    expect(patch).not.toHaveProperty('utm_source');
+  });
+
+  it('writes attribution only for an account created in this session', () => {
+    expect(shouldPersistAttributionOnSession({
+      accountCreatedAt: '2026-10-14T11:50:00.000Z',
+      now,
+    })).toBe(true);
+    expect(shouldPersistAttributionOnSession({
+      accountCreatedAt: '2026-10-13T12:00:00.000Z',
+      now,
+    })).toBe(false);
+    expect(shouldPersistAttributionOnSession({ accountCreatedAt: null, now })).toBe(false);
+    expect(attributionFieldsForEmptyProfile(null, { utm_source: 'newsletter' })).toEqual({});
   });
 });

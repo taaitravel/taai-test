@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { buildCorsHeaders, guardOrigin } from "../_shared/edge-guard.ts";
+import { redactTravelerRecord } from "../_shared/traveler-privacy.ts";
 
 
 
@@ -85,7 +86,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       quote,
-      travelers: travelers ?? [],
+      travelers: (travelers ?? []).map((row) => redactTravelerRecord(row)),
       profile: profile ?? null,
       saved_travelers: savedTravelers ?? [],
       preferences: prefs ?? null,

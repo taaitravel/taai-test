@@ -11,7 +11,7 @@ Set both of these to the exact string `true` in the same release. Either one alo
 | Name | Where | What it unlocks |
 |---|---|---|
 | `VITE_TRAVEL_BOOKING_CHECKOUT` | Lovable / Vite env, then a new frontend publish | Shows `/cart`, `/checkout`, and `/booking-success`. Shows the cart icon and "Continue to cart". Restores "Add to Cart" on the price-snapshot form. |
-| `TRAVEL_BOOKING_CHECKOUT_ENABLED` | Supabase Edge Function secret | Lets `create-booking-checkout` run. The function returns 403 while this is anything other than `true`. |
+| `TRAVEL_BOOKING_CHECKOUT_ENABLED` | Supabase Edge Function secret | Lets `create-booking-checkout` run. The function returns 403 while this is anything other than `true`. `booking-webhook` also returns before any sale write unless this is exactly `true`. |
 
 Files that read the frontend flag:
 
@@ -28,12 +28,13 @@ Files that read the frontend flag:
 
 Edge functions that must stay refused until the secret is set:
 
-- `supabase/functions/create-booking-checkout`
+- `supabase/functions/create-booking-checkout` (returns 403 unless the secret is exactly `true`)
+- `supabase/functions/booking-webhook` (signed Stripe retries are acknowledged and not written; the signed-in client fallback returns 403)
 - `supabase/functions/get-checkout-quote`
 - `supabase/functions/pre-checkout-validate`
 - `supabase/functions/reprice-quote`
 
-Quote and reprice functions are still deployed. They do not charge a card by themselves. Do not point the UI at them until the flag is on and the seller registration is active.
+`create-booking-checkout` and `booking-webhook` are the functions that enforce the secret in code. Quote, reprice, and pre-checkout validation are still deployed and do not charge a card by themselves. Do not point the UI at them until the flag is on and the seller registration is active.
 
 ## 2. Copy to review before the flag goes on
 
