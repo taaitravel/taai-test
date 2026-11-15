@@ -1,23 +1,33 @@
 import { TravelMetrics } from "./sections/TravelMetrics";
+import type { TravelAnalyticsState } from "@/hooks/useTravelAnalytics";
 
 interface StatsSectionProps {
   userStats: {
     totalTrips: number;
     countriesVisited: number;
     citiesVisited: number;
-    totalSpent: number;
-    projectedSpend: number;
-    flightsThisYear: number;
+    profileFlightFrequency: number;
     travelerLevel: string;
   };
   visitedCountries: string[];
-  activeItineraries: any[];
+  phaseCounts: {
+    active: number;
+    upcoming: number;
+    planning: number;
+    completed: number;
+  };
+  analytics: TravelAnalyticsState;
 }
 
-export const StatsSection = ({ userStats, visitedCountries, activeItineraries }: StatsSectionProps) => {
+export const StatsSection = ({ userStats, visitedCountries, phaseCounts, analytics }: StatsSectionProps) => {
   return (
     <div className="mb-8">
-      <TravelMetrics userStats={userStats} visitedCountries={visitedCountries} activeItineraries={activeItineraries} />
+      <TravelMetrics
+        userStats={userStats}
+        visitedCountries={visitedCountries}
+        phaseCounts={phaseCounts}
+        analytics={analytics}
+      />
     </div>
   );
 };

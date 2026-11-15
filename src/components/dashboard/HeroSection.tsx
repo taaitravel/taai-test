@@ -1,80 +1,73 @@
 import { Badge } from "@/components/ui/badge";
-import { differenceInDays } from "date-fns";
-import { TravelHub } from "./sections/TravelHub";
-import { useDashboardSections } from "@/hooks/useDashboardSections";
-import { formatDateOnly } from '@/lib/date-time';
+import { differenceInDateOnlyDays, formatDateOnly, formatDateOnlyRange, localDateOnlyFromDate } from '@/lib/date-time';
+import { partitionTrips } from '@/lib/dashboard/trip-phase';
 
 interface HeroSectionProps {
-  userProfile: any;
-  activeItineraries?: any[];
+  activeItineraries?: Array<{ itin_name?: string | null; itin_date_start?: string | null; itin_date_end?: string | null }>;
   fullUserStats: {
-    totalTrips: number;
     countriesVisited: number;
-    citiesVisited: number;
-    totalSpent: number;
-    projectedSpend: number;
-    lifetimeTotal: number;
-    flightsThisYear: number;
     travelerLevel: string;
   };
-  onBrowseTrips: () => void;
 }
 
-export const HeroSection = ({ userProfile, activeItineraries = [], fullUserStats, onBrowseTrips }: HeroSectionProps) => {
-  const { nextTrip } = useDashboardSections(activeItineraries);
-  const daysAway = nextTrip ? differenceInDays(new Date(nextTrip.itin_date_start), new Date()) : null;
+export const HeroSection = ({ activeItineraries = [], fullUserStats }: HeroSectionProps) => {
+  const today = localDateOnlyFromDate();
+  const phases = partitionTrips(activeItineraries, today);
+  const current = phases.active[0] ?? null;
+  const nextTrip = phases.upcoming[0] ?? null;
+  const daysAway = nextTrip ? differenceInDateOnlyDays(today, nextTrip.itin_date_start) : null;
 
   return (
-    <div className="mb-8 space-y-4">
-      <TravelHub activeItineraries={activeItineraries} onBrowseTrips={onBrowseTrips} />
-
-      <div className="bright-card grid min-w-0 grid-cols-3 divide-x divide-border overflow-hidden">
-        {/* Left: Next Travel Date */}
-        <div className="min-w-0 p-3 sm:p-5">
-          <div className="min-w-0">
-            <p className="font-mono-label mb-1.5">Next Travel</p>
-            {nextTrip ? (
-              <>
-                <p className="font-display text-base sm:text-2xl font-semibold bright-grad-text leading-tight">
-                  {formatDateOnly(nextTrip.itin_date_start, 'MMM d')}
-                </p>
-                <p className="text-[11px] sm:text-sm text-muted-foreground truncate mt-0.5">{nextTrip.itin_name}</p>
-                <Badge className="bg-secondary text-foreground border-border text-[10px] mt-2 px-2 py-0 hidden sm:inline-flex">
-                  {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
-                </Badge>
-              </>
-            ) : (
-              <>
-                <p className="font-display text-base sm:text-2xl font-semibold text-foreground leading-tight">Plan One!</p>
-                <p className="text-[11px] sm:text-sm text-muted-foreground mt-0.5">No upcoming trips</p>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Center: Lifetime Total Spent */}
-        <div className="min-w-0 p-3 sm:p-5">
-          <div className="flex min-w-0 flex-col items-center gap-1 text-center">
-            <p className="font-mono-label">Lifetime Spent</p>
-            <p className="max-w-full truncate font-display text-base sm:text-2xl font-semibold bright-grad-text leading-tight">
-              ${Number(fullUserStats.lifetimeTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+    <div className="bright-card grid min-w-0 grid-cols-1 divide-y divide-border overflow-hidden sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      <div className="min-w-0 p-3 sm:p-5">
+        <p className="font-mono-label mb-1.5">{current ? 'In progress' : 'Next travel'}</p>
+        {current ? (
+          <>
+            <p className="font-display text-base font-semibold leading-tight text-foreground sm:text-2xl">
+              {formatDateOnlyRange(current.itin_date_start, current.itin_date_end, 'MMM d', 'MMM d') ?? 'In progress'}
             </p>
-            <p className="text-[11px] sm:text-sm text-muted-foreground">{fullUserStats.totalTrips} trips</p>
-          </div>
-        </div>
-
-        {/* Right: Traveler Level */}
-        <div className="min-w-0 p-3 sm:p-5">
-          <div className="flex min-w-0 flex-col items-center gap-1 text-center">
-            <p className="font-mono-label">Traveler Level</p>
-            <p className="max-w-full truncate font-display text-base sm:text-2xl font-semibold text-foreground leading-tight">{fullUserStats.travelerLevel}</p>
-            <p className="text-[11px] sm:text-sm text-muted-foreground break-words">
-              {fullUserStats.countriesVisited} countries · {fullUserStats.flightsThisYear} flights
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-sm">{current.itin_name}</p>
+            <Badge className="mt-2 hidden border-border bg-secondary px-2 py-0 text-[10px] text-foreground sm:inline-flex">
+              In progress
+            </Badge>
+          </>
+        ) : nextTrip ? (
+          <>
+            <p className="font-display text-base font-semibold leading-tight bright-grad-text sm:text-2xl">
+              {formatDateOnly(nextTrip.itin_date_start, 'MMM d')}
             </p>
-          </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-sm">{nextTrip.itin_name}</p>
+            <Badge className="mt-2 hidden border-border bg-secondary px-2 py-0 text-[10px] text-foreground sm:inline-flex">
+              {daysAway === 1 ? '1 day away' : `${daysAway} days away`}
+            </Badge>
+          </>
+        ) : (
+          <>
+            <p className="font-display text-base font-semibold leading-tight text-foreground sm:text-2xl">Plan one</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-sm">No upcoming trips</p>
+          </>
+        )}
+      </div>
+
+      <div className="min-w-0 p-3 sm:p-5">
+        <div className="flex min-w-0 flex-col items-start gap-1 sm:items-center sm:text-center">
+          <p className="font-mono-label">Trip timing</p>
+          <p className="font-display text-base font-semibold leading-tight text-foreground sm:text-2xl">
+            {phases.active.length} now · {phases.upcoming.length} upcoming
+          </p>
+          <p className="text-[11px] text-muted-foreground sm:text-sm">{phases.completed.length} past · {phases.planning.length} undated</p>
+        </div>
+      </div>
+
+      <div className="min-w-0 p-3 sm:p-5">
+        <div className="flex min-w-0 flex-col items-start gap-1 sm:items-center sm:text-center">
+          <p className="font-mono-label">Traveler level</p>
+          <p className="max-w-full truncate font-display text-base font-semibold leading-tight text-foreground sm:text-2xl">{fullUserStats.travelerLevel}</p>
+          <p className="text-[11px] text-muted-foreground sm:text-sm">
+            {fullUserStats.countriesVisited} profile countries · rank is not a verified flight count
+          </p>
         </div>
       </div>
     </div>
   );
 };
-

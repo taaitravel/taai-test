@@ -82,6 +82,64 @@ export const CART_ITEM_DETAIL_FIELDS = ['id', 'item_data'].join(', ');
 /** Budget aggregation needs the item kind inside item_data, not the whole blob. */
 export const CART_BUDGET_FIELDS = ['id', 'type', 'price', 'item_kind:item_data->>type'].join(', ');
 
+/**
+ * Dashboard analytics. Scalars and small service-date objects only.
+ * Room arrays, segment arrays, and provider snapshots stay out of this read.
+ */
+export const CART_ANALYTICS_FIELDS = [
+  'id',
+  'itinerary_id',
+  'user_id',
+  'type',
+  'price',
+  'booking_status',
+  'item_kind:item_data->>type',
+  'item_currency:item_data->>currency',
+  'item_service_timezone:item_data->service_timing->>service_timezone',
+  'item_service_dates:item_data->service_dates',
+].join(', ');
+
+export const EXTERNAL_BOOKING_ANALYTICS_FIELDS = [
+  'id',
+  'itinerary_id',
+  'category',
+  'currency',
+  'total_amount',
+  'amount_paid',
+  'payment_status',
+  'evidence_quality',
+  'record_status',
+  'associated_itinerary_item_id',
+].join(', ');
+
+export const PROVIDER_BOOKING_ANALYTICS_FIELDS = [
+  'id',
+  'booking_type',
+  'currency',
+  'total_amount',
+  'booking_status',
+  'service_start_date',
+  'service_end_date',
+].join(', ');
+
+export const SETTLEMENT_ANALYTICS_FIELDS = [
+  'id',
+  'booking_id',
+  'payment_amount',
+  'payment_date',
+  'payment_status',
+].join(', ');
+
+export const SHARE_ANALYTICS_FIELDS = [
+  'id',
+  'cart_item_id',
+  'attendee_user_id',
+  'share_method',
+  'computed_amount',
+  'auto_added',
+  'payment_status',
+].join(', ');
+
 
 /** Split rows rendered by the cart UI. */
 export const CART_SPLIT_FIELDS = [
@@ -172,6 +230,7 @@ export const PAGE_SIZES = {
   chatPage: 50,
   cartItems: 100,
   cartList: 100,
+  analytics: 200,
   agentRows: 50,
 } as const;
 

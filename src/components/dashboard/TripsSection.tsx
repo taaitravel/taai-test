@@ -1,54 +1,45 @@
 import { useMemo } from "react";
 import { Calendar, Clock } from "lucide-react";
 import { StackSection } from "@/components/itinerary-stacks/StackSection";
+import { localDateOnlyFromDate } from "@/lib/date-time";
+import { partitionTrips, type DatedTrip } from "@/lib/dashboard/trip-phase";
+import type { ItineraryData } from "@/types/itinerary";
 
 interface TripsSectionProps {
-  activeItineraries: any[];
+  activeItineraries: Array<DatedTrip & { id: number; itin_name?: string | null; itin_locations?: string[] }>;
   loading: boolean;
-  onTripClick?: () => void;
 }
 
 export const TripsSection = ({ activeItineraries, loading }: TripsSectionProps) => {
-  const today = new Date();
-
-  const upcomingTrips = useMemo(() => 
-    activeItineraries.filter(trip => {
-      if (!trip.itin_date_start) return true;
-      return new Date(trip.itin_date_start) >= today;
-    }),
-    [activeItineraries]
+  const today = localDateOnlyFromDate();
+  const phases = useMemo(
+    () => partitionTrips(activeItineraries, today),
+    [activeItineraries, today],
   );
-
-  const pastTrips = useMemo(() => 
-    activeItineraries.filter(trip => {
-      if (!trip.itin_date_start) return false;
-      return new Date(trip.itin_date_start) < today;
-    }),
-    [activeItineraries]
-  );
+  const nowAndUpcoming = [...phases.active, ...phases.upcoming, ...phases.planning];
 
   return (
     <div className="col-span-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="bright-card p-4 sm:p-6">
-        <StackSection
-          title="Upcoming"
-          icon={<Calendar className="h-5 w-5" />}
-          items={upcomingTrips}
-          loading={loading}
-          emptyIcon={<Calendar className="h-8 w-8 mx-auto opacity-50" />}
-          emptyMessage="No upcoming trips"
-        />
+          <StackSection
+            title="Now & upcoming"
+            icon={<Calendar className="h-5 w-5" />}
+            items={nowAndUpcoming as ItineraryData[]}
+            loading={loading}
+            emptyIcon={<Calendar className="h-8 w-8 mx-auto opacity-50" />}
+            emptyMessage="No trips in progress or ahead"
+          />
         </div>
         <div className="bright-card p-4 sm:p-6">
-        <StackSection
-          title="Past Trips"
-          icon={<Clock className="h-5 w-5" />}
-          items={pastTrips}
-          loading={loading}
-          emptyIcon={<Clock className="h-8 w-8 mx-auto opacity-50" />}
-          emptyMessage="No past trips yet"
-        />
+          <StackSection
+            title="Past trips"
+            icon={<Clock className="h-5 w-5" />}
+            items={phases.completed as ItineraryData[]}
+            loading={loading}
+            emptyIcon={<Clock className="h-8 w-8 mx-auto opacity-50" />}
+            emptyMessage="No past trips yet"
+          />
         </div>
       </div>
     </div>

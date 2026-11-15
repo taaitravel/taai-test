@@ -1,65 +1,50 @@
 import { asDateOnly, compareDateOnly, formatDateOnlyRange, localDateOnlyFromDate } from '@/lib/date-time';
 import { flightsFromProfile } from '@/lib/travelerLevel';
+import { classifyTripPhase } from '@/lib/dashboard/trip-phase';
 
 export const formatDateRange = (startDate: string, endDate: string) => {
   return formatDateOnlyRange(startDate, endDate, 'MMM d, yyyy', 'MMM d, yyyy') || 'Dates TBD';
 };
 
-export const getItineraryStatus = (startDate: string, endDate: string) => {
-  if (!startDate || !endDate) return 'planning';
-  
-  const today = localDateOnlyFromDate();
-  const start = asDateOnly(startDate);
-  const end = asDateOnly(endDate);
-  if (!start || !end) return 'planning';
-  if (compareDateOnly(today, start) < 0) return 'upcoming';
-  if (compareDateOnly(today, start) >= 0 && compareDateOnly(today, end) <= 0) return 'active';
-  return 'completed';
+export const getItineraryStatus = (startDate: string, endDate: string, today = localDateOnlyFromDate()) => {
+  return classifyTripPhase(startDate, endDate, today);
 };
 
-export const calculateUserStats = (activeItineraries: any[] | null | undefined, userProfile: any) => {
+interface StatsTrip {
+  itin_locations?: unknown;
+  locations?: unknown;
+}
+
+interface StatsProfile {
+  countries_visited?: unknown;
+  flight_freq?: unknown;
+}
+
+export const calculateUserStats = (activeItineraries: StatsTrip[] | null | undefined, userProfile: StatsProfile | null | undefined) => {
   const trips = Array.isArray(activeItineraries) ? activeItineraries : [];
-  // Get visited countries from user profile
-  const visitedCountries = Array.isArray(userProfile?.countries_visited) 
-    ? userProfile.countries_visited as string[] 
+  const visitedCountries = Array.isArray(userProfile?.countries_visited)
+    ? (userProfile.countries_visited as unknown[]).filter((country): country is string => typeof country === 'string' && country.trim().length > 0)
     : [];
 
-  const flightsThisYear = flightsFromProfile(userProfile?.flight_freq);
-
-  // Count unique cities from all itineraries
-  const uniqueCities = new Set();
-  trips.forEach(itinerary => {
-    if (Array.isArray(itinerary.locations)) {
-      itinerary.locations.forEach((location: string) => uniqueCities.add(location));
-    }
+  const locationNames = new Set<string>();
+  trips.forEach((itinerary) => {
+    const locations = Array.isArray(itinerary.itin_locations)
+      ? itinerary.itin_locations
+      : Array.isArray(itinerary.locations)
+        ? itinerary.locations
+        : [];
+    locations.forEach((location: unknown) => {
+      if (typeof location === 'string' && location.trim()) locationNames.add(location.trim());
+    });
   });
-
-  const today = new Date();
-
-  // Calculate total spending from fully completed itineraries only
-  const totalSpent = trips.reduce((sum, itinerary) => {
-    const endDate = itinerary.itin_date_end;
-    if (!endDate || new Date(endDate) >= today) return sum;
-    const spending = Number(itinerary.spending) || 0;
-    return sum + spending;
-  }, 0);
-
-  // Calculate projected spending from active + future itineraries (end date not yet passed)
-  const projectedSpend = trips.reduce((sum, itinerary) => {
-    const endDate = itinerary.itin_date_end;
-    if (!endDate || new Date(endDate) < today) return sum;
-    const spending = Number(itinerary.spending) || 0;
-    return sum + spending;
-  }, 0);
 
   return {
     totalTrips: trips.length,
     countriesVisited: visitedCountries.length,
-    citiesVisited: uniqueCities.size,
-    totalSpent,
-    projectedSpend,
-    lifetimeTotal: totalSpent + projectedSpend,
-    flightsThisYear: Number(flightsThisYear),
-    visitedCountries
+    citiesVisited: locationNames.size,
+    profileFlightFrequency: Number(flightsFromProfile(userProfile?.flight_freq)) || 0,
+    visitedCountries,
   };
 };
+
+export { asDateOnly, compareDateOnly };

@@ -2,9 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
+  CART_ANALYTICS_FIELDS,
   CART_BUDGET_FIELDS,
   CART_COMMERCE_FIELDS,
   CART_DETAIL_FIELDS,
+  EXTERNAL_BOOKING_ANALYTICS_FIELDS,
+  PROVIDER_BOOKING_ANALYTICS_FIELDS,
+  SETTLEMENT_ANALYTICS_FIELDS,
   CHAT_MESSAGE_FIELDS,
   FORBIDDEN_READ_FIELDS,
   ITINERARY_BUDGET_FIELDS,
@@ -21,6 +25,7 @@ const CONTAINED_PATHS = [
   'src/hooks/useItineraryData.ts',
   'src/hooks/useItineraryChat.ts',
   'src/hooks/useDashboardData.ts',
+  'src/hooks/useTravelAnalytics.ts',
   'src/components/itinerary/BudgetPieChart.tsx',
   'src/components/booking/BookingCart.tsx',
 ];
@@ -33,6 +38,10 @@ describe('projection allow-lists', () => {
       CART_COMMERCE_FIELDS,
       CART_DETAIL_FIELDS,
       CART_BUDGET_FIELDS,
+      CART_ANALYTICS_FIELDS,
+      EXTERNAL_BOOKING_ANALYTICS_FIELDS,
+      PROVIDER_BOOKING_ANALYTICS_FIELDS,
+      SETTLEMENT_ANALYTICS_FIELDS,
       CHAT_MESSAGE_FIELDS,
     ];
     for (const projection of projections) {
