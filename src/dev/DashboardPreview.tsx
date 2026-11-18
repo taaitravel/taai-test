@@ -127,17 +127,9 @@ const DashboardPreview = () => {
           fullUserStats={{ countriesVisited: 2, travelerLevel: 'Wanderer' }}
         />
         <TravelMetrics
-          userStats={{
-            totalTrips: 2,
-            countriesVisited: 2,
-            citiesVisited: 2,
-            profileFlightFrequency: 0,
-            travelerLevel: 'Wanderer',
-          }}
-          visitedCountries={['Spain', 'Japan']}
-          phaseCounts={{ active: 1, upcoming: 0, planning: 0, completed: 1 }}
           analytics={analytics}
-          startOpen={new URLSearchParams(window.location.search).get('metrics') === '1'}
+          profileCountries={2}
+          href="/internal/travel-metrics-preview"
         />
         <TripsSection activeItineraries={trips} loading={false} />
       </div>

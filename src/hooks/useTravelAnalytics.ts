@@ -5,6 +5,7 @@ import { guardRead } from '@/lib/data/read-guard';
 import {
   CART_ANALYTICS_FIELDS,
   EXTERNAL_BOOKING_ANALYTICS_FIELDS,
+  EXTERNAL_BOOKING_ANALYTICS_FIELDS_BASE,
   PAGE_SIZES,
   PROVIDER_BOOKING_ANALYTICS_FIELDS,
   SETTLEMENT_ANALYTICS_FIELDS,
@@ -30,6 +31,22 @@ import {
 import type { MetricsInput, OccurrenceInput, ReportedPaymentInput, SettlementInput, ShareInput } from '@/lib/dashboard/travel-metrics';
 
 const LIMIT = PAGE_SIZES.analytics;
+
+async function readExternalBookings(itineraryIds: number[]) {
+  const extended = assertSafeProjection('external analytics', EXTERNAL_BOOKING_ANALYTICS_FIELDS);
+  const first = await readRows<AnalyticsExternalRow>('external', () => supabase
+    .from('trip_external_bookings')
+    .select(extended)
+    .in('itinerary_id', itineraryIds)
+    .limit(LIMIT));
+  if (!first.error || !/service_date|service_end_date|column/i.test(first.error)) return first;
+  const base = assertSafeProjection('external analytics', EXTERNAL_BOOKING_ANALYTICS_FIELDS_BASE);
+  return readRows<AnalyticsExternalRow>('external', () => supabase
+    .from('trip_external_bookings')
+    .select(base)
+    .in('itinerary_id', itineraryIds)
+    .limit(LIMIT));
+}
 
 export interface TravelAnalyticsState {
   input: MetricsInput;
@@ -88,7 +105,6 @@ export function useTravelAnalytics(trips: AnalyticsTripRow[]): TravelAnalyticsSt
 
     const load = async () => {
       const cartProjection = assertSafeProjection('cart analytics', CART_ANALYTICS_FIELDS);
-      const externalProjection = assertSafeProjection('external analytics', EXTERNAL_BOOKING_ANALYTICS_FIELDS);
       const providerProjection = assertSafeProjection('provider analytics', PROVIDER_BOOKING_ANALYTICS_FIELDS);
       const settlementProjection = assertSafeProjection('settlement analytics', SETTLEMENT_ANALYTICS_FIELDS);
       const shareProjection = assertSafeProjection('share analytics', SHARE_ANALYTICS_FIELDS);
@@ -100,12 +116,8 @@ export function useTravelAnalytics(trips: AnalyticsTripRow[]): TravelAnalyticsSt
           .eq('user_id', userId)
           .limit(LIMIT)),
         itineraryIds.length
-          ? readRows<AnalyticsExternalRow>('external', () => supabase
-            .from('trip_external_bookings')
-            .select(externalProjection)
-            .in('itinerary_id', itineraryIds)
-            .limit(LIMIT))
-          : Promise.resolve({ rows: [], error: null, truncated: false }),
+          ? readExternalBookings(itineraryIds)
+          : Promise.resolve({ rows: [] as AnalyticsExternalRow[], error: null, truncated: false }),
         readRows<AnalyticsProviderRow>('provider', () => supabase
           .from('expedia_bookings')
           .select(providerProjection)

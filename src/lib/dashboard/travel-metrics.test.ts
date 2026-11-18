@@ -134,6 +134,20 @@ describe('recorded costs are not paid spend', () => {
     expect(flagged.fixturesExcluded).toBe(1);
     expect(flagged.openTripFigures).toHaveLength(0);
     expect(flagged.categories.all.byCurrency).toEqual([]);
+
+    const demo = buildTravelMetrics(empty({
+      trips: [{
+        id: '1',
+        name: 'Demo week',
+        start: '2026-12-01',
+        end: '2026-12-04',
+        budget: 10,
+        spending: 10,
+        provenance: 'demo',
+      }],
+    }), query());
+    expect(demo.fixturesExcluded).toBe(0);
+    expect(demo.openTripFigures).toHaveLength(1);
   });
 });
 
@@ -445,6 +459,22 @@ describe('source mapping', () => {
     });
     expect(external.serviceDate).toBeNull();
     expect(external.linkedToId).toBe('cart:c2');
+    expect(occurrenceFromExternal({
+      id: 'e2',
+      itinerary_id: 9,
+      category: 'hotel',
+      currency: 'usd',
+      total_amount: 240,
+      service_date: '2026-11-01',
+      service_end_date: '2026-11-04',
+      booking_title: 'Hotel Le Marais',
+    })).toMatchObject({
+      category: 'properties',
+      currency: 'USD',
+      serviceDate: '2026-11-01',
+      serviceEnd: '2026-11-04',
+      title: 'Hotel Le Marais',
+    });
     expect(reportedFromExternal({
       id: 'e1',
       itinerary_id: 9,

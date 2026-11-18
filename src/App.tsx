@@ -23,6 +23,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const TravelMetrics = lazy(() => import("./pages/TravelMetrics"));
 const CreateItinerary = lazy(() => import("./pages/CreateItinerary"));
 const CreateManualItinerary = lazy(() => import("./pages/CreateManualItinerary"));
 const Itinerary = lazy(() => import("./pages/Itinerary"));
@@ -48,6 +49,9 @@ const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const PublicItinerary = lazy(() => import("./pages/PublicItinerary"));
 const DashboardPreview = import.meta.env.DEV
   ? lazy(() => import("./dev/DashboardPreview"))
+  : null;
+const TravelMetricsPreview = import.meta.env.DEV
+  ? lazy(() => import("./dev/TravelMetricsPreview"))
   : null;
 
 const RouteFallback = () => (
@@ -114,6 +118,11 @@ const App = () => (
                   <Dashboard />
                 </ProtectedRoute>
               } />
+              <Route path="/travel-metrics" element={
+                <ProtectedRoute>
+                  <TravelMetrics />
+                </ProtectedRoute>
+              } />
               <Route path="/new-itinerary" element={
                 <ProtectedRoute>
                   <CreateItinerary />
@@ -139,6 +148,9 @@ const App = () => (
               <Route path="/discover" element={<Discover />} />
               {DashboardPreview ? (
                 <Route path="/internal/dashboard-preview" element={<DashboardPreview />} />
+              ) : null}
+              {TravelMetricsPreview ? (
+                <Route path="/internal/travel-metrics-preview" element={<TravelMetricsPreview />} />
               ) : null}
               <Route path="/p/:slug" element={<PublicProfile />} />
               <Route path="/t/:slug" element={<PublicItinerary />} />
