@@ -807,19 +807,24 @@ function buildShare(headline: string[], spend: StoryMoney | null, nights: number
   return lines.join('\n');
 }
 
+/** Passport-style name: uppercased, accents removed, spaces and punctuation become <. */
+export function mrzName(name: string | null | undefined): string {
+  const stripped = (name ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  const encoded = stripped
+    .toUpperCase()
+    .replace(/[^A-Z]+/g, '<')
+    .replace(/^<+|<+$/g, '');
+  return encoded || 'TRAVELER';
+}
+
 function buildMrz(name: string | null, trips: number, nights: number | null, countries: number, home: string | null, today: string): string {
-  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
-  const surname = letters(parts.length ? parts[parts.length - 1] : 'TRAVELER');
-  const given = letters(parts.length > 1 ? parts.slice(0, -1).join('<') : 'TRAVELER') || 'TRAVELER';
   const issued = mrzDate(today);
-  const body = `TAAI<<${given}<${surname}<<${trips}TRIPS<${nights ?? 0}N<${countries}CTY`;
+  const body = `TAAI<<${mrzName(name)}<<${trips}TRIPS<${nights ?? 0}N<${countries}CTY`;
   const tail = `ISSUED${issued}${home ?? ''}`;
   const filler = '<'.repeat(Math.max(4, 72 - body.length - tail.length));
   return `${body}${filler}${tail}<<<<TAAI.TRAVEL`;
-}
-
-function letters(value: string): string {
-  return value.toUpperCase().replace(/[^A-Z<]/g, '');
 }
 
 function mrzDate(today: string): string {

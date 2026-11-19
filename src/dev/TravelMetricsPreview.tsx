@@ -21,7 +21,7 @@ const TravelMetricsPreview = () => {
     today: TODAY,
     time,
     profileCountries: null,
-    profileName: 'Marco Brugo',
+    profileName: null,
   }), [input, time]);
 
   return (

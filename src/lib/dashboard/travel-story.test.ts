@@ -6,7 +6,7 @@ import { greatCircleMiles, AIRPORTS } from './airports';
 import { DEMO_TRIPS, demoMetricsInput, demoTripTotal } from './demo-itineraries';
 import { renderDemoSeedSql } from './demo-seed-sql';
 import { buildTravelMetrics, type MetricsInput } from './travel-metrics';
-import { buildTravelStory, carrierFromTitle, parsePlace, spellCount } from './travel-story';
+import { buildTravelStory, carrierFromTitle, mrzName, parsePlace, spellCount } from './travel-story';
 
 const TODAY = '2026-11-18';
 
@@ -14,7 +14,7 @@ const story = (time: { kind: 'all' } | { kind: 'year'; year: number } = { kind: 
   today: TODAY,
   time,
   profileCountries: null,
-  profileName: 'Marco Brugo',
+  profileName: null,
 });
 
 describe('demo itineraries', () => {
@@ -138,6 +138,29 @@ describe('travel story from the demo account', () => {
     expect(flagged.fixturesExcluded).toBe(1);
     const allUsd = DEMO_TRIPS.reduce((sum, trip) => sum + demoTripTotal(trip), 0);
     expect(flagged.categories.all.byCurrency[0].amount).toBe(allUsd - 25300);
+  });
+});
+
+describe('passport name line', () => {
+  const mrzFor = (profileName: string | null) => buildTravelStory(demoMetricsInput(), {
+    today: TODAY,
+    time: { kind: 'all' },
+    profileCountries: null,
+    profileName,
+  }).mrz;
+
+  it('builds the name from the profile, with a traveler fallback', () => {
+    expect(mrzName('Ada Lovelace')).toBe('ADA<LOVELACE');
+    expect(mrzName('José García-López')).toBe('JOSE<GARCIA<LOPEZ');
+    expect(mrzName(null)).toBe('TRAVELER');
+    expect(mrzName('   ')).toBe('TRAVELER');
+    expect(mrzName("Mary-Jane O'Brien")).toBe('MARY<JANE<O<BRIEN');
+
+    expect(mrzFor('Ada Lovelace')).toContain('TAAI<<ADA<LOVELACE<<');
+    expect(mrzFor('José García-López')).toContain('TAAI<<JOSE<GARCIA<LOPEZ<<');
+    expect(mrzFor(null)).toContain('TAAI<<TRAVELER<<');
+    expect(mrzFor('Ada Lovelace')).not.toContain('MARCO');
+    expect(mrzFor(null)).not.toContain('MARCO');
   });
 });
 

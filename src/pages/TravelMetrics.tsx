@@ -10,7 +10,10 @@ const TravelMetricsPage = () => {
   const analytics = useTravelAnalytics(activeItineraries);
   const [time, setTime] = useState<TimeFilter>({ kind: 'all' });
   const today = localDateOnlyFromDate();
-  const profileName = [userProfile?.first_name, userProfile?.last_name].filter(Boolean).join(' ') || null;
+  const profileName = [userProfile?.first_name, userProfile?.last_name]
+    .map((part) => part?.trim() ?? '')
+    .filter(Boolean)
+    .join(' ') || null;
   const story = useMemo(() => buildTravelStory(analytics.input, {
     today,
     time,
