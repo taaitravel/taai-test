@@ -21,7 +21,7 @@ export const COST_CATEGORIES = [
 
 export type CostCategory = (typeof COST_CATEGORIES)[number];
 export type CategoryFilter = CostCategory | 'all';
-export type Provenance = 'user' | 'synthetic' | 'fixture' | 'qa_fixture';
+export type Provenance = 'user' | 'demo' | 'synthetic' | 'fixture' | 'qa_fixture';
 export type TimeFilter = { kind: 'all' } | { kind: 'year'; year: number };
 
 export const PROVENANCE_GAP =
@@ -37,6 +37,12 @@ export interface TripInput {
   budget: number | null;
   spending: number | null;
   provenance?: Provenance | null;
+  /** Planned party size stored on the itinerary. Missing is not treated as one. */
+  travelers?: number | null;
+  locations?: string[] | null;
+  note?: string | null;
+  /** Public trip code, such as the itinerary's itin_id. */
+  code?: string | null;
 }
 
 export interface OccurrenceInput {
@@ -55,6 +61,10 @@ export interface OccurrenceInput {
   segments: number | null;
   linkedToId: string | null;
   provenance?: Provenance | null;
+  title?: string | null;
+  memo?: string | null;
+  origin?: string | null;
+  destination?: string | null;
 }
 
 export interface ShareInput {
@@ -354,19 +364,27 @@ function explicitShare(share: ShareInput): boolean {
   return method === 'amount' || method === 'percent';
 }
 
-export function buildTravelMetrics(input: MetricsInput, query: MetricsQuery): MetricsResult {
+/** Trips and lines that stay on the metrics page. Demo rows stay. Fixture provenance does not. */
+export function selectMetricRecords(input: MetricsInput): {
+  trips: TripInput[];
+  occurrences: OccurrenceInput[];
+  fixturesExcluded: number;
+} {
   const fixtureTripIds = new Set(
     input.trips.filter((trip) => isFixtureProvenance(trip.provenance)).map((trip) => trip.id),
   );
   const fixturesExcluded = input.trips.filter((trip) => fixtureTripIds.has(trip.id)).length;
-
-  const keptTrips = input.trips.filter((trip) => !fixtureTripIds.has(trip.id));
+  const trips = input.trips.filter((trip) => !fixtureTripIds.has(trip.id));
   const rawOccurrences = input.occurrences.filter((record) => {
     if (isFixtureProvenance(record.provenance)) return false;
     if (record.tripId && fixtureTripIds.has(record.tripId)) return false;
     return true;
   });
-  const occurrences = collapseLinked(rawOccurrences);
+  return { trips, occurrences: collapseLinked(rawOccurrences), fixturesExcluded };
+}
+
+export function buildTravelMetrics(input: MetricsInput, query: MetricsQuery): MetricsResult {
+  const { trips: keptTrips, occurrences, fixturesExcluded } = selectMetricRecords(input);
 
   const years = new Set<number>();
   for (const record of occurrences) {
@@ -521,7 +539,6 @@ export function buildTravelMetrics(input: MetricsInput, query: MetricsQuery): Me
   for (const share of input.shares) {
     const parent = occurrenceById.get(share.occurrenceId);
     if (!parent || parent.archived || isCancelledStatus(parent.status, parent.cancelled)) continue;
-    if (parent.tripId && fixtureTripIds.has(parent.tripId)) continue;
     if (!categoryMatches(parent.category)) continue;
     const shareTiming = inTime(parent.serviceDate, query.time);
     if (shareTiming === 'out' || (shareTiming === 'undated' && query.time.kind === 'year')) continue;

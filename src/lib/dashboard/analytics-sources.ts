@@ -24,10 +24,13 @@ export interface AnalyticsTripRow {
   id: number | string;
   itin_id?: string | null;
   itin_name?: string | null;
+  itin_desc?: string | null;
   itin_date_start?: string | null;
   itin_date_end?: string | null;
   budget?: number | null;
   spending?: number | null;
+  planned_traveler_count?: number | null;
+  itin_locations?: unknown;
   provenance?: Provenance | null;
 }
 
@@ -38,6 +41,7 @@ export interface AnalyticsCartRow {
   price?: number | null;
   booking_status?: string | null;
   item_kind?: string | null;
+  item_name?: string | null;
   item_currency?: string | null;
   item_service_timezone?: string | null;
   item_service_dates?: {
@@ -68,6 +72,12 @@ export interface AnalyticsExternalRow {
   start_at?: string | null;
   end_at?: string | null;
   associated_itinerary_item_id?: string | null;
+  booking_title?: string | null;
+  notes?: string | null;
+  origin?: string | null;
+  destination?: string | null;
+  service_date?: string | null;
+  service_end_date?: string | null;
 }
 
 export interface AnalyticsProviderRow {
@@ -98,6 +108,17 @@ export interface AnalyticsShareRow {
   payment_status?: string | null;
 }
 
+function locationNames(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0).map((entry) => entry.trim());
+}
+
+function travelerCount(value: unknown): number | null {
+  const count = typeof value === 'number' ? value : typeof value === 'string' && value.trim() ? Number(value) : NaN;
+  if (!Number.isInteger(count) || count < 1) return null;
+  return count;
+}
+
 export function tripInputFromRow(row: AnalyticsTripRow): TripInput {
   return {
     id: String(row.id),
@@ -107,6 +128,10 @@ export function tripInputFromRow(row: AnalyticsTripRow): TripInput {
     budget: row.budget ?? null,
     spending: row.spending ?? null,
     provenance: row.provenance ?? null,
+    travelers: travelerCount(row.planned_traveler_count),
+    locations: locationNames(row.itin_locations),
+    note: row.itin_desc?.trim() || null,
+    code: row.itin_id?.trim() || null,
   };
 }
 
@@ -145,6 +170,7 @@ export function occurrenceFromCart(row: AnalyticsCartRow, tripId: string | null)
     rooms: null,
     segments: null,
     linkedToId: null,
+    title: row.item_name?.trim() || null,
   };
 }
 
@@ -159,14 +185,32 @@ export function occurrenceFromExternal(row: AnalyticsExternalRow): OccurrenceInp
     category: categoryForSource(row.category),
     amount: recordedAmount(row.total_amount),
     currency: normalizeCurrency(row.currency),
-    serviceDate: null,
-    serviceEnd: null,
+    serviceDate: dateOnlyField(row.service_date),
+    serviceEnd: dateOnlyField(row.service_end_date),
     status: row.record_status ?? null,
     archived: row.record_status === 'archived',
     rooms: null,
     segments: null,
     linkedToId: linked,
+    title: row.booking_title?.trim() || null,
+    memo: row.notes?.trim() || null,
+    origin: airportCode(row.origin),
+    destination: airportCode(row.destination),
   };
+}
+
+/** A calendar date column only. A timestamp is not a service date. */
+function dateOnlyField(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (trimmed.length !== 10) return null;
+  return asDateOnly(trimmed);
+}
+
+function airportCode(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const code = value.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(code) ? code : null;
 }
 
 export function reportedFromExternal(row: AnalyticsExternalRow): ReportedPaymentInput {

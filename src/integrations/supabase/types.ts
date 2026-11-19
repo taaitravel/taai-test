@@ -2255,6 +2255,8 @@ export type Database = {
           currency: string
           destination: string | null
           end_at: string | null
+          service_date: string | null
+          service_end_date: string | null
           evidence_quality: string
           evidence_type: string
           id: string
@@ -2291,6 +2293,8 @@ export type Database = {
           currency?: string
           destination?: string | null
           end_at?: string | null
+          service_date?: string | null
+          service_end_date?: string | null
           evidence_quality?: string
           evidence_type?: string
           id?: string
@@ -2327,6 +2331,8 @@ export type Database = {
           currency?: string
           destination?: string | null
           end_at?: string | null
+          service_date?: string | null
+          service_end_date?: string | null
           evidence_quality?: string
           evidence_type?: string
           id?: string

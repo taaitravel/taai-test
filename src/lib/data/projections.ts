@@ -94,12 +94,13 @@ export const CART_ANALYTICS_FIELDS = [
   'price',
   'booking_status',
   'item_kind:item_data->>type',
+  'item_name:item_data->>name',
   'item_currency:item_data->>currency',
   'item_service_timezone:item_data->service_timing->>service_timezone',
   'item_service_dates:item_data->service_dates',
 ].join(', ');
 
-export const EXTERNAL_BOOKING_ANALYTICS_FIELDS = [
+const EXTERNAL_BOOKING_ANALYTICS_BASE = [
   'id',
   'itinerary_id',
   'category',
@@ -110,7 +111,21 @@ export const EXTERNAL_BOOKING_ANALYTICS_FIELDS = [
   'evidence_quality',
   'record_status',
   'associated_itinerary_item_id',
+  'booking_title',
+  'notes',
+  'origin',
+  'destination',
+];
+
+/** Includes service dates added by the demo-itinerary migration. */
+export const EXTERNAL_BOOKING_ANALYTICS_FIELDS = [
+  ...EXTERNAL_BOOKING_ANALYTICS_BASE,
+  'service_date',
+  'service_end_date',
 ].join(', ');
+
+/** Fallback when service_date has not been added yet. Amounts still load; the chart has no dates. */
+export const EXTERNAL_BOOKING_ANALYTICS_FIELDS_BASE = EXTERNAL_BOOKING_ANALYTICS_BASE.join(', ');
 
 export const PROVIDER_BOOKING_ANALYTICS_FIELDS = [
   'id',

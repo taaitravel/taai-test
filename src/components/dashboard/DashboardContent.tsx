@@ -42,14 +42,7 @@ export const DashboardContent = () => {
       </div>
 
       <StatsSection
-        userStats={fullUserStats}
         visitedCountries={visitedCountries}
-        phaseCounts={{
-          active: phases.active.length,
-          upcoming: phases.upcoming.length,
-          planning: phases.planning.length,
-          completed: phases.completed.length,
-        }}
         analytics={analytics}
       />
 
